@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>horcom Handbook, aspects</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="sky">
+  <h1>aspects</h1>
+  <p class="sub">The harmonic scanner, his orbs and the midpoints</p>
+</header>
+
+<nav class="crumbs"><a href="index.html">handbook</a> / aspects</nav>
+
+<main>
+
+<h2>Purpose</h2>
+<p>
+Robert's aspect engine is a harmonic scanner. It walks the divisors of the
+circle from one to twelve, or sixteen, and tests every body pair against a
+window around each multiple of the base angle. A pair that matched under a
+smaller divisor is claimed and never tested again, so the classical aspect
+always wins over an exotic one. The same machinery, run three times with
+different offsets, finds the midpoint contacts.
+</p>
+
+<h2>Origin map</h2>
+<table>
+  <tr><th>original</th><th>ported as</th><th>file</th></tr>
+  <tr><td><code>asp0, asp10, asp1, asp11</code></td><td><code>scan_aspects</code></td><td rowspan="3"><code>src/horcom/chart/aspects.*</code></td></tr>
+  <tr><td><code>org, orbis_discr2, orbis_discr3</code></td><td>internal orb helpers</td></tr>
+  <tr><td><code>halbs1, halbs11, halbs111</code></td><td><code>scan_midpoints</code></td></tr>
+  <tr><td><code>orb, nasp&amp;, orbe!, orbe(), or&amp;()</code></td><td><code>AspectSettings</code></td><td><code>src/horcom/chart/aspects.hpp</code></td></tr>
+  <tr><td><code>a18st</code></td><td>internal slot walker</td><td><code>src/horcom/chart/aspects.cpp</code></td></tr>
+</table>
+
+<h2>The orb system</h2>
+<p>
+The default window of a divisor is a thirtieth of its base angle scaled by
+the global ORBIS-FAKTOR, twelve degrees for the conjunction, six for the
+opposition, four for the trine. Each body carries a percentage weight, the
+pair takes the LARGER of the two weights, and a weight of zero silences a
+body entirely. His alternative mode, the gleichwahrscheinliche Aspekte,
+swaps in a user table of orbs and restricts each divisor to its classical
+multiples, twelve keeps only 1, 5, 7 and 11, eight keeps the odd ones. His
+dialog explains the intent in his own words
+</p>
+<blockquote class="rr">...werden Orbes gewählt, die etwa GLEICHE Wahrscheinlichkeit für alle Aspekte mit Teiler 1 bis 12 aufweisen ! ( 1930 bis 2050 )
+<footer>from the settings dialog of the equal probability mode</footer>
+</blockquote>
+
+<h2>The Schiemenz counters</h2>
+<p>
+Two statistics ride inside the scanner, both introduced for the research
+correspondence his change log attributes to Schiemenz. The Triga counter
+joins conjunctions that share a body, consuming the shared ends so nothing
+counts twice. The grand trine counter searches triples of divisor three
+hits whose endpoints close a triangle, with a degeneracy guard against
+three bodies standing in one spot.
+</p>
+<blockquote class="rr">// Schiemenz Triga-Zähler:
+// Schiemenz Großtrigon-Zähler:
+// Schiemenzschen Aspektezähler eingebaut                    04.01.03
+<footer>his section markers and the change log entry</footer>
+</blockquote>
+
+<h2>Midpoints</h2>
+<p>
+Three passes, direct, square and the semi square family, test every body
+against the half sum of every pair, each with the midpoint's antipode, one
+degree of base orb. A shared cube of flags spans the passes so the square
+that also fits the semi square family counts once. Two quirks are kept
+knowingly, the third body's weight only gates positivity in
+orbis_discr3, and a body standing at exactly zero degrees Aries never
+aspects at all because the original tests the raw position against zero.
+The tests document both.
+</p>
+
+<h2>Verification</h2>
+<p>
+<code>test_aspects.cpp</code> runs synthetic charts through the scanner,
+the trine window, the conjunction across the zero wrap, the
+smaller divisor claiming a pair before a larger one can, the silent node
+pair, silent zero weight bodies, the orb factor scaling, the equal
+probability multiple filter, a chained conjunction for the Triga counter,
+a closed grand trine, midpoint hits in all three passes, the antipode
+rule and the cross pass duplicate guard.
+</p>
+
+</main>
+
+<footer class="page">In memory of Robert Rettig, who built all of this first.</footer>
+
+</body>
+</html>
