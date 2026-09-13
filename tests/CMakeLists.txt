@@ -8,6 +8,8 @@ add_executable(horcom_tests
   test_sunmoon.cpp
   test_kepler.cpp
   test_eph_file.cpp
+  test_houses.cpp
+  test_chart.cpp
 )
 
 target_link_libraries(horcom_tests PRIVATE horcom)
