@@ -15,6 +15,8 @@
 #include <QTableWidget>
 #include <QVBoxLayout>
 
+#include "horcom/core/constants.hpp"
+
 namespace horcom {
 
 namespace {
@@ -27,8 +29,8 @@ QString slot_tag(int slot) {
 QString moment_text(double jd_ut, QString& time_out) {
   const CalendarDate d = calendar_date(jd_ut);
   int seconds = static_cast<int>((d.hour * 60.0 + d.minute) * 60.0 + 0.5);
-  if (seconds >= 86400) {
-    seconds = 86399;
+  if (seconds >= kSecondsPerDay) {
+    seconds = kSecondsPerDay - 1;
   }
   time_out = QString::asprintf("%02d:%02d", seconds / 3600, (seconds / 60) % 60);
   return QString::asprintf("%02d.%02d.%04d", d.day, d.month, d.year);

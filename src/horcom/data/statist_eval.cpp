@@ -425,7 +425,7 @@ StatEvalResult evaluate_statistics(const StatSet& set, const StatQuery& q, const
         e.f = stat_houses(r);
         w1 = e.f[static_cast<std::size_t>(q.house)] + kEps;
         w2 = e.f[static_cast<std::size_t>(q.house) + 1];
-        const double dw = (w2 - w1) * q.house_orb_pct / 100.0;
+        const double dw = (w2 - w1) * q.house_orb_pct / kPercent;
         w1 = norm_rad(e.f[static_cast<std::size_t>(q.house)] - dw + kEps);
         w2 = norm_rad(e.f[static_cast<std::size_t>(q.house) + 1] + dw);
         break;

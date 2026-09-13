@@ -16,9 +16,7 @@ namespace {
 
 // the default window is the base angle over thirty, his pn / 30
 constexpr double kDefaultOrbDivisor = 30.0;
-constexpr double kPercent = 100.0;
 
-// the original org, weight percent to orb fraction
 // the original a18st for the geocentric scan, jumps the gap between the
 // angles and the extra bodies and skips bodies outside their ephemeris
 int next_slot(const Chart& chart, const ChartSettings& s, int slot, int np) {
@@ -38,9 +36,9 @@ int next_slot(const Chart& chart, const ChartSettings& s, int slot, int np) {
 }
 
 // the positions array of the original asp10, AC and MC live on 13 and 14
-std::array<double, 41> positions(const Chart& chart) {
-  std::array<double, 41> as{};
-  for (int t = 0; t <= 40; ++t) {
+std::array<double, body::kSlotCount> positions(const Chart& chart) {
+  std::array<double, body::kSlotCount> as{};
+  for (int t = 0; t < body::kSlotCount; ++t) {
     const BodyState& b = chart.b[static_cast<std::size_t>(t)];
     as[static_cast<std::size_t>(t)] = (b.present && b.valid) ? b.el : 0.0;
   }
@@ -103,7 +101,7 @@ void AspectSettings::preset_equal_orbs() {
 
 AspectResult scan_aspects(const Chart& chart, const ChartSettings& s, const AspectSettings& a) {
   AspectResult out;
-  const std::array<double, 41> as = positions(chart);
+  const std::array<double, body::kSlotCount> as = positions(chart);
   const int np = s.body_count();
   const int bb = s.extra_bodies ? np : 14;
   const bool no_angle_aspects = s.houses == HouseSystem::kAcMcOnly || s.houses == HouseSystem::kNone;
@@ -247,11 +245,11 @@ AspectResult scan_aspects(const Chart& chart, const ChartSettings& s, const Aspe
 
 MidpointResult scan_midpoints(const Chart& chart, const ChartSettings& s, const AspectSettings& a) {
   MidpointResult out;
-  const std::array<double, 41> as = positions(chart);
+  const std::array<double, body::kSlotCount> as = positions(chart);
   const int np = s.body_count();
   const int bb = s.extra_bodies ? np : 14;
   // the drk! cube spans all three passes like the DIM in halbs1
-  auto drk = std::make_unique<std::array<std::array<std::array<bool, 41>, 41>, 41>>();
+  auto drk = std::make_unique<std::array<std::array<std::array<bool, body::kSlotCount>, body::kSlotCount>, body::kSlotCount>>();
 
   for (int nh : {1, 2, 4}) {
     const double dd = a.equal_probability ? a.orb * a.orbe[14] : a.orb * kDegToRad;
@@ -334,12 +332,12 @@ std::vector<CrossAspectHit> scan_aspects_between(const Chart& first, const Chart
     const BodyState& b = c.b[static_cast<std::size_t>(slot)];
     return b.present && b.valid && slot != body::kNodeDesc;
   };
-  for (int t = 1; t <= 40; ++t) {
+  for (int t = 1; t < body::kSlotCount; ++t) {
     if (!active(first, t)) {
       continue;
     }
     const double wa1 = norm_rad(first.b[static_cast<std::size_t>(t)].el);
-    for (int w = 1; w <= 40; ++w) {
+    for (int w = 1; w < body::kSlotCount; ++w) {
       if (!active(second, w)) {
         continue;
       }

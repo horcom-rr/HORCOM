@@ -51,6 +51,12 @@ inline constexpr double kSolarToSiderealRate = 1.002737908;
 inline constexpr double kDegPerHour = 15.0;
 inline constexpr double kDegPerSign = 30.0;
 
+/// per body orb weights and house orb percentages count in percent
+inline constexpr double kPercent = 100.0;
+
+/// clock seconds of one civil day, the clamp ceiling of the panels
+inline constexpr int kSecondsPerDay = 86400;
+
 /// radians of nutation to hours of right ascension, the original's
 /// rounded twelve over pi
 inline constexpr double kRadToRaHours = 3.8197186;

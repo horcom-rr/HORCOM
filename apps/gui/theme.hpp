@@ -219,15 +219,23 @@ QToolButton:pressed {
 }
 )qss";
 
+/// The text scale of the Ansicht menu, percent of the design size.
+inline constexpr int kTextScaleMin = 70;
+inline constexpr int kTextScaleMax = 180;
+inline constexpr int kTextScaleStep = 10;
+inline constexpr int kTextScaleNormal = 100;
+/// the settings key the scale survives under between runs
+inline constexpr const char* kTextScaleKey = "view/textScale";
+
 /// Builds the stylesheet at a text scale.
 ///
-/// @param percent one hundred is the design size, clamped 70 to 180
+/// @param percent one hundred is the design size, clamped to the range
 /// @return the sheet with every font size scaled
 inline QString stylesheet(int percent) {
-  const int p = std::clamp(percent, 70, 180);
+  const int p = std::clamp(percent, kTextScaleMin, kTextScaleMax);
   QString qss = QString::fromUtf8(kStyleSheetTemplate);
   for (const int base : {13, 12, 11, 10}) {
-    qss.replace(QString("@%1px@").arg(base), QString("%1px").arg(std::max(7, base * p / 100)));
+    qss.replace(QString("@%1px@").arg(base), QString("%1px").arg(std::max(7, base * p / kTextScaleNormal)));
   }
   return qss;
 }

@@ -15,6 +15,8 @@
 #include <QTableWidget>
 #include <QVBoxLayout>
 
+#include "horcom/core/constants.hpp"
+
 namespace horcom {
 
 namespace {
@@ -84,8 +86,8 @@ void IngressDialog::run_scan() {
     }
     const CalendarDate c = calendar_date(hit.jd_ut, ctx_.settings.calendar);
     int seconds = static_cast<int>((c.hour * 60.0 + c.minute) * 60.0 + 0.5);
-    if (seconds >= 86400) {
-      seconds = 86399;
+    if (seconds >= kSecondsPerDay) {
+      seconds = kSecondsPerDay - 1;
     }
     table_->setItem(row, 1, new QTableWidgetItem(QString::asprintf("%02d.%02d.%04d", c.day, c.month, c.year)));
     table_->setItem(row, 2, new QTableWidgetItem(QString::asprintf("%02d:%02d", seconds / 3600, (seconds / 60) % 60)));

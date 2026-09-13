@@ -31,7 +31,7 @@ struct AspectSettings {
   std::array<double, 15> orbe{};
   /// the original or&(0..40), per body orb weight in percent, 100 neutral,
   /// zero switches a body's aspects off
-  std::array<int, 41> weight{};
+  std::array<int, body::kSlotCount> weight{};
 
   AspectSettings() { weight.fill(100); }
 
@@ -51,11 +51,11 @@ struct AspectHit {
 /// Result of one aspect scan.
 struct AspectResult {
   /// the original asp(t,w), the matched angle, two pi for the conjunction
-  std::array<std::array<double, 41>, 41> asp{};
+  std::array<std::array<double, body::kSlotCount>, body::kSlotCount> asp{};
   /// the original zh&(n), hits per divisor
   std::array<int, 17> zh{};
   /// the original az&(t), hits per body
-  std::array<int, 41> az{};
+  std::array<int, body::kSlotCount> az{};
   /// the original aspz%(14), the Schiemenz Triga count
   int triga = 0;
   /// the original aspz%(15), the Schiemenz grand trine count

@@ -27,7 +27,7 @@ Chart harmonic_chart(const Chart& base, double n, HarmonicHouses mode, HouseSyst
   if (h.b[body::kNodeDesc].present) {
     h.b[body::kNodeDesc].el = norm_rad(h.b[body::kNodeAsc].el + kPi);
   }
-  for (int slot = 19; slot <= 40; ++slot) {
+  for (int slot = 19; slot < body::kSlotCount; ++slot) {
     BodyState& b = h.b[static_cast<std::size_t>(slot)];
     if (!b.present) {
       continue;
@@ -88,7 +88,7 @@ Chart harmonic_chart(const Chart& base, double n, HarmonicHouses mode, HouseSyst
 // ported from HORCOM a12f
 Chart dial_chart(const Chart& base, double dop) {
   Chart d = base;
-  for (int slot = 0; slot <= 40; ++slot) {
+  for (int slot = 0; slot < body::kSlotCount; ++slot) {
     BodyState& b = d.b[static_cast<std::size_t>(slot)];
     if (b.present && b.valid) {
       b.el = norm_rad(dop * base.b[static_cast<std::size_t>(slot)].el);

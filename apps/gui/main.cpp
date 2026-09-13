@@ -46,7 +46,8 @@ int main(int argc, char** argv) {
   QApplication::setApplicationName("horcom");
   QApplication::setOrganizationName("horcom");
   // the remembered text scale of the Ansicht menu
-  app.setStyleSheet(horcom::theme::stylesheet(QSettings().value("view/textScale", 100).toInt()));
+  app.setStyleSheet(horcom::theme::stylesheet(
+      QSettings().value(horcom::theme::kTextScaleKey, horcom::theme::kTextScaleNormal).toInt()));
   const QStringList args = QApplication::arguments();
 
   // German is the native language of the program, every other locale

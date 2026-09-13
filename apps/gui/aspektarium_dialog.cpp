@@ -119,7 +119,7 @@ void AspektariumDialog::rebuild() {
   const bool helio = !chart_.b[body::kSun].present && chart_.b[body::kMoon].present;
   std::vector<int> shown;
   QStringList tags;
-  for (int slot = 0; slot <= 40; ++slot) {
+  for (int slot = 0; slot < body::kSlotCount; ++slot) {
     const BodyState& b = chart_.b[static_cast<std::size_t>(slot)];
     if (!b.present || !b.valid) {
       continue;

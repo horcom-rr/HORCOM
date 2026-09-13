@@ -41,7 +41,7 @@ AspectSettings Konsta::aspect_settings() const {
     n = 12;
   }
   a.divisors = n;
-  for (int i = 0; i <= 40; ++i) {
+  for (int i = 0; i < body::kSlotCount; ++i) {
     a.weight[static_cast<std::size_t>(i)] = or_weight[static_cast<std::size_t>(i)];
   }
   if (orbe_on) {
@@ -174,7 +174,7 @@ Konsta parse_konsta(std::string_view text) {
   k.halbs_dir = r.next_int();
   k.nursymb = r.next_int();
   k.lin_inv = r.next_bool();
-  for (int i = 0; i <= 40; ++i) {
+  for (int i = 0; i < body::kSlotCount; ++i) {
     k.or_weight[static_cast<std::size_t>(i)] = r.next_int();
   }
   if (k.orbe_on) {
@@ -231,7 +231,7 @@ std::string format_konsta(const Konsta& k) {
   line({b(k.comp_hand), b(k.gitter), b(k.selbst_cl_st), b(k.eigfarb), b(k.farbp), b(k.weiss)});
   line({n(k.elem), b(k.gebherr_dop), b(k.haus1_dop), n(k.jdgross), n(k.zal_grossj), n(k.entf), n(k.stzw)});
   line({n(k.erase_), n(k.fixpunkt), q(k.fixpunkt_name), q(k.fixpunkt_rh), b(k.lpktg), n(k.anzweg), n(k.halbs_dir), n(k.nursymb), b(k.lin_inv)});
-  for (int i = 0; i <= 40; ++i) {
+  for (int i = 0; i < body::kSlotCount; ++i) {
     line({n(k.or_weight[static_cast<std::size_t>(i)])});
   }
   if (k.orbe_on) {

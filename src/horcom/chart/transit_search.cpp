@@ -464,7 +464,7 @@ std::vector<TransitEvent> scan_transits(const Chart& radix, const TransitScan& s
   // the running bodies, the nodes' south end and the axes stay out like
   // the a18st filters, the part of fortune never transits
   std::vector<int> transiting;
-  for (int t = 1; t <= 40; ++t) {
+  for (int t = 1; t < body::kSlotCount; ++t) {
     if (t == body::kNodeDesc || t == body::kAscendant || t == body::kMc || t == body::kFortune) {
       continue;
     }
@@ -475,7 +475,7 @@ std::vector<TransitEvent> scan_transits(const Chart& radix, const TransitScan& s
   }
   // the radix targets, bodies plus the AC and MC, the south node out
   std::vector<int> targets;
-  for (int u = 1; u <= 40; ++u) {
+  for (int u = 1; u < body::kSlotCount; ++u) {
     if (u == body::kNodeDesc) {
       continue;
     }

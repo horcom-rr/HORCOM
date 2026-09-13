@@ -88,7 +88,7 @@ double mundane_longitude(double la_rad, double br_rad, double ekls, double armcb
 // ported from mundhorp and mundhorh
 void to_mundane(Chart& c, double lat_deg) {
   const double armcb = c.armc_deg * kDegToRad;
-  for (int t = 0; t <= 40; ++t) {
+  for (int t = 0; t < body::kSlotCount; ++t) {
     // mundhorp leaves the axis and cusp slots alone
     if (t >= 13 && t <= 18) {
       continue;

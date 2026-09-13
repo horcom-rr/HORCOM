@@ -54,7 +54,7 @@ Chart composite_chart(const Chart& a, const ChartInput& ia, const Chart& b, cons
 
   // the bodies, near side midpoints, the south node rides the north
   double node_mid = 0.0;
-  for (int t = 1; t <= 40; ++t) {
+  for (int t = 1; t < body::kSlotCount; ++t) {
     if (t == body::kNodeDesc || t == body::kAscendant || t == body::kMc) {
       continue;
     }

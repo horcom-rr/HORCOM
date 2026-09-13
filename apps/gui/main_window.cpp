@@ -454,14 +454,14 @@ void MainWindow::build_ui() {
   QMenu* view = menuBar()->addMenu(tr("&Ansicht"));
   const auto set_scale = [](int scale) {
     QSettings settings;
-    const int s = std::clamp(scale, 70, 180);
-    settings.setValue("view/textScale", s);
+    const int s = std::clamp(scale, theme::kTextScaleMin, theme::kTextScaleMax);
+    settings.setValue(theme::kTextScaleKey, s);
     qApp->setStyleSheet(theme::stylesheet(s));
   };
-  const auto scale_now = []() { return QSettings().value("view/textScale", 100).toInt(); };
-  view->addAction(tr("Schrift größer"), QKeySequence::ZoomIn, this, [set_scale, scale_now]() { set_scale(scale_now() + 10); });
-  view->addAction(tr("Schrift kleiner"), QKeySequence::ZoomOut, this, [set_scale, scale_now]() { set_scale(scale_now() - 10); });
-  view->addAction(tr("Normale Schrift"), QKeySequence(Qt::CTRL | Qt::Key_0), this, [set_scale]() { set_scale(100); });
+  const auto scale_now = []() { return QSettings().value(theme::kTextScaleKey, theme::kTextScaleNormal).toInt(); };
+  view->addAction(tr("Schrift größer"), QKeySequence::ZoomIn, this, [set_scale, scale_now]() { set_scale(scale_now() + theme::kTextScaleStep); });
+  view->addAction(tr("Schrift kleiner"), QKeySequence::ZoomOut, this, [set_scale, scale_now]() { set_scale(scale_now() - theme::kTextScaleStep); });
+  view->addAction(tr("Normale Schrift"), QKeySequence(Qt::CTRL | Qt::Key_0), this, [set_scale]() { set_scale(theme::kTextScaleNormal); });
 
   QMenu* help = menuBar()->addMenu(tr("&Hilfe"));
   //RR TEXT-DATEI LESEN, his commentary texts from the local folder
@@ -571,8 +571,8 @@ void MainWindow::recompute() {
     }
     const CalendarDate& dd = in.date_ut;
     int sec = static_cast<int>((dd.hour * 60.0 + dd.minute) * 60.0 + 0.5);
-    if (sec >= 86400) {
-      sec = 86399;
+    if (sec >= kSecondsPerDay) {
+      sec = kSecondsPerDay - 1;
     }
     wopt.info_lines.push_back(
         QString::asprintf("%02d.%02d.%04d", dd.day, dd.month, dd.year).toStdString());
@@ -741,7 +741,7 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
   // mode, the slot then carries the earth
   const bool helio = !chart.b[body::kSun].present && chart.b[body::kMoon].present;
   QStringList row_names;
-  for (int slot = 0; slot <= 40; ++slot) {
+  for (int slot = 0; slot < body::kSlotCount; ++slot) {
     const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
     if (!b.present) {
       continue;
@@ -804,8 +804,8 @@ void MainWindow::open_place() {
 void MainWindow::apply_moment(double jd_ut, const QString& label) {
   const CalendarDate d = calendar_date(jd_ut, current_settings().calendar);
   int seconds = static_cast<int>((d.hour * 60.0 + d.minute) * 60.0 + 0.5);
-  if (seconds >= 86400) {
-    seconds = 86399;
+  if (seconds >= kSecondsPerDay) {
+    seconds = kSecondsPerDay - 1;
   }
   const QSignalBlocker b1(date_);
   const QSignalBlocker b2(time_);
@@ -905,8 +905,8 @@ void MainWindow::transit_list() {
   // the picked event opens in the transit view over the radix
   const CalendarDate d = calendar_date(dialog.chosen_jd(), ctx.settings.calendar);
   int seconds = static_cast<int>((d.hour * 60.0 + d.minute) * 60.0 + 0.5);
-  if (seconds >= 86400) {
-    seconds = 86399;
+  if (seconds >= kSecondsPerDay) {
+    seconds = kSecondsPerDay - 1;
   }
   show_transits(QDate(d.year, d.month, d.day), QTime(seconds / 3600, (seconds / 60) % 60, seconds % 60));
   if (transit_on_->isChecked()) {
@@ -926,8 +926,8 @@ void MainWindow::ingress_table() {
   }
   const CalendarDate d = calendar_date(dialog.chosen_jd(), ctx.settings.calendar);
   int seconds = static_cast<int>((d.hour * 60.0 + d.minute) * 60.0 + 0.5);
-  if (seconds >= 86400) {
-    seconds = 86399;
+  if (seconds >= kSecondsPerDay) {
+    seconds = kSecondsPerDay - 1;
   }
   show_transits(QDate(d.year, d.month, d.day), QTime(seconds / 3600, (seconds / 60) % 60, seconds % 60));
   if (transit_on_->isChecked()) {
@@ -1224,8 +1224,8 @@ void MainWindow::open_statistics() {
   const QSignalBlocker b5(lat_);
   date_->setDate(QDate(r.year, r.month, r.day));
   int seconds = static_cast<int>((r.hour * 60.0 + r.minute) * 60.0 + 0.5);
-  if (seconds >= 86400) {
-    seconds = 86399;
+  if (seconds >= kSecondsPerDay) {
+    seconds = kSecondsPerDay - 1;
   }
   time_->setTime(QTime(seconds / 3600, (seconds / 60) % 60, seconds % 60));
   zone_->setValue(0.0);

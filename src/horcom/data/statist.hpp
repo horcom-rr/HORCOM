@@ -5,6 +5,8 @@
 #pragma once
 
 #include <array>
+
+#include "horcom/chart/bodies.hpp"
 #include <filesystem>
 #include <optional>
 #include <string>
@@ -51,7 +53,7 @@ struct StatRecord {
   double lat = 0.0;
   /// body slot positions in radians, slots 1 to 12 always, extras per
   /// the .PAR nk table, zero where the file holds nothing
-  std::array<double, 41> el{};
+  std::array<double, body::kSlotCount> el{};
   /// the six stored cusps, AC, MC and houses 2, 3, 5, 6
   double ac = 0.0;
   double mc = 0.0;

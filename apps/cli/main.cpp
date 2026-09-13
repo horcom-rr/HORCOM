@@ -144,7 +144,7 @@ int main(int argc, char** argv) {
               std::string(chart.houses.name).c_str(),
               s.topocentric_parallax ? "  MitParall." : "");
   std::printf("%-4s %-14s %-10s %-10s %-10s\n", "", "LAENGE", "BREITE", "DEKLIN.", "GESCHW.");
-  for (int slot = 0; slot <= 40; ++slot) {
+  for (int slot = 0; slot < body::kSlotCount; ++slot) {
     const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
     if (!b.present) {
       continue;

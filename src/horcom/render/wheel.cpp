@@ -75,7 +75,7 @@ double wheel_angle(double lambda, double fza) {
 
 // the original plentz chain, radial stagger and angular push apart of
 // crowded glyphs. Operates on the display longitudes wl and offsets dc.
-void declump(const std::vector<int>& slots, const std::array<double, 41>& pl, std::array<double, 41>& wl, std::array<double, 41>& dc) {
+void declump(const std::vector<int>& slots, const std::array<double, body::kSlotCount>& pl, std::array<double, body::kSlotCount>& wl, std::array<double, body::kSlotCount>& dc) {
   std::vector<int> order = slots;
   std::sort(order.begin(), order.end(), [&](int a, int b) {
     return wl[static_cast<std::size_t>(a)] < wl[static_cast<std::size_t>(b)];
@@ -266,10 +266,10 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
 
   // collect the visible body slots
   std::vector<int> slots;
-  std::array<double, 41> pl{};
-  std::array<double, 41> wl{};
-  std::array<double, 41> dc{};
-  for (int slot = 0; slot <= 40; ++slot) {
+  std::array<double, body::kSlotCount> pl{};
+  std::array<double, body::kSlotCount> wl{};
+  std::array<double, body::kSlotCount> dc{};
+  for (int slot = 0; slot < body::kSlotCount; ++slot) {
     if (slot == body::kAscendant || slot == body::kMc) {
       continue;
     }
@@ -407,10 +407,10 @@ static void draw_outer_bodies(DisplayList& dl, const Chart& chart, double fza, d
     return Pt{kCx + km * r * std::cos(-w), kCy + km * r * std::sin(-w)};
   };
   std::vector<int> slots;
-  std::array<double, 41> pl{};
-  std::array<double, 41> wl{};
-  std::array<double, 41> dc{};
-  for (int slot = 0; slot <= 40; ++slot) {
+  std::array<double, body::kSlotCount> pl{};
+  std::array<double, body::kSlotCount> wl{};
+  std::array<double, body::kSlotCount> dc{};
+  for (int slot = 0; slot < body::kSlotCount; ++slot) {
     if (slot == body::kAscendant || slot == body::kMc) {
       continue;
     }

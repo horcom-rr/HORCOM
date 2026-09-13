@@ -83,7 +83,7 @@ struct Konsta {
   int halbs_dir = 0;
   int nursymb = 0;
   bool lin_inv = false;
-  std::array<int, 41> or_weight{};        // or&(0..40)
+  std::array<int, body::kSlotCount> or_weight{};        // or&(0..40)
   std::array<std::string, 15> orb_text{}; // orb$(0..14), present when orbe_on
   std::array<int, 23> nk{};               // nk&(1..22), index 0 unused
   std::array<int, 20> aspli_flag{};       // aspli|(1..19)

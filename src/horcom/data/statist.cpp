@@ -146,7 +146,7 @@ std::optional<StatSet> load_statistics(const std::filesystem::path& sta) {
       const auto* q = reinterpret_cast<const unsigned char*>(sth_bytes->data()) + i * kSthRecordBytes;
       for (int k = 17; k <= 22; ++k, q += 4) {
         const int slot = set.params.nk[static_cast<std::size_t>(k)];
-        if (slot > 0 && slot <= 40) {
+        if (slot > 0 && slot < body::kSlotCount) {
           r.el[static_cast<std::size_t>(slot)] = read_long(q) / kStatAngleScale;
         }
       }
@@ -204,7 +204,7 @@ bool save_statistics(const std::filesystem::path& sta, const StatSet& set) {
     sta_out += rec;
     for (int k = 17; k <= 22; ++k) {
       const int slot = set.params.nk[static_cast<std::size_t>(k)];
-      write_long(sth_out, slot > 0 && slot <= 40 ? r.el[static_cast<std::size_t>(slot)] : 0.0);
+      write_long(sth_out, slot > 0 && slot < body::kSlotCount ? r.el[static_cast<std::size_t>(slot)] : 0.0);
     }
   }
   {
