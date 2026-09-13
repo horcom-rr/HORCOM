@@ -14,11 +14,13 @@
 #include "horcom/data/chart_file.hpp"
 #include "horcom/data/konsta.hpp"
 
+class QAction;
 class QCheckBox;
 class QComboBox;
 class QDate;
 class QDateEdit;
 class QTime;
+class QTimer;
 class QDoubleSpinBox;
 class QLabel;
 class QTableWidget;
@@ -44,6 +46,9 @@ class MainWindow : public QMainWindow {
   /// Jumps to the solar return of the given year, the capture hook's
   /// path into the Horoskop menu.
   void show_solar(int year);
+
+  /// Switches the running clock chart on, the original UHR.
+  void show_clock();
 
  private slots:
   void recompute();
@@ -86,6 +91,8 @@ class MainWindow : public QMainWindow {
   QCheckBox* transit_on_ = nullptr;
   QDateEdit* tdate_ = nullptr;
   QTimeEdit* ttime_ = nullptr;
+  QAction* clock_action_ = nullptr;
+  QTimer* clock_timer_ = nullptr;
   QTableWidget* bodies_ = nullptr;
   QTableWidget* cusps_ = nullptr;
   QLabel* aspects_label_ = nullptr;

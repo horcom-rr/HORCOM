@@ -105,6 +105,11 @@ int main(int argc, char** argv) {
     shot = shot_solar;
     window.show_solar(QDate::currentDate().year());
   }
+  const int shot_clock = args.indexOf("--shot-clock");
+  if (shot_clock >= 0) {
+    shot = shot_clock;
+    window.show_clock();
+  }
   if (shot >= 0) {
     window.showMinimized();
   } else {

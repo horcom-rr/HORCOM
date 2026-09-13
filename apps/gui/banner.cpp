@@ -86,7 +86,8 @@ void Banner::paintEvent(QPaintEvent* /*event*/) {
     p.setFont(rec);
     const QFontMetrics fm(rec);
     const int w = fm.horizontalAdvance(record_) + 24;
-    const QRect box((width() - w) / 2 + 40, (height() - 24) / 2, w, 24);
+    // left of the true centre so the box stays clear of the epoch line
+    const QRect box((width() - w) / 2 - 60, (height() - 24) / 2, w, 24);
     p.setPen(Qt::NoPen);
     p.setBrush(QColor(0xC0, 0xDC, 0xC0));
     p.drawRoundedRect(box, 5, 5);

@@ -7,6 +7,7 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDateEdit>
+#include <QDateTime>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QDockWidget>
@@ -23,6 +24,7 @@
 #include <QMessageBox>
 #include <QTableWidget>
 #include <QTimeEdit>
+#include <QTimer>
 #include <QToolBar>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -44,6 +46,9 @@ namespace {
 
 // the sign tags of the original zei$ table
 constexpr const char* kSignTag[12] = {"AR", "TA", "GM", "CN", "LE", "VI", "LI", "SC", "SG", "CP", "AQ", "PS"};
+
+//RR Bei Uhr alle 15 sek neu
+constexpr int kClockRedrawMs = 15000;
 
 QString zodiac(double rad) {
   const double deg = norm_deg(rad * kRadToDeg);
@@ -225,6 +230,22 @@ void MainWindow::build_ui() {
   QMenu* horo = menuBar()->addMenu(tr("&Horoskop"));
   horo->addAction(tr("Solar…"), this, &MainWindow::solar_chart);
   horo->addAction(tr("Lunar…"), this, &MainWindow::lunar_chart);
+  horo->addSeparator();
+  //RR Solange UHR SICHTBAR wird HOROSKOP ALLE 15 SEK NACHGEZEICHNET !
+  clock_action_ = horo->addAction(tr("Uhr"));
+  clock_action_->setCheckable(true);
+  clock_timer_ = new QTimer(this);
+  clock_timer_->setInterval(kClockRedrawMs);
+  connect(clock_timer_, &QTimer::timeout, this, &MainWindow::recompute);
+  connect(clock_action_, &QAction::toggled, this, [this](bool on) {
+    if (on) {
+      clock_timer_->start();
+    } else {
+      clock_timer_->stop();
+      banner_->set_record(record_label_.trimmed());
+    }
+    recompute();
+  });
   QMenu* help = menuBar()->addMenu(tr("&Hilfe"));
   help->addAction(tr("Über HORCOM"), this, &MainWindow::about);
 
@@ -281,7 +302,20 @@ ChartSettings MainWindow::current_settings() const {
 }
 
 void MainWindow::recompute() {
-  const ChartInput in = current_input();
+  // the running clock chart shows the moment itself, the panel keeps
+  // its radix untouched
+  const bool clock = clock_action_ != nullptr && clock_action_->isChecked();
+  ChartInput in;
+  if (clock) {
+    const QDateTime now = QDateTime::currentDateTimeUtc();
+    in.date_ut = {now.date().day(), now.date().month(), now.date().year(),
+                  static_cast<double>(now.time().hour()),
+                  now.time().minute() + now.time().second() / 60.0};
+    in.lon_deg_east = lon_->value();
+    in.lat_deg = lat_->value();
+  } else {
+    in = current_input();
+  }
   const ChartSettings s = current_settings();
   const Chart chart = compute_chart(in, s, vsop_, eph_);
   if (!chart.ok) {
@@ -293,7 +327,14 @@ void MainWindow::recompute() {
   last_chart_ = chart;
   last_aspects_ = aspects;
   bool transit_drawn = false;
-  if (transit_on_->isChecked()) {
+  if (clock) {
+    WheelOptions opt;
+    //RR " UHR "
+    opt.center_label = " UHR ";
+    wheel_->set_display_list(build_wheel(chart, s, aspects, opt));
+    banner_->set_record(QString("UHR %1 UT").arg(QDateTime::currentDateTimeUtc().time().toString("HH:mm:ss")));
+    transit_drawn = true;
+  } else if (transit_on_->isChecked()) {
     ChartInput tin;
     const QDate td = tdate_->date();
     const QTime tt = ttime_->time();
@@ -304,7 +345,7 @@ void MainWindow::recompute() {
     const Chart tchart = compute_chart(tin, s, vsop_, eph_);
     if (tchart.ok) {
       WheelOptions opt;
-      opt.transit_label =
+      opt.center_label =
           QString("TRANSIT=>%1 %2 UT").arg(td.toString("dd.MM.yyyy"), tt.toString("HH:mm")).toStdString();
       wheel_->set_display_list(build_transit_wheel(chart, tchart, s, aspects, opt));
       transit_drawn = true;
@@ -410,6 +451,10 @@ void MainWindow::solar_chart() {
 
 void MainWindow::show_solar(int year) {
   run_solar(year);
+}
+
+void MainWindow::show_clock() {
+  clock_action_->setChecked(true);
 }
 
 void MainWindow::run_solar(int year) {
