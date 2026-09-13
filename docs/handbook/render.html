@@ -33,6 +33,7 @@ design.
 <table>
   <tr><th>original</th><th>ported as</th><th>file</th></tr>
   <tr><td><code>horg, horg1, horg10, horg11, zein, zein1, plein1, plein11, aspz0, aspz1</code></td><td><code>build_wheel</code></td><td><code>src/horcom/render/wheel.*</code></td></tr>
+  <tr><td>the a20 transit screen, <code>plein1(212)</code>, <code>plmk</code> at 182, the centre label of <code>zeitwi</code></td><td><code>build_transit_wheel</code></td><td><code>src/horcom/render/wheel.*</code></td></tr>
   <tr><td><code>plentz, plsort, plentz1, plentz10, plentz11, plentz2, plentz21</code></td><td>the de clumping inside <code>build_wheel</code></td><td><code>src/horcom/render/wheel.cpp</code></td></tr>
   <tr><td>screen, printer and BMP outputs</td><td><code>to_svg</code>, further backends later</td><td><code>src/horcom/render/svg.*</code></td></tr>
 </table>
@@ -48,6 +49,17 @@ symbols he himself prototyped in SYMBGEN. And the tiled screen dump
 persistence is replaced by real SVG export. The element colours stay his,
 fire red, earth olive, air teal, water cyan, and the aspect chords keep
 the colour table of aspz1 with the blue dashed node axis.
+</p>
+
+<h2>The transit double wheel</h2>
+<p>
+The a20 transit screen shrinks the wheel to km 0.85 and rides the
+running sky outside the signs, a tick marker on the sign ring at 182 and
+the glyph at 212, both with the same de clumping as the inner ring, the
+radix keeps its houses, chords and rotation, and the moment prints in
+the centre as TRANSIT with the date, just as zeitwi labelled it. The
+exact hit search of plant and the time window listing of zeitwi are the
+next ports on this path.
 </p>
 
 <h2>The de clumping</h2>
