@@ -103,6 +103,13 @@ struct Konsta {
   [[nodiscard]] AspectSettings aspect_settings() const;
 };
 
+/// His final working profile, every value taken from the settings file
+/// Robert Rettig ran himself. Parallax on, true node and true apogee,
+/// the equal probability orb mode with his own orb table and weights.
+///
+/// @return the profile as a Konsta, ready for the settings mappers
+[[nodiscard]] Konsta robert_profile();
+
 /// Loads a KONSTA stream from file.
 ///
 /// @param path the INTERN KONSTA7P.INT style file

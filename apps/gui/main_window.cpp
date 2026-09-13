@@ -23,6 +23,7 @@
 #include <QTimeEdit>
 #include <QToolBar>
 #include <QVBoxLayout>
+#include <initializer_list>
 
 #include "banner.hpp"
 #include "horcom/core/angle.hpp"
@@ -55,10 +56,14 @@ QString degs(double rad) {
 
 MainWindow::MainWindow(VsopTables vsop, Ephemerides eph, std::filesystem::path data_dir, QWidget* parent)
     : QMainWindow(parent), vsop_(std::move(vsop)), eph_(std::move(eph)), data_dir_(std::move(data_dir)) {
-  // his settings profile travels with the data under its original name,
-  // absent file means the built in defaults like kon_dhol
-  if (const auto k = load_konsta(data_dir_ / "konsta7p.int")) {
-    konsta_ = *k;
+  // his final profile is the startup default, a konsta file placed next
+  // to the data still overrides it, the historical name included
+  konsta_ = robert_profile();
+  for (const char* name : {"konsta.int", "KONSTA7P.INT"}) {
+    if (const auto k = load_konsta(data_dir_ / name)) {
+      konsta_ = *k;
+      break;
+    }
   }
   aspect_settings_ = konsta_.aspect_settings();
   build_ui();

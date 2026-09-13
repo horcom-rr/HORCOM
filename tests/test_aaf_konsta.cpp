@@ -76,18 +76,29 @@ TEST_CASE("KONSTA maps onto the pipeline settings like kon_dhol") {
   CHECK(a.orbe[7] == doctest::Approx(2.0 * kDegToRad));
 }
 
-TEST_CASE("the shipped profile carries Robert Rettig's switches") {
-  const auto k = load_konsta(HORCOM_TEST_DATA_DIR "/konsta7p.int");
-  REQUIRE(k.has_value());
-  CHECK(k->haw == 1);
-  CHECK(k->haus == "Placidus");
-  CHECK(k->orb == doctest::Approx(1.0));
-  CHECK(k->nasp == 12);
-  const ChartSettings s = k->chart_settings();
+TEST_CASE("his profile carries Robert Rettig's switches and round trips") {
+  const Konsta k = robert_profile();
+  CHECK(k.haw == 1);
+  CHECK(k.haus == "Placidus");
+  CHECK(k.orb == doctest::Approx(1.0));
+  CHECK(k.nasp == 12);
+  const ChartSettings s = k.chart_settings();
   // he ran with the topocentric parallax on, true node and true apogee
   CHECK(s.topocentric_parallax);
   CHECK(s.true_node);
   CHECK(s.true_apogee);
+  CHECK(s.apparent_sidereal);
+  CHECK_FALSE(s.extra_bodies);
+  const AspectSettings a = k.aspect_settings();
+  // his own orb table in the equal probability mode, his weights
+  CHECK(a.equal_probability);
+  CHECK(a.divisors == 12);
+  CHECK(a.orbe[1] == doctest::Approx(5.40 * kDegToRad));
+  CHECK(a.orbe[11] == doctest::Approx(0.60 * kDegToRad));
+  CHECK(a.weight[1] == 150);
+  CHECK(a.weight[3] == 1);
+  const Konsta back = parse_konsta(format_konsta(k));
+  CHECK(format_konsta(back) == format_konsta(k));
 }
 
 TEST_CASE("AAF parses a synthetic record with every quirk") {

@@ -52,6 +52,61 @@ AspectSettings Konsta::aspect_settings() const {
   return a;
 }
 
+Konsta robert_profile() {
+  Konsta k;
+  k.haw = 1;
+  k.haus = "Placidus";
+  k.appa = 1;
+  k.appa_name = "App.1";
+  k.gen = 2;
+  k.gena = " Ephem ::App.1,MitParall.";
+  k.apogw = true;
+  k.moknw = true;
+  k.orb = 1.0;
+  k.voll = true;
+  k.nasp = 12;
+  k.bdsp = true;
+  k.par = 1.0;
+  k.fza = 3.808214611307;
+  k.begz = 1;
+  k.hard = 1;
+  k.bres = 1;
+  k.brep = 1;
+  k.zwhd = true;
+  k.horm = 1;
+  k.orbe_on = true;
+  k.slist = true;
+  k.plusl = true;
+  k.col_dial = 16777088;
+  k.col_backg = 8421440;
+  k.plinv = 3;
+  k.prenbl = 1;
+  k.halbs = 1;
+  k.comp_hand = true;
+  k.selbst_cl_st = true;
+  k.eigfarb = true;
+  k.elem = 2;
+  k.gebherr_dop = true;
+  k.haus1_dop = true;
+  k.entf = 1;
+  k.stzw = 1;
+  k.erase_ = 1;
+  k.fixpunkt = 2;
+  k.or_weight = {100, 150, 150, 1,   100, 100, 100, 100, 100, 100, 100, 100, 100, 150,
+                 150, 100, 0,   0,   0,   100, 100, 100, 100, 100, 100, 100, 100, 100,
+                 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100};
+  k.orb_text = {"",      " 5.40", " 6.80", " 3.10", " 3.00", " 1.60", " 2.60", " 1.00",
+                " 1.50", " 1.00", " 1.50", " 0.60", " 1.50", " 2.00", " 1.00"};
+  // nk stays all zero, he kept no extras preconfigured
+  k.aspli_flag = {0, 0, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, 13, 14, 15, 0, 0, 0, 0};
+  k.aspli_col = {0, 0,        255, 65280,    255,      16711680, 65280, 16711680, 255, 8388736,
+                 0, 0,        65280, 16711680, 16711680, 255,     8388736, 0,      0,   65280};
+  k.aspst = {0, 0, 0, 0, 0, 0, 0, 3, 2, 2, 0, 0, 2, 0, 3, 2, 2, 0, 0, 2};
+  k.cols = {0, 255, 65280, 16776960, 16711680};
+  k.pn = {0, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1};
+  return k;
+}
+
 Konsta parse_konsta(std::string_view text) {
   GfaReader r(text);
   Konsta k;
