@@ -70,7 +70,10 @@ struct Chart {
 /// @param vsop  loaded VSOP term tables
 /// @param eph   ephemeris directory cache
 /// @return the chart, ok false when the house guard refuses the latitude
-/// @note the heliocentric mode of the original is not ported yet
+/// @note the heliocentric mode of the original hrg puts the Earth on
+///       the Moon's slot, leaves slot one empty and drops the houses,
+///       the nodes, the Black Moon, the Part of Fortune and every
+///       correction, horg11 and bes111 stay dark there
 [[nodiscard]] Chart compute_chart(const ChartInput& in, const ChartSettings& s, const VsopTables& vsop, const Ephemerides& eph);
 
 }  // namespace horcom

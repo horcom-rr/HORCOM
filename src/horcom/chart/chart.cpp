@@ -59,6 +59,20 @@ void par_ap_ktr(const Ctx& c, int slot, BodyState& b, double sun_el, double sun_
   b.de = p.de;
 }
 
+// the heliocentric display of hrg, the body keeps its sun centred
+// state, the geo conversion and every correction stay out like the
+// hel_geo guard and plant1's el from hel
+void helio_display(const Ctx& c, const HelioState& h, BodyState& b) {
+  b.el = norm_rad(h.l);
+  b.eb = h.b;
+  b.dr = h.r;
+  b.tb = h.lt;
+  b.ttb = 0.0;
+  const Equatorial eq = ecliptic_to_equatorial(b.el, b.eb, c.smo.ekls);
+  b.ar = eq.ra;
+  b.de = eq.dec;
+}
+
 // the original soko
 void compute_sun(const Ctx& c, BodyState& b) {
   const VsopTables::Result e = c.vsop.evaluate(3, c.ta.t11);
@@ -84,6 +98,10 @@ void compute_planet(const Ctx& c, int slot, const HelioState& earth, double sun_
   b.hel = h.l;
   b.heb = h.b;
   b.r = h.r;
+  if (c.s.heliocentric) {
+    helio_display(c, h, b);
+    return;
+  }
   const GeoResult g = helio_to_geo(h, earth, c.smo.dpsi, c.smo.deps);
   b.el = g.el;
   b.eb = g.eb;
@@ -138,6 +156,10 @@ void compute_eph_body(const Ctx& c, int slot, std::string_view name, double jd, 
   b.hel = h.l;
   b.heb = h.b;
   b.r = h.r;
+  if (c.s.heliocentric) {
+    helio_display(c, h, b);
+    return;
+  }
   const GeoResult g = helio_to_geo(h, earth, c.smo.dpsi, c.smo.deps);
   b.el = g.el;
   b.eb = g.eb;
@@ -165,6 +187,10 @@ void compute_kepler_body(const Ctx& c, int slot, int nk_index, double jd, const 
   b.hel = h.l;
   b.heb = h.b;
   b.r = h.r;
+  if (c.s.heliocentric) {
+    helio_display(c, h, b);
+    return;
+  }
   const GeoResult g = helio_to_geo(h, earth, c.smo.dpsi, c.smo.deps);
   b.el = g.el;
   b.eb = g.eb;
@@ -237,13 +263,19 @@ Chart compute_chart(const ChartInput& in, const ChartSettings& s, const VsopTabl
   chart.hs = sidereal_at_hours(chart.h0, in.date_ut.hour + in.date_ut.minute / 60.0);
   //RR in Grad
   chart.armc_deg = kDegPerHour * norm_hours(chart.hs + in.lon_deg_east / kDegPerHour);
-  const double armcb = kDegToRad * chart.armc_deg;
-  chart.houses = compute_houses(s.houses, armcb, in.lat_deg, chart.ekls0);
-  if (!chart.houses.ok) {
-    return chart;
+  if (s.heliocentric) {
+    // the hrg mode knows no houses, horg11 and bes111 stay dark there,
+    // the empty cusp array must not read as the refused latitude guard
+    chart.houses.ok = true;
+  } else {
+    const double armcb = kDegToRad * chart.armc_deg;
+    chart.houses = compute_houses(s.houses, armcb, in.lat_deg, chart.ekls0);
+    if (!chart.houses.ok) {
+      return chart;
+    }
+    chart.b[body::kAscendant] = {true, true, chart.houses.angles.ac};
+    chart.b[body::kMc] = {true, true, chart.houses.angles.mc};
   }
-  chart.b[body::kAscendant] = {true, true, chart.houses.angles.ac};
-  chart.b[body::kMc] = {true, true, chart.houses.angles.mc};
 
   // bodies in ET, the original a90 chain
   chart.delt_minutes = delta_t_minutes(chart.jd_ut);
@@ -253,15 +285,29 @@ Chart compute_chart(const ChartInput& in, const ChartSettings& s, const VsopTabl
   chart.smo = somo(chart.ta, date_et);
   const Ctx c{s, vsop, eph, chart.ta, chart.smo, in.lat_deg, chart.armc_deg};
 
-  compute_sun(c, chart.b[body::kSun]);
-  const double sun_el = chart.b[body::kSun].el;
-  const double sun_eb = chart.b[body::kSun].eb;
   const VsopTables::Result ev = vsop.evaluate(3, chart.ta.t11);
   const HelioState earth = from_vsop(ev);
+  double sun_el = 0.0;
+  double sun_eb = 0.0;
+  if (s.heliocentric) {
+    // the hrg mode, slot one stays empty like aa at two, the earth
+    // takes the moon's slot as plposhi(3) fills it in plant1
+    BodyState& te = chart.b[body::kMoon];
+    te.present = true;
+    te.valid = true;
+    te.hel = earth.l;
+    te.heb = earth.b;
+    te.r = earth.r;
+    helio_display(c, earth, te);
+  } else {
+    compute_sun(c, chart.b[body::kSun]);
+    sun_el = chart.b[body::kSun].el;
+    sun_eb = chart.b[body::kSun].eb;
+  }
 
   // the Moon, no light time like the original moko
   chart.moon = moon_position(chart.ta, chart.smo);
-  {
+  if (!s.heliocentric) {
     BodyState& mo = chart.b[body::kMoon];
     mo.present = true;
     mo.valid = true;
@@ -281,9 +327,10 @@ Chart compute_chart(const ChartInput& in, const ChartSettings& s, const VsopTabl
     mo.de = p.de;
   }
 
-  // lunar nodes and the Black Moon
+  // lunar nodes and the Black Moon, geocentric ideas that the hrg mode
+  // leaves out like the asp0 slot ranges
   chart.lunar = lunar_points(chart.moon, chart.smo, chart.ta);
-  {
+  if (!s.heliocentric) {
     BodyState& dr = chart.b[body::kNodeAsc];
     BodyState& ds = chart.b[body::kNodeDesc];
     dr.present = true;
@@ -303,7 +350,7 @@ Chart compute_chart(const ChartInput& in, const ChartSettings& s, const VsopTabl
     ds.ar = p.ar;
     ds.de = p.de;
   }
-  if (s.extra_bodies && s.nk[1] > 0) {
+  if (s.extra_bodies && s.nk[1] > 0 && !s.heliocentric) {
     BodyState& ag = chart.b[static_cast<std::size_t>(s.nk[1])];
     ag.present = true;
     ag.valid = true;
@@ -321,7 +368,7 @@ Chart compute_chart(const ChartInput& in, const ChartSettings& s, const VsopTabl
     ag.ar = p.ar;
     ag.de = p.de;
   }
-  if (s.true_node || s.true_apogee) {
+  if ((s.true_node || s.true_apogee) && !s.heliocentric) {
     node_apogee_speeds(s, chart.jd_et, chart);
   }
 
@@ -344,13 +391,17 @@ Chart compute_chart(const ChartInput& in, const ChartSettings& s, const VsopTabl
     pl.hel = h.l;
     pl.heb = h.b;
     pl.r = h.r;
-    const GeoResult g = helio_to_geo(h, earth, chart.smo.dpsi, chart.smo.deps);
-    pl.el = g.el;
-    pl.eb = g.eb;
-    pl.dr = g.dr;
-    pl.tb = g.tb;
-    pl.ttb = g.ttb;
-    par_ap_ktr(c, body::kPluto, pl, sun_el, sun_eb);
+    if (s.heliocentric) {
+      helio_display(c, h, pl);
+    } else {
+      const GeoResult g = helio_to_geo(h, earth, chart.smo.dpsi, chart.smo.deps);
+      pl.el = g.el;
+      pl.eb = g.eb;
+      pl.dr = g.dr;
+      pl.tb = g.tb;
+      pl.ttb = g.ttb;
+      par_ap_ktr(c, body::kPluto, pl, sun_el, sun_eb);
+    }
   }
 
   // the extra bodies of the nk table
@@ -370,8 +421,9 @@ Chart compute_chart(const ChartInput& in, const ChartSettings& s, const VsopTabl
         }
       }
     }
-    // the Part of Fortune after Sun and Moon exist, the original a901
-    if (s.nk[4] > 0) {
+    // the Part of Fortune after Sun and Moon exist, the original a901,
+    // a geocentric idea the hrg mode leaves out
+    if (s.nk[4] > 0 && !s.heliocentric) {
       BodyState& gl = chart.b[static_cast<std::size_t>(s.nk[4])];
       gl.present = true;
       gl.valid = true;

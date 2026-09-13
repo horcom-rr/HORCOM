@@ -299,3 +299,42 @@ TEST_CASE("the mundane chart carries the equal grid of mundhorh") {
     CHECK(v < kTwoPi);
   }
 }
+
+TEST_CASE("the heliocentric mode of hrg puts the earth on the moon slot") {
+  const double jd_et_target = 2448908.5;
+  const double delt = delta_t_minutes(jd_et_target);
+  const double jd_ut = jd_et_target - delt * kDeltaTDaysPerMinute;
+  ChartInput in;
+  in.date_ut = calendar_date(jd_ut);
+  in.lon_deg_east = 11.3244;
+  in.lat_deg = 48.1742;
+  ChartSettings helio;
+  helio.heliocentric = true;
+  helio.enable_standard_extras();
+  const Chart h = compute_chart(in, helio, vsop(), eph());
+  REQUIRE(h.ok);
+  // slot one stays empty like aa at two
+  CHECK_FALSE(h.b[body::kSun].present);
+  // the Meeus example puts the geometric earth at 19.907372 degrees
+  CHECK(deg_dist(h.b[body::kMoon].el, 19.907372) < 0.001);
+  // the planets keep their own sun centred state
+  ChartSettings geo;
+  geo.enable_standard_extras();
+  const Chart g = compute_chart(in, geo, vsop(), eph());
+  CHECK(h.b[body::kMars].el == doctest::Approx(norm_rad(g.b[body::kMars].hel)));
+  CHECK(h.b[body::kMars].eb == doctest::Approx(g.b[body::kMars].heb));
+  CHECK(h.b[body::kMars].dr == doctest::Approx(g.b[body::kMars].r));
+  const int chiron = geo.nk[2];
+  CHECK(h.b[static_cast<std::size_t>(chiron)].el ==
+        doctest::Approx(norm_rad(g.b[static_cast<std::size_t>(chiron)].hel)));
+  // the geocentric ideas stay out
+  CHECK_FALSE(h.b[body::kNodeAsc].present);
+  CHECK_FALSE(h.b[static_cast<std::size_t>(geo.nk[1])].present);
+  CHECK_FALSE(h.b[static_cast<std::size_t>(geo.nk[4])].present);
+  // hrg knows no houses, horg11 and bes111 stay dark
+  CHECK_FALSE(h.b[body::kAscendant].present);
+  CHECK_FALSE(h.b[body::kMc].present);
+  CHECK(h.houses.cusp[1] == 0.0);
+  // the sidereal chain still runs, the banner keeps its armc
+  CHECK(h.armc_deg == doctest::Approx(g.armc_deg));
+}
