@@ -37,6 +37,7 @@ topocentric parallax.
   <tr><td><code>hel_geo, plko12</code></td><td><code>helio_to_geo</code></td><td><code>src/horcom/chart/geo.*</code></td></tr>
   <tr><td><code>jseckp, a90, a901, ta_na, vel_om_pd, plko_einz, soko</code></td><td><code>compute_chart</code></td><td><code>src/horcom/chart/chart.*</code></td></tr>
   <tr><td><code>plant, plant1, ver, ver1r, a16_ta</code></td><td><code>find_longitude_backward, body_longitude</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
+  <tr><td><code>korh</code> and the a16 solar and lunar flow</td><td><code>solar_return, lunar_return</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
 </table>
 
 <h2>The two clocks of the original</h2>
@@ -115,8 +116,10 @@ The original notes the remaining time error is mostly under five
 seconds. Verified against the 1993 spring equinox of the almanac, 14:41
 UT, hit within two minutes, with the residual under half an arc second,
 plus a lunar return and a Mercury search near its retrograde loops. The
-multi passage continuation, the ingress driver ingre1 and the return
-wrapper korh ride on this next.
+solar and lunar returns already ride on it like korh, the solar seeded
+at the birthday clock of the target year plus fifteen days, the lunar
+found as the return preceding a chosen moment at 0h UT. The multi
+passage continuation and the ingress driver ingre1 come next.
 </p>
 
 <h2>Verification</h2>
