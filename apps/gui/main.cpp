@@ -15,6 +15,7 @@
 #include "main_window.hpp"
 #include "place_dialog.hpp"
 #include "theme.hpp"
+#include "transit_list_dialog.hpp"
 #include "zone_dialog.hpp"
 
 namespace {
@@ -86,6 +87,21 @@ int main(int argc, char** argv) {
   if (shot_zone >= 0 && shot_zone + 1 < args.size()) {
     horcom::ZoneDialog dialog(data / "zonnamen.int");
     dialog.grab().save(args[shot_zone + 1]);
+    return 0;
+  }
+  const int shot_list = args.indexOf("--shot-transit-list");
+  if (shot_list >= 0 && shot_list + 1 < args.size()) {
+    horcom::SearchContext sctx;
+    sctx.base.date_ut = {13, 10, 1992, 3, 0.0};
+    sctx.base.lon_deg_east = 11.3244;
+    sctx.base.lat_deg = 48.1742;
+    sctx.vsop = &vsop;
+    sctx.eph = &eph;
+    const horcom::Chart radix = horcom::compute_chart(sctx.base, sctx.settings, vsop, eph);
+    horcom::TransitListDialog dialog(radix, sctx);
+    dialog.preset(QDate(2026, 9, 1), QDate(2026, 10, 1));
+    dialog.run_scan();
+    dialog.grab().save(args[shot_list + 1]);
     return 0;
   }
 

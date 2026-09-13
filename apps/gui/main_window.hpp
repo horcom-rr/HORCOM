@@ -57,6 +57,7 @@ class MainWindow : public QMainWindow {
   void pick_zone();
   void solar_chart();
   void lunar_chart();
+  void transit_list();
   void save_aaf();
   void export_svg();
   void about();

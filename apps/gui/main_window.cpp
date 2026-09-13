@@ -37,6 +37,7 @@
 #include "horcom/data/place_file.hpp"
 #include "horcom/render/svg.hpp"
 #include "place_dialog.hpp"
+#include "transit_list_dialog.hpp"
 #include "wheel_widget.hpp"
 #include "zone_dialog.hpp"
 
@@ -230,6 +231,7 @@ void MainWindow::build_ui() {
   QMenu* horo = menuBar()->addMenu(tr("&Horoskop"));
   horo->addAction(tr("Solar…"), this, &MainWindow::solar_chart);
   horo->addAction(tr("Lunar…"), this, &MainWindow::lunar_chart);
+  horo->addAction(tr("Transit-Liste…"), this, &MainWindow::transit_list);
   horo->addSeparator();
   //RR Solange UHR SICHTBAR wird HOROSKOP ALLE 15 SEK NACHGEZEICHNET !
   clock_action_ = horo->addAction(tr("Uhr"));
@@ -509,6 +511,31 @@ void MainWindow::lunar_chart() {
     return;
   }
   apply_moment(hit.jd_ut, QString("LUNAR %1").arg(d.toString("dd.MM.yyyy")));
+}
+
+void MainWindow::transit_list() {
+  if (!last_chart_) {
+    return;
+  }
+  SearchContext ctx;
+  ctx.base = current_input();
+  ctx.settings = current_settings();
+  ctx.vsop = &vsop_;
+  ctx.eph = &eph_;
+  TransitListDialog dialog(*last_chart_, ctx, this);
+  if (dialog.exec() != QDialog::Accepted || dialog.chosen_jd() <= 0.0) {
+    return;
+  }
+  // the picked event opens in the transit view over the radix
+  const CalendarDate d = calendar_date(dialog.chosen_jd(), ctx.settings.calendar);
+  int seconds = static_cast<int>((d.hour * 60.0 + d.minute) * 60.0 + 0.5);
+  if (seconds >= 86400) {
+    seconds = 86399;
+  }
+  show_transits(QDate(d.year, d.month, d.day), QTime(seconds / 3600, (seconds / 60) % 60, seconds % 60));
+  if (transit_on_->isChecked()) {
+    recompute();
+  }
 }
 
 void MainWindow::show_transits(const QDate& date, const QTime& time) {
