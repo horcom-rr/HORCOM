@@ -36,6 +36,7 @@ topocentric parallax.
   <tr><td><code>plkoap, plkotr, par</code></td><td><code>apparent_position, to_equatorial, parallax</code></td><td><code>src/horcom/chart/corrections.*</code></td></tr>
   <tr><td><code>hel_geo, plko12</code></td><td><code>helio_to_geo</code></td><td><code>src/horcom/chart/geo.*</code></td></tr>
   <tr><td><code>jseckp, a90, a901, ta_na, vel_om_pd, plko_einz, soko</code></td><td><code>compute_chart</code></td><td><code>src/horcom/chart/chart.*</code></td></tr>
+  <tr><td><code>plant, plant1, ver, ver1r, a16_ta</code></td><td><code>find_longitude_backward, body_longitude</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
 </table>
 
 <h2>The two clocks of the original</h2>
@@ -98,6 +99,24 @@ hundredth of a day like the original pl_vel. The Part of Fortune follows
 ta_na, day birth AC plus Moon minus Sun, night birth the mirror. True node
 and true Black Moon get their speeds from a symmetric hour, the original
 vel_om_pd.
+</p>
+
+<h2>The exact hit search</h2>
+<p>
+plant answers when a body reaches a given longitude, searching backward
+from a start moment. The port keeps his whole scheme, the per body
+initial steps and tolerances from one degree for Mercury down to 1.6
+minutes for Pluto, the period table of a16_ta, the coarse backward walk
+with the branch reconcilers ver and ver1r until the target is bracketed,
+the fine parity guarded approach of the planets, then the damped secant
+that multiplies the step by minus 0.31 on every sign flip, and the final
+linear interpolation. His screen escapes and timers become step budgets.
+The original notes the remaining time error is mostly under five
+seconds. Verified against the 1993 spring equinox of the almanac, 14:41
+UT, hit within two minutes, with the residual under half an arc second,
+plus a lunar return and a Mercury search near its retrograde loops. The
+multi passage continuation, the ingress driver ingre1 and the return
+wrapper korh ride on this next.
 </p>
 
 <h2>Verification</h2>
