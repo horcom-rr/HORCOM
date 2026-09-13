@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>horcom Handbook, render</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="sky">
+  <h1>render</h1>
+  <p class="sub">The wheel as a display list, and the first picture</p>
+</header>
+
+<nav class="crumbs"><a href="index.html">handbook</a> / render</nav>
+
+<main>
+
+<h2>Purpose</h2>
+<p>
+The renderer rebuilds Robert's chart wheel from his exact geometry, the
+virtual canvas of 640 by 480 with the centre at 430, 224, the scale
+km&nbsp;0.95, the rings at 90, 128, 152, 165 and 182, the polar mapping
+w&nbsp;=&nbsp;nb(lambda&nbsp;+&nbsp;pi&nbsp;&minus;&nbsp;fza) that puts the ascendant on the left, the
+axes reaching 188 with their labels at 200. The output is a backend
+neutral display list, one code path can feed the screen, an SVG file or a
+printer later, which resolves the original's three way moda&amp; branching by
+design.
+</p>
+
+<h2>Origin map</h2>
+<table>
+  <tr><th>original</th><th>ported as</th><th>file</th></tr>
+  <tr><td><code>horg, horg1, horg10, horg11, zein, zein1, plein1, plein11, aspz0, aspz1</code></td><td><code>build_wheel</code></td><td><code>src/horcom/render/wheel.*</code></td></tr>
+  <tr><td><code>plentz, plsort, plentz1, plentz10, plentz11, plentz2, plentz21</code></td><td>the de clumping inside <code>build_wheel</code></td><td><code>src/horcom/render/wheel.cpp</code></td></tr>
+  <tr><td>screen, printer and BMP outputs</td><td><code>to_svg</code>, further backends later</td><td><code>src/horcom/render/svg.*</code></td></tr>
+</table>
+
+<h2>Deliberate modernisations, each documented</h2>
+<p>
+Three parts of the original drawing cannot carry over literally, and the
+legacy analysis called all three. The flood fill of the sign band becomes
+explicit annular sector paths. His bitmap glyphs in six sizes become text
+glyphs, Unicode astrological symbols where they exist and his two letter
+tags where they do not, which realises the resolution independent vector
+symbols he himself prototyped in SYMBGEN. And the tiled screen dump
+persistence is replaced by real SVG export. The element colours stay his,
+fire red, earth olive, air teal, water cyan, and the aspect chords keep
+the colour table of aspz1 with the blue dashed node axis.
+</p>
+
+<h2>The de clumping</h2>
+<p>
+plentz is ported as a whole, the sort along the wheel, the radial stagger
+of plus eight or minus fourteen units when neighbours come within ten
+degrees, the angular push apart within nine degrees with his three
+different strengths. One honest limit is kept, the original resolves a
+stellium in one pass and may leave a single touching pair in extreme
+cases, the port behaves the same and the test asserts the improvement
+rather than a guarantee the original never made.
+</p>
+
+<h2>The command line front end</h2>
+<p>
+<code>apps/cli</code> builds the <code>horcom</code> executable. It takes a
+date, time in UT, place and the calculation switches, prints the
+coordinate table with the sign tags of his zei$ table, the houses and the
+aspect counts, and writes the wheel as SVG on request. The first wheel it
+produced cross checked against the book, the Sun of 1992-10-13 landed
+within seconds of arc of the Meeus example advanced by three hours of
+daily motion.
+</p>
+
+<h2>Verification</h2>
+<p>
+<code>test_render.cpp</code> checks that the ascendant label sits on the
+left horizon, that the list carries exactly twelve sectors and three
+rings, that every glyph stays on the canvas, that the 1962 Aquarius
+stellium separates strictly better than the raw ring and to at most one
+touching pair, and that the SVG document is well formed with sectors,
+rings and the Sun glyph present.
+</p>
+
+</main>
+
+<footer class="page">In memory of Robert Rettig, who built all of this first.</footer>
+
+</body>
+</html>

@@ -16,6 +16,7 @@ He wished for HORCOM to live on in C++. This project is that rewrite, done caref
 | `legacy/` | The complete original archive, programs, data and documents (local only, not in git, contains private data) |
 | `docs/` | Architecture notes, the map of the original program, the rewrite plan and the handbook (`docs/handbook/index.html`) |
 | `src/` | The new C++ implementation |
+| `apps/` | The `horcom` command line front end, coordinate table and SVG wheel |
 | `tests/` | Tests, including comparisons against the original program's results |
 
 ## Principles
@@ -34,7 +35,11 @@ Analysis complete, implementation not yet started. The original program (50,397 
 - `docs/legacy/tools-and-modules.md` — the ephemeris production chain (Runge-Kutta + Störmer integration) and the survey of all standalone tools
 - `docs/architecture.md` — the target C++ design, verification strategy and phase plan
 
-Implementation is under way. Ported and green so far: phase 1, the calculation kernel with calendar, delta T and sidereal time. Phase 2, the position engines, VSOP series, Moon, Kepler orbits, his integrated ephemeris files, nutation, precession and the Chapront Pluto fallback. Phase 3, the chart pipeline, all seven house systems, the correction chain with his protected topocentric parallax, lunar nodes and Black Moon, and the Part of Fortune. Phase 3b, the harmonic aspect scanner with his orb system, the Schiemenz counters and the midpoint passes. Everything is verified against Meeus's worked examples, the binary data files and independent cross computations. The growing handbook lives at `docs/handbook/index.html`, his ephemerides and term tables ship in `data/`. Next are the first golden fixtures recorded from the original program and the chart geometry for rendering.
+Implementation is under way. Ported and green so far: phase 1, the calculation kernel with calendar, delta T and sidereal time. Phase 2, the position engines, VSOP series, Moon, Kepler orbits, his integrated ephemeris files, nutation, precession and the Chapront Pluto fallback. Phase 3, the chart pipeline, all seven house systems, the correction chain with his protected topocentric parallax, lunar nodes and Black Moon, and the Part of Fortune. Phase 3b, the harmonic aspect scanner with his orb system, the Schiemenz counters and the midpoint passes. Phase 5 in first form, the wheel renderer with his exact geometry, SVG export and the `horcom` command line tool that prints the full coordinate table and draws the chart. Everything is verified against Meeus's worked examples, the binary data files and independent cross computations. The growing handbook lives at `docs/handbook/index.html`, his ephemerides and term tables ship in `data/`. Next are golden fixtures recorded from the original program and the GUI groundwork.
+
+```
+build\apps\horcom.exe --date 13.10.1992 --time 03:00 --lon 11.32 --lat 48.17 --extras --svg wheel.svg
+```
 
 ## License
 
