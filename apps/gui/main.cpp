@@ -183,6 +183,11 @@ int main(int argc, char** argv) {
     partner.lon_min = 19;
     window.show_composite(partner);
   }
+  const int shot_helio = args.indexOf("--shot-helio");
+  if (shot_helio >= 0) {
+    shot = shot_helio;
+    window.show_helio();
+  }
   const int shot_mundane = args.indexOf("--shot-mundane");
   if (shot_mundane >= 0) {
     shot = shot_mundane;

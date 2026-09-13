@@ -64,6 +64,9 @@ class MainWindow : public QMainWindow {
   /// Switches the mundane view on, the horm 2 mode.
   void show_mundane();
 
+  /// Switches the heliocentric mode on, the original hrg.
+  void show_helio();
+
  private slots:
   void recompute();
   void open_records();
@@ -112,6 +115,7 @@ class MainWindow : public QMainWindow {
   QCheckBox* extras_ = nullptr;
   QCheckBox* true_node_ = nullptr;
   QCheckBox* true_apogee_ = nullptr;
+  QCheckBox* helio_ = nullptr;
   QCheckBox* transit_on_ = nullptr;
   QDateEdit* tdate_ = nullptr;
   QTimeEdit* ttime_ = nullptr;

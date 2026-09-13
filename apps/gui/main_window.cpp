@@ -186,6 +186,8 @@ void MainWindow::build_ui() {
   extras_ = new QCheckBox(tr("Zusatzplaneten"), form_host);
   true_node_ = new QCheckBox(tr("Wahrer Mondknoten"), form_host);
   true_apogee_ = new QCheckBox(tr("Wahres Apogäum"), form_host);
+  //RR HELIOZENTRISCH
+  helio_ = new QCheckBox(tr("Heliozentrisch"), form_host);
   form->addRow(tr("Datum"), date_);
   form->addRow(tr("Zeit"), time_);
   // the zone field carries a picker into the zone name catalogue
@@ -207,6 +209,7 @@ void MainWindow::build_ui() {
   form->addRow(extras_);
   form->addRow(true_node_);
   form->addRow(true_apogee_);
+  form->addRow(helio_);
   // the transit moment enters as Greenwich time like the original a20
   transit_on_ = new QCheckBox(tr("Transite"), form_host);
   tdate_ = new QDateEdit(QDate::currentDate(), form_host);
@@ -400,7 +403,7 @@ void MainWindow::build_ui() {
   connect(lon_, &QDoubleSpinBox::valueChanged, this, &MainWindow::recompute);
   connect(lat_, &QDoubleSpinBox::valueChanged, this, &MainWindow::recompute);
   connect(houses_, &QComboBox::currentIndexChanged, this, &MainWindow::recompute);
-  for (QCheckBox* box : {parallax_, extras_, true_node_, true_apogee_}) {
+  for (QCheckBox* box : {parallax_, extras_, true_node_, true_apogee_, helio_}) {
     connect(box, &QCheckBox::toggled, this, &MainWindow::recompute);
   }
   connect(transit_on_, &QCheckBox::toggled, this, [this](bool on) {
@@ -434,6 +437,7 @@ ChartSettings MainWindow::current_settings() const {
   s.topocentric_parallax = parallax_->isChecked();
   s.true_node = true_node_->isChecked();
   s.true_apogee = true_apogee_->isChecked();
+  s.heliocentric = helio_ != nullptr && helio_->isChecked();
   if (extras_->isChecked()) {
     if (!s.extra_bodies) {
       s.enable_standard_extras();
@@ -462,8 +466,9 @@ void MainWindow::recompute() {
   }
   const ChartSettings s = current_settings();
   Chart chart = compute_chart(in, s, vsop_, eph_);
-  // the horm 2 transform runs before every scanner like the original
-  const bool mundane = mundane_action_ != nullptr && mundane_action_->isChecked() && !clock;
+  // the horm 2 transform runs before every scanner like the original,
+  // the hrg mode has no houses so mundane stays out like fixpunkt_def
+  const bool mundane = mundane_action_ != nullptr && mundane_action_->isChecked() && !clock && !s.heliocentric;
   if (mundane && chart.ok) {
     to_mundane(chart, in.lat_deg);
   }
@@ -502,12 +507,18 @@ void MainWindow::recompute() {
                                   .arg(in.lon_deg_east, 0, 'f', 2)
                                   .arg(in.lat_deg, 0, 'f', 2)
                                   .toStdString());
-    QString hs = QString::fromUtf8(chart.houses.name.data(), static_cast<int>(chart.houses.name.size())).trimmed();
-    if (s.topocentric_parallax) {
-      //RR MitParall.
-      hs += "  MitParall.";
+    if (s.heliocentric) {
+      //RR Heliozentrisch
+      wopt.info_lines.push_back(tr("Heliozentrisch").toStdString());
+    } else {
+      QString hs = QString::fromUtf8(chart.houses.name.data(), static_cast<int>(chart.houses.name.size())).trimmed();
+      if (s.topocentric_parallax) {
+        //RR MitParall.
+        hs += "  MitParall.";
+      }
+      wopt.info_lines.push_back(hs.toStdString());
     }
-    wopt.info_lines.push_back(hs.toStdString());
+    wopt.heliocentric = s.heliocentric;
   }
 
   bool transit_drawn = false;
@@ -551,7 +562,7 @@ void MainWindow::recompute() {
     wheel_->set_display_list(build_wheel(chart, s, aspects, opt));
     transit_drawn = true;
     banner_->set_record("MUNDAN");
-  } else if (directions_action_ != nullptr && directions_action_->isChecked() && dir_jd_ > 0.0) {
+  } else if (directions_action_ != nullptr && directions_action_->isChecked() && dir_jd_ > 0.0 && !s.heliocentric) {
     // the directed axes of prima over the radix positions, no chords
     // like primhorg
     const DirectedAxes d =
@@ -611,8 +622,10 @@ void MainWindow::recompute() {
                         .arg(chart.jd_ut, 0, 'f', 5)
                         .arg(chart.delt_minutes, 0, 'f', 2)
                         .arg(chart.armc_deg, 0, 'f', 4)
-                        .arg(QString::fromUtf8(chart.houses.name.data(), static_cast<int>(chart.houses.name.size())))
-                        .arg(s.topocentric_parallax ? "   MitParall." : ""));
+                        .arg(s.heliocentric
+                                 ? tr("Heliozentrisch")
+                                 : QString::fromUtf8(chart.houses.name.data(), static_cast<int>(chart.houses.name.size())))
+                        .arg(!s.heliocentric && s.topocentric_parallax ? "   MitParall." : ""));
   fill_tables(*shown, *shown_aspects);
   if (!cross_text.isEmpty()) {
     aspects_label_->setText(cross_text);
@@ -621,6 +634,9 @@ void MainWindow::recompute() {
 
 void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
   bodies_->setRowCount(0);
+  // a chart without a sun but with the moon slot filled is the hrg
+  // mode, the slot then carries the earth
+  const bool helio = !chart.b[body::kSun].present && chart.b[body::kMoon].present;
   QStringList row_names;
   for (int slot = 0; slot <= 40; ++slot) {
     const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
@@ -629,8 +645,9 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
     }
     const int row = bodies_->rowCount();
     bodies_->insertRow(row);
-    row_names << QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
-                                   static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size()));
+    const std::string_view tag = (helio && slot == body::kMoon) ? body::kTag[0]
+                                                                : body::kTag[static_cast<std::size_t>(slot)];
+    row_names << QString::fromUtf8(tag.data(), static_cast<int>(tag.size()));
     if (!b.valid) {
       bodies_->setItem(row, 0, new QTableWidgetItem(tr("außerhalb der Ephemeride")));
       continue;
@@ -648,8 +665,10 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
   }
   bodies_->setVerticalHeaderLabels(row_names);
   bodies_->resizeColumnsToContents();
+  // bes111 lists no cusps in the hrg mode
   for (int i = 1; i <= 12; ++i) {
-    cusps_->setItem(i - 1, 0, new QTableWidgetItem(zodiac(chart.houses.cusp[static_cast<std::size_t>(i)])));
+    cusps_->setItem(i - 1, 0,
+                    new QTableWidgetItem(helio ? QString() : zodiac(chart.houses.cusp[static_cast<std::size_t>(i)])));
   }
   aspects_label_->setText(tr("<span style='color:#D4A94A'>ASPEKTE</span>&nbsp; "
                              "konj %1  opp %2  trigon %3  quadrat %4  sextil %5")
@@ -998,6 +1017,10 @@ void MainWindow::show_composite(const AafRecord& partner) {
 
 void MainWindow::show_mundane() {
   mundane_action_->setChecked(true);
+}
+
+void MainWindow::show_helio() {
+  helio_->setChecked(true);
 }
 
 void MainWindow::show_directions(double jd_event_ut, bool converse) {
