@@ -14,6 +14,7 @@ add_library(horcom STATIC
   horcom/chart/corrections.cpp
   horcom/chart/geo.cpp
   horcom/chart/chart.cpp
+  horcom/chart/aspects.cpp
 )
 
 target_include_directories(horcom PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
