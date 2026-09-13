@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>horcom Handbook</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="sky">
+  <h1>horcom</h1>
+  <p class="sub">The handbook of the C++ rewrite of HORCOM by Robert Rettig</p>
+</header>
+
+<main>
+
+<h2>What this handbook is</h2>
+<p>
+HORCOM is the astrology program Robert Rettig wrote and refined from the 1970s
+until 2010, first for the Atari, then in GFA&nbsp;BASIC for Windows. He computed his
+own ephemerides when none existed, credited every source down to the library
+shelf mark, and wished for the program to live on in C++. This handbook grows
+alongside that rewrite. Every page describes one module of the new program,
+explains the original mechanics it preserves, and lets Robert speak in his own
+words wherever his comments still tell the story best.
+</p>
+
+<blockquote class="rr">// ES WIRD ABER KEINESWEGS EMPFOHLEN,ROUTINEN DIE IM RECHENGANG VERWENDET WERDEN,SELBST UMZUFORMEN.DER TEUFEL STECKT FAST IMMER IM DETAIL !
+// ALSO: IM RECHENGANG ALLES MÖGLICHST SO LASSEN WIE ES IST,BESONDERS AUCH DIE REIHENFOLGE DER PROCEDUREN.
+<footer>Robert Rettig, in the preamble of his ephemeris source delivery, 2000. This advice is the standing policy of the whole port.</footer>
+</blockquote>
+
+<h2>Modules</h2>
+<div class="grid">
+  <div class="card element-earth">
+    <h3><a href="core.html">core</a></h3>
+    <p>Constants and the angle kernel. Normalisation, the quadrant arctangent, the comparison reconcilers.</p>
+    <p class="status done">PORTED &middot; 100% tests green</p>
+  </div>
+  <div class="card element-air">
+    <h3><a href="time.html">time</a></h3>
+    <p>Calendar and Julian date, time arguments, delta T, sidereal time.</p>
+    <p class="status done">PORTED &middot; 100% tests green</p>
+  </div>
+  <div class="card element-water">
+    <h3>ephem</h3>
+    <p>The position engines. VSOP series, the Moon, Kepler orbits, his integrated ephemeris files, nutation and precession.</p>
+    <p class="status open">PLANNED &middot; phase 2</p>
+  </div>
+  <div class="card element-fire">
+    <h3>chart</h3>
+    <p>The chart pipeline. Geocentric conversion, the protected parallax, houses, aspects, midpoints, special factors.</p>
+    <p class="status open">PLANNED &middot; phase 3</p>
+  </div>
+</div>
+
+<h2>Conventions of the port</h2>
+
+<h3>Robert's comments travel with the code</h3>
+<p>
+Wherever one of his comments still applies to the converted routine it is
+carried over verbatim, in his German wording, marked with the prefix
+<code>//RR</code>. One comment per routine names the original HORCOM procedure
+it was ported from. Code comments stay self contained, they never point at
+files outside the repository.
+</p>
+
+<h3>Same numbers first</h3>
+<p>
+Every ported routine first reproduces the original's output and lands together
+with its tests, transcription pins plus independent values from the literature
+Robert himself used, above all Jean Meeus. Only under green tests may a routine
+be restructured. Where the original and the rewrite disagree, the original is
+presumed right.
+</p>
+
+<h3>The two integer worlds of GFA BASIC</h3>
+<p>
+GFA&nbsp;BASIC has <code>INT</code>, which rounds down, and <code>FIX</code>,
+which truncates toward zero. The original uses both deliberately. The angle
+normalisers <code>ng</code>, <code>nb</code>, <code>nh</code> are built on
+<code>INT</code> and land in [0,&nbsp;period), while <code>wz</code>, the degree
+within a zodiac sign, is built on <code>FIX</code> and keeps its sign. The port
+maps them to <code>std::floor</code> and <code>std::trunc</code> and its tests
+pin both behaviours.
+</p>
+
+<h3>Guards stay where he put them</h3>
+<p>
+The epsilon <code>kk&nbsp;=&nbsp;1e-10</code> appears in the original exactly where a
+division or an arctangent argument could hit zero. The port adds it in exactly
+those places and nowhere else, because the branch behaviour of the aspect
+logic depends on it.
+</p>
+
+<h2>Verification</h2>
+<p>
+The test suite currently holds 18 test cases with 170 assertions, all green,
+built with MSVC at warning level 4 with warnings as errors. Golden fixtures
+recorded from the original program join the suite once the calculation chain
+can produce full coordinate tables.
+</p>
+
+</main>
+
+<footer class="page">In memory of Robert Rettig, who built all of this first.</footer>
+
+</body>
+</html>

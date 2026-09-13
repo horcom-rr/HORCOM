@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>horcom Handbook, time</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="sky">
+  <h1>time</h1>
+  <p class="sub">Calendar, Julian date, delta T and sidereal time</p>
+</header>
+
+<nav class="crumbs"><a href="index.html">handbook</a> / time</nav>
+
+<main>
+
+<h2>Purpose</h2>
+<p>
+A birth moment enters HORCOM as a civil date and clock time and must become a
+Julian date in Ephemeris Time before any planet can be computed. This module
+holds that road. It follows Jean Meeus, whose book Robert names as his source,
+with Robert's own decisions layered on top, a per chart calendar override, a
+delta T table he extended by hand over the years, and the Newcomb sidereal
+time series.
+</p>
+
+<h2>Origin map</h2>
+<table>
+  <tr><th>original</th><th>ported as</th><th>file</th></tr>
+  <tr><td><code>juld</code></td><td><code>julian_day</code></td><td rowspan="3"><code>src/horcom/time/calendar.*</code></td></tr>
+  <tr><td><code>dat</code></td><td><code>calendar_date</code></td></tr>
+  <tr><td><code>juld1</code> (without <code>somo</code>)</td><td><code>time_arguments</code></td></tr>
+  <tr><td><code>utet</code></td><td><code>delta_t_minutes</code></td><td rowspan="3"><code>src/horcom/time/delta_t.*</code></td></tr>
+  <tr><td><code>utet1</code></td><td><code>ut_to_et</code></td></tr>
+  <tr><td><code>etut</code></td><td><code>et_to_ut</code></td></tr>
+  <tr><td><code>sidt</code></td><td><code>gmst0_hours, apparent_sidereal_hours, sidereal_at_hours</code></td><td><code>src/horcom/time/sidereal.*</code></td></tr>
+</table>
+
+<h2>Calendar and Julian date</h2>
+<p>
+The conversion is the classic Meeus algorithm with one HORCOM speciality. Every
+chart carries a calendar flag, in the original a string containing
+<code>"(JULIAN.)"</code> or <code>"(GREGOR.)"</code>. Without a flag the
+historical rule applies, Julian calendar before the reform of 1582-10-15 and
+Gregorian from then on. The flags force one calendar across the boundary, so a
+researcher can enter proleptic Gregorian dates for antiquity or keep Julian
+dates for countries that reformed late. The port models the flag as the
+<code>Calendar</code> enum.
+</p>
+<p>
+Negative years go through a dedicated branch,
+<code>FIX(365.25&nbsp;*&nbsp;y&nbsp;-&nbsp;0.75)</code>, the truncation trick
+from the book that makes the formula hold all the way down to the Julian day
+zero in 4713&nbsp;BC. Years count astronomically, the year 0 exists.
+</p>
+
+<h2>Delta T</h2>
+<p>
+Planets run in Ephemeris Time, houses in Universal Time. The difference is
+delta T, and Robert kept it as a table of measured values from 1620 to 2008,
+linearly interpolated, in minutes, with three polynomial branches beyond the
+table. His annotations mark the ranges
+</p>
+<blockquote class="rr">delt = 1.2053 * t1 + 0.4992 * t1 * t1 - 0.7506263    //2008 a.d. ........
+delt = 0.425 + 0.85 * t1 + 0.425 * t1 * t1    //948 a.d.  ..... 1600 a.d.
+delt = 28.74 + 6.81 * t1 + 0.7383 * t1 * t1   //390 v.chr.  .... 948 a.d.
+<footer>the three extrapolation branches of utet, with Robert Rettig's range comments</footer>
+</blockquote>
+<p>
+He extended the table repeatedly, his change log notes
+</p>
+<blockquote class="rr">// UTET bis 2008 extrapoliert                              28.06.04
+<footer>from the change log at the head of the main program</footer>
+</blockquote>
+<p>
+One charming detail is preserved knowingly. When the year is exactly 1620 the
+interpolation loop lands on the zero element of the GFA arrays and still
+produces the correct 124 seconds, by arithmetic accident rather than design.
+The port reproduces the loop exactly and its test pins that edge.
+</p>
+
+<h2>Sidereal time</h2>
+<p>
+The original <code>sidt</code> rewinds the clock to 0h&nbsp;UT of the calendar
+day, recomputes the Julian date there, evaluates Greenwich mean sidereal time
+at midnight with the Newcomb series, optionally applies the equation of the
+equinoxes, and then advances to the moment with the solar to sidereal rate
+1.002737908. Robert's default is the apparent variant, his settings call it
+</p>
+<blockquote class="rr">stzw&amp; = 1 // wahre Sternzeit
+<footer>the default in the program's startup settings</footer>
+</blockquote>
+<p>
+The port splits the procedure into three pure functions, midnight GMST,
+apparent correction and advance to the moment, so the chart pipeline can
+reproduce the original call order without hidden state. Two behaviours are
+documented for that pipeline. The cubic term of the series runs on centuries
+from J2000 while the linear terms run on centuries from 1900, exactly as the
+original computes it. And in the original, rewinding to midnight leaves the
+nutation state of 0h behind in the globals until the pipeline recomputes it,
+the port keeps no such state at all.
+</p>
+
+<h2>Verification</h2>
+<p>
+<code>tests/test_calendar.cpp</code> reproduces seventeen worked examples from
+Meeus in both directions, the reform boundary days, the calendar override
+including a proleptic Gregorian round trip, and the time arguments at J2000.
+<code>tests/test_delta_t.cpp</code> pins table nodes including the 1620 edge,
+an interpolated year, all three polynomial branches and the UT to ET round
+trip. <code>tests/test_sidereal.cpp</code> pins the exact transcription values
+and checks the Meeus example within half a second, the Newcomb series agrees
+with the modern value to 0.066&nbsp;s there, and the equation of the equinoxes
+example lands within a millisecond of the book.
+</p>
+
+</main>
+
+<footer class="page">In memory of Robert Rettig, who built all of this first.</footer>
+
+</body>
+</html>

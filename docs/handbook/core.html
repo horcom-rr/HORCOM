@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>horcom Handbook, core</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="sky">
+  <h1>core</h1>
+  <p class="sub">Constants and the angle kernel</p>
+</header>
+
+<nav class="crumbs"><a href="index.html">handbook</a> / core</nav>
+
+<main>
+
+<h2>Purpose</h2>
+<p>
+Everything in HORCOM computes in radians, and every angular comparison in the
+program runs through a small set of helper functions that Robert defined once,
+in his startup procedure <code>funkt</code>, and used tens of thousands of
+times. This module is that kernel. It is deliberately the first thing ported,
+because the aspect logic, the houses and the ephemeris interpolation all
+depend on its exact branch behaviour.
+</p>
+
+<h2>Origin map</h2>
+<table>
+  <tr><th>original</th><th>ported as</th><th>file</th></tr>
+  <tr><td><code>po, pu, up, puu, pup, pv2, kk</code> (in <code>funkt</code>)</td><td><code>kHalfPi, kDegToRad, kRadToDeg, kArcsecToRad, kDegPerCenturyToRad, kTwoPi, kEps</code></td><td><code>src/horcom/core/constants.hpp</code></td></tr>
+  <tr><td><code>DEFFN ng(x)</code></td><td><code>norm_deg</code></td><td rowspan="4"><code>src/horcom/core/angle.hpp</code></td></tr>
+  <tr><td><code>DEFFN nb(x)</code></td><td><code>norm_rad</code></td></tr>
+  <tr><td><code>DEFFN nh(x)</code></td><td><code>norm_hours</code></td></tr>
+  <tr><td><code>DEFFN wz(x)</code></td><td><code>deg_in_sign</code></td></tr>
+  <tr><td><code>FUNCTION atn(z, fii)</code></td><td><code>atn(z, n)</code></td><td><code>src/horcom/core/angle.hpp</code></td></tr>
+  <tr><td><code>vergl1, vergl1r, vergl2, vergl2r</code></td><td>same names</td><td><code>src/horcom/core/angle.hpp</code></td></tr>
+</table>
+
+<h2>The normalisers</h2>
+<p>
+The original definitions read
+</p>
+<pre><code>DEFFN ng(x) = x - 360 * INT(x / 360)
+DEFFN nb(x) = x - pv2 * INT(x / pv2)
+DEFFN nh(x) = x - 24 * INT(x / 24)
+DEFFN wz(x) = x - 30 * FIX(x / 30)</code></pre>
+<p>
+Three of them use <code>INT</code>, the floor. Their results always land in
+[0,&nbsp;period), a negative angle wraps to the top of the range. The fourth,
+the degree within a zodiac sign, uses <code>FIX</code>, the truncation, and
+therefore keeps the sign of its argument. That difference is intentional and
+the port preserves it through <code>std::floor</code> versus
+<code>std::trunc</code>.
+</p>
+
+<h2>The quadrant arctangent</h2>
+<p>
+GFA&nbsp;BASIC has no atan2, so Robert built his own. The calling pattern
+throughout the program is <code>fii&nbsp;=&nbsp;ATN(z&nbsp;/&nbsp;n)</code>
+followed by <code>@atn(z,&nbsp;fii)</code>, which adds &pi; when the raw result
+is negative and adds &pi; again when the numerator is negative. For nonzero
+arguments the result equals <code>atan2</code> normalised into
+[0,&nbsp;2&pi;), and the tests verify that equivalence over a grid.
+</p>
+<div class="note">
+<p>
+Edge worth knowing. For <code>z</code> exactly zero with negative
+<code>n</code> the original returns 0 where atan2 would return &pi;. The
+listing never lets that case arise, it adds <code>kk</code> to the denominator
+in the few places it could. The port keeps the original behaviour and the same
+guard placement instead of hiding a general guard inside the function.
+</p>
+</div>
+
+<h2>The comparison reconcilers</h2>
+<p>
+Aspect windows live on a circle. When a window straddles the 0&nbsp;/&nbsp;2&pi;
+seam, a plain numeric comparison would tear it apart. Robert solved this with
+four tiny procedures that push one operand up by a full turn under precise
+conditions, for example
+</p>
+<pre><code>PROCEDURE vergl2(VAR w1,w2,w3)
+  IF w1 &gt; w3 + PI &amp;&amp; w3 &lt; w2
+    w3 = w3 + pv2
+  ENDIF
+  IF w1 &gt; w2 + PI &amp;&amp; w2 &gt; 0 &amp;&amp; w1 &lt; pv2
+    w2 = w2 + pv2
+  ENDIF
+RETURN</code></pre>
+<p>
+These four are transcribed condition for condition. They look asymmetric
+because they are, each variant serves one specific call site family in the
+aspect scanner, and the port does not try to unify them.
+</p>
+
+<h2>Verification</h2>
+<p>
+<code>tests/test_angle.cpp</code>. Wrap values on both sides of every period,
+the sign behaviour of <code>deg_in_sign</code>, recovery of full angles from
+sine and cosine pairs, equivalence of <code>atn</code> with normalised
+<code>atan2</code> away from the zero edge, and a seam crossing aspect window
+that only survives because of <code>vergl2</code>.
+</p>
+
+</main>
+
+<footer class="page">In memory of Robert Rettig, who built all of this first.</footer>
+
+</body>
+</html>
