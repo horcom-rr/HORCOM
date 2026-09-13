@@ -83,6 +83,29 @@ QString degs(double rad) {
   return QString::asprintf("%+9.4f", rad * kRadToDeg);
 }
 
+// the comparison list body, running body, separation, radix body
+QString cross_hits_text(const std::vector<CrossAspectHit>& hits) {
+  QString out;
+  int shown = 0;
+  for (const CrossAspectHit& h : hits) {
+    if (shown >= 14) {
+      out += QString::fromUtf8("…");
+      break;
+    }
+    if (shown > 0) {
+      out += ",  ";
+    }
+    out += QString("%1 %2° %3")
+               .arg(QString::fromUtf8(body::kTag[static_cast<std::size_t>(h.w)].data(),
+                                      static_cast<int>(body::kTag[static_cast<std::size_t>(h.w)].size())))
+               .arg(qRound(h.sep_deg))
+               .arg(QString::fromUtf8(body::kTag[static_cast<std::size_t>(h.t)].data(),
+                                      static_cast<int>(body::kTag[static_cast<std::size_t>(h.t)].size())));
+    ++shown;
+  }
+  return out;
+}
+
 }  // namespace
 
 MainWindow::MainWindow(VsopTables vsop, Ephemerides eph, std::filesystem::path data_dir, QWidget* parent)
@@ -253,6 +276,25 @@ void MainWindow::build_ui() {
   horo->addAction(tr("Solar…"), this, &MainWindow::solar_chart);
   horo->addAction(tr("Lunar…"), this, &MainWindow::lunar_chart);
   horo->addAction(tr("Transit-Liste…"), this, &MainWindow::transit_list);
+  // the double wheel of a12, a second person over the radix
+  compare_action_ = horo->addAction(tr("Vergleich"));
+  compare_action_->setCheckable(true);
+  connect(compare_action_, &QAction::toggled, this, [this](bool on) {
+    if (!on) {
+      partner_chart_.reset();
+      partner_name_.clear();
+      recompute();
+      banner_->set_record(record_label_.trimmed());
+      return;
+    }
+    const auto r = choose_record(tr("Vergleichs-Datensatz wählen"));
+    if (!r || !set_partner(*r)) {
+      const QSignalBlocker block(compare_action_);
+      compare_action_->setChecked(false);
+      return;
+    }
+    recompute();
+  });
   horo->addSeparator();
   //RR Solange UHR SICHTBAR wird HOROSKOP ALLE 15 SEK NACHGEZEICHNET !
   clock_action_ = horo->addAction(tr("Uhr"));
@@ -373,31 +415,24 @@ void MainWindow::recompute() {
           QString("TRANSIT=>%1 %2 UT").arg(td.toString("dd.MM.yyyy"), tt.toString("HH:mm")).toStdString();
       wheel_->set_display_list(build_transit_wheel(chart, tchart, s, aspects, opt));
       transit_drawn = true;
-      // the comparison list of a12asp, running body, separation, radix
-      // body, with his one degree transit orb rule
+      // the comparison list of a12asp with his one degree transit orb
+      // rule, running body, separation, radix body
       const std::vector<CrossAspectHit> cross = scan_aspects_between(chart, tchart, aspect_settings_, true);
       cross_text = tr("<span style='color:#D4A94A'>TRANSITE</span>&nbsp; ");
-      int shown = 0;
-      for (const CrossAspectHit& h : cross) {
-        if (shown >= 14) {
-          cross_text += QString::fromUtf8("…");
-          break;
-        }
-        if (shown > 0) {
-          cross_text += ",  ";
-        }
-        cross_text += QString("%1 %2° %3")
-                          .arg(QString::fromUtf8(body::kTag[static_cast<std::size_t>(h.w)].data(),
-                                                 static_cast<int>(body::kTag[static_cast<std::size_t>(h.w)].size())))
-                          .arg(qRound(h.sep_deg))
-                          .arg(QString::fromUtf8(body::kTag[static_cast<std::size_t>(h.t)].data(),
-                                                 static_cast<int>(body::kTag[static_cast<std::size_t>(h.t)].size())));
-        ++shown;
-      }
-      if (cross.empty()) {
-        cross_text += tr("keine");
-      }
+      cross_text += cross.empty() ? tr("keine") : cross_hits_text(cross);
     }
+  } else if (partner_chart_) {
+    // the a12 double wheel, the partner outside at full scale
+    wheel_->set_display_list(build_double_wheel(chart, *partner_chart_, s, aspects));
+    transit_drawn = true;
+    const std::vector<CrossAspectHit> cross = scan_aspects_between(chart, *partner_chart_, aspect_settings_, false);
+    cross_text = tr("<span style='color:#D4A94A'>VERGLEICH</span>&nbsp; ");
+    cross_text += cross.empty() ? tr("keine") : cross_hits_text(cross);
+    QString mine = QString::fromStdString(record_.surname).trimmed();
+    if (mine.isEmpty()) {
+      mine = "RADIX";
+    }
+    banner_->set_record(QString("%1 × %2").arg(mine, partner_name_));
   }
   if (!transit_drawn) {
     wheel_->set_display_list(build_wheel(chart, s, aspects));
@@ -620,10 +655,16 @@ void MainWindow::pick_zone() {
 }
 
 void MainWindow::open_records() {
+  if (const auto r = choose_record(tr("Datensatz wählen"))) {
+    apply_record(*r);
+  }
+}
+
+std::optional<AafRecord> MainWindow::choose_record(const QString& title) {
   const QString path = QFileDialog::getOpenFileName(this, tr("Datensätze öffnen"), QString(),
                                                     tr("HORCOM Datensätze (*.DAT *.dat *.AAF *.aaf)"));
   if (path.isEmpty()) {
-    return;
+    return std::nullopt;
   }
   std::vector<AafRecord> records;
   if (path.endsWith(".aaf", Qt::CaseInsensitive)) {
@@ -664,10 +705,10 @@ void MainWindow::open_records() {
   }
   if (records.empty()) {
     QMessageBox::warning(this, "HORCOM", tr("Keine Datensätze gefunden."));
-    return;
+    return std::nullopt;
   }
   QDialog dialog(this);
-  dialog.setWindowTitle(tr("Datensatz wählen"));
+  dialog.setWindowTitle(title);
   auto* v = new QVBoxLayout(&dialog);
   auto* list = new QListWidget(&dialog);
   for (const AafRecord& r : records) {
@@ -686,7 +727,54 @@ void MainWindow::open_records() {
   v->addWidget(buttons);
   dialog.resize(560, 420);
   if (dialog.exec() == QDialog::Accepted && list->currentRow() >= 0) {
-    apply_record(records[static_cast<std::size_t>(list->currentRow())]);
+    return records[static_cast<std::size_t>(list->currentRow())];
+  }
+  return std::nullopt;
+}
+
+ChartInput MainWindow::record_input(const AafRecord& r) const {
+  ChartInput in;
+  if (r.jd > 0.0) {
+    // the julian date outranks the clock fields like the loader rule
+    in.date_ut = calendar_date(r.jd, r.calendar);
+  } else {
+    const CalendarDate local{r.day, r.month, r.year, static_cast<double>(r.hour),
+                             r.minute + r.second / 60.0};
+    double zone_hours = 0.0;
+    if (r.zone.size() >= 3 && (r.zone.find('E') != std::string::npos || r.zone.find('W') != std::string::npos)) {
+      zone_hours = std::atof(r.zone.c_str());
+      if (r.zone.find('W') != std::string::npos) {
+        zone_hours = -zone_hours;
+      }
+    }
+    in.date_ut = calendar_date(julian_day(local, r.calendar) - zone_hours / 24.0, r.calendar);
+  }
+  in.lon_deg_east = r.longitude();
+  in.lat_deg = r.latitude();
+  return in;
+}
+
+bool MainWindow::set_partner(const AafRecord& r) {
+  if (r.year < 1 && r.jd <= 0.0) {
+    return false;
+  }
+  const Chart partner = compute_chart(record_input(r), current_settings(), vsop_, eph_);
+  if (!partner.ok) {
+    return false;
+  }
+  partner_chart_ = partner;
+  partner_name_ = QString::fromStdString(r.surname).trimmed();
+  if (partner_name_.isEmpty()) {
+    partner_name_ = QString::fromStdString(r.given).trimmed();
+  }
+  return true;
+}
+
+void MainWindow::show_compare(const AafRecord& partner) {
+  if (set_partner(partner)) {
+    const QSignalBlocker block(compare_action_);
+    compare_action_->setChecked(true);
+    recompute();
   }
 }
 

@@ -50,6 +50,10 @@ class MainWindow : public QMainWindow {
   /// Switches the running clock chart on, the original UHR.
   void show_clock();
 
+  /// Opens the comparison view over the given partner record, the
+  /// capture hook's path into the Vergleich toggle.
+  void show_compare(const AafRecord& partner);
+
  private slots:
   void recompute();
   void open_records();
@@ -72,6 +76,9 @@ class MainWindow : public QMainWindow {
   void apply_moment(double jd_ut, const QString& label);
   void run_solar(int year);
   void refresh_record_label();
+  [[nodiscard]] std::optional<AafRecord> choose_record(const QString& title);
+  [[nodiscard]] ChartInput record_input(const AafRecord& r) const;
+  bool set_partner(const AafRecord& r);
   QString record_label_;
   AafRecord record_;
 
@@ -97,6 +104,9 @@ class MainWindow : public QMainWindow {
   QTimeEdit* ttime_ = nullptr;
   QAction* clock_action_ = nullptr;
   QTimer* clock_timer_ = nullptr;
+  QAction* compare_action_ = nullptr;
+  std::optional<Chart> partner_chart_;
+  QString partner_name_;
   QTableWidget* bodies_ = nullptr;
   QTableWidget* cusps_ = nullptr;
   QLabel* aspects_label_ = nullptr;

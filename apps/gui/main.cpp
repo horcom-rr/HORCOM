@@ -142,6 +142,22 @@ int main(int argc, char** argv) {
     shot = shot_clock;
     window.show_clock();
   }
+  const int shot_compare = args.indexOf("--shot-compare");
+  if (shot_compare >= 0) {
+    shot = shot_compare;
+    horcom::AafRecord partner;
+    partner.surname = "Partner";
+    partner.day = 1;
+    partner.month = 6;
+    partner.year = 1990;
+    partner.hour = 12;
+    partner.zone = "00hE00:00";
+    partner.lat_deg = 48;
+    partner.lat_min = 10;
+    partner.lon_deg = 11;
+    partner.lon_min = 19;
+    window.show_compare(partner);
+  }
   if (shot >= 0) {
     window.showMinimized();
   } else {
