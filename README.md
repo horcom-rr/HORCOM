@@ -12,16 +12,21 @@ HORCOM was Robert Rettig's life project. Written in GFA BASIC, it grew into a co
 
 He wished for HORCOM to live on in C++. This project is that rewrite, done carefully rather than quickly, staying faithful to his algorithms and keeping his own comments alive in the ported code.
 
+<p align="center">
+  <img src="assets/screenshot.png" alt="the HORCOM desktop shell" width="760">
+</p>
+
 ## Repository layout
 
 | Path | Purpose |
 |---|---|
+| `src/` | The new C++ implementation |
+| `apps/` | The `horcom` command line tool and the `horcom_gui` Qt desktop shell |
+| `tests/` | Tests, including comparisons against the original program's results |
+| `data/` | His ephemerides, term tables, place and zone catalogues |
+| `docs/` | Architecture notes, the map of the original program, the rewrite plan and the handbook (`docs/handbook/index.html`) |
 | `reference/` | Verified UTF-8 copies of his original GFA BASIC listings, the factual base of the port (local only, not in git) |
 | `legacy/` | The complete original archive, programs, data and documents (local only, not in git, contains private data) |
-| `docs/` | Architecture notes, the map of the original program, the rewrite plan and the handbook (`docs/handbook/index.html`) |
-| `src/` | The new C++ implementation |
-| `apps/` | The `horcom` command line front end, coordinate table and SVG wheel |
-| `tests/` | Tests, including comparisons against the original program's results |
 
 ## Principles
 
@@ -39,7 +44,17 @@ The original program (50,397 lines, 1,095 procedures) is mapped end to end:
 - `docs/legacy/tools-and-modules.md` — the ephemeris production chain (Runge-Kutta + Störmer integration) and the survey of all standalone tools
 - `docs/architecture.md` — the target C++ design, verification strategy and phase plan
 
-Implementation is under way. Ported and green so far: phase 1, the calculation kernel with calendar, delta T and sidereal time. Phase 2, the position engines, VSOP series, Moon, Kepler orbits, his integrated ephemeris files, nutation, precession and the Chapront Pluto fallback. Phase 3, the chart pipeline, all seven house systems, the correction chain with his protected topocentric parallax, lunar nodes and Black Moon, and the Part of Fortune. Phase 3b, the harmonic aspect scanner with his orb system, the Schiemenz counters and the midpoint passes. Phase 5 in first form, the wheel renderer with his exact geometry, SVG export and the `horcom` command line tool that prints the full coordinate table and draws the chart. Everything is verified against Meeus's worked examples, the binary data files and independent cross computations. The growing handbook lives at `docs/handbook/index.html`, his ephemerides and term tables ship in `data/`. The Qt 6 desktop shell is alive and themed, his logo in a starfield banner over the wheel view with his geometry, coordinate and house docks, and record open for his DAT and AAF files. It starts on his own settings profile, parallax on just as he ran it, and offers his place search and the historic zone name catalogue for the input. Transits ride his double wheel with the running sky outside the signs, and solar and lunar returns land on the port of his exact hit search, verified against the almanac's 1993 equinox to within two minutes. It speaks German natively, his language, and English through a bundled translation chosen by the system locale. Build it with Qt 6 on the CMake prefix path, the target is skipped where Qt is absent. Next are golden fixtures recorded from the original program and the GUI growing into his full menu tree.
+The port advances routine by routine, every step verified against Meeus's worked examples, his binary data files and independent cross computations. Ported and green so far:
+
+- the calculation kernel, calendar, delta T and sidereal time
+- the position engines, VSOP series, Moon theory, Kepler orbits, his self integrated ephemeris files, nutation, precession and the Chapront Pluto fallback
+- the chart pipeline, all seven house systems, the correction chain with his protected topocentric parallax, lunar nodes, Black Moon and the Part of Fortune
+- the harmonic aspect scanner with his orb system, the Schiemenz counters, the midpoints and the two chart comparison scan
+- his exact hit search with solar and lunar returns, sign ingresses and the transit event sweep, verified against the almanac's 1993 equinox to within two minutes
+- the wheel renderer with his exact geometry, SVG export and the `horcom` command line tool
+- his file formats byte for byte, chart collections, places, the zone and country tables, the KONSTA settings stream and the AAF exchange format
+
+The Qt 6 desktop shell carries his visual identity and starts on his own settings profile, the topocentric parallax on just as he ran it. It already covers the heart of his menu tree, place search over his gazetteer with the historic zone catalogue, transits on his double wheel with the running sky outside the signs, the transit event list, solar and lunar returns, sign ingresses, chart comparison, a record mask writing real AAF collections, and the running UHR clock chart. It speaks German natively, his language, and English through a bundled translation. Ahead lie golden fixtures recorded from the original program, composite charts, directions and his statistics module.
 
 ```
 build\apps\horcom.exe --date 13.10.1992 --time 03:00 --lon 11.32 --lat 48.17 --extras --svg wheel.svg
