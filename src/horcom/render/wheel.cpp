@@ -15,19 +15,23 @@ namespace horcom {
 
 namespace {
 
-//RR Horoskop-Mitte
-constexpr double kCx = 430.0;
-constexpr double kCy = 224.0;
-constexpr double kKm = 0.95;
+constexpr double kCx = kWheelCenterX;
+constexpr double kCy = kWheelCenterY;
+constexpr double kKm = kWheelScale;
 
 // the ring radii of the original horg and its helpers
 constexpr double kAspectRing = 90.0;
-constexpr double kGlyphRing = 128.0;
+constexpr double kGlyphRing = kGlyphRingRadius;
 constexpr double kSignInner = 152.0;
 constexpr double kSignGlyphRing = 165.0;
 constexpr double kSignOuter = 182.0;
 constexpr double kAxisEnd = 188.0;
 constexpr double kAxisLabel = 200.0;
+constexpr double kTickInnerRing = 148.0;
+constexpr double kConjDotRing = 85.0;  // the original red conjunction dot
+constexpr double kGlyphSize = 14.0;
+constexpr double kNumberSize = 8.0;
+constexpr double kAxisTextSize = 11.0;
 
 // element colours of the original fill_color, fire, earth, air, water
 constexpr Rgb kElementColor[4] = {0xFF0000, 0x808000, 0x008080, 0x00FFFF};
@@ -176,7 +180,7 @@ DisplayList build_wheel(const Chart& chart, const ChartSettings& s, const Aspect
     g.kind = Primitive::Kind::kGlyph;
     g.x1 = p.x;
     g.y1 = p.y;
-    g.size = 14.0;
+    g.size = kGlyphSize;
     g.text = kSignGlyph[j - 1];
     add(g);
   }
@@ -197,7 +201,7 @@ DisplayList build_wheel(const Chart& chart, const ChartSettings& s, const Aspect
       t.kind = Primitive::Kind::kText;
       t.x1 = pl.x;
       t.y1 = pl.y;
-      t.size = 11.0;
+      t.size = kAxisTextSize;
       t.text = kAxisLabelText[a];
       add(t);
     }
@@ -234,7 +238,7 @@ DisplayList build_wheel(const Chart& chart, const ChartSettings& s, const Aspect
   for (int slot : slots) {
     const auto si = static_cast<std::size_t>(slot);
     const double w_true = wheel_angle(pl[si], fza);
-    const Pt tick1 = at(w_true, 148.0);
+    const Pt tick1 = at(w_true, kTickInnerRing);
     const Pt tick2 = at(w_true, kSignInner);
     add({Primitive::Kind::kLine, tick1.x, tick1.y, tick2.x, tick2.y});
     const Pt g = at(wl[si], kGlyphRing + dc[si]);
@@ -242,19 +246,19 @@ DisplayList build_wheel(const Chart& chart, const ChartSettings& s, const Aspect
     p.kind = Primitive::Kind::kGlyph;
     p.x1 = g.x;
     p.y1 = g.y;
-    p.size = 14.0;
+    p.size = kGlyphSize;
     p.text = kBodyGlyph[si];
     if (chart.b[si].tb < 0.0 && slot >= 3 && slot <= 10) {
       p.text += " R";
     }
     add(p);
     if (opt.degree_numbers) {
-      const Pt n = at(wl[si], kGlyphRing + dc[si] - 14.0);
+      const Pt n = at(wl[si], kGlyphRing + dc[si] - kGlyphSize);
       Primitive num;
       num.kind = Primitive::Kind::kText;
       num.x1 = n.x;
       num.y1 = n.y;
-      num.size = 8.0;
+      num.size = kNumberSize;
       const int deg = static_cast<int>(norm_deg(pl[si] * kRadToDeg)) % 30;
       num.text = std::to_string(deg);
       add(num);
@@ -281,7 +285,7 @@ DisplayList build_wheel(const Chart& chart, const ChartSettings& s, const Aspect
         if (std::abs(wa - w1) > 1.0 || std::abs(wa - w2) > 1.0) {
           wa += kPi;
         }
-        const Pt p = at(wa, 85.0);
+        const Pt p = at(wa, kConjDotRing);
         add({Primitive::Kind::kDot, p.x, p.y, 0, 0, 3.0, 0, 0, 0, 0, 0xFF0000});
         continue;
       }

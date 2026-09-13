@@ -47,8 +47,8 @@ TEST_CASE("the wheel puts the ascendant on the left") {
   for (const Primitive& p : dl.items) {
     if (p.kind == Primitive::Kind::kText && p.text == "AC") {
       found = true;
-      CHECK(p.x1 < 430.0 - 0.9 * 190.0);
-      CHECK(std::abs(p.y1 - 224.0) < 15.0);
+      CHECK(p.x1 < kWheelCenterX - 0.9 * 190.0);
+      CHECK(std::abs(p.y1 - kWheelCenterY) < 15.0);
     }
   }
   CHECK(found);
@@ -127,7 +127,7 @@ TEST_CASE("crowded bodies separate on the glyph ring") {
     const BodyState& b = c.b[static_cast<std::size_t>(slot)];
     if (b.present && b.valid) {
       const double w = norm_rad(b.el + kPi - c.houses.angles.ac);
-      raw.emplace_back(430.0 + 0.95 * 128.0 * std::cos(-w), 224.0 + 0.95 * 128.0 * std::sin(-w));
+      raw.emplace_back(kWheelCenterX + kWheelScale * kGlyphRingRadius * std::cos(-w), kWheelCenterY + kWheelScale * kGlyphRingRadius * std::sin(-w));
     }
   }
   for (std::size_t i = 0; i < raw.size(); ++i) {

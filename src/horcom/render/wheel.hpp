@@ -19,6 +19,16 @@
 // already demanded for any modern renderer.
 namespace horcom {
 
+/// The virtual canvas and wheel geometry of the original, shared with the
+/// tests and every backend.
+inline constexpr double kCanvasWidth = 640.0;
+inline constexpr double kCanvasHeight = 480.0;
+//RR Horoskop-Mitte
+inline constexpr double kWheelCenterX = 430.0;
+inline constexpr double kWheelCenterY = 224.0;
+inline constexpr double kWheelScale = 0.95;  // the original km
+inline constexpr double kGlyphRingRadius = 128.0;
+
 /// Colours as packed 0xRRGGBB like the original RGB() calls.
 using Rgb = unsigned;
 

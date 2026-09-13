@@ -14,9 +14,13 @@ namespace horcom {
 
 namespace {
 
+// the default window is the base angle over thirty, his pn / 30
+constexpr double kDefaultOrbDivisor = 30.0;
+constexpr double kPercent = 100.0;
+
 // the original org, weight percent to orb fraction
 double org(const AspectSettings& a, int slot, int nh) {
-  return a.weight[static_cast<std::size_t>(slot)] / (nh * 100.0);
+  return a.weight[static_cast<std::size_t>(slot)] / (nh * kPercent);
 }
 
 // the original orbis_discr2
@@ -110,7 +114,7 @@ AspectResult scan_aspects(const Chart& chart, const ChartSettings& s, const Aspe
   const int nas = a.divisors;
   for (int n = 1; n <= nas; ++n) {
     const double pn = kTwoPi / n;
-    const double dd = a.equal_probability ? a.orb * a.orbe[static_cast<std::size_t>(n)] : a.orb * pn / 30.0;
+    const double dd = a.equal_probability ? a.orb * a.orbe[static_cast<std::size_t>(n)] : a.orb * pn / kDefaultOrbDivisor;
     for (int t = 1; t <= bb - 1; ++t) {
       t = next_slot(chart, s, t, np);
       if (t > bb - 1) {

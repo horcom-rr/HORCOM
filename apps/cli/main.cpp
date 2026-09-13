@@ -28,8 +28,8 @@ constexpr const char* kSignTag[12] = {"AR", "TA", "GM", "CN", "LE", "VI", "LI", 
 
 std::string format_zodiac(double rad) {
   double deg = norm_deg(rad * kRadToDeg);
-  const int sign = static_cast<int>(deg / 30.0);
-  const double in_sign = deg - sign * 30.0;
+  const int sign = static_cast<int>(deg / kDegPerSign);
+  const double in_sign = deg - sign * kDegPerSign;
   int total_sec = static_cast<int>(in_sign * 3600.0 + 0.5);
   const int d = total_sec / 3600;
   const int m = (total_sec / 60) % 60;

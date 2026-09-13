@@ -11,6 +11,11 @@
 
 namespace horcom {
 
+namespace {
+// the original's break out threshold
+constexpr double kIterationTolerance = 1.0e-07;
+}  // namespace
+
 OrbitPosition kepler(const Orbit& orbit) {
   const double m = orbit.man;
   const double e = orbit.e;
@@ -21,7 +26,7 @@ OrbitPosition kepler(const Orbit& orbit) {
     ea0 = ea;
     //RR MEEUS
     ea = norm_rad(ea + (m + e * std::sin(ea) - ea) / (1.0 - e * std::cos(ea)));
-  } while (std::abs(ea - ea0) > 1.0e-07);
+  } while (std::abs(ea - ea0) > kIterationTolerance);
 
   OrbitPosition out;
   //RR WAHRE ANOMALIE

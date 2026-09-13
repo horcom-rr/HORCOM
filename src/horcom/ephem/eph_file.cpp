@@ -16,22 +16,29 @@ namespace horcom {
 
 namespace {
 
+// the original's stand in for two to the thirty first, every fplanet is
+// this base over the body's largest heliocentric distance in AU
+constexpr double kScaleBase = 2.1748e9;
+
+// one record, four little endian int32
+constexpr std::size_t kRecordBytes = 16;
+
 constexpr EphBodyInfo kBodies[] = {
-    {"pluto", 2.1748e9 / 52.0, EphFrame::kEquatorialJ2000},
-    {"chiron", 2.1748e9 / 20.0, EphFrame::kEclipticB1950},
-    {"ceres", 2.1748e9 / 5.0, EphFrame::kEclipticJ2000},
-    {"pallas", 2.1748e9 / 5.0, EphFrame::kEclipticJ2000},
-    {"juno", 2.1748e9 / 5.0, EphFrame::kEclipticJ2000},
-    {"vesta", 2.1748e9 / 5.0, EphFrame::kEclipticJ2000},
-    {"quaoar", 2.1748e9 / 60.0, EphFrame::kEclipticJ2000},
+    {"pluto", kScaleBase / 52.0, EphFrame::kEquatorialJ2000},
+    {"chiron", kScaleBase / 20.0, EphFrame::kEclipticB1950},
+    {"ceres", kScaleBase / 5.0, EphFrame::kEclipticJ2000},
+    {"pallas", kScaleBase / 5.0, EphFrame::kEclipticJ2000},
+    {"juno", kScaleBase / 5.0, EphFrame::kEclipticJ2000},
+    {"vesta", kScaleBase / 5.0, EphFrame::kEclipticJ2000},
+    {"quaoar", kScaleBase / 60.0, EphFrame::kEclipticJ2000},
     // the original's duplicated CASE precesses Halley from B1950 even
     // though the file is written for J2000, preserved knowingly until a
     // golden test decides the fix
-    {"halley", 2.1748e9 / 40.0, EphFrame::kEclipticB1950},
-    {"pholus", 2.1748e9 / 40.0, EphFrame::kEclipticJ2000},
-    {"damokles", 2.1748e9 / 40.0, EphFrame::kEclipticJ2000},
-    {"nessus", 2.1748e9 / 40.0, EphFrame::kEclipticJ2000},
-    {"xena", 2.1748e9 / 100.0, EphFrame::kEclipticJ2000},
+    {"halley", kScaleBase / 40.0, EphFrame::kEclipticB1950},
+    {"pholus", kScaleBase / 40.0, EphFrame::kEclipticJ2000},
+    {"damokles", kScaleBase / 40.0, EphFrame::kEclipticJ2000},
+    {"nessus", kScaleBase / 40.0, EphFrame::kEclipticJ2000},
+    {"xena", kScaleBase / 100.0, EphFrame::kEclipticJ2000},
 };
 
 }  // namespace
@@ -51,7 +58,7 @@ std::optional<EphFile> EphFile::open(const std::filesystem::path& path) {
     return std::nullopt;
   }
   std::vector<char> bytes((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
-  if (bytes.size() < 16 * 8 || bytes.size() % 16 != 0) {
+  if (bytes.size() < kRecordBytes * 8 || bytes.size() % kRecordBytes != 0) {
     return std::nullopt;
   }
   EphFile e;

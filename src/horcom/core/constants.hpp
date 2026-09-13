@@ -48,6 +48,9 @@ inline constexpr double kKmPerAu = 149600000.0;
 /// solar to sidereal rate with the original's rounding
 inline constexpr double kSolarToSiderealRate = 1.002737908;
 
+inline constexpr double kDegPerHour = 15.0;
+inline constexpr double kDegPerSign = 30.0;
+
 /// radians of nutation to hours of right ascension, the original's
 /// rounded twelve over pi
 inline constexpr double kRadToRaHours = 3.8197186;

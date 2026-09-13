@@ -16,6 +16,12 @@ namespace horcom {
 
 namespace {
 
+// nine planet blocks of eighteen index records, block zero unused
+constexpr int kPlanetBlocks = 9;
+constexpr int kNdxPerPlanet = 18;
+constexpr std::size_t kNdxRecordBytes = 4;
+constexpr std::size_t kDatRecordBytes = 24;
+
 std::vector<char> read_all(const std::filesystem::path& p) {
   std::ifstream f(p, std::ios::binary);
   if (!f) {
@@ -42,7 +48,7 @@ double f64_at(const std::vector<char>& bytes, std::size_t off) {
 VsopTables VsopTables::load(const std::filesystem::path& ndx_path, const std::filesystem::path& dat_path) {
   const std::vector<char> ndx = read_all(ndx_path);
   const std::vector<char> dat = read_all(dat_path);
-  if (ndx.size() < 9 * 18 * 4 || dat.size() % 24 != 0) {
+  if (ndx.size() < static_cast<std::size_t>(kPlanetBlocks * kNdxPerPlanet) * kNdxRecordBytes || dat.size() % kDatRecordBytes != 0) {
     throw std::runtime_error("planetary term tables have unexpected size");
   }
 
@@ -51,11 +57,11 @@ VsopTables VsopTables::load(const std::filesystem::path& ndx_path, const std::fi
   // vectors are 0-based and the offsets are rebased accordingly
   for (int pl = 1; pl <= 8; ++pl) {
     // 'Indices ermitteln
-    int rec = pl * 18;
+    int rec = pl * kNdxPerPlanet;
     Series raw[3][6];
     for (int i = 0; i < 3; ++i) {
       for (int j = 0; j < 6; ++j) {
-        const std::size_t off = static_cast<std::size_t>(rec) * 4;
+        const std::size_t off = static_cast<std::size_t>(rec) * kNdxRecordBytes;
         raw[i][j].offset = u16_at(ndx, off);
         raw[i][j].count = u16_at(ndx, off + 2);
         ++rec;
@@ -67,8 +73,8 @@ VsopTables VsopTables::load(const std::filesystem::path& ndx_path, const std::fi
     for (int i = 0; i < 3; ++i) {
       for (int j = 0; j < 6; ++j) {
         for (int k = 0; k < raw[i][j].count; ++k) {
-          const std::size_t off = static_cast<std::size_t>(cursor) * 24;
-          if (off + 24 > dat.size()) {
+          const std::size_t off = static_cast<std::size_t>(cursor) * kDatRecordBytes;
+          if (off + kDatRecordBytes > dat.size()) {
             throw std::runtime_error("planetary term table truncated");
           }
           t.a_.push_back(f64_at(dat, off));

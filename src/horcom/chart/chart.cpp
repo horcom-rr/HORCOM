@@ -21,6 +21,14 @@ namespace horcom {
 
 namespace {
 
+//RR 1h
+constexpr double kOneHourDays = 0.0416666666666;
+
+// his symmetric hundredth of a day for numerical rates, the factor 50 is
+// one over twice the step and must stay his exact literal
+constexpr double kVelStepDays = 0.01;
+constexpr double kVelRate = 50.0;
+
 // context of one epoch evaluation shared by the body routines
 struct Ctx {
   const ChartSettings& s;
@@ -110,12 +118,12 @@ bool eph_helio(const Ctx& c, std::string_view name, double jd, HelioState& out) 
 // Chapront theory with rates from a symmetric hundredth of a day
 HelioState chapront_helio(const Ctx& c, double jd) {
   const ChaprontPluto now = pluto_chapront(c.ta, c.smo.ekls);
-  const ChaprontPluto before = pluto_chapront(time_arguments(jd - 0.01), c.smo.ekls);
-  const ChaprontPluto after = pluto_chapront(time_arguments(jd + 0.01), c.smo.ekls);
+  const ChaprontPluto before = pluto_chapront(time_arguments(jd - kVelStepDays), c.smo.ekls);
+  const ChaprontPluto after = pluto_chapront(time_arguments(jd + kVelStepDays), c.smo.ekls);
   double w1 = after.hel;
   double w2 = before.hel;
   verv(w1, w2);
-  return {now.hel, now.heb, now.r, (w1 - w2) * 50.0, (after.heb - before.heb) * 50.0, (after.r - before.r) * 50.0};
+  return {now.hel, now.heb, now.r, (w1 - w2) * kVelRate, (after.heb - before.heb) * kVelRate, (after.r - before.r) * kVelRate};
 }
 
 void compute_eph_body(const Ctx& c, int slot, std::string_view name, double jd, const HelioState& earth, double sun_el, double sun_eb, BodyState& b) {
@@ -146,12 +154,12 @@ void compute_kepler_body(const Ctx& c, int slot, int nk_index, double jd, const 
     return (nk_index == 3) ? transpluto_elements(t) : uranian_elements(nk_index, t);
   };
   const OrbitPosition now = kepler(orbit_at(c.ta));
-  const OrbitPosition before = kepler(orbit_at(time_arguments(jd - 0.01)));
-  const OrbitPosition after = kepler(orbit_at(time_arguments(jd + 0.01)));
+  const OrbitPosition before = kepler(orbit_at(time_arguments(jd - kVelStepDays)));
+  const OrbitPosition after = kepler(orbit_at(time_arguments(jd + kVelStepDays)));
   double w1 = after.hel;
   double w2 = before.hel;
   verv(w1, w2);
-  const HelioState h = {now.hel, now.heb, now.r, (w1 - w2) * 50.0, (after.heb - before.heb) * 50.0, (after.r - before.r) * 50.0};
+  const HelioState h = {now.hel, now.heb, now.r, (w1 - w2) * kVelRate, (after.heb - before.heb) * kVelRate, (after.r - before.r) * kVelRate};
   b.present = true;
   b.valid = true;
   b.hel = h.l;
@@ -179,7 +187,7 @@ int ta_na(double ac, double sun_el) {
 // the original vel_om_pd, node and apogee speeds from a symmetric hour
 void node_apogee_speeds(const ChartSettings& s, double jd_et, Chart& chart) {
   //RR 1h
-  const double djd = 0.0416666666666;
+  const double djd = kOneHourDays;
   const auto lunar_at = [&](double jd) {
     const TimeArguments t = time_arguments(jd);
     const SunMoonState st = somo(t, calendar_date(jd, s.calendar));
@@ -228,7 +236,7 @@ Chart compute_chart(const ChartInput& in, const ChartSettings& s, const VsopTabl
   }
   chart.hs = sidereal_at_hours(chart.h0, in.date_ut.hour + in.date_ut.minute / 60.0);
   //RR in Grad
-  chart.armc_deg = 15.0 * norm_hours(chart.hs + in.lon_deg_east / 15.0);
+  chart.armc_deg = kDegPerHour * norm_hours(chart.hs + in.lon_deg_east / kDegPerHour);
   const double armcb = kDegToRad * chart.armc_deg;
   chart.houses = compute_houses(s.houses, armcb, in.lat_deg, chart.ekls0);
   if (!chart.houses.ok) {

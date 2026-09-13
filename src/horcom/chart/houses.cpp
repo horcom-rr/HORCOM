@@ -13,6 +13,9 @@ namespace horcom {
 
 namespace {
 
+// the original iteration threshold of plac1
+constexpr double kPlacidusTolerance = 1.0e-06;
+
 // cusp working state shared by the system routines like the original f()
 struct Work {
   std::array<double, 14>& f;
@@ -56,7 +59,7 @@ void plac1(const Work& w, double w1, double n1, double& x, double& y) {
     y1 = y;
     x = norm_rad(w.armcb + std::acos(-std::sin(x) * std::tan(w.ekls) * std::tan(kDegToRad * w.gg + kEps)) / n1);
     y = norm_rad(w.armcb + kPi - std::acos(std::sin(y) * std::tan(w.ekls) * std::tan(kDegToRad * w.gg + kEps)) / (n1 + kEps));
-  } while (std::abs(x1 - x) >= 1.0e-06 || std::abs(y1 - y) >= 1.0e-06);
+  } while (std::abs(x1 - x) >= kPlacidusTolerance || std::abs(y1 - y) >= kPlacidusTolerance);
 }
 
 // the original plac2, right ascension of a cusp to ecliptic longitude
