@@ -25,8 +25,8 @@ constexpr std::array<double, 23> kSeconds = {0,    124,  62,    37,    16,   9, 
 }  // namespace
 
 double delta_t_minutes(double jd) {
-  const double j = 1900.0 + (jd - 2415020.0) / 365.25;
-  const double t1 = (jd - 2415020.0) / 36525.0;
+  const double j = 1900.0 + (jd - kJdEpoch1900) / 365.25;
+  const double t1 = (jd - kJdEpoch1900) / kDaysPerCentury;
   double delt = 0.0;
   if (j >= 1620.0 && j <= 2008.0) {
     int f = 1;

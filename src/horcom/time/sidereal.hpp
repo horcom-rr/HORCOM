@@ -14,21 +14,35 @@
 // the globals, the chart pipeline recomputes it right afterwards.
 namespace horcom {
 
-// h0, Greenwich MEAN sidereal time at 0h UT in hours. jd0 must be the
-// Julian date of 0h UT of the day, obtained via julian_day with hour and
-// minute zero and the SAME calendar override as the chart.
+/// Greenwich MEAN sidereal time at 0h UT, the original h0.
+///
+/// @param jd0 Julian date of 0h UT of the day, from julian_day with hour
+///            and minute zero and the SAME calendar override as the chart
+/// @return sidereal time in hours
 [[nodiscard]] double gmst0_hours(double jd0);
 
-// convenience overload building jd0 from the calendar date
+/// Convenience overload that rewinds the date to midnight itself.
+///
+/// @param d   the calendar date, its clock time is ignored
+/// @param cal calendar override of the chart
+/// @return sidereal time at 0h UT in hours
 [[nodiscard]] double gmst0_hours(const CalendarDate& d, Calendar cal = Calendar::kAuto);
 
 //RR wahre Sternzeit
-// the stzw& = 1 correction from mean to apparent sidereal time. dpsi is the
-// nutation in longitude in radians and ekls the true obliquity in radians,
-// both evaluated at 0h UT like the original does inside sidt.
+/// The stzw& = 1 correction from mean to apparent sidereal time.
+///
+/// @param h0_mean mean sidereal time in hours
+/// @param dpsi    nutation in longitude, radians, evaluated at 0h UT like
+///                the original does inside sidt
+/// @param ekls    true obliquity, radians, same epoch
+/// @return apparent sidereal time in hours
 [[nodiscard]] double apparent_sidereal_hours(double h0_mean, double dpsi, double ekls);
 
-// hs, sidereal time at the moment. hours_since_midnight is ho + mi / 60 in UT.
+/// Sidereal time at the moment, the original hs.
+///
+/// @param h0                    sidereal time at 0h UT in hours
+/// @param hours_since_midnight  ho + mi / 60 in UT
+/// @return sidereal time in hours
 [[nodiscard]] double sidereal_at_hours(double h0, double hours_since_midnight);
 
 }  // namespace horcom

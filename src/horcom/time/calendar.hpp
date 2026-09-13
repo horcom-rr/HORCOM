@@ -27,15 +27,23 @@ struct CalendarDate {
   double minute = 0.0;
 };
 
-// The original juld. Valid for the whole range the original supports,
-// including negative years via the FIX(365.25 * y - 0.75) branch.
+/// The original juld, calendar date to Julian day.
+///
+/// @param d   the date, astronomical year counting
+/// @param cal calendar rule, kAuto follows the 1582 reform
+/// @return the Julian day, valid over the whole original range including
+///         negative years via the FIX(365.25 * y - 0.75) branch
 [[nodiscard]] double julian_day(const CalendarDate& d, Calendar cal = Calendar::kAuto);
 
-// The original dat, the exact inverse. Domain jd >= 0 like the original.
+/// The original dat, the exact inverse of julian_day.
+///
+/// @param jd  Julian day, domain jd >= 0 like the original
+/// @param cal calendar rule matching the one used on the way in
+/// @return the calendar date with integral day and hour
 [[nodiscard]] CalendarDate calendar_date(double jd, Calendar cal = Calendar::kAuto);
 
-// The original juld1 without its trailing somo call, which belongs to the
-// ephemeris module. Time arguments for every downstream formula.
+/// The original juld1 without its trailing somo call, which belongs to
+/// the ephemeris module. Time arguments for every downstream formula.
 struct TimeArguments {
   double jd = 0.0;
   // centuries since 1900.0 (epoch JD 2415020) and powers, original t1..t4
@@ -55,6 +63,11 @@ struct TimeArguments {
   double mean_obliquity_rad = 0.0;
 };
 
+/// Computes the time arguments of an epoch.
+///
+/// @param jd Julian day of the epoch
+/// @return powers of centuries from 1900 and J2000, the tropical year and
+///         the mean obliquity
 [[nodiscard]] TimeArguments time_arguments(double jd);
 
 }  // namespace horcom

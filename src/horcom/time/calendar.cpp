@@ -6,9 +6,17 @@
 
 #include <cmath>
 
+#include "horcom/core/constants.hpp"
+
 namespace horcom {
 
 namespace {
+
+// the date code ja + mo/100 + ta/10000 of the first Gregorian day
+constexpr double kGregorianReformCode = 1582.1015;
+
+// first Gregorian day as the z value inside dat
+constexpr double kJdFirstGregorianZ = 2299161.0;
 
 // GFA FIX, truncation toward zero
 double fix(double x) noexcept {
@@ -39,14 +47,14 @@ double julian_day(const CalendarDate& d, Calendar cal) {
 
   double b = 0.0;
   bool gregorian = false;
-  if (datecode < 1582.1015) {
+  if (datecode < kGregorianReformCode) {
     gregorian = false;
   } else if (cal == Calendar::kJulian) {
     gregorian = false;
   } else {
     gregorian = true;
   }
-  if (datecode < 1582.1015 && cal == Calendar::kGregorian) {
+  if (datecode < kGregorianReformCode && cal == Calendar::kGregorian) {
     gregorian = true;
   }
   if (gregorian) {
@@ -68,13 +76,13 @@ CalendarDate calendar_date(double jd, Calendar cal) {
   const double f = frac(jd + 0.5);
 
   double a = 0.0;
-  if (z < 2299161.0 || cal == Calendar::kJulian) {
+  if (z < kJdFirstGregorianZ || cal == Calendar::kJulian) {
     a = z;
   } else {
     const double aa = fix((z - 1867216.25) / 36524.25);
     a = z + 1.0 + aa - fix(aa / 4.0);
   }
-  if (z < 2299161.0 && cal == Calendar::kGregorian) {
+  if (z < kJdFirstGregorianZ && cal == Calendar::kGregorian) {
     const double aa = fix((z - 1867216.25) / 36524.25);
     a = z + 1.0 + aa - fix(aa / 4.0);
   }
@@ -108,7 +116,7 @@ CalendarDate calendar_date(double jd, Calendar cal) {
 TimeArguments time_arguments(double jd) {
   TimeArguments t;
   t.jd = jd;
-  t.t1 = (jd - 2415020.0) / 36525.0;
+  t.t1 = (jd - kJdEpoch1900) / kDaysPerCentury;
   t.t2 = t.t1 * t.t1;
   t.t3 = t.t2 * t.t1;
   t.t4 = t.t3 * t.t1;

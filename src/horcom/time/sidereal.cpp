@@ -11,7 +11,7 @@
 namespace horcom {
 
 double gmst0_hours(double jd0) {
-  const double t1 = (jd0 - 2415020.0) / 36525.0;
+  const double t1 = (jd0 - kJdEpoch1900) / kDaysPerCentury;
   const double t2 = t1 * t1;
   // the cubic term runs on t = t1 - 1, centuries from J2000, exactly as
   // the original sidt does
@@ -27,13 +27,13 @@ double gmst0_hours(const CalendarDate& d, Calendar cal) {
 }
 
 double apparent_sidereal_hours(double h0_mean, double dpsi, double ekls) {
-  // 3.8197186 converts dpsi from radians to hours of right ascension,
+  // kRadToRaHours converts dpsi from radians to hours of right ascension,
   // 12 / pi divided by 15 written as one literal in the original
-  return norm_hours(h0_mean + dpsi * 3.8197186 * std::cos(ekls));
+  return norm_hours(h0_mean + dpsi * kRadToRaHours * std::cos(ekls));
 }
 
 double sidereal_at_hours(double h0, double hours_since_midnight) {
-  return norm_hours(h0 + hours_since_midnight * 1.002737908);
+  return norm_hours(h0 + hours_since_midnight * kSolarToSiderealRate);
 }
 
 }  // namespace horcom
