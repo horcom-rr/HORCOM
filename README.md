@@ -4,7 +4,7 @@
 
 <h1 align="center">horcom</h1>
 
-A modern C++ rewrite of **HORCOM**, the astrology program that **Robert Rettig** wrote and refined over more than three decades, from the 1970s until 2010.
+A modern C++ rewrite of **HORCOM**, the astrology program that **Robert Rettig** wrote and refined over more than two decades, from about 1989 on the Atari ST until 2010 on Windows.
 
 ## About the original
 
