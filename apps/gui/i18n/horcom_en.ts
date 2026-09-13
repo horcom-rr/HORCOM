@@ -621,42 +621,180 @@
 <context>
     <name>horcom::StatistDialog</name>
     <message>
-        <location filename="../statist_dialog.cpp" line="30"/>
+        <location filename="../statist_dialog.cpp" line="47"/>
         <source>Statistik</source>
         <translation>Statistics</translation>
     </message>
     <message>
-        <location filename="../statist_dialog.cpp" line="38"/>
+        <location filename="../statist_dialog.cpp" line="55"/>
+        <location filename="../statist_dialog.cpp" line="96"/>
         <source>Objekt</source>
         <translation>Object</translation>
     </message>
     <message>
-        <location filename="../statist_dialog.cpp" line="42"/>
+        <location filename="../statist_dialog.cpp" line="59"/>
+        <location filename="../statist_dialog.cpp" line="81"/>
         <source>Name</source>
         <translation>Name</translation>
     </message>
     <message>
-        <location filename="../statist_dialog.cpp" line="42"/>
+        <location filename="../statist_dialog.cpp" line="59"/>
         <source>Datum</source>
         <translation>Date</translation>
     </message>
     <message>
-        <location filename="../statist_dialog.cpp" line="42"/>
+        <location filename="../statist_dialog.cpp" line="59"/>
         <source>Ort</source>
         <translation>Place</translation>
     </message>
     <message>
+        <location filename="../statist_dialog.cpp" line="73"/>
+        <source>Planet/Punkt</source>
+        <translation>Body/point</translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="74"/>
+        <source>Lichter (so mo ac)</source>
+        <translation>Lights (so mo ac)</translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="75"/>
+        <source>Alle Planeten</source>
+        <translation>All bodies</translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="76"/>
+        <source>Herr von Haus</source>
+        <translation>Ruler of house</translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="77"/>
+        <source>Halbsumme</source>
+        <translation>Midpoint</translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="78"/>
+        <source>Aspekt</source>
+        <translation>Aspect</translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="79"/>
+        <source>Aspekt zur Halbsumme</source>
+        <translation>Aspect to midpoint</translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="80"/>
+        <source>Spiegelpunkt</source>
+        <translation>Mirror point</translation>
+    </message>
+    <message>
         <location filename="../statist_dialog.cpp" line="82"/>
+        <source>Arabischer Punkt</source>
+        <translation>Arabic part</translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="90"/>
+        <source>beide</source>
+        <translation>both</translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="93"/>
+        <source>Namensteil</source>
+        <translation>Name fragment</translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="107"/>
+        <source>bei Grad</source>
+        <translation>at degree</translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="108"/>
+        <source>in Zeichen</source>
+        <translation>in sign</translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="109"/>
+        <source>in Haus</source>
+        <translation>in house</translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="110"/>
+        <source>bei Planet/Punkt</source>
+        <translation>at body/point</translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="129"/>
+        <source>% Orbis</source>
+        <translation>% orb</translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="133"/>
+        <source>Teiler </source>
+        <translation>divisor </translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="137"/>
+        <source>bis </source>
+        <translation>to </translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="141"/>
+        <source>Orbis-Tabelle</source>
+        <translation>orb table</translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="144"/>
+        <source>Bedingung</source>
+        <translation>Condition</translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="155"/>
+        <source>UND mit voriger Bedingung</source>
+        <translation>AND with previous condition</translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="157"/>
+        <source>Bedingung anwenden</source>
+        <translation>Apply condition</translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="158"/>
+        <source>Zurücksetzen</source>
+        <translation>Reset</translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="212"/>
         <source>%1 Datensätze</source>
         <translation>%1 records</translation>
     </message>
     <message>
-        <location filename="../statist_dialog.cpp" line="112"/>
+        <location filename="../statist_dialog.cpp" line="239"/>
+        <source>Spitze H%1</source>
+        <translation>Cusp H%1</translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="242"/>
+        <source>Herr H%1</source>
+        <translation>Ruler H%1</translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="328"/>
+        <source>%1 Treffer in %2 von %3 Datensätzen</source>
+        <translation>%1 hits in %2 of %3 records</translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="334"/>
+        <source>&lt;span style=&apos;color:#D4A94A&apos;&gt;HÄUSER&lt;/span&gt;&amp;nbsp; </source>
+        <translation>&lt;span style=&apos;color:#D4A94A&apos;&gt;HOUSES&lt;/span&gt;&amp;nbsp; </translation>
+    </message>
+    <message>
+        <location filename="../statist_dialog.cpp" line="335"/>
+        <location filename="../statist_dialog.cpp" line="381"/>
         <source>&lt;span style=&apos;color:#D4A94A&apos;&gt;ZEICHEN&lt;/span&gt;&amp;nbsp; </source>
         <translation>&lt;span style=&apos;color:#D4A94A&apos;&gt;SIGNS&lt;/span&gt;&amp;nbsp; </translation>
     </message>
     <message>
-        <location filename="../statist_dialog.cpp" line="119"/>
+        <location filename="../statist_dialog.cpp" line="388"/>
         <source>&amp;nbsp; (%1 belegt)</source>
         <translation>&amp;nbsp; (%1 occupied)</translation>
     </message>
@@ -751,12 +889,12 @@
 <context>
     <name>main</name>
     <message>
-        <location filename="../main.cpp" line="68"/>
+        <location filename="../main.cpp" line="70"/>
         <source>Der Ordner &apos;data&apos; mit planets.dat wurde nicht gefunden.</source>
         <translation>The &apos;data&apos; folder holding planets.dat was not found.</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="76"/>
+        <location filename="../main.cpp" line="78"/>
         <source>Die Planetentafeln konnten nicht geladen werden.</source>
         <translation>The planetary tables could not be loaded.</translation>
     </message>

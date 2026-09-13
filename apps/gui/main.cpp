@@ -13,6 +13,8 @@
 #include <QTranslator>
 
 #include "aspektarium_dialog.hpp"
+#include "horcom/core/angle.hpp"
+#include "horcom/core/constants.hpp"
 #include "main_window.hpp"
 #include "place_dialog.hpp"
 #include "record_dialog.hpp"
@@ -110,7 +112,35 @@ int main(int argc, char** argv) {
   const int shot_statist = args.indexOf("--shot-statist");
   if (shot_statist >= 0 && shot_statist + 2 < args.size()) {
     horcom::StatistDialog dialog;
-    if (dialog.load(args[shot_statist + 2])) {
+    bool ok = false;
+    if (args[shot_statist + 2] == "-") {
+      // a synthetic capture set, invented charts, no real people
+      horcom::StatSet set;
+      const char* names[3] = {"ANNA MUSTER", "BERND BEISPIEL", "CARLA DEMO"};
+      for (int i = 0; i < 3; ++i) {
+        horcom::StatRecord r;
+        r.name = names[i];
+        r.place = "EICHENAU";
+        r.day = 1 + 10 * i;
+        r.month = 1 + i;
+        r.year = 1960 + 10 * i;
+        r.ac = (10.0 + 120.0 * i) * horcom::kDegToRad;
+        r.mc = (280.0 + 120.0 * i) * horcom::kDegToRad;
+        r.h2 = (40.0 + 120.0 * i) * horcom::kDegToRad;
+        r.h3 = (70.0 + 120.0 * i) * horcom::kDegToRad;
+        r.h5 = (130.0 + 120.0 * i) * horcom::kDegToRad;
+        r.h6 = (160.0 + 120.0 * i) * horcom::kDegToRad;
+        for (int slot = 1; slot <= 10; ++slot) {
+          r.el[static_cast<std::size_t>(slot)] = horcom::norm_rad((15.0 + 37.0 * slot + 55.0 * i) * horcom::kDegToRad);
+        }
+        set.records.push_back(r);
+      }
+      dialog.load_set(set);
+      ok = true;
+    } else {
+      ok = dialog.load(args[shot_statist + 2]);
+    }
+    if (ok) {
       dialog.grab().save(args[shot_statist + 1]);
     }
     return 0;

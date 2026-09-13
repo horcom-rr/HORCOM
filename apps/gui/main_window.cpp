@@ -1079,7 +1079,7 @@ void MainWindow::open_statistics() {
   if (path.isEmpty()) {
     return;
   }
-  StatistDialog dialog(this);
+  StatistDialog dialog(aspect_settings_, this);
   if (!dialog.load(path)) {
     QMessageBox::warning(this, "HORCOM", tr("Die Statistik-Datei ließ sich nicht laden, fehlt die .PAR daneben?"));
     return;
