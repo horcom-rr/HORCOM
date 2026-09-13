@@ -27,6 +27,21 @@ inline constexpr int kNodeAsc = 11;   // DR, Drachenkopf
 inline constexpr int kNodeDesc = 12;  // DS, Drachenschwanz
 inline constexpr int kAscendant = 13;
 inline constexpr int kMc = 14;
+// the extra body slots of the standard layout nk(i) = 18 + i
+inline constexpr int kApogee = 19;
+inline constexpr int kChiron = 20;
+inline constexpr int kTranspluto = 21;
+inline constexpr int kFortune = 22;
+inline constexpr int kCeres = 23;
+inline constexpr int kPallas = 24;
+inline constexpr int kJuno = 25;
+inline constexpr int kVesta = 26;
+inline constexpr int kQuaoar = 35;
+inline constexpr int kHalley = 36;
+inline constexpr int kPholus = 37;
+inline constexpr int kDamokles = 38;
+inline constexpr int kNessus = 39;
+inline constexpr int kXena = 40;
 inline constexpr int kSlotCount = 41;
 
 /// The two letter tags of the original ps$ table, index 0 through 40.
