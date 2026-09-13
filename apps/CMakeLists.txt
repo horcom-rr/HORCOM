@@ -1,0 +1,4 @@
+add_executable(horcom_cli cli/main.cpp)
+target_link_libraries(horcom_cli PRIVATE horcom)
+target_compile_definitions(horcom_cli PRIVATE _CRT_SECURE_NO_WARNINGS)
+set_target_properties(horcom_cli PROPERTIES OUTPUT_NAME horcom)
