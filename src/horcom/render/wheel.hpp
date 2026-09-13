@@ -60,10 +60,16 @@ struct DisplayList {
   std::vector<Primitive> items;
 };
 
+/// the a20 transit screen shrinks the wheel to make room for the outer
+/// ring, the original km there
+inline constexpr double kTransitWheelScale = 0.85;
+
 /// Options of the wheel builder.
 struct WheelOptions {
   /// draw the aspect chords of a scan result
   bool aspect_lines = true;
+  /// the centre label of the transit wheel, TRANSIT=> plus the date
+  std::string transit_label;
   /// which divisors draw chords, the stand in for the original's per
   /// aspect aspli flags until the KONSTA colours are wired through. The
   /// default shows the classical set, conjunction to sextile and the
@@ -85,5 +91,18 @@ struct WheelOptions {
 /// @param opt     drawing options
 /// @return primitives on the virtual canvas, in paint order
 [[nodiscard]] DisplayList build_wheel(const Chart& chart, const ChartSettings& s, const AspectResult& aspects, const WheelOptions& opt = {});
+
+/// Builds the transit double wheel of the original a20 screen. The radix
+/// sits inside with its glyphs, houses and aspect chords, the running sky
+/// rides outside with glyphs at 212 and tick markers on the sign ring,
+/// everything at the smaller a20 scale.
+///
+/// @param radix   the birth chart, rules the houses and the rotation
+/// @param transit the chart of the transit moment, same settings
+/// @param s       chart settings, decides which slots appear in both rings
+/// @param radix_aspects the radix scan whose hits draw as chords
+/// @param opt     drawing options, transit_label prints in the centre
+/// @return primitives on the virtual canvas, in paint order
+[[nodiscard]] DisplayList build_transit_wheel(const Chart& radix, const Chart& transit, const ChartSettings& s, const AspectResult& radix_aspects, const WheelOptions& opt = {});
 
 }  // namespace horcom

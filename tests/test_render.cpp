@@ -36,6 +36,46 @@ Chart sample_chart() {
 
 }  // namespace
 
+TEST_CASE("the transit wheel rides the running sky outside the signs") {
+  const Chart radix = sample_chart();
+  REQUIRE(radix.ok);
+  ChartInput in;
+  in.date_ut = {13, 9, 2026, 12, 0.0};
+  in.lon_deg_east = 11.3244;
+  in.lat_deg = 48.1742;
+  const Chart transit = compute_chart(in, {}, vsop(), eph());
+  REQUIRE(transit.ok);
+  const AspectResult a = scan_aspects(radix, {}, {});
+  WheelOptions opt;
+  opt.transit_label = "TRANSIT=>13.09.2026";
+  const DisplayList dl = build_transit_wheel(radix, transit, {}, a, opt);
+  // two suns, the radix one on the glyph ring and the transit one at 212,
+  // both at the smaller a20 scale
+  int suns = 0;
+  bool outer_sun = false;
+  bool label = false;
+  for (const Primitive& p : dl.items) {
+    if (p.kind == Primitive::Kind::kGlyph && p.text.rfind("☉", 0) == 0) {
+      ++suns;
+      const double r = std::hypot(p.x1 - kWheelCenterX, p.y1 - kWheelCenterY);
+      if (r > kTransitWheelScale * 190.0) {
+        outer_sun = true;
+        CHECK(r < kTransitWheelScale * 225.0);
+      } else {
+        // the radix sun stays on the inner glyph ring, declump aside
+        CHECK(r > kTransitWheelScale * (kGlyphRingRadius - 20.0));
+        CHECK(r < kTransitWheelScale * (kGlyphRingRadius + 12.0));
+      }
+    }
+    if (p.kind == Primitive::Kind::kText && p.text == "TRANSIT=>13.09.2026") {
+      label = true;
+    }
+  }
+  CHECK(suns == 2);
+  CHECK(outer_sun);
+  CHECK(label);
+}
+
 TEST_CASE("the wheel puts the ascendant on the left") {
   const Chart c = sample_chart();
   REQUIRE(c.ok);

@@ -32,6 +32,11 @@ constexpr double kConjDotRing = 85.0;  // the original red conjunction dot
 constexpr double kGlyphSize = 14.0;
 constexpr double kNumberSize = 8.0;
 constexpr double kAxisTextSize = 11.0;
+// the transit ring of a20, glyphs from plein1 and markers from plmk
+constexpr double kTransitGlyphRing = 212.0;
+constexpr double kMarkInset = 3.0;
+constexpr double kMarkOutset = 5.0;
+constexpr double kLabelSize = 10.0;
 
 // element colours of the original fill_color, fire, earth, air, water
 constexpr Rgb kElementColor[4] = {0xFF0000, 0x808000, 0x008080, 0x00FFFF};
@@ -57,8 +62,8 @@ struct Pt {
 };
 
 // the polar mapping of horg10, plein1 and aspz0
-Pt at(double w, double r) {
-  return {kCx + kKm * r * std::cos(-w), kCy + kKm * r * std::sin(-w)};
+Pt at(double w, double r, double km) {
+  return {kCx + km * r * std::cos(-w), kCy + km * r * std::sin(-w)};
 }
 
 double wheel_angle(double lambda, double fza) {
@@ -134,9 +139,13 @@ void declump(const std::vector<int>& slots, const std::array<double, 41>& pl, st
 
 }  // namespace
 
-DisplayList build_wheel(const Chart& chart, const ChartSettings& s, const AspectResult& aspects, const WheelOptions& opt) {
-  DisplayList dl;
+// the shared wheel body, drawn at the given km so the radix wheel and
+// the smaller a20 transit wheel reuse the same geometry
+static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings& s, const AspectResult& aspects, const WheelOptions& opt, double km) {
   auto add = [&](Primitive p) { dl.items.push_back(std::move(p)); };
+  const auto at = [km](double w, double r) {
+    return Pt{kCx + km * r * std::cos(-w), kCy + km * r * std::sin(-w)};
+  };
 
   // the rotation origin, the default begz& = 1 puts the AC left
   const double fza = chart.houses.angles.ac;
@@ -148,8 +157,8 @@ DisplayList build_wheel(const Chart& chart, const ChartSettings& s, const Aspect
     sec.kind = Primitive::Kind::kSector;
     sec.x1 = kCx;
     sec.y1 = kCy;
-    sec.r1 = kKm * kSignInner;
-    sec.r2 = kKm * kSignOuter;
+    sec.r1 = km * kSignInner;
+    sec.r2 = km * kSignOuter;
     sec.a1 = a0;
     sec.a2 = a0 + kPi / 6.0;
     sec.fill = kElementColor[(j - 1) % 4];
@@ -162,7 +171,7 @@ DisplayList build_wheel(const Chart& chart, const ChartSettings& s, const Aspect
     c.kind = Primitive::Kind::kCircle;
     c.x1 = kCx;
     c.y1 = kCy;
-    c.r1 = kKm * r;
+    c.r1 = km * r;
     add(c);
   }
   //RR Zeichentrenn-Linien
@@ -299,6 +308,85 @@ DisplayList build_wheel(const Chart& chart, const ChartSettings& s, const Aspect
       line.color = (h.n >= 2 && h.n <= 12) ? kAspectColor[h.n] : 0x000000;
       add(line);
     }
+  }
+}
+
+DisplayList build_wheel(const Chart& chart, const ChartSettings& s, const AspectResult& aspects, const WheelOptions& opt) {
+  DisplayList dl;
+  build_base(dl, chart, s, aspects, opt, kKm);
+  return dl;
+}
+
+DisplayList build_transit_wheel(const Chart& radix, const Chart& transit, const ChartSettings& s, const AspectResult& radix_aspects, const WheelOptions& opt) {
+  DisplayList dl;
+  const double km = kTransitWheelScale;
+  build_base(dl, radix, s, radix_aspects, opt, km);
+  auto add = [&](Primitive p) { dl.items.push_back(std::move(p)); };
+  const auto at = [km](double w, double r) {
+    return Pt{kCx + km * r * std::cos(-w), kCy + km * r * std::sin(-w)};
+  };
+  // the radix rules the rotation, the running sky turns with it
+  const double fza = radix.houses.angles.ac;
+
+  std::vector<int> slots;
+  std::array<double, 41> pl{};
+  std::array<double, 41> wl{};
+  std::array<double, 41> dc{};
+  for (int slot = 0; slot <= 40; ++slot) {
+    if (slot == body::kAscendant || slot == body::kMc) {
+      continue;
+    }
+    const BodyState& b = transit.b[static_cast<std::size_t>(slot)];
+    if (!b.present || !b.valid) {
+      continue;
+    }
+    slots.push_back(slot);
+    pl[static_cast<std::size_t>(slot)] = b.el;
+    wl[static_cast<std::size_t>(slot)] = wheel_angle(b.el, fza);
+  }
+  declump(slots, pl, wl, dc);
+
+  // the outer ring of a20, a tick on the sign ring like plmk at 182 and
+  // the glyph outside like plein1 at 212
+  for (int slot : slots) {
+    const auto si = static_cast<std::size_t>(slot);
+    const double w_true = wheel_angle(pl[si], fza);
+    const Pt m1 = at(w_true, kSignOuter - kMarkInset);
+    const Pt m2 = at(w_true, kSignOuter + kMarkOutset);
+    add({Primitive::Kind::kLine, m1.x, m1.y, m2.x, m2.y});
+    const Pt g = at(wl[si], kTransitGlyphRing + dc[si]);
+    Primitive p;
+    p.kind = Primitive::Kind::kGlyph;
+    p.x1 = g.x;
+    p.y1 = g.y;
+    p.size = kGlyphSize;
+    p.text = kBodyGlyph[si];
+    if (transit.b[si].tb < 0.0 && slot >= 3 && slot <= 10) {
+      p.text += " R";
+    }
+    add(p);
+    if (opt.degree_numbers) {
+      const Pt n = at(wl[si], kTransitGlyphRing + dc[si] - kGlyphSize);
+      Primitive num;
+      num.kind = Primitive::Kind::kText;
+      num.x1 = n.x;
+      num.y1 = n.y;
+      num.size = kNumberSize;
+      const int deg = static_cast<int>(norm_deg(pl[si] * kRadToDeg)) % 30;
+      num.text = std::to_string(deg);
+      add(num);
+    }
+  }
+
+  // the centre label of zeitwi, TRANSIT=> and the moment
+  if (!opt.transit_label.empty()) {
+    Primitive t;
+    t.kind = Primitive::Kind::kText;
+    t.x1 = kCx;
+    t.y1 = kCy - 12.0;
+    t.size = kLabelSize;
+    t.text = opt.transit_label;
+    add(t);
   }
   return dl;
 }
