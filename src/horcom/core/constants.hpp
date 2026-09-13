@@ -6,8 +6,12 @@
 
 #include <numbers>
 
-// Constants ported from the original HORCOM procedure funkt.
-// Original variable names are noted so formulas stay literally comparable.
+/// @file
+/// Shared constants. The angle factors are ported from the original HORCOM
+/// procedure funkt, original variable names are noted so formulas stay
+/// literally comparable. Epochs and unit conversions collect the recurring
+/// values of the port, one off series coefficients stay literal in their
+/// routines.
 namespace horcom {
 
 inline constexpr double kPi = std::numbers::pi;
@@ -18,9 +22,34 @@ inline constexpr double kRadToDeg = 180.0 / kPi;        // original up
 inline constexpr double kArcsecToRad = kDegToRad / 3600.0;   // original puu
 inline constexpr double kDegPerCenturyToRad = kDegToRad / 36525.0;  // original pup
 
-// original kk, the epsilon Robert Rettig adds exactly where a division or
-// an ATN argument could hit zero. Guards are placed only where the listing
-// places them, never generally.
+/// original kk, the epsilon Robert Rettig adds exactly where a division or
+/// an ATN argument could hit zero. Guards are placed only where the
+/// listing places them, never generally.
 inline constexpr double kEps = 1.0e-10;
+
+/// epoch of the original time argument t1, Julian date of 1900 January 0.5
+inline constexpr double kJdEpoch1900 = 2415020.0;
+
+/// epoch J2000, Julian date of 2000 January 1.5
+inline constexpr double kJdJ2000 = 2451545.0;
+
+//RR Jan. 0.923,1950 =1950.0
+inline constexpr double kJdB1950 = 2433282.423;
+
+/// epoch of the Newcomb precession in the original praez
+inline constexpr double kJdBessel1900 = 2415020.313;
+
+inline constexpr double kDaysPerCentury = 36525.0;
+inline constexpr double kDaysPerMillennium = 365250.0;
+
+/// the original's kilometre value of one astronomical unit
+inline constexpr double kKmPerAu = 149600000.0;
+
+/// solar to sidereal rate with the original's rounding
+inline constexpr double kSolarToSiderealRate = 1.002737908;
+
+/// radians of nutation to hours of right ascension, the original's
+/// rounded twelve over pi
+inline constexpr double kRadToRaHours = 3.8197186;
 
 }  // namespace horcom
