@@ -100,7 +100,21 @@ marker, stars as empty fields, HTML stripped so saved web pages still
 parse, plain lines continuing a comment, the calendar suffix on the year
 and the rule that a Julian date outranks the clock fields. The writer
 reproduces the A93 and B93 lines of make_aaf including STR$(jd,13,5).
-Still open here, the seed conversion of the timezone and country tables.
+Still open here, the seed conversion of the country tables.
+</p>
+
+<h2>The zone name catalogue</h2>
+<p>
+His zonnamen.int lists 176 named zones behind the header row, credited
+in the original dialog title as public domain via B. Mahl. Fixed column
+text, the name to column 46, the abbreviation from column 47, the last
+ten characters the difference from zone time to UT in the shape minus
+eleven h twenty three m. The sign lives only in the first character
+because VAL of the hour field drops it, the parser keeps exactly that
+arithmetic. The LMT and LTT rows carry no number, there local time
+follows from the longitude. The catalogue ships as
+<code>data/zonnamen.int</code> and the shell's zone picker reads it,
+still under his dialog title.
 </p>
 
 <h2>Verification</h2>
