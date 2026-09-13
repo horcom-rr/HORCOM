@@ -36,7 +36,7 @@ design.
   <tr><td>the a20 transit screen, <code>plein1(212)</code>, <code>plmk</code> at 182, the centre label of <code>zeitwi</code></td><td><code>build_transit_wheel</code></td><td><code>src/horcom/render/wheel.*</code></td></tr>
   <tr><td>the a12 comparison screen, <code>plein1(204)</code>, <code>plmk</code> at 180, the second <code>horg11</code> pass</td><td><code>build_double_wheel</code></td><td><code>src/horcom/render/wheel.*</code></td></tr>
   <tr><td><code>plentz, plsort, plentz1, plentz10, plentz11, plentz2, plentz21</code></td><td>the de clumping inside <code>build_wheel</code></td><td><code>src/horcom/render/wheel.cpp</code></td></tr>
-  <tr><td>screen, printer and BMP outputs</td><td><code>to_svg</code>, further backends later</td><td><code>src/horcom/render/svg.*</code></td></tr>
+  <tr><td>screen, printer and BMP outputs</td><td><code>to_svg</code>, and <code>paint_display_list</code> behind screen, printer and PDF</td><td><code>src/horcom/render/svg.*</code>, <code>apps/gui/painter.*</code></td></tr>
 </table>
 
 <h2>Deliberate modernisations, each documented</h2>
@@ -96,6 +96,17 @@ different strengths. One honest limit is kept, the original resolves a
 stellium in one pass and may leave a single touching pair in extreme
 cases, the port behaves the same and the test asserts the improvement
 rather than a guarantee the original never made.
+</p>
+
+<h2>Printing and PDF</h2>
+<p>
+The original asked AUSGABE auf BILDSCHIRM oder als DRUCKER-GRAPHIK and
+drove a GDI printer context through the same drawing procedures. The
+port keeps that shape with one shared painter, the primitive loop lives
+in paint_display_list and feeds the screen widget, the printer dialog
+behind Drucken and the A4 landscape page behind Horoskop als PDF, so
+whatever the wheel currently shows, radix, transits, a comparison, the
+90 degree circle, prints exactly as drawn.
 </p>
 
 <h2>The command line front end</h2>

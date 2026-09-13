@@ -9,6 +9,7 @@
 #include <QLibraryInfo>
 #include <QLocale>
 #include <QMessageBox>
+#include <QSettings>
 #include <QTimer>
 #include <QTranslator>
 
@@ -41,9 +42,10 @@ std::filesystem::path find_data_dir() {
 
 int main(int argc, char** argv) {
   QApplication app(argc, argv);
-  app.setStyleSheet(horcom::theme::kStyleSheet);
   QApplication::setApplicationName("horcom");
   QApplication::setOrganizationName("horcom");
+  // the remembered text scale of the Ansicht menu
+  app.setStyleSheet(horcom::theme::stylesheet(QSettings().value("view/textScale", 100).toInt()));
   const QStringList args = QApplication::arguments();
 
   // German is the native language of the program, every other locale

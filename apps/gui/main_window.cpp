@@ -4,6 +4,7 @@
 
 #include "main_window.hpp"
 
+#include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDateEdit>
@@ -29,12 +30,14 @@
 #include <QPrintDialog>
 #include <QPrinter>
 #include <QPushButton>
+#include <QSettings>
 #include <QTableWidget>
 #include <QTimeEdit>
 #include <QTimer>
 #include <QToolBar>
 #include <QToolButton>
 #include <QVBoxLayout>
+#include <algorithm>
 #include <cmath>
 #include <initializer_list>
 
@@ -54,6 +57,7 @@
 #include "place_dialog.hpp"
 #include "record_dialog.hpp"
 #include "statist_dialog.hpp"
+#include "theme.hpp"
 #include "transit_list_dialog.hpp"
 #include "wheel_widget.hpp"
 #include "zone_dialog.hpp"
@@ -445,6 +449,19 @@ void MainWindow::build_ui() {
     }
     recompute();
   });
+  // the text scale of the shell, the wheel keeps its own canvas scale
+  QMenu* view = menuBar()->addMenu(tr("&Ansicht"));
+  const auto set_scale = [](int scale) {
+    QSettings settings;
+    const int s = std::clamp(scale, 70, 180);
+    settings.setValue("view/textScale", s);
+    qApp->setStyleSheet(theme::stylesheet(s));
+  };
+  const auto scale_now = []() { return QSettings().value("view/textScale", 100).toInt(); };
+  view->addAction(tr("Schrift größer"), QKeySequence::ZoomIn, this, [set_scale, scale_now]() { set_scale(scale_now() + 10); });
+  view->addAction(tr("Schrift kleiner"), QKeySequence::ZoomOut, this, [set_scale, scale_now]() { set_scale(scale_now() - 10); });
+  view->addAction(tr("Normale Schrift"), QKeySequence(Qt::CTRL | Qt::Key_0), this, [set_scale]() { set_scale(100); });
+
   QMenu* help = menuBar()->addMenu(tr("&Hilfe"));
   help->addAction(tr("Über HORCOM"), this, &MainWindow::about);
 

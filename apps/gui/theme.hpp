@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <QString>
+#include <algorithm>
+
 // The visual identity of the shell, the same tokens as the handbook
 // theme. The night sky of his splash screen, gold for headings, his four
 // element colours on the wheel, and the green of his main menu panel
@@ -22,14 +25,15 @@ inline constexpr const char* kFire = "#E85D4E";
 //RR RGB($C0,$DC,$C0)
 inline constexpr const char* kPanelGreen = "#C0DCC0";
 
-/// The application stylesheet.
-inline constexpr const char* kStyleSheet = R"qss(
+/// The stylesheet template, font sizes carry @Npx@ markers so the
+/// text scale of the Ansicht menu can rebuild it.
+inline constexpr const char* kStyleSheetTemplate = R"qss(
 QMainWindow, QDialog {
   background: #0A0F1E;
 }
 QWidget {
   color: #E9E5D9;
-  font-size: 13px;
+  font-size: @13px@;
 }
 QLabel {
   background: transparent;
@@ -77,12 +81,12 @@ QLabel#aspectsLine {
   border-radius: 5px;
   padding: 6px 10px;
   font-family: "Cascadia Mono", Consolas, monospace;
-  font-size: 12px;
+  font-size: @12px@;
 }
 QDockWidget {
   color: #D4A94A;
   font-family: "Cascadia Mono", Consolas, monospace;
-  font-size: 11px;
+  font-size: @11px@;
   letter-spacing: 2px;
   text-transform: uppercase;
 }
@@ -97,7 +101,7 @@ QTableWidget {
   gridline-color: #1B2340;
   border: 1px solid #232D4A;
   font-family: "Cascadia Mono", Consolas, monospace;
-  font-size: 12px;
+  font-size: @12px@;
   selection-background-color: #2C3A63;
   selection-color: #E9E5D9;
 }
@@ -109,7 +113,7 @@ QHeaderView::section {
   border-right: 1px solid #1B2340;
   padding: 4px 8px;
   font-family: "Cascadia Mono", Consolas, monospace;
-  font-size: 10px;
+  font-size: @10px@;
   letter-spacing: 1px;
 }
 QTableCornerButton::section {
@@ -214,5 +218,18 @@ QToolButton:pressed {
   background: #232D4A;
 }
 )qss";
+
+/// Builds the stylesheet at a text scale.
+///
+/// @param percent one hundred is the design size, clamped 70 to 180
+/// @return the sheet with every font size scaled
+inline QString stylesheet(int percent) {
+  const int p = std::clamp(percent, 70, 180);
+  QString qss = QString::fromUtf8(kStyleSheetTemplate);
+  for (const int base : {13, 12, 11, 10}) {
+    qss.replace(QString("@%1px@").arg(base), QString("%1px").arg(std::max(7, base * p / 100)));
+  }
+  return qss;
+}
 
 }  // namespace horcom::theme
