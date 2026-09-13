@@ -11,6 +11,7 @@
 #include "horcom/data/encoding.hpp"
 #include "horcom/data/countries.hpp"
 #include "horcom/data/place_file.hpp"
+#include "horcom/data/statist.hpp"
 #include "horcom/data/zone_names.hpp"
 
 using namespace horcom;
@@ -228,3 +229,65 @@ TEST_CASE("the preferred place accepts both coordinate encodings") {
   CHECK(plain->lon == doctest::Approx(11.3244));
   std::filesystem::remove(path);
 }
+
+TEST_CASE("the statistics store round trips with the original packing") {
+  StatSet set;
+  set.params.appa_name = "App.1";
+  set.params.gena = " Ephem ::App.1,MitParall.";
+  set.params.par = 1.0;
+  for (int i = 1; i <= 22; ++i) {
+    set.params.nk[static_cast<std::size_t>(i)] = 18 + i;
+  }
+  StatRecord r;
+  r.name = "Testfall";
+  r.place = "Eichenau";
+  r.day = 13;
+  r.month = 10;
+  r.year = 1992;
+  r.hour = 3;
+  r.minute = 0.0;
+  r.lon = 11.32;
+  r.lat = 48.17;
+  for (int slot = 1; slot <= 12; ++slot) {
+    r.el[static_cast<std::size_t>(slot)] = slot * 0.5;
+  }
+  r.ac = 1.234567;
+  r.mc = 4.567891;
+  r.h2 = 1.5;
+  r.h3 = 1.9;
+  r.h5 = 2.8;
+  r.h6 = 3.1;
+  r.el[20] = 2.4680135;   // Chiron rides the extras block
+  r.el[35] = 0.1234567;   // Quaoar rides the .STH twin
+  set.records.push_back(r);
+
+  const auto base = std::filesystem::temp_directory_path() / "HORCTEST.STA";
+  REQUIRE(save_statistics(base, set));
+  // the twin name follows stat2_teil, eight characters plus a one
+  CHECK(sth_path(base).filename().string() == "HORCTEST1.STH");
+  CHECK(std::filesystem::file_size(base) == kStaRecordBytes);
+  CHECK(std::filesystem::file_size(sth_path(base)) == kSthRecordBytes);
+
+  const auto back = load_statistics(base);
+  REQUIRE(back.has_value());
+  REQUIRE(back->records.size() == 1);
+  const StatRecord& b = back->records[0];
+  // the writer uppercases like the original
+  CHECK(b.name == "TESTFALL");
+  CHECK(b.place == "EICHENAU");
+  CHECK(b.day == 13);
+  CHECK(b.year == 1992);
+  CHECK(b.lon == doctest::Approx(11.32));
+  CHECK(b.el[1] == doctest::Approx(0.5).epsilon(1e-6));
+  CHECK(b.el[12] == doctest::Approx(6.0).epsilon(1e-6));
+  CHECK(b.ac == doctest::Approx(1.234567).epsilon(1e-6));
+  CHECK(b.el[20] == doctest::Approx(2.4680135).epsilon(1e-6));
+  CHECK(b.el[35] == doctest::Approx(0.1234567).epsilon(1e-6));
+  CHECK_FALSE(b.heliocentric());
+  std::filesystem::remove(base);
+  std::filesystem::remove(sth_path(base));
+  std::filesystem::path par = base;
+  par.replace_extension(".PAR");
+  std::filesystem::remove(par);
+}
+
