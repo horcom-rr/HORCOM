@@ -41,11 +41,17 @@ class MainWindow : public QMainWindow {
   /// capture hook and by workflows that open straight into transits.
   void show_transits(const QDate& date, const QTime& time);
 
+  /// Jumps to the solar return of the given year, the capture hook's
+  /// path into the Horoskop menu.
+  void show_solar(int year);
+
  private slots:
   void recompute();
   void open_records();
   void open_place();
   void pick_zone();
+  void solar_chart();
+  void lunar_chart();
   void save_aaf();
   void export_svg();
   void about();
@@ -56,6 +62,8 @@ class MainWindow : public QMainWindow {
   [[nodiscard]] ChartInput current_input() const;
   [[nodiscard]] ChartSettings current_settings() const;
   void apply_record(const AafRecord& r);
+  void apply_moment(double jd_ut, const QString& label);
+  void run_solar(int year);
   QString record_label_;
 
   VsopTables vsop_;

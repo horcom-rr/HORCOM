@@ -16,6 +16,7 @@
 #include <QFormLayout>
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QInputDialog>
 #include <QLabel>
 #include <QListWidget>
 #include <QMenuBar>
@@ -28,6 +29,7 @@
 #include <initializer_list>
 
 #include "banner.hpp"
+#include "horcom/chart/transit_search.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
 #include "horcom/data/place_file.hpp"
@@ -219,6 +221,10 @@ void MainWindow::build_ui() {
   file->addAction(tr("Horoskop als SVG…"), this, &MainWindow::export_svg);
   file->addSeparator();
   file->addAction(tr("Beenden"), QKeySequence::Quit, this, &QWidget::close);
+  // the return charts of his solar and lunar menu
+  QMenu* horo = menuBar()->addMenu(tr("&Horoskop"));
+  horo->addAction(tr("Solar…"), this, &MainWindow::solar_chart);
+  horo->addAction(tr("Lunar…"), this, &MainWindow::lunar_chart);
   QMenu* help = menuBar()->addMenu(tr("&Hilfe"));
   help->addAction(tr("Über HORCOM"), this, &MainWindow::about);
 
@@ -374,6 +380,90 @@ void MainWindow::open_place() {
     zone_->setValue(-*to_ut);
   }
   recompute();
+}
+
+void MainWindow::apply_moment(double jd_ut, const QString& label) {
+  const CalendarDate d = calendar_date(jd_ut, current_settings().calendar);
+  int seconds = static_cast<int>((d.hour * 60.0 + d.minute) * 60.0 + 0.5);
+  if (seconds >= 86400) {
+    seconds = 86399;
+  }
+  const QSignalBlocker b1(date_);
+  const QSignalBlocker b2(time_);
+  const QSignalBlocker b3(zone_);
+  date_->setDate(QDate(d.year, d.month, d.day));
+  time_->setTime(QTime(seconds / 3600, (seconds / 60) % 60, seconds % 60));
+  // the found moment is Universal Time
+  zone_->setValue(0.0);
+  recompute();
+  banner_->set_record(label);
+}
+
+void MainWindow::solar_chart() {
+  bool ok = false;
+  const int year = QInputDialog::getInt(this, tr("Solar"), tr("Gewünschtes Kalender-Jahr"),
+                                        QDate::currentDate().year(), 1, 3000, 1, &ok);
+  if (ok) {
+    run_solar(year);
+  }
+}
+
+void MainWindow::show_solar(int year) {
+  run_solar(year);
+}
+
+void MainWindow::run_solar(int year) {
+  if (!last_chart_ || !last_chart_->b[body::kSun].valid) {
+    return;
+  }
+  SearchContext ctx;
+  ctx.base = current_input();
+  ctx.settings = current_settings();
+  ctx.vsop = &vsop_;
+  ctx.eph = &eph_;
+  const LongitudeCrossing hit = solar_return(ctx.base.date_ut, last_chart_->b[body::kSun].el, year, ctx);
+  if (!hit.ok) {
+    banner_->set_record(tr("Kein Solar gefunden"));
+    return;
+  }
+  apply_moment(hit.jd_ut, QString("SOLAR %1").arg(year));
+}
+
+void MainWindow::lunar_chart() {
+  if (!last_chart_ || !last_chart_->b[body::kMoon].valid) {
+    return;
+  }
+  QDialog dialog(this);
+  dialog.setWindowTitle(tr("Lunar"));
+  auto* v = new QVBoxLayout(&dialog);
+  //RR Meist wird das Diesem Datum, 0H UT ,VORAUSGEHENDE LUNAR berechnet !
+  auto* note = new QLabel(tr("Das diesem Datum, 0h UT, vorausgehende Lunar wird berechnet."), &dialog);
+  note->setWordWrap(true);
+  auto* when = new QDateEdit(QDate::currentDate(), &dialog);
+  when->setCalendarPopup(true);
+  when->setDisplayFormat("dd.MM.yyyy");
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+  connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+  connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+  v->addWidget(note);
+  v->addWidget(when);
+  v->addWidget(buttons);
+  if (dialog.exec() != QDialog::Accepted) {
+    return;
+  }
+  SearchContext ctx;
+  ctx.base = current_input();
+  ctx.settings = current_settings();
+  ctx.vsop = &vsop_;
+  ctx.eph = &eph_;
+  const QDate d = when->date();
+  const double before = julian_day({d.day(), d.month(), d.year(), 0, 0.0}, ctx.settings.calendar);
+  const LongitudeCrossing hit = lunar_return(before, last_chart_->b[body::kMoon].el, ctx);
+  if (!hit.ok) {
+    banner_->set_record(tr("Kein Lunar gefunden"));
+    return;
+  }
+  apply_moment(hit.jd_ut, QString("LUNAR %1").arg(d.toString("dd.MM.yyyy")));
 }
 
 void MainWindow::show_transits(const QDate& date, const QTime& time) {

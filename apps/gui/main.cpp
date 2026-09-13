@@ -100,6 +100,11 @@ int main(int argc, char** argv) {
     shot = shot_transit;
     window.show_transits(QDate::currentDate(), QTime(12, 0));
   }
+  const int shot_solar = args.indexOf("--shot-solar");
+  if (shot_solar >= 0) {
+    shot = shot_solar;
+    window.show_solar(QDate::currentDate().year());
+  }
   if (shot >= 0) {
     window.showMinimized();
   } else {
