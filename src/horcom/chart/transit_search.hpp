@@ -54,4 +54,23 @@ struct LongitudeCrossing {
 ///         converges within the step budget
 [[nodiscard]] LongitudeCrossing find_longitude_backward(double jd_start_ut, int slot, double target_rad, const SearchContext& ctx);
 
+/// The solar return of the a16 flow, seeded at the birthday clock of the
+/// target year plus fifteen days and searched backward to the radix sun.
+///
+/// @param birth_ut       the radix moment in UT, day and clock seed the year
+/// @param radix_sun_rad  the radix sun longitude, radians
+/// @param year           the calendar year of the wanted return
+/// @param ctx            observer and settings, the place may differ from
+///                       the birth place like the original ort_wahl
+/// @return the return moment
+[[nodiscard]] LongitudeCrossing solar_return(const CalendarDate& birth_ut, double radix_sun_rad, int year, const SearchContext& ctx);
+
+/// The lunar return preceding the given moment, the a16 lunar flow.
+///
+/// @param jd_before_ut   the search starts here, usually a date at 0h UT
+/// @param radix_moon_rad the radix moon longitude, radians
+/// @param ctx            observer and settings
+/// @return the return moment
+[[nodiscard]] LongitudeCrossing lunar_return(double jd_before_ut, double radix_moon_rad, const SearchContext& ctx);
+
 }  // namespace horcom

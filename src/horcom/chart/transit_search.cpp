@@ -373,4 +373,19 @@ LongitudeCrossing find_longitude_backward(double jd_start_ut, int slot, double t
   return out;
 }
 
+// ported from the a16 solar branch and korh
+LongitudeCrossing solar_return(const CalendarDate& birth_ut, double radix_sun_rad, int year, const SearchContext& ctx) {
+  //RR jd-Startwert
+  constexpr double kSolarSeedDays = 15.0;
+  CalendarDate seed = birth_ut;
+  seed.year = year;
+  const double jd = julian_day(seed, ctx.settings.calendar);
+  return find_longitude_backward(jd + kSolarSeedDays, body::kSun, radix_sun_rad, ctx);
+}
+
+// ported from the a16 lunar branch, the return preceding the moment
+LongitudeCrossing lunar_return(double jd_before_ut, double radix_moon_rad, const SearchContext& ctx) {
+  return find_longitude_backward(jd_before_ut, body::kMoon, radix_moon_rad, ctx);
+}
+
 }  // namespace horcom

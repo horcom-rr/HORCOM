@@ -83,6 +83,30 @@ TEST_CASE("the mercury search converges near its retrograde loops") {
   CHECK(residual_arcsec(hit, body::kMercury, target, ctx) < 0.5);
 }
 
+TEST_CASE("the solar return comes home near the birthday") {
+  const SearchContext ctx = context();
+  const CalendarDate birth{13, 10, 1992, 3, 0.0};
+  const double radix_sun = body_longitude(julian_day(birth), body::kSun, ctx).el;
+  const LongitudeCrossing hit = solar_return(birth, radix_sun, 1993, ctx);
+  REQUIRE(hit.ok);
+  const CalendarDate d = calendar_date(hit.jd_ut);
+  CHECK(d.year == 1993);
+  CHECK(d.month == 10);
+  CHECK(std::abs(d.day - 13) <= 1);
+  CHECK(residual_arcsec(hit, body::kSun, radix_sun, ctx) < 0.5);
+}
+
+TEST_CASE("the lunar return precedes the asked moment") {
+  const SearchContext ctx = context();
+  const double radix_moon = body_longitude(julian_day({13, 10, 1992, 3, 0.0}), body::kMoon, ctx).el;
+  const double before = julian_day({1, 1, 1993, 0, 0.0});
+  const LongitudeCrossing hit = lunar_return(before, radix_moon, ctx);
+  REQUIRE(hit.ok);
+  CHECK(hit.jd_ut <= before);
+  CHECK(before - hit.jd_ut < 28.0);
+  CHECK(residual_arcsec(hit, body::kMoon, radix_moon, ctx) < 0.5);
+}
+
 TEST_CASE("an extra body outside his ephemeris rides the element fallback") {
   SearchContext ctx = context();
   ctx.settings.enable_standard_extras();
