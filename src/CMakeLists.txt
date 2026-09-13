@@ -10,6 +10,10 @@ add_library(horcom STATIC
   horcom/ephem/precession.cpp
   horcom/ephem/eph_file.cpp
   horcom/ephem/pluto_chapront.cpp
+  horcom/chart/houses.cpp
+  horcom/chart/corrections.cpp
+  horcom/chart/geo.cpp
+  horcom/chart/chart.cpp
 )
 
 target_include_directories(horcom PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

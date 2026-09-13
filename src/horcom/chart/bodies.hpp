@@ -1,0 +1,58 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// horcom, the C++ rewrite of HORCOM by Robert Rettig (1970s to 2010)
+// Copyright (c) 2026 Dominik Schwimmbeck
+
+#pragma once
+
+#include <string_view>
+
+// The body slot numbering of the original element arrays, kept identical
+// so every formula and file format reads literally. Slots 19 and up hold
+// the extra bodies in the program's standard layout, reachable through the
+// nk table of the settings.
+namespace horcom::body {
+
+inline constexpr int kFixpunkt = 0;
+inline constexpr int kSun = 1;
+inline constexpr int kMoon = 2;   // the Earth in heliocentric mode
+inline constexpr int kMercury = 3;
+inline constexpr int kVenus = 4;
+inline constexpr int kMars = 5;
+inline constexpr int kJupiter = 6;
+inline constexpr int kSaturn = 7;
+inline constexpr int kUranus = 8;
+inline constexpr int kNeptune = 9;
+inline constexpr int kPluto = 10;
+inline constexpr int kNodeAsc = 11;   // DR, Drachenkopf
+inline constexpr int kNodeDesc = 12;  // DS, Drachenschwanz
+inline constexpr int kAscendant = 13;
+inline constexpr int kMc = 14;
+inline constexpr int kSlotCount = 41;
+
+/// The two letter tags of the original ps$ table, index 0 through 40.
+inline constexpr std::string_view kTag[kSlotCount] = {
+    "te", "so", "mo", "me", "ve", "ma", "ju", "sa", "ur", "ne", "pl",
+    "dr", "ds", "ac", "mc", "ar", "cn", "li", "cp", "ag", "ch", "tp",
+    "gl", "ce", "pa", "jn", "vs", "cu", "ha", "ze", "kr", "ap", "ad",
+    "vu", "po", "qu", "hl", "ph", "da", "ns", "xe"};
+
+/// @param slot a body slot 19 and up in the standard layout
+/// @return the ephemeris file stem for eph based bodies, empty otherwise
+[[nodiscard]] constexpr std::string_view eph_name(int slot) {
+  switch (slot) {
+    case 20: return "chiron";
+    case 23: return "ceres";
+    case 24: return "pallas";
+    case 25: return "juno";
+    case 26: return "vesta";
+    case 35: return "quaoar";
+    case 36: return "halley";
+    case 37: return "pholus";
+    case 38: return "damokles";
+    case 39: return "nessus";
+    case 40: return "xena";
+    default: return {};
+  }
+}
+
+}  // namespace horcom::body
