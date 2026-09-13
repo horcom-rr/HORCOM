@@ -1,5 +1,7 @@
 # horcom
 
+<img src="assets/logo.svg" alt="the HORCOM logo" width="96" align="right">
+
 A modern C++ rewrite of **HORCOM**, the astrology program that **Robert Rettig** wrote and refined over more than three decades, from the 1970s until 2010.
 
 ## About the original
@@ -27,7 +29,7 @@ He wished for HORCOM to live on in C++. This project is that rewrite, done caref
 
 ## Status
 
-Analysis complete, implementation not yet started. The original program (50,397 lines, 1,095 procedures) has been mapped end to end:
+The original program (50,397 lines, 1,095 procedures) is mapped end to end:
 
 - `docs/legacy/calculation-core.md` — the astronomical engine (VSOP series, Moon theory, his integrated ephemerides, parallax, houses, aspects) with the porting order
 - `docs/legacy/ui-and-graphics.md` — the full menu tree (the feature inventory), event loop and the exact chart geometry

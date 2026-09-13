@@ -40,8 +40,10 @@ src/
             colours and draw order per docs/legacy/ui-and-graphics.md. Produces a
             backend-neutral display list so screen, PNG/SVG export and print are
             one code path.
-  app/      The GUI shell. Decided last; the rest of the tree never includes UI
-            headers. Candidate: Qt. A CLI front end comes first for testing.
+  app/      The GUI shell, Qt 6 Widgets. The display list renderer feeds
+            QPainter directly and the licence sits cleanly with the project.
+            The rest of the tree never includes UI headers, the CLI front
+            end came first for testing.
 tests/      Golden-value tests against the original program plus unit tests.
 ```
 
