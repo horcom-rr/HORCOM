@@ -34,6 +34,7 @@
 
 #include "banner.hpp"
 #include "horcom/chart/transit_search.hpp"
+#include "ingress_dialog.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
 #include "horcom/data/place_file.hpp"
@@ -276,6 +277,7 @@ void MainWindow::build_ui() {
   horo->addAction(tr("Solar…"), this, &MainWindow::solar_chart);
   horo->addAction(tr("Lunar…"), this, &MainWindow::lunar_chart);
   horo->addAction(tr("Transit-Liste…"), this, &MainWindow::transit_list);
+  horo->addAction(tr("Ingresse…"), this, &MainWindow::ingress_table);
   // the double wheel of a12, a second person over the radix
   compare_action_ = horo->addAction(tr("Vergleich"));
   compare_action_->setCheckable(true);
@@ -611,6 +613,27 @@ void MainWindow::transit_list() {
     return;
   }
   // the picked event opens in the transit view over the radix
+  const CalendarDate d = calendar_date(dialog.chosen_jd(), ctx.settings.calendar);
+  int seconds = static_cast<int>((d.hour * 60.0 + d.minute) * 60.0 + 0.5);
+  if (seconds >= 86400) {
+    seconds = 86399;
+  }
+  show_transits(QDate(d.year, d.month, d.day), QTime(seconds / 3600, (seconds / 60) % 60, seconds % 60));
+  if (transit_on_->isChecked()) {
+    recompute();
+  }
+}
+
+void MainWindow::ingress_table() {
+  SearchContext ctx;
+  ctx.base = current_input();
+  ctx.settings = current_settings();
+  ctx.vsop = &vsop_;
+  ctx.eph = &eph_;
+  IngressDialog dialog(ctx, this);
+  if (dialog.exec() != QDialog::Accepted || dialog.chosen_jd() <= 0.0) {
+    return;
+  }
   const CalendarDate d = calendar_date(dialog.chosen_jd(), ctx.settings.calendar);
   int seconds = static_cast<int>((d.hour * 60.0 + d.minute) * 60.0 + 0.5);
   if (seconds >= 86400) {

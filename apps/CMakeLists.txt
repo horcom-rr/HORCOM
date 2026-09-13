@@ -11,6 +11,8 @@ if(Qt6_FOUND)
     gui/main.cpp
     gui/banner.cpp
     gui/banner.hpp
+    gui/ingress_dialog.cpp
+    gui/ingress_dialog.hpp
     gui/main_window.cpp
     gui/main_window.hpp
     gui/place_dialog.cpp

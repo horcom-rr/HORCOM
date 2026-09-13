@@ -63,6 +63,7 @@ class MainWindow : public QMainWindow {
   void solar_chart();
   void lunar_chart();
   void transit_list();
+  void ingress_table();
   void save_aaf();
   void export_svg();
   void about();
