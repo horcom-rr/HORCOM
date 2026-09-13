@@ -21,8 +21,10 @@
 #include <QMessageBox>
 #include <QTableWidget>
 #include <QTimeEdit>
+#include <QToolBar>
 #include <QVBoxLayout>
 
+#include "banner.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
 #include "horcom/render/svg.hpp"
@@ -59,14 +61,20 @@ void MainWindow::build_ui() {
   setWindowTitle("HORCOM");
   setWindowIcon(QIcon(":/logo.svg"));
 
+  // the banner rides a locked toolbar so it spans the whole window
+  // above the docks
+  banner_ = new Banner(this);
+  auto* banner_bar = new QToolBar(this);
+  banner_bar->setObjectName("bannerBar");
+  banner_bar->setMovable(false);
+  banner_bar->setFloatable(false);
+  banner_bar->setAllowedAreas(Qt::TopToolBarArea);
+  banner_bar->setContextMenuPolicy(Qt::PreventContextMenu);
+  banner_bar->addWidget(banner_);
+  addToolBar(Qt::TopToolBarArea, banner_bar);
+
   wheel_ = new WheelWidget(this);
-  auto* central = new QWidget(this);
-  auto* layout = new QVBoxLayout(central);
-  header_ = new QLabel(central);
-  header_->setAlignment(Qt::AlignCenter);
-  layout->addWidget(header_);
-  layout->addWidget(wheel_, 1);
-  setCentralWidget(central);
+  setCentralWidget(wheel_);
 
   // the input panel
   auto* input_dock = new QDockWidget(tr("Eingabe"), this);
@@ -78,19 +86,25 @@ void MainWindow::build_ui() {
   date_->setDisplayFormat("dd.MM.yyyy");
   time_ = new QTimeEdit(QTime(3, 0), form_host);
   time_->setDisplayFormat("HH:mm:ss");
+  // arrow keys and the mouse wheel step the fields, the tiny stepper
+  // buttons would only clutter the panel
+  time_->setButtonSymbols(QAbstractSpinBox::NoButtons);
   zone_ = new QDoubleSpinBox(form_host);
   zone_->setRange(-14.0, 14.0);
   zone_->setDecimals(2);
   zone_->setSingleStep(0.5);
   zone_->setValue(0.0);
+  zone_->setButtonSymbols(QAbstractSpinBox::NoButtons);
   lon_ = new QDoubleSpinBox(form_host);
   lon_->setRange(-180.0, 180.0);
   lon_->setDecimals(4);
   lon_->setValue(11.3244);
+  lon_->setButtonSymbols(QAbstractSpinBox::NoButtons);
   lat_ = new QDoubleSpinBox(form_host);
   lat_->setRange(-89.99, 89.99);
   lat_->setDecimals(4);
   lat_->setValue(48.1742);
+  lat_->setButtonSymbols(QAbstractSpinBox::NoButtons);
   houses_ = new QComboBox(form_host);
   // his menu order in hausw
   houses_->addItems({"PLACIDUS", "TOPOZENTRISCH", "KOCH-GOH", "REGIOMONTANUS", "CAMPANUS",
@@ -133,10 +147,13 @@ void MainWindow::build_ui() {
   cusps_->setEditTriggers(QAbstractItemView::NoEditTriggers);
   aspects_label_ = new QLabel(cusp_host);
   aspects_label_->setWordWrap(true);
+  aspects_label_->setObjectName("aspectsLine");
+  cusp_layout->setContentsMargins(0, 6, 0, 0);
   cusp_layout->addWidget(cusps_, 1);
   cusp_layout->addWidget(aspects_label_);
   cusp_dock->setWidget(cusp_host);
   addDockWidget(Qt::RightDockWidgetArea, cusp_dock);
+  resizeDocks({body_dock, cusp_dock}, {395, 395}, Qt::Horizontal);
 
   // the menu
   QMenu* file = menuBar()->addMenu(tr("&Datei"));
@@ -193,19 +210,19 @@ void MainWindow::recompute() {
   const Chart chart = compute_chart(in, s, vsop_, eph_);
   if (!chart.ok) {
     //RR Geog. Breite zu groß !
-    header_->setText(tr("Geog. Breite zu groß für dieses Häusersystem"));
+    banner_->set_record(tr("Geog. Breite zu groß für dieses Häusersystem"));
     return;
   }
   const AspectResult aspects = scan_aspects(chart, s, {});
   last_chart_ = chart;
   last_aspects_ = aspects;
   wheel_->set_display_list(build_wheel(chart, s, aspects));
-  header_->setText(QString("JD(UT) %1   ΔT %2 min   ARMC %3°   %4%5")
-                       .arg(chart.jd_ut, 0, 'f', 5)
-                       .arg(chart.delt_minutes, 0, 'f', 2)
-                       .arg(chart.armc_deg, 0, 'f', 4)
-                       .arg(QString::fromUtf8(chart.houses.name.data(), static_cast<int>(chart.houses.name.size())))
-                       .arg(s.topocentric_parallax ? "   MitParall." : ""));
+  banner_->set_info(QString("JD(UT) %1   ΔT %2 min   ARMC %3°   %4%5")
+                        .arg(chart.jd_ut, 0, 'f', 5)
+                        .arg(chart.delt_minutes, 0, 'f', 2)
+                        .arg(chart.armc_deg, 0, 'f', 4)
+                        .arg(QString::fromUtf8(chart.houses.name.data(), static_cast<int>(chart.houses.name.size())))
+                        .arg(s.topocentric_parallax ? "   MitParall." : ""));
   fill_tables(chart, aspects);
 }
 
@@ -231,14 +248,18 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
       bodies_->setItem(row, 1, new QTableWidgetItem(degs(b.eb)));
       bodies_->setItem(row, 2, new QTableWidgetItem(degs(b.de)));
       bodies_->setItem(row, 3, new QTableWidgetItem(degs(b.tb)));
-      bodies_->setItem(row, 4, new QTableWidgetItem(b.tb < 0.0 ? "R" : ""));
+      auto* retro = new QTableWidgetItem(b.tb < 0.0 ? "R" : "");
+      retro->setForeground(QColor(0xE8, 0x5D, 0x4E));
+      bodies_->setItem(row, 4, retro);
     }
   }
   bodies_->setVerticalHeaderLabels(row_names);
+  bodies_->resizeColumnsToContents();
   for (int i = 1; i <= 12; ++i) {
     cusps_->setItem(i - 1, 0, new QTableWidgetItem(zodiac(chart.houses.cusp[static_cast<std::size_t>(i)])));
   }
-  aspects_label_->setText(tr("Aspekte  konj %1  opp %2  trigon %3  quadrat %4  sextil %5")
+  aspects_label_->setText(tr("<span style='color:#D4A94A'>ASPEKTE</span>&nbsp; "
+                             "konj %1  opp %2  trigon %3  quadrat %4  sextil %5")
                               .arg(aspects.zh[1])
                               .arg(aspects.zh[2])
                               .arg(aspects.zh[3])
@@ -341,7 +362,13 @@ void MainWindow::apply_record(const AafRecord& r) {
   zone_->setValue(zone_hours);
   lon_->setValue(r.longitude());
   lat_->setValue(r.latitude());
+  record_label_ = QString("%1 %2   %3.%4.%5")
+                      .arg(QString::fromStdString(r.surname), QString::fromStdString(r.given))
+                      .arg(r.day, 2, 10, QChar(48))
+                      .arg(r.month, 2, 10, QChar(48))
+                      .arg(r.year);
   recompute();
+  banner_->set_record(record_label_.trimmed());
 }
 
 void MainWindow::save_aaf() {

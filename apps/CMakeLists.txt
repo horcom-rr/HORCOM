@@ -9,6 +9,8 @@ if(Qt6_FOUND)
   set(CMAKE_AUTOMOC ON)
   qt_add_executable(horcom_gui
     gui/main.cpp
+    gui/banner.cpp
+    gui/banner.hpp
     gui/main_window.cpp
     gui/main_window.hpp
     gui/wheel_widget.cpp

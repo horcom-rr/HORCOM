@@ -22,6 +22,7 @@ class QTimeEdit;
 
 namespace horcom {
 
+class Banner;
 class WheelWidget;
 
 /// The main window, the wheel always visible, his data on docks beside
@@ -45,10 +46,12 @@ class MainWindow : public QMainWindow {
   [[nodiscard]] ChartInput current_input() const;
   [[nodiscard]] ChartSettings current_settings() const;
   void apply_record(const AafRecord& r);
+  QString record_label_;
 
   VsopTables vsop_;
   Ephemerides eph_;
   WheelWidget* wheel_ = nullptr;
+  Banner* banner_ = nullptr;
   QDateEdit* date_ = nullptr;
   QTimeEdit* time_ = nullptr;
   QDoubleSpinBox* zone_ = nullptr;
@@ -59,7 +62,6 @@ class MainWindow : public QMainWindow {
   QCheckBox* extras_ = nullptr;
   QCheckBox* true_node_ = nullptr;
   QCheckBox* true_apogee_ = nullptr;
-  QLabel* header_ = nullptr;
   QTableWidget* bodies_ = nullptr;
   QTableWidget* cusps_ = nullptr;
   QLabel* aspects_label_ = nullptr;

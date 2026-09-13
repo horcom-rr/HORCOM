@@ -9,6 +9,7 @@
 #include <QTimer>
 
 #include "main_window.hpp"
+#include "theme.hpp"
 
 namespace {
 
@@ -28,6 +29,7 @@ std::filesystem::path find_data_dir() {
 
 int main(int argc, char** argv) {
   QApplication app(argc, argv);
+  app.setStyleSheet(horcom::theme::kStyleSheet);
   QApplication::setApplicationName("horcom");
   QApplication::setOrganizationName("horcom");
 
