@@ -107,6 +107,46 @@ TEST_CASE("the lunar return precedes the asked moment") {
   CHECK(residual_arcsec(hit, body::kMoon, radix_moon, ctx) < 0.5);
 }
 
+TEST_CASE("the transit sweep finds the sun over radix venus") {
+  const SearchContext ctx = context();
+  ChartInput in;
+  in.date_ut = {13, 10, 1992, 3, 0.0};
+  in.lon_deg_east = 11.3244;
+  in.lat_deg = 48.1742;
+  const Chart radix = compute_chart(in, ctx.settings, vsop(), eph());
+  REQUIRE(radix.ok);
+  TransitScan scan;
+  scan.jd_from_ut = julian_day({1, 11, 1992, 0, 0.0});
+  scan.jd_to_ut = julian_day({1, 12, 1992, 0, 0.0});
+  const std::vector<TransitEvent> events = scan_transits(radix, scan, ctx);
+  REQUIRE(!events.empty());
+  bool sun_venus = false;
+  double last = 0.0;
+  for (const TransitEvent& e : events) {
+    CHECK(e.jd_ut >= scan.jd_from_ut - 2.0);
+    CHECK(e.jd_ut <= scan.jd_to_ut + kEps);
+    CHECK(e.jd_ut >= last);
+    last = e.jd_ut;
+    if (!e.station_touch) {
+      // every refined event sits on its target to under an arc second
+      const double target = norm_rad(radix.b[static_cast<std::size_t>(e.radix)].el + e.multiple * 30.0 * kDegToRad);
+      const double got = body_longitude(e.jd_ut, e.transiting, ctx).el;
+      double d = std::abs(got - target);
+      if (d > kPi) {
+        d = kTwoPi - d;
+      }
+      CHECK(d * kRadToDeg * 3600.0 < 1.0);
+    }
+    if (e.transiting == body::kSun && e.radix == body::kVenus && e.multiple == 0) {
+      sun_venus = true;
+      const CalendarDate d = calendar_date(e.jd_ut);
+      CHECK(d.month == 11);
+      CHECK(std::abs(d.day - 14) <= 1);
+    }
+  }
+  CHECK(sun_venus);
+}
+
 TEST_CASE("an extra body outside his ephemeris rides the element fallback") {
   SearchContext ctx = context();
   ctx.settings.enable_standard_extras();

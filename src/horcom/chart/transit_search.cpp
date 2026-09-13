@@ -4,7 +4,9 @@
 
 #include "horcom/chart/transit_search.hpp"
 
+#include <algorithm>
 #include <cmath>
+#include <map>
 
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
@@ -386,6 +388,171 @@ LongitudeCrossing solar_return(const CalendarDate& birth_ut, double radix_sun_ra
 // ported from the a16 lunar branch, the return preceding the moment
 LongitudeCrossing lunar_return(double jd_before_ut, double radix_moon_rad, const SearchContext& ctx) {
   return find_longitude_backward(jd_before_ut, body::kMoon, radix_moon_rad, ctx);
+}
+
+namespace {
+
+// the caps of a180_1, the speed limit per interval, the stationary
+// motion bound and its nearness window
+constexpr double kSweepSpeedCap = 0.26177;
+constexpr double kStationMotion = 0.000290888;
+constexpr double kStationNear = 0.004363;  //RR ca.0.25°
+
+// the interval table of a180 keyed by the slowest running body
+double sweep_interval(const std::vector<int>& transiting, const ChartSettings& s) {
+  double ival = 1.0;
+  int fastest = 41;
+  for (const int t : transiting) {
+    fastest = std::min(fastest, t);
+  }
+  switch (fastest) {
+    case 1:
+    case 2: ival = 2.0; break;
+    case 5: ival = 2.0; break;
+    case 6:
+    case 7:
+    case 8: ival = 6.0; break;
+    default: ival = 1.0; break;
+  }
+  //RR apogw
+  if (s.true_apogee || s.nk[1] > 0) {
+    ival = 0.5;
+  }
+  return ival;
+}
+
+}  // namespace
+
+// ported from a180 with a180_1, the interval sweep over the window
+std::vector<TransitEvent> scan_transits(const Chart& radix, const TransitScan& scan, const SearchContext& ctx) {
+  std::vector<TransitEvent> out;
+  if (!(scan.jd_to_ut > scan.jd_from_ut) || scan.base_angle_deg <= 0.0) {
+    return out;
+  }
+
+  // the running bodies, the nodes' south end and the axes stay out like
+  // the a18st filters, the part of fortune never transits
+  std::vector<int> transiting;
+  for (int t = 1; t <= 40; ++t) {
+    if (t == body::kNodeDesc || t == body::kAscendant || t == body::kMc || t == body::kFortune) {
+      continue;
+    }
+    const BodyState& b = radix.b[static_cast<std::size_t>(t)];
+    if (b.present) {
+      transiting.push_back(t);
+    }
+  }
+  // the radix targets, bodies plus the AC and MC, the south node out
+  std::vector<int> targets;
+  for (int u = 1; u <= 40; ++u) {
+    if (u == body::kNodeDesc) {
+      continue;
+    }
+    const BodyState& b = radix.b[static_cast<std::size_t>(u)];
+    if (b.present && b.valid) {
+      targets.push_back(u);
+    }
+  }
+
+  const double base = scan.base_angle_deg * kDegToRad;
+  const int multiples = static_cast<int>(360.1 / scan.base_angle_deg);
+  const double ival = scan.step_days > 0.0 ? scan.step_days : sweep_interval(transiting, ctx.settings);
+
+  // the c3 memory of the original, one stationary touch per running
+  // body and target for the whole run
+  std::map<std::pair<int, int>, int> station_done;
+
+  Chart a = eval_chart(scan.jd_from_ut, ctx);
+  double jd = scan.jd_from_ut;
+  while (jd < scan.jd_to_ut && a.ok) {
+    const double jd2 = std::min(jd + ival, scan.jd_to_ut);
+    const Chart b = eval_chart(jd2, ctx);
+    if (!b.ok) {
+      break;
+    }
+    for (const int t : transiting) {
+      const auto ti = static_cast<std::size_t>(t);
+      if (!a.b[ti].valid || !b.b[ti].valid) {
+        continue;
+      }
+      const double ca = norm_rad(a.b[ti].el);
+      const double cb = norm_rad(b.b[ti].el);
+      for (const int u : targets) {
+        const auto ui = static_cast<std::size_t>(u);
+        for (int k = 0; k < multiples; ++k) {
+          const double wv = norm_rad(radix.b[ui].el + k * base);
+          bool hit = false;
+          bool touch = false;
+          // the stationary guard of a180_1, a slow body touching the
+          // target inside the interval, remembered once per pair
+          const double tba = std::abs(cb - ca);
+          if (t != 1 && t != 2 && !(t > 11 && t < 19) && t != body::kApogee) {
+            const double bound = kStationMotion / std::pow(std::sqrt(a.b[ti].r + kEps), 3.0);
+            if (tba > 0.0 && tba < bound) {
+              if (std::abs(wv - ca) < kStationNear || std::abs(cb - wv) < kStationNear) {
+                const auto key = std::make_pair(t, u);
+                const auto seen = station_done.find(key);
+                if (seen == station_done.end() || seen->second != k) {
+                  station_done[key] = k;
+                  touch = true;
+                }
+              }
+            }
+          }
+          // the branch follows the true motion, the wrap of the circle
+          // is not a retrograde arc, a deliberate correction of the
+          // original's numeric ordering
+          const double tb_mid = (a.b[ti].tb + b.b[ti].tb) / 2.0;
+          if (!touch && tb_mid >= 0.0) {
+            double w1 = ca;
+            double w2 = cb;
+            double w3 = wv;
+            vergl2(w1, w2, w3);
+            if (w3 > w1 && w2 > w3 && (w2 - w1 < kSweepSpeedCap || (t == 2 && scan.moon_aspects))) {
+              hit = true;
+            }
+          }
+          if (!touch && !hit && tb_mid < 0.0) {
+            double w1 = ca;
+            double w2 = cb;
+            double w3 = wv;
+            vergl2r(w1, w2, w3);
+            if (w1 > w3 && w3 > w2 && w1 - w2 < kSweepSpeedCap) {
+              hit = true;
+            }
+          }
+          if (!hit && !touch) {
+            continue;
+          }
+          TransitEvent e;
+          e.transiting = t;
+          e.radix = u;
+          e.multiple = k;
+          e.angle_deg = k * scan.base_angle_deg;
+          if (touch) {
+            e.jd_ut = jd + (jd2 - jd) / 2.0;
+            e.station_touch = true;
+            e.retrograde = b.b[ti].tb < 0.0;
+            out.push_back(e);
+            continue;
+          }
+          // the exact moment through the plant search from the interval
+          // end, replacing the original's linear interpolation, a hit
+          // that does not refine into its interval is dropped
+          const LongitudeCrossing fine = find_longitude_backward(jd2, t, wv, ctx);
+          if (fine.ok && fine.jd_ut >= jd - 0.000001 && fine.jd_ut <= jd2 + kEps) {
+            e.jd_ut = fine.jd_ut;
+            e.retrograde = fine.retrograde;
+            out.push_back(e);
+          }
+        }
+      }
+    }
+    a = b;
+    jd = jd2;
+  }
+  std::sort(out.begin(), out.end(), [](const TransitEvent& x, const TransitEvent& y) { return x.jd_ut < y.jd_ut; });
+  return out;
 }
 
 }  // namespace horcom

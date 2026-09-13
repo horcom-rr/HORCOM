@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include "horcom/chart/chart.hpp"
 
 // The exact hit search of the original, plant with its evaluation kernel
@@ -72,5 +74,41 @@ struct LongitudeCrossing {
 /// @param ctx            observer and settings
 /// @return the return moment
 [[nodiscard]] LongitudeCrossing lunar_return(double jd_before_ut, double radix_moon_rad, const SearchContext& ctx);
+
+/// One transit event, a running body crossing a radix target.
+struct TransitEvent {
+  double jd_ut = 0.0;
+  int transiting = 0;       // body slot of the running sky
+  int radix = 0;            // radix slot, 13 AC and 14 MC included
+  int multiple = 0;         // k of the base angle, 0 is the conjunction
+  double angle_deg = 0.0;   // k times the base angle
+  bool retrograde = false;  // the running body moved backward
+  /// a stationary touch near the target, flagged like the original's
+  /// slow motion guard, the moment is the middle of its interval
+  bool station_touch = false;
+};
+
+/// The window and grid of a transit scan, the a180 inputs.
+struct TransitScan {
+  double jd_from_ut = 0.0;
+  double jd_to_ut = 0.0;
+  /// the original w4d, radix targets sit at every multiple of this angle
+  double base_angle_deg = 30.0;
+  /// sweep interval in days, zero picks the a180 table from the bodies
+  double step_days = 0.0;
+  /// the original mas flag, without it the fast moon stays filtered by
+  /// the speed cap exactly like his default
+  bool moon_aspects = false;
+};
+
+/// Sweeps the window for transits over the radix like a180, the interval
+/// bracket tests and the station guard of a180_1 transcribed, each hit
+/// refined to the exact moment with the plant search.
+///
+/// @param radix the birth chart whose positions form the targets
+/// @param scan  window and grid
+/// @param ctx   observer and settings for the running sky
+/// @return the events ordered by time
+[[nodiscard]] std::vector<TransitEvent> scan_transits(const Chart& radix, const TransitScan& scan, const SearchContext& ctx);
 
 }  // namespace horcom
