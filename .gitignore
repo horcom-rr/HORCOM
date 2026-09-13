@@ -8,3 +8,6 @@
 /build/
 .vs/
 CMakeUserPresets.json
+
+# Working instructions, kept local
+/CLAUDE.md
