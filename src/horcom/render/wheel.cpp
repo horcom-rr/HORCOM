@@ -309,6 +309,17 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
       add(line);
     }
   }
+
+  // the centre label like textc in zeitwi and in the uhr loop
+  if (!opt.center_label.empty()) {
+    Primitive t;
+    t.kind = Primitive::Kind::kText;
+    t.x1 = kCx;
+    t.y1 = kCy - 12.0;
+    t.size = kLabelSize;
+    t.text = opt.center_label;
+    add(t);
+  }
 }
 
 DisplayList build_wheel(const Chart& chart, const ChartSettings& s, const AspectResult& aspects, const WheelOptions& opt) {
@@ -378,16 +389,6 @@ DisplayList build_transit_wheel(const Chart& radix, const Chart& transit, const 
     }
   }
 
-  // the centre label of zeitwi, TRANSIT=> and the moment
-  if (!opt.transit_label.empty()) {
-    Primitive t;
-    t.kind = Primitive::Kind::kText;
-    t.x1 = kCx;
-    t.y1 = kCy - 12.0;
-    t.size = kLabelSize;
-    t.text = opt.transit_label;
-    add(t);
-  }
   return dl;
 }
 

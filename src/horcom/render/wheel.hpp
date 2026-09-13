@@ -68,8 +68,9 @@ inline constexpr double kTransitWheelScale = 0.85;
 struct WheelOptions {
   /// draw the aspect chords of a scan result
   bool aspect_lines = true;
-  /// the centre label of the transit wheel, TRANSIT=> plus the date
-  std::string transit_label;
+  /// the centre label, TRANSIT with the moment on the transit wheel or
+  /// the running UHR of the clock chart
+  std::string center_label;
   /// which divisors draw chords, the stand in for the original's per
   /// aspect aspli flags until the KONSTA colours are wired through. The
   /// default shows the classical set, conjunction to sextile and the

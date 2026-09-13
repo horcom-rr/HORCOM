@@ -47,7 +47,7 @@ TEST_CASE("the transit wheel rides the running sky outside the signs") {
   REQUIRE(transit.ok);
   const AspectResult a = scan_aspects(radix, {}, {});
   WheelOptions opt;
-  opt.transit_label = "TRANSIT=>13.09.2026";
+  opt.center_label = "TRANSIT=>13.09.2026";
   const DisplayList dl = build_transit_wheel(radix, transit, {}, a, opt);
   // two suns, the radix one on the glyph ring and the transit one at 212,
   // both at the smaller a20 scale
