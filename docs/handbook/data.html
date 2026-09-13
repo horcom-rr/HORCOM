@@ -91,7 +91,11 @@ live on in code as <code>robert_profile()</code>, verified byte for byte
 against the archive file through the writer, and the Qt shell starts on
 it, parallax on, true node and true apogee, his own orb table in the
 equal probability mode. A konsta file placed next to the data still
-overrides the profile, the historical file name included.
+overrides the profile, the historical file name included. The shell's
+Vorgaben dialog edits the live values, orb factor, maximal divisor,
+the equal probability mode, the planet weights and the fixed point,
+and writes them back as konsta.int beside the data on request, so the
+next start keeps them.
 </p>
 
 <h2>The statistics store</h2>
@@ -147,7 +151,9 @@ TEXT-DATEI LESEN box. The port keeps his reading rules, tilde lines
 and overlong lines drop, a leading dash ends the file, the bytes
 decode from Windows 1252. The texts themselves stay a local folder,
 data/kommen, gitignored like the archive, the shell's Hilfe menu shows
-them when they are present and says where to put them when not.
+them when they are present and says where to put them when not, and a
+folder picker in the dialog reads a KOMMEN7P folder kept anywhere
+else.
 </p>
 
 <h2>The AAF exchange format</h2>
@@ -163,6 +169,9 @@ person, the place name, the country abbreviation and the summer time
 code of the original sommerzeit table, the clock stays civil with the
 zone string beside it composed like zeitzon, and saving into an
 existing file can append to the collection instead of replacing it.
+Dateien verketten carries his chaining tool over, any mix of DAT and
+AAF collections reads in sequence and writes out as one AAF chain
+file, the way he merged collections for the statistics work.
 </p>
 
 <h2>The country tables</h2>

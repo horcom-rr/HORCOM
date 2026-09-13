@@ -59,6 +59,9 @@ birth data written down the left margin of the sheet. The Koordinaten
 table lists every body with longitude, latitude, declination and
 daily motion, an R marks retrograde. The Häuser table lists the
 twelve cusps, and the line under the wheel counts the found aspects.
+The mouse wheel zooms into the drawing around the cursor, dragging
+with the left button pans the zoomed sheet, and a double click brings
+the whole wheel back.
 </p>
 
 <h2>Records</h2>
@@ -69,6 +72,8 @@ and it fills the panel. <b>Datensatz bearbeiten</b> (Ctrl+D) opens the
 record mask with name, place and country, and <b>Als AAF speichern</b>
 (Ctrl+S) writes the current chart back into an AAF collection, so
 your records travel between HORCOM and every program that reads AAF.
+<b>Dateien verketten</b> merges any mix of DAT and AAF collections into
+one AAF chain file.
 </p>
 
 <h2>The running sky</h2>
@@ -140,6 +145,21 @@ matrix, exact separations above the diagonal, the named aspects below
 it, the hit count of every body on the diagonal, and the divisor
 table with angle and orb beside it. The Maximaler Teiler box rescans
 with eight, twelve or sixteen divisors on the spot.
+<b>Halbsummen-Bäume</b> lists every point with its place on the 45 degree
+dial and the midpoints landing on it, close company on the dial
+glows red.
+</p>
+
+<h2>Fine tuning</h2>
+<p>
+<b>Vorgaben (Orbes, Fixpunkt)</b> in the Datei menu edits the orb factor,
+the maximal divisor, the equal probability mode and the planet
+weights, and places the Fixpunkt, a chosen ecliptic degree that rides
+the chart as the point <code>sp</code>. A checkbox writes everything as
+<code>konsta.int</code> beside the data so the next start keeps it.
+<b>Korrektur</b> in the Horoskop menu rectifies the birth time, pick
+sidereal time, MC, AC, sun or moon, give the target value, and the
+panel clock shifts until the chosen quantity reaches it.
 </p>
 
 <h2>Statistics</h2>
@@ -167,7 +187,8 @@ The Ansicht menu scales the text of the whole shell, Schrift größer
 and kleiner (Ctrl+Plus, Ctrl+Minus), remembered between runs. Under
 Hilfe the <b>Original-Kommentare</b> open Robert Rettig's own commentary
 texts when their folder lies beside the data, the dialog says where
-to put them. They are his writing, from the introduction to the
+to put them and a folder button reads a KOMMEN7P folder kept
+anywhere else. They are his writing, from the introduction to the
 Erläuterungen on directions and the Münchner Rhythmenlehre, and they
 remain the best companion to this program.
 </p>
