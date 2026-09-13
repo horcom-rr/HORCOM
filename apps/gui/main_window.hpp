@@ -55,6 +55,7 @@ class MainWindow : public QMainWindow {
   void open_records();
   void open_place();
   void pick_zone();
+  void edit_record();
   void solar_chart();
   void lunar_chart();
   void transit_list();
@@ -70,7 +71,9 @@ class MainWindow : public QMainWindow {
   void apply_record(const AafRecord& r);
   void apply_moment(double jd_ut, const QString& label);
   void run_solar(int year);
+  void refresh_record_label();
   QString record_label_;
+  AafRecord record_;
 
   VsopTables vsop_;
   Ephemerides eph_;

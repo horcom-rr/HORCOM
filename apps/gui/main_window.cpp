@@ -22,12 +22,14 @@
 #include <QListWidget>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QTableWidget>
 #include <QTimeEdit>
 #include <QTimer>
 #include <QToolBar>
 #include <QToolButton>
 #include <QVBoxLayout>
+#include <cmath>
 #include <initializer_list>
 
 #include "banner.hpp"
@@ -37,6 +39,7 @@
 #include "horcom/data/place_file.hpp"
 #include "horcom/render/svg.hpp"
 #include "place_dialog.hpp"
+#include "record_dialog.hpp"
 #include "transit_list_dialog.hpp"
 #include "wheel_widget.hpp"
 #include "zone_dialog.hpp"
@@ -50,6 +53,23 @@ constexpr const char* kSignTag[12] = {"AR", "TA", "GM", "CN", "LE", "VI", "LI", 
 
 //RR Bei Uhr alle 15 sek neu
 constexpr int kClockRedrawMs = 15000;
+
+// splits decimal degrees into the AAF degree minute second fields
+void to_dms(double value, int& deg, int& min, int& sec) {
+  const double a = std::abs(value);
+  deg = static_cast<int>(a);
+  const double rem = (a - deg) * 60.0;
+  min = static_cast<int>(rem);
+  sec = static_cast<int>((rem - min) * 60.0 + 0.5);
+  if (sec >= 60) {
+    sec -= 60;
+    ++min;
+  }
+  if (min >= 60) {
+    min -= 60;
+    ++deg;
+  }
+}
 
 QString zodiac(double rad) {
   const double deg = norm_deg(rad * kRadToDeg);
@@ -222,6 +242,7 @@ void MainWindow::build_ui() {
   // the menu
   QMenu* file = menuBar()->addMenu(tr("&Datei"));
   file->addAction(tr("Datensätze öffnen…"), QKeySequence::Open, this, &MainWindow::open_records);
+  file->addAction(tr("Datensatz bearbeiten…"), QKeySequence(Qt::CTRL | Qt::Key_D), this, &MainWindow::edit_record);
   file->addAction(tr("Ort suchen…"), QKeySequence(Qt::CTRL | Qt::Key_L), this, &MainWindow::open_place);
   file->addAction(tr("Als AAF speichern…"), QKeySequence::Save, this, &MainWindow::save_aaf);
   file->addAction(tr("Horoskop als SVG…"), this, &MainWindow::export_svg);
@@ -647,6 +668,7 @@ void MainWindow::apply_record(const AafRecord& r) {
                              tr("Jahre vor 1 n.Chr. berechnet derzeit nur das Kommandozeilenwerkzeug."));
     return;
   }
+  record_ = r;
   const QSignalBlocker b1(date_);
   const QSignalBlocker b2(time_);
   const QSignalBlocker b3(zone_);
@@ -665,40 +687,79 @@ void MainWindow::apply_record(const AafRecord& r) {
   zone_->setValue(zone_hours);
   lon_->setValue(r.longitude());
   lat_->setValue(r.latitude());
-  record_label_ = QString("%1 %2   %3.%4.%5")
-                      .arg(QString::fromStdString(r.surname), QString::fromStdString(r.given))
-                      .arg(r.day, 2, 10, QChar(48))
-                      .arg(r.month, 2, 10, QChar(48))
-                      .arg(r.year);
   recompute();
+  refresh_record_label();
+}
+
+void MainWindow::refresh_record_label() {
+  const QDate d = date_->date();
+  record_label_ = QString("%1 %2   %3.%4.%5")
+                      .arg(QString::fromStdString(record_.surname), QString::fromStdString(record_.given))
+                      .arg(d.day(), 2, 10, QChar('0'))
+                      .arg(d.month(), 2, 10, QChar('0'))
+                      .arg(d.year());
   banner_->set_record(record_label_.trimmed());
 }
 
+void MainWindow::edit_record() {
+  std::vector<GermanCountry> countries;
+  if (const auto c = load_german_countries(data_dir_ / "laender.int")) {
+    countries = *c;
+  }
+  RecordDialog dialog(record_, countries, this);
+  if (dialog.exec() != QDialog::Accepted) {
+    return;
+  }
+  record_ = dialog.record();
+  refresh_record_label();
+}
+
 void MainWindow::save_aaf() {
-  const ChartInput in = current_input();
-  const QString path = QFileDialog::getSaveFileName(this, tr("Als AAF speichern"), "chart.aaf", tr("AAF (*.aaf)"));
+  const QString path = QFileDialog::getSaveFileName(this, tr("Als AAF speichern"), "chart.aaf",
+                                                    tr("AAF (*.aaf)"), nullptr, QFileDialog::DontConfirmOverwrite);
   if (path.isEmpty()) {
     return;
   }
-  AafRecord r;
-  r.surname = "horcom";
-  r.day = in.date_ut.day;
-  r.month = in.date_ut.month;
-  r.year = in.date_ut.year;
-  r.hour = static_cast<int>(in.date_ut.hour);
-  r.minute = static_cast<int>(in.date_ut.minute);
-  r.second = static_cast<int>((in.date_ut.minute - r.minute) * 60.0 + 0.5);
-  r.zone = "00hE00:00";
-  const double alat = std::abs(in.lat_deg);
-  const double alon = std::abs(in.lon_deg_east);
-  r.lat_ns = in.lat_deg < 0 ? 'S' : 'N';
-  r.lon_ew = in.lon_deg_east < 0 ? 'W' : 'E';
-  r.lat_deg = static_cast<int>(alat);
-  r.lat_min = static_cast<int>((alat - r.lat_deg) * 60.0 + 0.5);
-  r.lon_deg = static_cast<int>(alon);
-  r.lon_min = static_cast<int>((alon - r.lon_deg) * 60.0 + 0.5);
-  r.jd = julian_day(in.date_ut);
-  if (!write_aaf(path.toStdWString(), {r})) {
+  // the record carries the person, the panel rules the moment and the
+  // coordinates, the clock stays civil with the zone beside it
+  AafRecord r = record_;
+  const QDate d = date_->date();
+  const QTime t = time_->time();
+  r.day = d.day();
+  r.month = d.month();
+  r.year = d.year();
+  r.hour = t.hour();
+  r.minute = t.minute();
+  r.second = t.second();
+  r.zone = aaf_zone(zone_->value());
+  if (r.dst.empty()) {
+    r.dst = "*";
+  }
+  to_dms(lat_->value(), r.lat_deg, r.lat_min, r.lat_sec);
+  r.lat_ns = lat_->value() < 0 ? 'S' : 'N';
+  to_dms(lon_->value(), r.lon_deg, r.lon_min, r.lon_sec);
+  r.lon_ew = lon_->value() < 0 ? 'W' : 'E';
+  r.jd = julian_day(current_input().date_ut);
+  std::vector<AafRecord> records{r};
+  if (QFile::exists(path)) {
+    QMessageBox ask(this);
+    ask.setWindowTitle("HORCOM");
+    ask.setText(tr("Die Datei gibt es schon. Datensatz an die Sammlung anhängen?"));
+    auto* append = ask.addButton(tr("Anhängen"), QMessageBox::AcceptRole);
+    ask.addButton(tr("Überschreiben"), QMessageBox::DestructiveRole);
+    auto* cancel = ask.addButton(QMessageBox::Cancel);
+    ask.exec();
+    if (ask.clickedButton() == cancel) {
+      return;
+    }
+    if (ask.clickedButton() == append) {
+      if (const auto existing = read_aaf(path.toStdWString())) {
+        records = *existing;
+        records.push_back(r);
+      }
+    }
+  }
+  if (!write_aaf(path.toStdWString(), records)) {
     QMessageBox::warning(this, "HORCOM", tr("Speichern fehlgeschlagen."));
   }
 }

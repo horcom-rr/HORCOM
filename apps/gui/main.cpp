@@ -14,6 +14,7 @@
 
 #include "main_window.hpp"
 #include "place_dialog.hpp"
+#include "record_dialog.hpp"
 #include "theme.hpp"
 #include "transit_list_dialog.hpp"
 #include "zone_dialog.hpp"
@@ -87,6 +88,21 @@ int main(int argc, char** argv) {
   if (shot_zone >= 0 && shot_zone + 1 < args.size()) {
     horcom::ZoneDialog dialog(data / "zonnamen.int");
     dialog.grab().save(args[shot_zone + 1]);
+    return 0;
+  }
+  const int shot_record = args.indexOf("--shot-record");
+  if (shot_record >= 0 && shot_record + 1 < args.size()) {
+    std::vector<horcom::GermanCountry> countries;
+    if (const auto c = horcom::load_german_countries(data / "laender.int")) {
+      countries = *c;
+    }
+    horcom::AafRecord sample;
+    sample.surname = "Muster";
+    sample.given = "Max";
+    sample.place = "Eichenau";
+    sample.country = "D";
+    horcom::RecordDialog dialog(sample, countries);
+    dialog.grab().save(args[shot_record + 1]);
     return 0;
   }
   const int shot_list = args.indexOf("--shot-transit-list");

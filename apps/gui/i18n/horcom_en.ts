@@ -4,279 +4,299 @@
 <context>
     <name>horcom::MainWindow</name>
     <message>
-        <location filename="../main_window.cpp" line="104"/>
+        <location filename="../main_window.cpp" line="124"/>
         <source>Eingabe</source>
         <translation>Input</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="136"/>
+        <location filename="../main_window.cpp" line="156"/>
         <source>Parallaxe (topozentrisch)</source>
         <translation>Parallax (topocentric)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="138"/>
+        <location filename="../main_window.cpp" line="158"/>
         <source>Zusatzplaneten</source>
         <translation>Additional bodies</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="139"/>
+        <location filename="../main_window.cpp" line="159"/>
         <source>Wahrer Mondknoten</source>
         <translation>True lunar node</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="140"/>
+        <location filename="../main_window.cpp" line="160"/>
         <source>Wahres Apogäum</source>
         <translation>True apogee</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="141"/>
+        <location filename="../main_window.cpp" line="161"/>
         <source>Datum</source>
         <translation>Date</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="142"/>
+        <location filename="../main_window.cpp" line="162"/>
         <source>Zeit</source>
         <translation>Time</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="151"/>
+        <location filename="../main_window.cpp" line="171"/>
         <source>Zeit-Zonen Katalog</source>
         <translation>Time zone catalogue</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="154"/>
+        <location filename="../main_window.cpp" line="174"/>
         <source>Zone (h östl.)</source>
         <translation>Zone (h east)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="155"/>
+        <location filename="../main_window.cpp" line="175"/>
         <source>Länge (Ost +)</source>
         <translation>Longitude (east +)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="156"/>
+        <location filename="../main_window.cpp" line="176"/>
         <source>Breite (Nord +)</source>
         <translation>Latitude (north +)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="157"/>
-        <location filename="../main_window.cpp" line="204"/>
+        <location filename="../main_window.cpp" line="177"/>
+        <location filename="../main_window.cpp" line="224"/>
         <source>Häuser</source>
         <translation>Houses</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="163"/>
+        <location filename="../main_window.cpp" line="183"/>
         <source>Transite</source>
         <translation>Transits</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="173"/>
+        <location filename="../main_window.cpp" line="193"/>
         <source>Transit-Datum</source>
         <translation>Transit date</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="174"/>
+        <location filename="../main_window.cpp" line="194"/>
         <source>Zeit (UT)</source>
         <translation>Time (UT)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="195"/>
+        <location filename="../main_window.cpp" line="215"/>
         <source>Koordinaten</source>
         <translation>Coordinates</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="197"/>
+        <location filename="../main_window.cpp" line="217"/>
         <source>Länge</source>
         <translation>Longitude</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="197"/>
+        <location filename="../main_window.cpp" line="217"/>
         <source>Breite</source>
         <translation>Latitude</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="197"/>
+        <location filename="../main_window.cpp" line="217"/>
         <source>Deklin.</source>
         <translation>Declin.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="197"/>
+        <location filename="../main_window.cpp" line="217"/>
         <source>Geschw.</source>
         <translation>Speed</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="208"/>
+        <location filename="../main_window.cpp" line="228"/>
         <source>Spitze</source>
         <translation>Cusp</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="223"/>
+        <location filename="../main_window.cpp" line="243"/>
         <source>&amp;Datei</source>
         <translation>&amp;File</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="224"/>
+        <location filename="../main_window.cpp" line="244"/>
         <source>Datensätze öffnen…</source>
         <translation>Open records…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="225"/>
+        <location filename="../main_window.cpp" line="245"/>
+        <source>Datensatz bearbeiten…</source>
+        <translation>Edit record…</translation>
+    </message>
+    <message>
+        <location filename="../main_window.cpp" line="246"/>
         <source>Ort suchen…</source>
         <translation>Find place…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="226"/>
+        <location filename="../main_window.cpp" line="247"/>
         <source>Als AAF speichern…</source>
         <translation>Save as AAF…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="227"/>
+        <location filename="../main_window.cpp" line="248"/>
         <source>Horoskop als SVG…</source>
         <translation>Chart as SVG…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="229"/>
+        <location filename="../main_window.cpp" line="250"/>
         <source>Beenden</source>
         <translation>Quit</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="231"/>
+        <location filename="../main_window.cpp" line="252"/>
         <source>&amp;Horoskop</source>
         <translation>&amp;Chart</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="232"/>
+        <location filename="../main_window.cpp" line="253"/>
         <source>Solar…</source>
         <translation>Solar return…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="233"/>
+        <location filename="../main_window.cpp" line="254"/>
         <source>Lunar…</source>
         <translation>Lunar return…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="234"/>
+        <location filename="../main_window.cpp" line="255"/>
         <source>Transit-Liste…</source>
         <translation>Transit list…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="237"/>
+        <location filename="../main_window.cpp" line="258"/>
         <source>Uhr</source>
         <translation>Clock</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="251"/>
+        <location filename="../main_window.cpp" line="272"/>
         <source>&amp;Hilfe</source>
         <translation>&amp;Help</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="252"/>
-        <location filename="../main_window.cpp" line="722"/>
+        <location filename="../main_window.cpp" line="273"/>
+        <location filename="../main_window.cpp" line="783"/>
         <source>Über HORCOM</source>
         <translation>About HORCOM</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="325"/>
+        <location filename="../main_window.cpp" line="346"/>
         <source>Geog. Breite zu groß für dieses Häusersystem</source>
         <translation>Geographic latitude too high for this house system</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="381"/>
+        <location filename="../main_window.cpp" line="402"/>
         <source>außerhalb der Ephemeride</source>
         <translation>outside the ephemeris</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="400"/>
+        <location filename="../main_window.cpp" line="421"/>
         <source>&lt;span style=&apos;color:#D4A94A&apos;&gt;ASPEKTE&lt;/span&gt;&amp;nbsp; konj %1  opp %2  trigon %3  quadrat %4  sextil %5</source>
         <translation>&lt;span style=&apos;color:#D4A94A&apos;&gt;ASPECTS&lt;/span&gt;&amp;nbsp; conj %1  opp %2  trine %3  square %4  sextile %5</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="447"/>
+        <location filename="../main_window.cpp" line="468"/>
         <source>Solar</source>
         <translation>Solar return</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="447"/>
+        <location filename="../main_window.cpp" line="468"/>
         <source>Gewünschtes Kalender-Jahr</source>
         <translation>Desired calendar year</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="473"/>
+        <location filename="../main_window.cpp" line="494"/>
         <source>Kein Solar gefunden</source>
         <translation>No solar return found</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="484"/>
+        <location filename="../main_window.cpp" line="505"/>
         <source>Lunar</source>
         <translation>Lunar return</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="487"/>
+        <location filename="../main_window.cpp" line="508"/>
         <source>Das diesem Datum, 0h UT, vorausgehende Lunar wird berechnet.</source>
         <translation>The lunar return preceding this date, 0h UT, is computed.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="510"/>
+        <location filename="../main_window.cpp" line="531"/>
         <source>Kein Lunar gefunden</source>
         <translation>No lunar return found</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="553"/>
+        <location filename="../main_window.cpp" line="574"/>
         <source>Die Datei zonnamen.int fehlt im Datenordner.</source>
         <translation>The file zonnamen.int is missing from the data folder.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="574"/>
+        <location filename="../main_window.cpp" line="595"/>
         <source>Datensätze öffnen</source>
         <translation>Open records</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="575"/>
+        <location filename="../main_window.cpp" line="596"/>
         <source>HORCOM Datensätze (*.DAT *.dat *.AAF *.aaf)</source>
         <translation>HORCOM records (*.DAT *.dat *.AAF *.aaf)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="617"/>
+        <location filename="../main_window.cpp" line="638"/>
         <source>Keine Datensätze gefunden.</source>
         <translation>No records found.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="621"/>
+        <location filename="../main_window.cpp" line="642"/>
         <source>Datensatz wählen</source>
         <translation>Choose a record</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="647"/>
+        <location filename="../main_window.cpp" line="668"/>
         <source>Jahre vor 1 n.Chr. berechnet derzeit nur das Kommandozeilenwerkzeug.</source>
         <translation>Years before 1 AD are currently computed only by the command line tool.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="679"/>
+        <location filename="../main_window.cpp" line="718"/>
         <source>Als AAF speichern</source>
         <translation>Save as AAF</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="679"/>
+        <location filename="../main_window.cpp" line="719"/>
         <source>AAF (*.aaf)</source>
         <translation>AAF (*.aaf)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="702"/>
+        <location filename="../main_window.cpp" line="747"/>
+        <source>Die Datei gibt es schon. Datensatz an die Sammlung anhängen?</source>
+        <translation>The file already exists. Append the record to the collection?</translation>
+    </message>
+    <message>
+        <location filename="../main_window.cpp" line="748"/>
+        <source>Anhängen</source>
+        <translation>Append</translation>
+    </message>
+    <message>
+        <location filename="../main_window.cpp" line="749"/>
+        <source>Überschreiben</source>
+        <translation>Overwrite</translation>
+    </message>
+    <message>
+        <location filename="../main_window.cpp" line="763"/>
         <source>Speichern fehlgeschlagen.</source>
         <translation>Saving failed.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="710"/>
+        <location filename="../main_window.cpp" line="771"/>
         <source>Horoskop als SVG</source>
         <translation>Chart as SVG</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="710"/>
+        <location filename="../main_window.cpp" line="771"/>
         <source>SVG (*.svg)</source>
         <translation>SVG (*.svg)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="723"/>
+        <location filename="../main_window.cpp" line="784"/>
         <source>&lt;b&gt;horcom&lt;/b&gt;&lt;br&gt;Die C++ Neufassung von HORCOM,&lt;br&gt;geschrieben von Robert Rettig, 1970er bis 2010.&lt;br&gt;&lt;br&gt;Im Andenken an Robert Rettig, der all dies zuerst gebaut hat.&lt;br&gt;&lt;br&gt;GPL-3.0-or-later · betreut von Dominik Schwimmbeck</source>
         <translation>&lt;b&gt;horcom&lt;/b&gt;&lt;br&gt;The C++ rewrite of HORCOM,&lt;br&gt;written by Robert Rettig, 1970s to 2010.&lt;br&gt;&lt;br&gt;In memory of Robert Rettig, who built all of this first.&lt;br&gt;&lt;br&gt;GPL-3.0-or-later · maintained by Dominik Schwimmbeck</translation>
     </message>
@@ -337,6 +357,49 @@
         <location filename="../place_dialog.cpp" line="160"/>
         <source>%1 Treffer</source>
         <translation>%1 matches</translation>
+    </message>
+</context>
+<context>
+    <name>horcom::RecordDialog</name>
+    <message>
+        <location filename="../record_dialog.cpp" line="47"/>
+        <source>Datensatz</source>
+        <translation>Record</translation>
+    </message>
+    <message>
+        <location filename="../record_dialog.cpp" line="73"/>
+        <source>Name</source>
+        <translation>Name</translation>
+    </message>
+    <message>
+        <location filename="../record_dialog.cpp" line="74"/>
+        <source>Vorname</source>
+        <translation>Given name</translation>
+    </message>
+    <message>
+        <location filename="../record_dialog.cpp" line="75"/>
+        <source>Geschlecht</source>
+        <translation>Sex</translation>
+    </message>
+    <message>
+        <location filename="../record_dialog.cpp" line="76"/>
+        <source>Ort</source>
+        <translation>Place</translation>
+    </message>
+    <message>
+        <location filename="../record_dialog.cpp" line="77"/>
+        <source>Land</source>
+        <translation>Country</translation>
+    </message>
+    <message>
+        <location filename="../record_dialog.cpp" line="78"/>
+        <source>Sommerzeit</source>
+        <translation>Summer time</translation>
+    </message>
+    <message>
+        <location filename="../record_dialog.cpp" line="79"/>
+        <source>Bemerkung</source>
+        <translation>Comment</translation>
     </message>
 </context>
 <context>
@@ -429,12 +492,12 @@
 <context>
     <name>main</name>
     <message>
-        <location filename="../main.cpp" line="65"/>
+        <location filename="../main.cpp" line="66"/>
         <source>Der Ordner &apos;data&apos; mit planets.dat wurde nicht gefunden.</source>
         <translation>The &apos;data&apos; folder holding planets.dat was not found.</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="73"/>
+        <location filename="../main.cpp" line="74"/>
         <source>Die Planetentafeln konnten nicht geladen werden.</source>
         <translation>The planetary tables could not be loaded.</translation>
     </message>
