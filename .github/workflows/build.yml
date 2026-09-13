@@ -20,20 +20,25 @@ jobs:
           version: '6.8.3'
           arch: win64_msvc2022_64
 
+      - name: MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
       - name: Configure
-        run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR"
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR"
 
       - name: Build
-        run: cmake --build build --config Release -j 4
+        run: cmake --build build -j 4
 
       - name: Test
-        run: ctest --test-dir build -C Release --output-on-failure
+        run: ctest --test-dir build --output-on-failure
 
       - name: Package
         run: |
           New-Item -ItemType Directory -Path dist | Out-Null
-          Copy-Item build/apps/Release/horcom.exe dist/
-          Copy-Item build/apps/Release/horcom_gui.exe dist/
+          Copy-Item build/apps/horcom.exe dist/
+          Copy-Item build/apps/horcom_gui.exe dist/
           Copy-Item -Recurse data dist/data
           Copy-Item LICENSE dist/
           Copy-Item README.md dist/
