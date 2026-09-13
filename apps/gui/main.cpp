@@ -231,6 +231,27 @@ int main(int argc, char** argv) {
     shot = shot_helio;
     window.show_helio();
   }
+  const int shot_harmonic = args.indexOf("--shot-harmonic");
+  if (shot_harmonic >= 0) {
+    shot = shot_harmonic;
+    window.show_harmonic(5);
+  }
+  const int shot_dial = args.indexOf("--shot-dial");
+  if (shot_dial >= 0) {
+    shot = shot_dial;
+    horcom::AafRecord partner;
+    partner.surname = "Partner";
+    partner.day = 1;
+    partner.month = 6;
+    partner.year = 1990;
+    partner.hour = 12;
+    partner.zone = "00hE00:00";
+    partner.lat_deg = 48;
+    partner.lat_min = 10;
+    partner.lon_deg = 11;
+    partner.lon_min = 19;
+    window.show_dial(partner);
+  }
   const int shot_mundane = args.indexOf("--shot-mundane");
   if (shot_mundane >= 0) {
     shot = shot_mundane;

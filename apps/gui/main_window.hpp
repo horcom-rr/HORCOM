@@ -67,6 +67,12 @@ class MainWindow : public QMainWindow {
   /// Switches the heliocentric mode on, the original hrg.
   void show_helio();
 
+  /// Opens the harmonic double wheel, the capture hook's path.
+  void show_harmonic(int n);
+
+  /// Opens the 90 degree circle over a partner, the capture hook's path.
+  void show_dial(const AafRecord& partner);
+
  private slots:
   void recompute();
   void open_records();
@@ -123,6 +129,10 @@ class MainWindow : public QMainWindow {
   QAction* clock_action_ = nullptr;
   QTimer* clock_timer_ = nullptr;
   QAction* compare_action_ = nullptr;
+  QAction* dial_action_ = nullptr;
+  QAction* harmonic_action_ = nullptr;
+  int harm_n_ = 0;
+  bool harm_new_mc_ = false;
   QAction* composite_action_ = nullptr;
   QAction* directions_action_ = nullptr;
   QAction* mundane_action_ = nullptr;

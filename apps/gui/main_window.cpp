@@ -36,6 +36,7 @@
 #include "banner.hpp"
 #include "horcom/chart/composite.hpp"
 #include "horcom/chart/directions.hpp"
+#include "horcom/chart/harmonics.hpp"
 #include "horcom/chart/mundane.hpp"
 #include "horcom/chart/transit_search.hpp"
 #include "ingress_dialog.hpp"
@@ -305,6 +306,45 @@ void MainWindow::build_ui() {
       compare_action_->setChecked(false);
       return;
     }
+    recompute();
+  });
+  //RR 90°-KREIS, the second mode of the a12 double wheel
+  dial_action_ = horo->addAction(tr("90°-Kreis"));
+  dial_action_->setCheckable(true);
+  connect(dial_action_, &QAction::toggled, this, [this](bool on) {
+    if (on && !partner_chart_) {
+      compare_action_->setChecked(true);
+      if (!partner_chart_) {
+        const QSignalBlocker block(dial_action_);
+        dial_action_->setChecked(false);
+        return;
+      }
+    }
+    recompute();
+  });
+  //RR HARMONICS = GRUNDHOROSKOP * GANZZAHLIGEM FAKTOR !
+  harmonic_action_ = horo->addAction(tr("Harmonic…"));
+  harmonic_action_->setCheckable(true);
+  connect(harmonic_action_, &QAction::toggled, this, [this](bool on) {
+    if (!on) {
+      harm_n_ = 0;
+      recompute();
+      banner_->set_record(record_label_.trimmed());
+      return;
+    }
+    bool ok = false;
+    //RR ORDNUNGS-ZAHL der HARMONIC !
+    const int n = QInputDialog::getInt(this, tr("Harmonic"), tr("Ordnungs-Zahl der Harmonic"), 5, 1, 360, 1, &ok);
+    if (!ok) {
+      const QSignalBlocker block(harmonic_action_);
+      harmonic_action_->setChecked(false);
+      return;
+    }
+    harm_n_ = n;
+    // the haus_ber question, like planets is his standard
+    harm_new_mc_ = QMessageBox::question(this, tr("Harmonic"),
+                                         tr("Häuser aufgrund des neuen MC neu berechnen?\n(Nein behandelt sie wie Planeten, der Standard.)"),
+                                         QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes;
     recompute();
   });
   // the composite over the same partner, house mode from his profile
@@ -585,6 +625,17 @@ void MainWindow::recompute() {
     banner_->set_record(QString("%1 %2°")
                             .arg(dir_converse_ ? "KONVERS" : "DIREKT")
                             .arg(d.arc_deg, 0, 'f', 3));
+  } else if (harmonic_action_ != nullptr && harmonic_action_->isChecked() && harm_n_ > 0 && !s.heliocentric) {
+    // the harmonic outside over the radix, the harm21 double wheel
+    const Chart hc = harmonic_chart(chart, harm_n_,
+                                    harm_new_mc_ ? HarmonicHouses::kFromNewMc : HarmonicHouses::kLikeBodies,
+                                    s.houses, lat_->value());
+    WheelOptions opt = wopt;
+    //RR STR$(ha) + ".HARMONIC"
+    opt.center_label = QString("%1.HARMONIC").arg(harm_n_).toStdString();
+    wheel_->set_display_list(build_double_wheel(chart, hc, s, aspects, opt));
+    transit_drawn = true;
+    banner_->set_record(QString("%1.HARMONIC").arg(harm_n_));
   } else if (composite_action_ != nullptr && composite_action_->isChecked() && partner_chart_) {
     // the a13 composite, house mode from his profile flags, the panel
     // place stands in as the Robert Hand residence
@@ -605,17 +656,34 @@ void MainWindow::recompute() {
     }
     banner_->set_record(QString("COMPOSIT %1-%2").arg(mine, partner_name_));
   } else if (partner_chart_) {
-    // the a12 double wheel, the partner outside at full scale
-    wheel_->set_display_list(build_double_wheel(chart, *partner_chart_, s, aspects, wopt));
-    transit_drawn = true;
-    const std::vector<CrossAspectHit> cross = scan_aspects_between(chart, *partner_chart_, aspect_settings_, false);
-    cross_text = tr("<span style='color:#D4A94A'>VERGLEICH</span>&nbsp; ");
-    cross_text += cross.empty() ? tr("keine") : cross_hits_text(cross);
     QString mine = QString::fromStdString(record_.surname).trimmed();
     if (mine.isEmpty()) {
       mine = "RADIX";
     }
-    banner_->set_record(QString("%1 × %2").arg(mine, partner_name_));
+    if (dial_action_ != nullptr && dial_action_->isChecked()) {
+      //RR 90°-KREIS, everything times four, the scan on the a12f state
+      Chart d1 = dial_chart(chart, 4.0);
+      Chart d2 = dial_chart(*partner_chart_, 4.0);
+      const AspectResult da = scan_aspects(d1, s, aspect_settings_);
+      const std::vector<CrossAspectHit> cross = scan_aspects_between(d1, d2, aspect_settings_, false);
+      dial_display(d1, 4.0);
+      dial_display(d2, 4.0);
+      WheelOptions opt = wopt;
+      opt.dial = true;
+      opt.center_label = "90\xC2\xB0- KREIS";
+      wheel_->set_display_list(build_double_wheel(d1, d2, s, da, opt));
+      cross_text = tr("<span style='color:#D4A94A'>VERGLEICH 90°</span>&nbsp; ");
+      cross_text += cross.empty() ? tr("keine") : cross_hits_text(cross);
+      banner_->set_record(QString::fromUtf8("90° %1 × %2").arg(mine, partner_name_));
+    } else {
+      // the a12 double wheel, the partner outside at full scale
+      wheel_->set_display_list(build_double_wheel(chart, *partner_chart_, s, aspects, wopt));
+      const std::vector<CrossAspectHit> cross = scan_aspects_between(chart, *partner_chart_, aspect_settings_, false);
+      cross_text = tr("<span style='color:#D4A94A'>VERGLEICH</span>&nbsp; ");
+      cross_text += cross.empty() ? tr("keine") : cross_hits_text(cross);
+      banner_->set_record(QString("%1 × %2").arg(mine, partner_name_));
+    }
+    transit_drawn = true;
   }
   if (!transit_drawn) {
     wheel_->set_display_list(build_wheel(chart, s, aspects, wopt));
@@ -1023,6 +1091,25 @@ void MainWindow::show_mundane() {
 
 void MainWindow::show_helio() {
   helio_->setChecked(true);
+}
+
+void MainWindow::show_harmonic(int n) {
+  harm_n_ = n;
+  harm_new_mc_ = false;
+  const QSignalBlocker block(harmonic_action_);
+  harmonic_action_->setChecked(true);
+  recompute();
+}
+
+void MainWindow::show_dial(const AafRecord& partner) {
+  if (!set_partner(partner)) {
+    return;
+  }
+  const QSignalBlocker b1(compare_action_);
+  compare_action_->setChecked(true);
+  const QSignalBlocker b2(dial_action_);
+  dial_action_->setChecked(true);
+  recompute();
 }
 
 void MainWindow::show_directions(double jd_event_ut, bool converse) {
