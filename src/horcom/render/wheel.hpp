@@ -83,6 +83,8 @@ struct WheelOptions {
   /// overrides the wheel scale when positive, primhorg draws the
   /// directed axes at 0.89
   double scale = 0.0;
+  /// the hrg mode, the moon slot carries the earth and wears its glyph
+  bool heliocentric = false;
   /// which divisors draw chords, the stand in for the original's per
   /// aspect aspli flags until the KONSTA colours are wired through. The
   /// default shows the classical set, conjunction to sextile and the

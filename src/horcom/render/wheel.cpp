@@ -150,8 +150,9 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
     return Pt{kCx + km * r * std::cos(-w), kCy + km * r * std::sin(-w)};
   };
 
-  // the rotation origin, the default begz& = 1 puts the AC left
-  const double fza = chart.houses.angles.ac;
+  // the rotation origin, the default begz& = 1 puts the AC left, horbeg
+  // clears it in the hrg mode so zero Aries anchors the wheel
+  const double fza = opt.heliocentric ? 0.0 : chart.houses.angles.ac;
 
   // sign band as explicit annular sectors with the element colours
   for (int j = 1; j <= 12; ++j) {
@@ -177,6 +178,17 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
     c.r1 = km * r;
     add(c);
   }
+  //RR SO, horg1 marks the sun as small unscaled circles in the centre
+  if (opt.heliocentric) {
+    for (double r : {1.0, 7.0}) {
+      Primitive c;
+      c.kind = Primitive::Kind::kCircle;
+      c.x1 = kCx;
+      c.y1 = kCy;
+      c.r1 = r;
+      add(c);
+    }
+  }
   //RR Zeichentrenn-Linien
   for (int j = 0; j < 12; ++j) {
     const double w = wheel_angle(j * kPi / 6.0, fza);
@@ -197,9 +209,10 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
     add(g);
   }
 
-  // houses like horg11, thick axes to 188 with labels at 200, thin cusps
-  const bool houses_drawn = !(s.houses == HouseSystem::kAcMcOnly || s.houses == HouseSystem::kNone);
-  if (s.houses != HouseSystem::kNone) {
+  // houses like horg11, thick axes to 188 with labels at 200, thin
+  // cusps, the whole block stays dark in the hrg mode like the original
+  const bool houses_drawn = !opt.heliocentric && !(s.houses == HouseSystem::kAcMcOnly || s.houses == HouseSystem::kNone);
+  if (!opt.heliocentric && s.houses != HouseSystem::kNone) {
     static constexpr const char* kAxisLabelText[4] = {"AC", "IC", "DC", "MC"};
     const int axes[4] = {1, 4, 7, 10};
     for (int a = 0; a < 4; ++a) {
@@ -259,7 +272,8 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
     p.x1 = g.x;
     p.y1 = g.y;
     p.size = kGlyphSize;
-    p.text = kBodyGlyph[si];
+    // in the hrg mode the moon slot carries the earth
+    p.text = (opt.heliocentric && slot == body::kMoon) ? "\xE2\x8A\x95" : kBodyGlyph[si];
     if (chart.b[si].tb < 0.0 && slot >= 3 && slot <= 10) {
       p.text += " R";
     }
@@ -420,7 +434,8 @@ DisplayList build_transit_wheel(const Chart& radix, const Chart& transit, const 
   DisplayList dl;
   build_base(dl, radix, s, radix_aspects, opt, kTransitWheelScale);
   // the radix rules the rotation, the running sky turns with it
-  draw_outer_bodies(dl, transit, radix.houses.angles.ac, kTransitWheelScale, kSignOuter, kTransitGlyphRing, opt);
+  const double fza = opt.heliocentric ? 0.0 : radix.houses.angles.ac;
+  draw_outer_bodies(dl, transit, fza, kTransitWheelScale, kSignOuter, kTransitGlyphRing, opt);
   return dl;
 }
 
@@ -431,10 +446,10 @@ DisplayList build_double_wheel(const Chart& inner, const Chart& outer, const Cha
   const auto at = [](double w, double r) {
     return Pt{kCx + kKm * r * std::cos(-w), kCy + kKm * r * std::sin(-w)};
   };
-  const double fza = inner.houses.angles.ac;
+  const double fza = opt.heliocentric ? 0.0 : inner.houses.angles.ac;
   // the second chart's house lines draw over the shared ring like the
   // original's second horg11 pass, without a second set of labels
-  if (s.houses != HouseSystem::kNone) {
+  if (!opt.heliocentric && s.houses != HouseSystem::kNone) {
     for (int a : {1, 4, 7, 10}) {
       const double w = wheel_angle(outer.houses.cusp[static_cast<std::size_t>(a)], fza);
       const Pt p1 = at(w, kAspectRing);
@@ -442,7 +457,7 @@ DisplayList build_double_wheel(const Chart& inner, const Chart& outer, const Cha
       add({Primitive::Kind::kLine, p1.x, p1.y, p2.x, p2.y, 0, 0, 0, 0, 0, 0x000000, 0xFFFFFF, Primitive::Style::kSolid, 2.0});
     }
   }
-  if (!(s.houses == HouseSystem::kAcMcOnly || s.houses == HouseSystem::kNone)) {
+  if (!opt.heliocentric && !(s.houses == HouseSystem::kAcMcOnly || s.houses == HouseSystem::kNone)) {
     for (int i : {2, 3, 5, 6, 8, 9, 11, 12}) {
       const double w = wheel_angle(outer.houses.cusp[static_cast<std::size_t>(i)], fza);
       const Pt p1 = at(w, kAspectRing);
