@@ -1,7 +1,29 @@
+# the Windows identity of the executables, icon plus version block,
+# CI passes the release number as HORCOM_VERSION
+set(HORCOM_VERSION "0.0" CACHE STRING "version stamped into the executables")
+if(HORCOM_VERSION MATCHES "^([0-9]+)\\.([0-9]+)")
+  set(HORCOM_RC_VERSION "${CMAKE_MATCH_1},${CMAKE_MATCH_2},0,0")
+else()
+  set(HORCOM_RC_VERSION "0,0,0,0")
+endif()
+set(HORCOM_ICO "${CMAKE_SOURCE_DIR}/assets/logo.ico")
+
+function(horcom_stamp target description internal filename)
+  if(NOT MSVC)
+    return()
+  endif()
+  set(HORCOM_RC_DESCRIPTION "${description}")
+  set(HORCOM_RC_INTERNAL "${internal}")
+  set(HORCOM_RC_FILENAME "${filename}")
+  configure_file(version.rc.in "${CMAKE_CURRENT_BINARY_DIR}/${internal}.rc" @ONLY)
+  target_sources(${target} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/${internal}.rc")
+endfunction()
+
 add_executable(horcom_cli cli/main.cpp)
 target_link_libraries(horcom_cli PRIVATE horcom)
 target_compile_definitions(horcom_cli PRIVATE _CRT_SECURE_NO_WARNINGS)
 set_target_properties(horcom_cli PROPERTIES OUTPUT_NAME horcom)
+horcom_stamp(horcom_cli "HORCOM command line tool" horcom_cli horcom.exe)
 
 # the Qt shell builds only where Qt 6 is available
 find_package(Qt6 QUIET COMPONENTS Widgets Svg PrintSupport LinguistTools)
@@ -43,6 +65,7 @@ if(Qt6_FOUND)
   )
   target_link_libraries(horcom_gui PRIVATE horcom Qt6::Widgets Qt6::Svg Qt6::PrintSupport)
   set_target_properties(horcom_gui PROPERTIES WIN32_EXECUTABLE ON)
+  horcom_stamp(horcom_gui "HORCOM desktop shell" horcom_gui horcom_gui.exe)
   # German is the source language, English ships as a translation
   if(TARGET Qt6::lrelease)
     qt_add_translations(horcom_gui

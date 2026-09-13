@@ -1,0 +1,36 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// horcom, the C++ rewrite of HORCOM by Robert Rettig (1989 to 2010)
+// Copyright (c) 2026 Dominik Schwimmbeck
+
+#include <windows.h>
+
+IDI_ICON1 ICON "@HORCOM_ICO@"
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION @HORCOM_RC_VERSION@
+ PRODUCTVERSION @HORCOM_RC_VERSION@
+ FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
+ FILEFLAGS 0x0L
+ FILEOS VOS_NT_WINDOWS32
+ FILETYPE VFT_APP
+ FILESUBTYPE VFT2_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName", "the horcom project"
+            VALUE "FileDescription", "@HORCOM_RC_DESCRIPTION@"
+            VALUE "FileVersion", "@HORCOM_VERSION@"
+            VALUE "InternalName", "@HORCOM_RC_INTERNAL@"
+            VALUE "LegalCopyright", "GPL-3.0-or-later, original program by Robert Rettig, rewrite Copyright (c) 2026 Dominik Schwimmbeck"
+            VALUE "OriginalFilename", "@HORCOM_RC_FILENAME@"
+            VALUE "ProductName", "HORCOM"
+            VALUE "ProductVersion", "@HORCOM_VERSION@"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
