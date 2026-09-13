@@ -1,0 +1,56 @@
+#pragma once
+
+// Calendar and Julian date conversion. Ported from the original HORCOM
+// procedures juld, juld1 and dat.
+//
+// The original keeps a per-chart calendar flag in jul$ containing
+// "(JULIAN.)" or "(GREGOR.)". Auto means the historical rule, Julian
+// calendar before 1582-10-15 and Gregorian from then on. The overrides
+// force one calendar across the boundary, Gregorian even makes dates
+// before 1582 proleptic Gregorian.
+namespace horcom {
+
+enum class Calendar { kAuto, kJulian, kGregorian };
+
+// Year counting is astronomical, year 0 exists and -500 means 501 BC.
+// hour and minute stay double, the storage format carries seconds as a
+// fractional minute.
+struct CalendarDate {
+  int day = 0;
+  int month = 0;
+  int year = 0;
+  double hour = 0.0;
+  double minute = 0.0;
+};
+
+// The original juld. Valid for the whole range the original supports,
+// including negative years via the FIX(365.25 * y - 0.75) branch.
+[[nodiscard]] double julian_day(const CalendarDate& d, Calendar cal = Calendar::kAuto);
+
+// The original dat, the exact inverse. Domain jd >= 0 like the original.
+[[nodiscard]] CalendarDate calendar_date(double jd, Calendar cal = Calendar::kAuto);
+
+// The original juld1 without its trailing somo call, which belongs to the
+// ephemeris module. Time arguments for every downstream formula.
+struct TimeArguments {
+  double jd = 0.0;
+  // centuries since 1900.0 (epoch JD 2415020) and powers, original t1..t4
+  double t1 = 0.0;
+  double t2 = 0.0;
+  double t3 = 0.0;
+  double t4 = 0.0;
+  // centuries since J2000 (epoch JD 2451545) and powers, original t11..t41
+  double t11 = 0.0;
+  double t21 = 0.0;
+  double t31 = 0.0;
+  double t41 = 0.0;
+  // original tja, time dependent tropical year in days
+  double tropical_year_days = 0.0;
+  // original ekls directly after juld1, the MEAN obliquity in radians.
+  // somo later adds the nutation deps, only then ekls is the true obliquity.
+  double mean_obliquity_rad = 0.0;
+};
+
+[[nodiscard]] TimeArguments time_arguments(double jd);
+
+}  // namespace horcom
