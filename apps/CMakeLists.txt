@@ -9,6 +9,8 @@ if(Qt6_FOUND)
   set(CMAKE_AUTOMOC ON)
   qt_add_executable(horcom_gui
     gui/main.cpp
+    gui/aspektarium_dialog.cpp
+    gui/aspektarium_dialog.hpp
     gui/banner.cpp
     gui/banner.hpp
     gui/ingress_dialog.cpp

@@ -32,6 +32,7 @@
 #include <cmath>
 #include <initializer_list>
 
+#include "aspektarium_dialog.hpp"
 #include "banner.hpp"
 #include "horcom/chart/composite.hpp"
 #include "horcom/chart/directions.hpp"
@@ -286,6 +287,7 @@ void MainWindow::build_ui() {
   horo->addAction(tr("Lunar…"), this, &MainWindow::lunar_chart);
   horo->addAction(tr("Transit-Liste…"), this, &MainWindow::transit_list);
   horo->addAction(tr("Ingresse…"), this, &MainWindow::ingress_table);
+  horo->addAction(tr("Aspektarium…"), this, &MainWindow::open_aspektarium);
   // the double wheel of a12, a second person over the radix
   compare_action_ = horo->addAction(tr("Vergleich"));
   compare_action_->setCheckable(true);
@@ -1111,6 +1113,14 @@ void MainWindow::open_statistics() {
   lat_->setValue(r.lat);
   recompute();
   refresh_record_label();
+}
+
+void MainWindow::open_aspektarium() {
+  if (!last_chart_) {
+    return;
+  }
+  AspektariumDialog dialog(*last_chart_, current_settings(), aspect_settings_, record_label_.trimmed(), this);
+  dialog.exec();
 }
 
 void MainWindow::edit_record() {

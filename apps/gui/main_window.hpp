@@ -74,6 +74,7 @@ class MainWindow : public QMainWindow {
   void pick_zone();
   void edit_record();
   void open_statistics();
+  void open_aspektarium();
   void solar_chart();
   void lunar_chart();
   void transit_list();

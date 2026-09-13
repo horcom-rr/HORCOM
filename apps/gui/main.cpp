@@ -12,6 +12,7 @@
 #include <QTimer>
 #include <QTranslator>
 
+#include "aspektarium_dialog.hpp"
 #include "main_window.hpp"
 #include "place_dialog.hpp"
 #include "record_dialog.hpp"
@@ -112,6 +113,18 @@ int main(int argc, char** argv) {
     if (dialog.load(args[shot_statist + 2])) {
       dialog.grab().save(args[shot_statist + 1]);
     }
+    return 0;
+  }
+  const int shot_aspektarium = args.indexOf("--shot-aspektarium");
+  if (shot_aspektarium >= 0 && shot_aspektarium + 1 < args.size()) {
+    horcom::ChartInput in;
+    in.date_ut = {13, 10, 1992, 3, 0.0};
+    in.lon_deg_east = 11.3244;
+    in.lat_deg = 48.1742;
+    const horcom::ChartSettings cs;
+    const horcom::Chart chart = horcom::compute_chart(in, cs, vsop, eph);
+    horcom::AspektariumDialog dialog(chart, cs, {}, "13.10.1992");
+    dialog.grab().save(args[shot_aspektarium + 1]);
     return 0;
   }
   const int shot_list = args.indexOf("--shot-transit-list");
