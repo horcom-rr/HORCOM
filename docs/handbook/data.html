@@ -67,11 +67,27 @@ fly, the byte layout itself was verified against non personal files,
 places and settings, during the analysis.
 </p>
 
-<h2>Still to come in this module</h2>
+<h2>The settings stream</h2>
 <p>
-The KONSTA settings stream with its one token reader, the AAF exchange
-format as the port's archive format, and the seed conversion of the
-timezone and country tables.
+KONSTA7P.INT holds every calculation switch of the program. Its writer
+and reader split the fields across lines differently, GFA INPUT ignores
+line boundaries, so the loader tokenises the whole file first, quoted
+strings with commas inside included. The struct keeps his variable names
+as the schema, the mapping onto the pipeline settings follows kon_dhol
+with the sixteen to twelve divisor rule of the equal probability mode.
+Validated against his real settings file, which showed his own
+configuration ran with the topocentric parallax switched on.
+</p>
+
+<h2>The AAF exchange format</h2>
+<p>
+The tagged text format is the port archive format going forward. The
+parser takes the original quirks whole, the tilde as universal ignore
+marker, stars as empty fields, HTML stripped so saved web pages still
+parse, plain lines continuing a comment, the calendar suffix on the year
+and the rule that a Julian date outranks the clock fields. The writer
+reproduces the A93 and B93 lines of make_aaf including STR$(jd,13,5).
+Still open here, the seed conversion of the timezone and country tables.
 </p>
 
 <h2>Verification</h2>

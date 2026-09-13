@@ -13,6 +13,7 @@ add_executable(horcom_tests
   test_aspects.cpp
   test_render.cpp
   test_data.cpp
+  test_aaf_konsta.cpp
 )
 
 target_link_libraries(horcom_tests PRIVATE horcom)

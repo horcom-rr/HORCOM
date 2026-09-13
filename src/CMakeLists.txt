@@ -20,6 +20,9 @@ add_library(horcom STATIC
   horcom/data/encoding.cpp
   horcom/data/chart_file.cpp
   horcom/data/place_file.cpp
+  horcom/data/gfa_stream.cpp
+  horcom/data/konsta.cpp
+  horcom/data/aaf.cpp
 )
 
 target_include_directories(horcom PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
