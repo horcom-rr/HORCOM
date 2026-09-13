@@ -14,6 +14,7 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QFormLayout>
+#include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
 #include <QListWidget>
@@ -22,6 +23,7 @@
 #include <QTableWidget>
 #include <QTimeEdit>
 #include <QToolBar>
+#include <QToolButton>
 #include <QVBoxLayout>
 #include <initializer_list>
 
@@ -32,6 +34,7 @@
 #include "horcom/render/svg.hpp"
 #include "place_dialog.hpp"
 #include "wheel_widget.hpp"
+#include "zone_dialog.hpp"
 
 namespace horcom {
 
@@ -129,7 +132,18 @@ void MainWindow::build_ui() {
   true_apogee_ = new QCheckBox(tr("Wahres Apogäum"), form_host);
   form->addRow(tr("Datum"), date_);
   form->addRow(tr("Zeit"), time_);
-  form->addRow(tr("Zone (h östl.)"), zone_);
+  // the zone field carries a picker into the zone name catalogue
+  auto* zone_row = new QWidget(form_host);
+  auto* zone_lay = new QHBoxLayout(zone_row);
+  zone_lay->setContentsMargins(0, 0, 0, 0);
+  zone_lay->setSpacing(4);
+  zone_lay->addWidget(zone_, 1);
+  auto* zone_pick = new QToolButton(zone_row);
+  zone_pick->setText("…");
+  zone_pick->setToolTip(tr("Zeit-Zonen Katalog"));
+  zone_lay->addWidget(zone_pick);
+  connect(zone_pick, &QToolButton::clicked, this, &MainWindow::pick_zone);
+  form->addRow(tr("Zone (h östl.)"), zone_row);
   form->addRow(tr("Länge (Ost +)"), lon_);
   form->addRow(tr("Breite (Nord +)"), lat_);
   form->addRow(tr("Häuser"), houses_);
@@ -318,6 +332,30 @@ void MainWindow::open_place() {
   // wants hours east
   if (const auto to_ut = r.zone_to_ut()) {
     zone_->setValue(-*to_ut);
+  }
+  recompute();
+}
+
+void MainWindow::pick_zone() {
+  ZoneDialog dialog(data_dir_ / "zonnamen.int", this);
+  if (!dialog.loaded()) {
+    //RR ZEITZONEN-Datei fehlt !
+    QMessageBox::warning(this, "HORCOM", tr("Die Datei zonnamen.int fehlt im Datenordner."));
+    return;
+  }
+  if (dialog.exec() != QDialog::Accepted) {
+    return;
+  }
+  const ZoneEntry& z = dialog.chosen();
+  const QSignalBlocker b(zone_);
+  if (z.is_local_time()) {
+    // local time follows from the longitude like in zeitzon_nam_aaf,
+    // the true local time refinement before 1810 stays with the operator
+    zone_->setValue(lon_->value() / kDegPerHour);
+  } else if (z.to_ut_hours) {
+    // the catalogue stores the step from zone time to UT, the panel
+    // wants hours east
+    zone_->setValue(-*z.to_ut_hours);
   }
   recompute();
 }

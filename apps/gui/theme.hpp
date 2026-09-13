@@ -201,6 +201,18 @@ QPushButton:hover {
 QPushButton:pressed {
   background: #232D4A;
 }
+QToolButton {
+  background: #1B2340;
+  border: 1px solid #232D4A;
+  border-radius: 5px;
+  padding: 4px 10px;
+}
+QToolButton:hover {
+  border-color: #8F7433;
+}
+QToolButton:pressed {
+  background: #232D4A;
+}
 )qss";
 
 }  // namespace horcom::theme

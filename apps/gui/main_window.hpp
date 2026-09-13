@@ -39,6 +39,7 @@ class MainWindow : public QMainWindow {
   void recompute();
   void open_records();
   void open_place();
+  void pick_zone();
   void save_aaf();
   void export_svg();
   void about();

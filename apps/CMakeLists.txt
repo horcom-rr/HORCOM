@@ -17,6 +17,8 @@ if(Qt6_FOUND)
     gui/place_dialog.hpp
     gui/wheel_widget.cpp
     gui/wheel_widget.hpp
+    gui/zone_dialog.cpp
+    gui/zone_dialog.hpp
   )
   qt_add_resources(horcom_gui "identity"
     PREFIX "/"
