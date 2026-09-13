@@ -42,6 +42,7 @@ topocentric parallax.
   <tr><td><code>ingre1</code></td><td><code>sign_ingresses</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
   <tr><td><code>a13, halbsmin, a13comp_1, a13comp_2</code> and <code>a14</code></td><td><code>composite_chart, midpoint_near, combin_input</code></td><td><code>src/horcom/chart/composite.*</code></td></tr>
   <tr><td><code>prima, primhorg, richtung$</code></td><td><code>direct_axes</code></td><td><code>src/horcom/chart/directions.*</code></td></tr>
+  <tr><td><code>mundan, mundh1, md11, md, mundhorp, mundhorh</code></td><td><code>mundane_longitude, to_mundane</code></td><td><code>src/horcom/chart/mundane.*</code></td></tr>
 </table>
 
 <h2>The two clocks of the original</h2>
@@ -175,6 +176,21 @@ clock minutes of birth time, which made this screen his rectification
 tool. The port keeps the rate, the variation and the display, the
 interactive summing of test variations stays with the operator through
 repeated runs.
+</p>
+
+<h2>The mundane mode</h2>
+<p>
+horm 2 leaves the ecliptic. Every body converts to equatorial
+coordinates, md11 places it east or west of the meridian axis, and md
+projects it along its semi arc, ninety degrees plus or minus the
+ascensional difference asin of tan latitude times tan declination, into
+oblique ascension under its own quadrant. The house space longitude
+then counts from the ascendant at zero and the cusps become the exact
+equal grid of mundhorh. All scanners run unchanged on the converted
+values, exactly the original's trick of feeding mup into the same
+aspect machinery. Pinned on a flat sky where the proportion turns
+linear, quadrant by quadrant, and on a real chart whose grid and
+ascendant land exactly.
 </p>
 
 <h2>Verification</h2>
