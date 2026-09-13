@@ -34,6 +34,9 @@ constexpr double kNumberSize = 8.0;
 constexpr double kAxisTextSize = 11.0;
 // the transit ring of a20, glyphs from plein1 and markers from plmk
 constexpr double kTransitGlyphRing = 212.0;
+// the comparison ring of a12, the second chart of the double wheel
+constexpr double kCompareGlyphRing = 204.0;
+constexpr double kCompareMarkRing = 180.0;
 constexpr double kMarkInset = 3.0;
 constexpr double kMarkOutset = 5.0;
 constexpr double kLabelSize = 10.0;
@@ -328,17 +331,13 @@ DisplayList build_wheel(const Chart& chart, const ChartSettings& s, const Aspect
   return dl;
 }
 
-DisplayList build_transit_wheel(const Chart& radix, const Chart& transit, const ChartSettings& s, const AspectResult& radix_aspects, const WheelOptions& opt) {
-  DisplayList dl;
-  const double km = kTransitWheelScale;
-  build_base(dl, radix, s, radix_aspects, opt, km);
+// the outer ring shared by the a20 transit and the a12 comparison, a
+// tick marker like plmk and the glyph outside like plein1
+static void draw_outer_bodies(DisplayList& dl, const Chart& chart, double fza, double km, double mark_ring, double glyph_ring, const WheelOptions& opt) {
   auto add = [&](Primitive p) { dl.items.push_back(std::move(p)); };
   const auto at = [km](double w, double r) {
     return Pt{kCx + km * r * std::cos(-w), kCy + km * r * std::sin(-w)};
   };
-  // the radix rules the rotation, the running sky turns with it
-  const double fza = radix.houses.angles.ac;
-
   std::vector<int> slots;
   std::array<double, 41> pl{};
   std::array<double, 41> wl{};
@@ -347,7 +346,7 @@ DisplayList build_transit_wheel(const Chart& radix, const Chart& transit, const 
     if (slot == body::kAscendant || slot == body::kMc) {
       continue;
     }
-    const BodyState& b = transit.b[static_cast<std::size_t>(slot)];
+    const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
     if (!b.present || !b.valid) {
       continue;
     }
@@ -356,28 +355,25 @@ DisplayList build_transit_wheel(const Chart& radix, const Chart& transit, const 
     wl[static_cast<std::size_t>(slot)] = wheel_angle(b.el, fza);
   }
   declump(slots, pl, wl, dc);
-
-  // the outer ring of a20, a tick on the sign ring like plmk at 182 and
-  // the glyph outside like plein1 at 212
   for (int slot : slots) {
     const auto si = static_cast<std::size_t>(slot);
     const double w_true = wheel_angle(pl[si], fza);
-    const Pt m1 = at(w_true, kSignOuter - kMarkInset);
-    const Pt m2 = at(w_true, kSignOuter + kMarkOutset);
+    const Pt m1 = at(w_true, mark_ring - kMarkInset);
+    const Pt m2 = at(w_true, mark_ring + kMarkOutset);
     add({Primitive::Kind::kLine, m1.x, m1.y, m2.x, m2.y});
-    const Pt g = at(wl[si], kTransitGlyphRing + dc[si]);
+    const Pt g = at(wl[si], glyph_ring + dc[si]);
     Primitive p;
     p.kind = Primitive::Kind::kGlyph;
     p.x1 = g.x;
     p.y1 = g.y;
     p.size = kGlyphSize;
     p.text = kBodyGlyph[si];
-    if (transit.b[si].tb < 0.0 && slot >= 3 && slot <= 10) {
+    if (chart.b[si].tb < 0.0 && slot >= 3 && slot <= 10) {
       p.text += " R";
     }
     add(p);
     if (opt.degree_numbers) {
-      const Pt n = at(wl[si], kTransitGlyphRing + dc[si] - kGlyphSize);
+      const Pt n = at(wl[si], glyph_ring + dc[si] - kGlyphSize);
       Primitive num;
       num.kind = Primitive::Kind::kText;
       num.x1 = n.x;
@@ -388,7 +384,43 @@ DisplayList build_transit_wheel(const Chart& radix, const Chart& transit, const 
       add(num);
     }
   }
+}
 
+DisplayList build_transit_wheel(const Chart& radix, const Chart& transit, const ChartSettings& s, const AspectResult& radix_aspects, const WheelOptions& opt) {
+  DisplayList dl;
+  build_base(dl, radix, s, radix_aspects, opt, kTransitWheelScale);
+  // the radix rules the rotation, the running sky turns with it
+  draw_outer_bodies(dl, transit, radix.houses.angles.ac, kTransitWheelScale, kSignOuter, kTransitGlyphRing, opt);
+  return dl;
+}
+
+DisplayList build_double_wheel(const Chart& inner, const Chart& outer, const ChartSettings& s, const AspectResult& inner_aspects, const WheelOptions& opt) {
+  DisplayList dl;
+  build_base(dl, inner, s, inner_aspects, opt, kKm);
+  auto add = [&](Primitive p) { dl.items.push_back(std::move(p)); };
+  const auto at = [](double w, double r) {
+    return Pt{kCx + kKm * r * std::cos(-w), kCy + kKm * r * std::sin(-w)};
+  };
+  const double fza = inner.houses.angles.ac;
+  // the second chart's house lines draw over the shared ring like the
+  // original's second horg11 pass, without a second set of labels
+  if (s.houses != HouseSystem::kNone) {
+    for (int a : {1, 4, 7, 10}) {
+      const double w = wheel_angle(outer.houses.cusp[static_cast<std::size_t>(a)], fza);
+      const Pt p1 = at(w, kAspectRing);
+      const Pt p2 = at(w, kAxisEnd);
+      add({Primitive::Kind::kLine, p1.x, p1.y, p2.x, p2.y, 0, 0, 0, 0, 0, 0x000000, 0xFFFFFF, Primitive::Style::kSolid, 2.0});
+    }
+  }
+  if (!(s.houses == HouseSystem::kAcMcOnly || s.houses == HouseSystem::kNone)) {
+    for (int i : {2, 3, 5, 6, 8, 9, 11, 12}) {
+      const double w = wheel_angle(outer.houses.cusp[static_cast<std::size_t>(i)], fza);
+      const Pt p1 = at(w, kAspectRing);
+      const Pt p2 = at(w, kSignInner);
+      add({Primitive::Kind::kLine, p1.x, p1.y, p2.x, p2.y});
+    }
+  }
+  draw_outer_bodies(dl, outer, fza, kKm, kCompareMarkRing, kCompareGlyphRing, opt);
   return dl;
 }
 

@@ -76,6 +76,33 @@ TEST_CASE("the transit wheel rides the running sky outside the signs") {
   CHECK(label);
 }
 
+TEST_CASE("the double wheel carries the partner outside at full scale") {
+  const Chart inner = sample_chart();
+  REQUIRE(inner.ok);
+  ChartInput in;
+  in.date_ut = {1, 6, 1990, 12, 0.0};
+  in.lon_deg_east = 11.3244;
+  in.lat_deg = 48.1742;
+  const Chart outer = compute_chart(in, {}, vsop(), eph());
+  REQUIRE(outer.ok);
+  const AspectResult a = scan_aspects(inner, {}, {});
+  const DisplayList dl = build_double_wheel(inner, outer, {}, a);
+  int suns = 0;
+  bool outer_sun = false;
+  for (const Primitive& p : dl.items) {
+    if (p.kind == Primitive::Kind::kGlyph && p.text.rfind("☉", 0) == 0) {
+      ++suns;
+      const double r = std::hypot(p.x1 - kWheelCenterX, p.y1 - kWheelCenterY);
+      if (r > kWheelScale * 185.0) {
+        outer_sun = true;
+        CHECK(r < kWheelScale * 215.0);
+      }
+    }
+  }
+  CHECK(suns == 2);
+  CHECK(outer_sun);
+}
+
 TEST_CASE("the wheel puts the ascendant on the left") {
   const Chart c = sample_chart();
   REQUIRE(c.ok);

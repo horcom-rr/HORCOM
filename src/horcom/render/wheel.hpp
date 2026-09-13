@@ -106,4 +106,18 @@ struct WheelOptions {
 /// @return primitives on the virtual canvas, in paint order
 [[nodiscard]] DisplayList build_transit_wheel(const Chart& radix, const Chart& transit, const ChartSettings& s, const AspectResult& radix_aspects, const WheelOptions& opt = {});
 
+/// Builds the double wheel of the original a12 comparison screen. The
+/// first chart sits inside at full scale with its houses and chords,
+/// the second rides outside with glyphs at 204 and markers at 180, and
+/// its house lines draw over the shared ring like the original's second
+/// horg11 pass.
+///
+/// @param inner the first chart, rules the rotation
+/// @param outer the compared chart
+/// @param s     chart settings, decides which slots appear in both rings
+/// @param inner_aspects the first chart's scan, drawn as chords
+/// @param opt   drawing options
+/// @return primitives on the virtual canvas, in paint order
+[[nodiscard]] DisplayList build_double_wheel(const Chart& inner, const Chart& outer, const ChartSettings& s, const AspectResult& inner_aspects, const WheelOptions& opt = {});
+
 }  // namespace horcom
