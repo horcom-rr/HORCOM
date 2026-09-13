@@ -151,6 +151,19 @@ void MainWindow::build_ui() {
   form->addRow(extras_);
   form->addRow(true_node_);
   form->addRow(true_apogee_);
+  // the transit moment enters as Greenwich time like the original a20
+  transit_on_ = new QCheckBox(tr("Transite"), form_host);
+  tdate_ = new QDateEdit(QDate::currentDate(), form_host);
+  tdate_->setCalendarPopup(true);
+  tdate_->setDisplayFormat("dd.MM.yyyy");
+  tdate_->setEnabled(false);
+  ttime_ = new QTimeEdit(QTime(12, 0), form_host);
+  ttime_->setDisplayFormat("HH:mm");
+  ttime_->setButtonSymbols(QAbstractSpinBox::NoButtons);
+  ttime_->setEnabled(false);
+  form->addRow(transit_on_);
+  form->addRow(tr("Transit-Datum"), tdate_);
+  form->addRow(tr("Zeit (UT)"), ttime_);
   input_dock->setWidget(form_host);
   addDockWidget(Qt::LeftDockWidgetArea, input_dock);
 
@@ -219,6 +232,13 @@ void MainWindow::build_ui() {
   for (QCheckBox* box : {parallax_, extras_, true_node_, true_apogee_}) {
     connect(box, &QCheckBox::toggled, this, &MainWindow::recompute);
   }
+  connect(transit_on_, &QCheckBox::toggled, this, [this](bool on) {
+    tdate_->setEnabled(on);
+    ttime_->setEnabled(on);
+    recompute();
+  });
+  connect(tdate_, &QDateEdit::dateChanged, this, &MainWindow::recompute);
+  connect(ttime_, &QTimeEdit::timeChanged, this, &MainWindow::recompute);
   resize(1280, 760);
 }
 
@@ -266,7 +286,27 @@ void MainWindow::recompute() {
   const AspectResult aspects = scan_aspects(chart, s, aspect_settings_);
   last_chart_ = chart;
   last_aspects_ = aspects;
-  wheel_->set_display_list(build_wheel(chart, s, aspects));
+  bool transit_drawn = false;
+  if (transit_on_->isChecked()) {
+    ChartInput tin;
+    const QDate td = tdate_->date();
+    const QTime tt = ttime_->time();
+    tin.date_ut = {td.day(), td.month(), td.year(), static_cast<double>(tt.hour()),
+                   tt.minute() + tt.second() / 60.0};
+    tin.lon_deg_east = lon_->value();
+    tin.lat_deg = lat_->value();
+    const Chart tchart = compute_chart(tin, s, vsop_, eph_);
+    if (tchart.ok) {
+      WheelOptions opt;
+      opt.transit_label =
+          QString("TRANSIT=>%1 %2 UT").arg(td.toString("dd.MM.yyyy"), tt.toString("HH:mm")).toStdString();
+      wheel_->set_display_list(build_transit_wheel(chart, tchart, s, aspects, opt));
+      transit_drawn = true;
+    }
+  }
+  if (!transit_drawn) {
+    wheel_->set_display_list(build_wheel(chart, s, aspects));
+  }
   banner_->set_info(QString("JD(UT) %1   ΔT %2 min   ARMC %3°   %4%5")
                         .arg(chart.jd_ut, 0, 'f', 5)
                         .arg(chart.delt_minutes, 0, 'f', 2)
@@ -334,6 +374,14 @@ void MainWindow::open_place() {
     zone_->setValue(-*to_ut);
   }
   recompute();
+}
+
+void MainWindow::show_transits(const QDate& date, const QTime& time) {
+  const QSignalBlocker b1(tdate_);
+  const QSignalBlocker b2(ttime_);
+  tdate_->setDate(date);
+  ttime_->setTime(time);
+  transit_on_->setChecked(true);
 }
 
 void MainWindow::pick_zone() {

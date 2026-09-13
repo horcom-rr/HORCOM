@@ -16,7 +16,9 @@
 
 class QCheckBox;
 class QComboBox;
+class QDate;
 class QDateEdit;
+class QTime;
 class QDoubleSpinBox;
 class QLabel;
 class QTableWidget;
@@ -34,6 +36,10 @@ class MainWindow : public QMainWindow {
 
  public:
   MainWindow(VsopTables vsop, Ephemerides eph, std::filesystem::path data_dir, QWidget* parent = nullptr);
+
+  /// Switches the transit view on for the given UT moment, used by the
+  /// capture hook and by workflows that open straight into transits.
+  void show_transits(const QDate& date, const QTime& time);
 
  private slots:
   void recompute();
@@ -69,6 +75,9 @@ class MainWindow : public QMainWindow {
   QCheckBox* extras_ = nullptr;
   QCheckBox* true_node_ = nullptr;
   QCheckBox* true_apogee_ = nullptr;
+  QCheckBox* transit_on_ = nullptr;
+  QDateEdit* tdate_ = nullptr;
+  QTimeEdit* ttime_ = nullptr;
   QTableWidget* bodies_ = nullptr;
   QTableWidget* cusps_ = nullptr;
   QLabel* aspects_label_ = nullptr;

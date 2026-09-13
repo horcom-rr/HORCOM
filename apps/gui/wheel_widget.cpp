@@ -7,6 +7,7 @@
 #include <QPaintEvent>
 #include <QPainter>
 #include <QPainterPath>
+#include <algorithm>
 
 #include "horcom/core/constants.hpp"
 
@@ -111,7 +112,10 @@ void WheelWidget::paintEvent(QPaintEvent* /*event*/) {
         p.setPen(QPen(rgb(item.color)));
         font.setPixelSize(static_cast<int>(item.size));
         p.setFont(font);
-        const QRectF box(item.x1 - 40.0, item.y1 - 20.0, 80.0, 40.0);
+        // long labels like the transit line need a wider box, the
+        // centring keeps them in place
+        const double half = std::max(40.0, 0.5 * static_cast<double>(item.text.size()) * item.size);
+        const QRectF box(item.x1 - half, item.y1 - 20.0, 2.0 * half, 40.0);
         p.drawText(box, Qt::AlignCenter, QString::fromStdString(item.text));
         break;
       }

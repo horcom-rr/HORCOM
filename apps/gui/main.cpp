@@ -4,6 +4,7 @@
 
 #include <QApplication>
 #include <QCoreApplication>
+#include <QDate>
 #include <QDir>
 #include <QLibraryInfo>
 #include <QLocale>
@@ -91,8 +92,14 @@ int main(int argc, char** argv) {
   horcom::MainWindow window(std::move(vsop), std::move(eph), data);
 
   // --shot FILE saves a capture of the window and quits, the hook for
-  // visual checks without touching the desktop
-  const int shot = args.indexOf("--shot");
+  // visual checks without touching the desktop, --shot-transit FILE does
+  // the same with the transit view switched on
+  int shot = args.indexOf("--shot");
+  const int shot_transit = args.indexOf("--shot-transit");
+  if (shot_transit >= 0) {
+    shot = shot_transit;
+    window.show_transits(QDate::currentDate(), QTime(12, 0));
+  }
   if (shot >= 0) {
     window.showMinimized();
   } else {
