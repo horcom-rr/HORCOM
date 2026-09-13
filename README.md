@@ -78,4 +78,6 @@ GPL-3.0-or-later, see `LICENSE`. The rewrite stays open, every derivative stays 
 
 ---
 
+<p align="center">Thanks to close friend André, who made this possible.</p>
+
 <p align="center"><i>In loving memory Ingrid &amp; Robert Rettig ❤️</i></p>

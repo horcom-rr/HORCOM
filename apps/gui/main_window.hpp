@@ -10,6 +10,8 @@
 
 #include "horcom/chart/aspects.hpp"
 #include "horcom/chart/chart.hpp"
+#include "horcom/chart/harmonics.hpp"
+#include "horcom/chart/transit_search.hpp"
 #include "horcom/data/aaf.hpp"
 #include "horcom/data/chart_file.hpp"
 #include "horcom/data/konsta.hpp"
@@ -90,6 +92,11 @@ class MainWindow : public QMainWindow {
   void open_aspektarium();
   void solar_chart();
   void lunar_chart();
+  void septar_chart();
+  void planetar_chart();
+  void personar_chart();
+  void progression_chart();
+  void day_chart();
   void transit_list();
   void ingress_table();
   void combin_chart();
@@ -108,6 +115,7 @@ class MainWindow : public QMainWindow {
   void apply_moment(double jd_ut, const QString& label);
   void run_solar(int year);
   void refresh_record_label();
+  [[nodiscard]] SearchContext make_context() const;
   [[nodiscard]] std::optional<AafRecord> choose_record(const QString& title);
   [[nodiscard]] ChartInput record_input(const AafRecord& r) const;
   bool set_partner(const AafRecord& r);
@@ -142,6 +150,11 @@ class MainWindow : public QMainWindow {
   QAction* harmonic_action_ = nullptr;
   int harm_n_ = 0;
   bool harm_new_mc_ = false;
+  QAction* multi_action_ = nullptr;
+  MultiMode multi_mode_ = MultiMode::kMulti1;
+  MultiReference multi_ref_;
+  double multi_event_jd_ = 0.0;
+  bool multi_new_mc_ = false;
   QAction* composite_action_ = nullptr;
   QAction* directions_action_ = nullptr;
   QAction* mundane_action_ = nullptr;
