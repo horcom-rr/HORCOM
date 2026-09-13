@@ -115,8 +115,13 @@ void WheelWidget::paintEvent(QPaintEvent* /*event*/) {
         // long labels like the transit line need a wider box, the
         // centring keeps them in place
         const double half = std::max(40.0, 0.5 * static_cast<double>(item.text.size()) * item.size);
-        const QRectF box(item.x1 - half, item.y1 - 20.0, 2.0 * half, 40.0);
-        p.drawText(box, Qt::AlignCenter, QString::fromStdString(item.text));
+        if (item.align_left) {
+          const QRectF box(item.x1, item.y1 - 20.0, 2.0 * half, 40.0);
+          p.drawText(box, Qt::AlignLeft | Qt::AlignVCenter, QString::fromStdString(item.text));
+        } else {
+          const QRectF box(item.x1 - half, item.y1 - 20.0, 2.0 * half, 40.0);
+          p.drawText(box, Qt::AlignCenter, QString::fromStdString(item.text));
+        }
         break;
       }
       case Primitive::Kind::kDot: {

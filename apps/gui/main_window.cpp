@@ -393,10 +393,45 @@ void MainWindow::recompute() {
   const AspectResult aspects = scan_aspects(chart, s, aspect_settings_);
   last_chart_ = chart;
   last_aspects_ = aspects;
+
+  // the chart data block for the left margin of the paper, like bes11
+  WheelOptions wopt;
+  {
+    QString name = clock ? QStringLiteral("UHR")
+                         : QString("%1 %2")
+                               .arg(QString::fromStdString(record_.surname), QString::fromStdString(record_.given))
+                               .trimmed();
+    if (!name.isEmpty()) {
+      wopt.info_lines.push_back(name.toStdString());
+    }
+    if (!clock && !record_.place.empty()) {
+      wopt.info_lines.push_back(record_.place);
+    }
+    const CalendarDate& dd = in.date_ut;
+    int sec = static_cast<int>((dd.hour * 60.0 + dd.minute) * 60.0 + 0.5);
+    if (sec >= 86400) {
+      sec = 86399;
+    }
+    wopt.info_lines.push_back(
+        QString::asprintf("%02d.%02d.%04d", dd.day, dd.month, dd.year).toStdString());
+    wopt.info_lines.push_back(
+        QString::asprintf("%02d:%02d:%02d UT", sec / 3600, (sec / 60) % 60, sec % 60).toStdString());
+    wopt.info_lines.push_back(QString::fromUtf8("L %1°  B %2°")
+                                  .arg(in.lon_deg_east, 0, 'f', 2)
+                                  .arg(in.lat_deg, 0, 'f', 2)
+                                  .toStdString());
+    QString hs = QString::fromUtf8(chart.houses.name.data(), static_cast<int>(chart.houses.name.size())).trimmed();
+    if (s.topocentric_parallax) {
+      //RR MitParall.
+      hs += "  MitParall.";
+    }
+    wopt.info_lines.push_back(hs.toStdString());
+  }
+
   bool transit_drawn = false;
   QString cross_text;
   if (clock) {
-    WheelOptions opt;
+    WheelOptions opt = wopt;
     //RR " UHR "
     opt.center_label = " UHR ";
     wheel_->set_display_list(build_wheel(chart, s, aspects, opt));
@@ -412,7 +447,7 @@ void MainWindow::recompute() {
     tin.lat_deg = lat_->value();
     const Chart tchart = compute_chart(tin, s, vsop_, eph_);
     if (tchart.ok) {
-      WheelOptions opt;
+      WheelOptions opt = wopt;
       opt.center_label =
           QString("TRANSIT=>%1 %2 UT").arg(td.toString("dd.MM.yyyy"), tt.toString("HH:mm")).toStdString();
       wheel_->set_display_list(build_transit_wheel(chart, tchart, s, aspects, opt));
@@ -425,7 +460,7 @@ void MainWindow::recompute() {
     }
   } else if (partner_chart_) {
     // the a12 double wheel, the partner outside at full scale
-    wheel_->set_display_list(build_double_wheel(chart, *partner_chart_, s, aspects));
+    wheel_->set_display_list(build_double_wheel(chart, *partner_chart_, s, aspects, wopt));
     transit_drawn = true;
     const std::vector<CrossAspectHit> cross = scan_aspects_between(chart, *partner_chart_, aspect_settings_, false);
     cross_text = tr("<span style='color:#D4A94A'>VERGLEICH</span>&nbsp; ");
@@ -437,7 +472,7 @@ void MainWindow::recompute() {
     banner_->set_record(QString("%1 × %2").arg(mine, partner_name_));
   }
   if (!transit_drawn) {
-    wheel_->set_display_list(build_wheel(chart, s, aspects));
+    wheel_->set_display_list(build_wheel(chart, s, aspects, wopt));
   }
   banner_->set_info(QString("JD(UT) %1   ΔT %2 min   ARMC %3°   %4%5")
                         .arg(chart.jd_ut, 0, 'f', 5)
