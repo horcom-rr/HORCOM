@@ -1,0 +1,10 @@
+# Original program archive, contains private data and credentials (Testament.rtf)
+/legacy/
+
+# Original GFA BASIC listings, kept local for now, not published
+/reference/
+
+# Build output
+/build/
+.vs/
+CMakeUserPresets.json
