@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>horcom Handbook, chart</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="sky">
+  <h1>chart</h1>
+  <p class="sub">The pipeline, the angles, the houses and the protected parallax</p>
+</header>
+
+<nav class="crumbs"><a href="index.html">handbook</a> / chart</nav>
+
+<main>
+
+<h2>Purpose</h2>
+<p>
+This module turns an epoch and a place into a chart. It is the C++ form of
+the original chain, jseckp for the angles, a60 for the houses, a9 with a90
+for the bodies. Houses run in Universal Time, the bodies run in Ephemeris
+Time, and every body passes the correction chain par_ap_ktr, light time,
+optionally aberration, conversion to equatorial, and Robert Rettig's
+topocentric parallax.
+</p>
+
+<h2>Origin map</h2>
+<table>
+  <tr><th>original</th><th>ported as</th><th>file</th></tr>
+  <tr><td><code>haw&amp;, appa&amp;, par, apogw!, moknw!, stzw&amp;, hrg!, klpl!, nk&amp;()</code></td><td><code>ChartSettings</code></td><td><code>src/horcom/chart/settings.hpp</code></td></tr>
+  <tr><td>body slots 0..40, <code>ps$()</code></td><td><code>body</code> constants</td><td><code>src/horcom/chart/bodies.hpp</code></td></tr>
+  <tr><td><code>eckp1, a60, plac, topo, koch, regio, camp, aeqe, vehlow, regio0, maxbreit</code></td><td><code>chart_angles, compute_houses</code></td><td><code>src/horcom/chart/houses.*</code></td></tr>
+  <tr><td><code>plkoap, plkotr, par</code></td><td><code>apparent_position, to_equatorial, parallax</code></td><td><code>src/horcom/chart/corrections.*</code></td></tr>
+  <tr><td><code>hel_geo, plko12</code></td><td><code>helio_to_geo</code></td><td><code>src/horcom/chart/geo.*</code></td></tr>
+  <tr><td><code>jseckp, a90, a901, ta_na, vel_om_pd, plko_einz, soko</code></td><td><code>compute_chart</code></td><td><code>src/horcom/chart/chart.*</code></td></tr>
+</table>
+
+<h2>The two clocks of the original</h2>
+<p>
+One faithful quirk deserves its own paragraph. The original computes the
+sidereal time by rewinding to 0h&nbsp;UT and running the full juld chain there,
+which leaves the nutation state of MIDNIGHT behind in the globals. The
+angles and the house cusps therefore see the true obliquity of 0h&nbsp;UT,
+while the planets, computed later in Ephemeris Time, see the obliquity of
+the epoch. The difference is tiny and entirely his, the pipeline reproduces
+it through the <code>ekls0</code> field.
+</p>
+
+<h2>The protected parallax</h2>
+<p>
+The parallax cluster is ported verbatim under the CLAUDE working rule that
+presumes the original right. His comment names the source and the
+simplification
+</p>
+<blockquote class="rr">// Parallaxe
+//aus Montenbruck S.25  Ohne Ber. d.Meereshöhe
+ro = 0.000042634515  //Erdradius in AE
+<footer>the head of the original procedure par</footer>
+</blockquote>
+<p>
+The formulation looks unusual, the declination arm reuses the y component
+of the displaced vector through a sine, but the algebra works out exactly,
+z&nbsp;/&nbsp;n equals z'&nbsp;/&nbsp;sqrt(x'²&nbsp;+&nbsp;y'²) of the standard vector method on his
+spherical Earth. The test suite exploits that, an independent cartesian
+computation must agree with his route to machine precision, and it does.
+The parallax applies to slots 1 through 10 only, nodes and extra bodies
+stay geocentric, exactly like the SELECT in the original.
+</p>
+
+<h2>Houses</h2>
+<p>
+All seven systems of his menu are ported, Placidus with the fixed point
+iteration on the semi arc, the Topocentric poles, Koch with his rounded
+angle literals, Regiomontanus, Campanus, and the two equal systems from
+the AC, plus the two switched off modes that zero their cusps. The
+maxbreit guard refuses Placidus and Koch beyond 90 degrees minus the
+obliquity with his alert
+</p>
+<blockquote class="rr">Geog. Breite zu groß ! Nur bis  +- ... ° &gt;&gt; ABBRECHEN !
+<footer>the original maxbreit refusal</footer>
+</blockquote>
+<p>
+regio0, his cusp normaliser, runs after every quadrant system and mirrors
+houses seven to twelve from one to six.
+</p>
+
+<h2>Bodies and speeds</h2>
+<p>
+The Sun comes from the Earth's VSOP place reversed, the Moon from the
+series with no light time, planets pass helio_to_geo whose daily motion is
+a symmetric difference at a tenth of the daily rates. Pluto prefers his
+integrated file and falls back to Chapront outside it. Extra bodies read
+their .eph files or solve their Kepler orbits, with rates from a symmetric
+hundredth of a day like the original pl_vel. The Part of Fortune follows
+ta_na, day birth AC plus Moon minus Sun, night birth the mirror. True node
+and true Black Moon get their speeds from a symmetric hour, the original
+vel_om_pd.
+</p>
+
+<h2>Verification</h2>
+<p>
+<code>test_houses.cpp</code> checks the angles against independent textbook
+atan2 formulas over a grid of sidereal times and latitudes, cusp mirroring
+and counter clockwise order in every quadrant system, near agreement of the
+systems at the equator, the exact thirty degree steps of the equal systems,
+the Vehlow offset and the maxbreit refusals. <code>test_chart.cpp</code>
+anchors the whole pipeline, the apparent Sun crosses zero Aries at the
+2000 March equinox to a hundredth of a degree, the Meeus Sun and Moon
+examples come out of the full chain, Mars turns retrograde in late
+December 1992, Pluto and Chiron ride along from the files, the Part of
+Fortune obeys its two formulas, the true node and apogee switches move
+their slots, and the parallax section holds his protected cluster against
+the independent vector computation to a nanoradian.
+</p>
+
+</main>
+
+<footer class="page">In memory of Robert Rettig, who built all of this first.</footer>
+
+</body>
+</html>
