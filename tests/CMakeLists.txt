@@ -11,6 +11,7 @@ add_executable(horcom_tests
   test_houses.cpp
   test_chart.cpp
   test_aspects.cpp
+  test_render.cpp
 )
 
 target_link_libraries(horcom_tests PRIVATE horcom)
