@@ -313,6 +313,19 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
     }
   }
 
+  // the credit line like drad2 stamped on every output, his name first
+  {
+    Primitive credit;
+    credit.kind = Primitive::Kind::kText;
+    credit.x1 = 8.0;
+    credit.y1 = kCanvasHeight - 8.0;
+    credit.size = 8.0;
+    credit.color = 0x808080;
+    credit.align_left = true;
+    credit.text = "HORCOM \xC2\xB7 Robert Rettig \xC2\xB7 \xC2\xA9 Dominik Schwimmbeck";
+    add(credit);
+  }
+
   // the chart data block like bes11, down the left margin the original
   // kept free of the wheel
   {
