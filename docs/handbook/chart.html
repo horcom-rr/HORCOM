@@ -38,6 +38,7 @@ topocentric parallax.
   <tr><td><code>jseckp, a90, a901, ta_na, vel_om_pd, plko_einz, soko</code></td><td><code>compute_chart</code></td><td><code>src/horcom/chart/chart.*</code></td></tr>
   <tr><td><code>plant, plant1, ver, ver1r, a16_ta</code></td><td><code>find_longitude_backward, body_longitude</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
   <tr><td><code>korh</code> and the a16 solar and lunar flow</td><td><code>solar_return, lunar_return</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
+  <tr><td><code>a180, a180_1, a180a, a180b</code></td><td><code>scan_transits</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
 </table>
 
 <h2>The two clocks of the original</h2>
@@ -118,8 +119,27 @@ UT, hit within two minutes, with the residual under half an arc second,
 plus a lunar return and a Mercury search near its retrograde loops. The
 solar and lunar returns already ride on it like korh, the solar seeded
 at the birthday clock of the target year plus fifteen days, the lunar
-found as the return preceding a chosen moment at 0h UT. The multi
-passage continuation and the ingress driver ingre1 come next.
+found as the return preceding a chosen moment at 0h UT.
+</p>
+
+<h2>The transit sweep</h2>
+<p>
+a180 walks a time window in body sized intervals and tests every
+running body against every radix target shifted by each multiple of the
+base angle. The port keeps his interval table, his bracket tests with
+the branch reconcilers, the fifteen degree speed cap per interval, and
+the stationary guard that flags a slow body touching a target,
+remembered once per pair like his c3 memory. Two deliberate deviations,
+each an improvement on the same data. The direction of the bracket
+follows the true daily motion, so the wrap of the circle is no longer
+mistaken for a backward arc, and every bracketed hit is refined to the
+exact moment with the plant search instead of his linear interpolation,
+a hit that fails to refine into its interval is dropped rather than
+guessed. The moon stays filtered by the cap unless the moon flag opens
+it, matching his default. Verified over November 1992 against the 1992
+radix, every event sits on its target to under an arc second and the
+sun finds radix venus on the fourteenth. The multi passage continuation
+of plant and the ingress driver ingre1 come next.
 </p>
 
 <h2>Verification</h2>
