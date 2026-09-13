@@ -94,7 +94,7 @@ Chart composite_chart(const Chart& a, const ChartInput& ia, const Chart& b, cons
       const double p3 = midpoint_near(a.b[body::kMc].el, b.b[body::kMc].el);
       const double z = std::sin(p3) * std::cos(ekls);
       const double n = std::cos(p3);
-      double armcb = atn(z, std::atan(z / n));
+      double armcb = atn(z, n);
       double w1 = armcb;
       double w2 = p3;
       vergl1(w1, w2);

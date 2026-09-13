@@ -215,6 +215,15 @@ TEST_CASE("the composite midpoints two charts like a13") {
   const Chart m = composite_chart(a, ia, b, ib, CompositeHouses::kMeanSidereal, ia.lat_deg, {});
   CHECK(m.houses.ok);
   CHECK(m.houses.cusp[1] == doctest::Approx(m.houses.angles.ac));
+  // the Robert Hand armc reproduces the MC midpoint through the houses
+  const Chart h = composite_chart(a, ia, b, ib, CompositeHouses::kRobertHand, ia.lat_deg, {});
+  REQUIRE(h.houses.ok);
+  const double want = midpoint_near(a.b[body::kMc].el, b.b[body::kMc].el);
+  double dmc = std::abs(norm_rad(h.houses.angles.mc) - norm_rad(want));
+  if (dmc > kPi) {
+    dmc = kTwoPi - dmc;
+  }
+  CHECK(dmc < 1e-6);
 }
 
 TEST_CASE("the halbsmin midpoint takes the near side") {
