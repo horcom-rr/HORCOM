@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>horcom Handbook, ephem</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="sky">
+  <h1>ephem</h1>
+  <p class="sub">The position engines, his series and his own ephemerides</p>
+</header>
+
+<nav class="crumbs"><a href="index.html">handbook</a> / ephem</nav>
+
+<main>
+
+<h2>Purpose</h2>
+<p>
+Three engines give every body its place. Mercury through Neptune, with the
+Earth standing in for the Sun, come from a truncated VSOP87 series that
+Robert loaded from a binary term table. The Moon is his transcription of the
+Meeus lunar theory, evaluated together with analytic derivatives so the true
+node and the Black Moon can be taken from a real state vector. And the bodies
+no published ephemeris covered, Pluto over three millennia, Chiron, the
+centaurs, the big four asteroids, Quaoar, Eris and Halley, he integrated
+himself and shipped as binary files. This module ports all three engines and
+the nutation state that binds them together.
+</p>
+
+<h2>Origin map</h2>
+<table>
+  <tr><th>original</th><th>ported as</th><th>file</th></tr>
+  <tr><td><code>initpterm, readpterm, plposhi</code></td><td><code>VsopTables</code></td><td><code>src/horcom/ephem/vsop.*</code></td></tr>
+  <tr><td><code>somo, zeitgleichung</code></td><td><code>somo, equation_of_time</code></td><td><code>src/horcom/ephem/sunmoon.*</code></td></tr>
+  <tr><td><code>moko1</code>, node part of <code>moko</code></td><td><code>moon_position, lunar_points</code></td><td><code>src/horcom/ephem/moon.*</code></td></tr>
+  <tr><td><code>kepler</code></td><td><code>kepler</code></td><td><code>src/horcom/ephem/kepler.*</code></td></tr>
+  <tr><td><code>plelem</code></td><td><code>mean_elements, transpluto_elements, uranian_elements</code></td><td><code>src/horcom/ephem/elements.*</code></td></tr>
+  <tr><td><code>ephem_auswert</code></td><td><code>EphFile</code></td><td><code>src/horcom/ephem/eph_file.*</code></td></tr>
+  <tr><td><code>ipol, ipol3</code></td><td><code>ipol, ipol3</code></td><td><code>src/horcom/ephem/interpolate.hpp</code></td></tr>
+  <tr><td><code>praez, praez_kartes_aeqn, praez_kartes_ekln</code></td><td><code>precess_newcomb, precess_equatorial, precess_ecliptic</code></td><td><code>src/horcom/ephem/precession.*</code></td></tr>
+  <tr><td><code>pl_ko, plelempl, pl_praez</code></td><td><code>pluto_chapront</code></td><td><code>src/horcom/ephem/pluto_chapront.*</code></td></tr>
+  <tr><td><code>ko_tr1, ko_tr2</code></td><td><code>ecliptic_to_equatorial, equatorial_to_ecliptic</code></td><td><code>src/horcom/core/coords.hpp</code></td></tr>
+</table>
+
+<h2>The VSOP term tables</h2>
+<p>
+<code>data/planets.ndx</code> holds pairs of 16 bit integers, a record offset
+into <code>data/planets.dat</code> and a term count, in blocks of 18 per
+planet, three coordinates times six powers of time. The dat file holds
+triples of doubles A, B, C of A&nbsp;cos(B&nbsp;+&nbsp;C&nbsp;t), 2637 records. Robert
+names his source in the program's own commentary
+</p>
+<blockquote class="rr">Für die grossen Planeten ME,VE,ERDE (SONNE) MA,JU,SA,UR,NE, wird in HORCOM eine abgekürzte Version der neuesten analytischen Theorie VSOP87 des BUREAU DES LONGITUDES,PARIS ( P.BRETAGNON ) verwendet.Diese wurde nun durch JEAN MEEUS ("ASTRONOMISCHE ALGORITHMEN") einem größeren Kreis zugänglich gemacht.
+<footer>from his commentary file on the ephemeris</footer>
+</blockquote>
+<p>
+Decoding the binary settled a fact the listing alone could not. GFA record
+numbers count from ZERO at runtime while his generator counted from one, so
+block zero of the index is an unused duplicate of the Earth and every ...eph
+file begins with sixteen unwritten bytes. The loader was written only after
+Mercury's 38 term series was found byte exact at the predicted offset.
+</p>
+
+<h2>His own ephemerides</h2>
+<p>
+The .eph files are sequences of 16 byte records, an integer Julian day and
+three scaled heliocentric rectangular coordinates, newest record first. The
+integrator behind them is documented in his tool sources with a header he
+repeated in every generator
+</p>
+<blockquote class="rr">' STÖRMER/STIEFEL  BIS ZUR 12. DIFFERENZ          (  31.7.92 )   28.11.97
+' NUMERISCHE INTEGRATION NACH KONSTANTEN 40-TAGESCHRITTEN  MÄRZ 1952
+' Nach ASTRONOMICAL PAPERS Vol. XII "Coordinates of the outer Planets 1653-2060"
+' Washington 1951
+' Staatsbibl.Signatur :  4° Eph.Astr.86f/12
+<footer>the method header of his ephemeris generators, cited down to the library shelf mark</footer>
+</blockquote>
+<p>
+The reader takes five records around the epoch, precesses each vector from
+its catalogue equinox to the date, interpolates with the Newton Stirling
+formula and derives rates from first differences. Everything geometric,
+step, bounds, newest epoch, is derived from the file itself, never from
+documentation, because the shipped binaries disagree with the listings in
+three places. The shipped halley.eph steps every 10 days where its generator
+listing says 20. The shipped pluto.eph reaches JD 2525280, newer than the
+coverage comment in the program. And the original precesses Halley from
+B1950 through a duplicated CASE branch although the file is written for
+J2000, an error of about 0.7 degrees that the port reproduces knowingly
+until a golden test against the original program justifies the fix.
+</p>
+
+<h2>The Moon and the true node</h2>
+<p>
+moko1 evaluates 60 longitude and radius terms and 60 latitude terms together
+with their analytic time derivatives, so the result is a full state vector.
+From its angular momentum the original derives the TRUE node and, through
+the osculating ellipse, the true apogee, the Black Moon
+</p>
+<blockquote class="rr">c = SQR(c1 * c1 + c2 * c2 + c3 * c3)  //Flächengeschw.
+el11 = ...   //wahrer Knoten
+i4 = ...     //MONT. S.78 oben
+g = 0.0002959122083  //Grav.Konst
+m = 3.0404332E-06    //Masse Erde +Mond
+el24 = FN nb(PI + u4 - wa + el11)  //Apogäum
+<footer>the annotated core of moko, his Montenbruck page references included</footer>
+</blockquote>
+<p>
+The tables themselves were extracted mechanically from the listing into
+<code>moon_tables.inc</code>, no hand transcription. One quirk is preserved
+and documented, the original folds the obliquity nutation deps into the
+lunar LATITUDE, and it stores a latitude computed at the node on the apogee
+slot with the comment Breite des Knotens.
+</p>
+
+<h2>Verification</h2>
+<p>
+<code>test_vsop.cpp</code> pins the loader to 2430 terms and reproduces the
+Meeus worked examples, Venus 1992-12-20 to two millionths of a degree and
+the Earth for 1992-10-13, plus rate against numerical difference checks.
+<code>test_sunmoon.cpp</code> holds nutation and true obliquity for the
+Meeus 1987 example within half an arcsecond, the equation of time near its
+November maximum, the Moon of 1992-04-12 to his tables' accuracy in
+longitude, latitude, distance and parallax, the velocity vector against
+numerical differences, and the libration bands of true node and apogee.
+<code>test_kepler.cpp</code> verifies the Kepler equation across
+eccentricities up to Halley's. <code>test_eph_file.cpp</code> decodes
+pluto.eph and lands on the Meeus Pluto example, the frame free radius to
+two hundredths of a percent, checks continuity across record boundaries,
+bounds behaviour like jdplanetex, Chiron inside the radius arc his generator
+documents, and closes the loop by meeting the Chapront analytic fallback and
+the integrated file within arc minutes of each other.
+</p>
+
+</main>
+
+<footer class="page">In memory of Robert Rettig, who built all of this first.</footer>
+
+</body>
+</html>

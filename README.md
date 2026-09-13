@@ -34,7 +34,7 @@ Analysis complete, implementation not yet started. The original program (50,397 
 - `docs/legacy/tools-and-modules.md` — the ephemeris production chain (Runge-Kutta + Störmer integration) and the survey of all standalone tools
 - `docs/architecture.md` — the target C++ design, verification strategy and phase plan
 
-Next step is phase 0 of the architecture: installing a C++ toolchain (MSVC Build Tools or MSYS2), then porting the calculation kernel with golden tests against the original program.
+Implementation is under way. Phase 1 (the calculation kernel, calendar, delta T, sidereal time) and phase 2 (the position engines, VSOP series, Moon, Kepler orbits, his integrated ephemeris files, nutation, precession, the Chapront Pluto fallback) are ported and green, verified against Meeus's worked examples and the binary data files. The growing handbook lives at `docs/handbook/index.html`, his ephemerides and term tables ship in `data/`. Next is phase 3, the chart pipeline with the protected parallax cluster.
 
 ## License
 

@@ -44,9 +44,9 @@ words wherever his comments still tell the story best.
     <p class="status done">PORTED &middot; 100% tests green</p>
   </div>
   <div class="card element-water">
-    <h3>ephem</h3>
+    <h3><a href="ephem.html">ephem</a></h3>
     <p>The position engines. VSOP series, the Moon, Kepler orbits, his integrated ephemeris files, nutation and precession.</p>
-    <p class="status open">PLANNED &middot; phase 2</p>
+    <p class="status done">PORTED &middot; 100% tests green</p>
   </div>
   <div class="card element-fire">
     <h3>chart</h3>
@@ -96,10 +96,13 @@ logic depends on it.
 
 <h2>Verification</h2>
 <p>
-The test suite currently holds 18 test cases with 170 assertions, all green,
-built with MSVC at warning level 4 with warnings as errors. Golden fixtures
-recorded from the original program join the suite once the calculation chain
-can produce full coordinate tables.
+The test suite currently holds 37 test cases with 273 assertions, all green,
+built with MSVC at warning level 4 with warnings as errors. The anchors are
+Jean Meeus's worked examples, the binary data files themselves and cross
+checks between independent engines, the Chapront theory against the
+integrated Pluto file among them. Golden fixtures recorded from the original
+program join the suite once the calculation chain produces full coordinate
+tables.
 </p>
 
 </main>
