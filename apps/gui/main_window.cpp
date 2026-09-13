@@ -65,6 +65,7 @@
 #include "horcom/ephem/eclipses.hpp"
 #include "horcom/ephem/precession.hpp"
 #include "horcom/time/delta_t.hpp"
+#include "horcom/time/sidereal.hpp"
 #include "horcom/render/svg.hpp"
 #include "place_dialog.hpp"
 #include "record_dialog.hpp"
@@ -134,6 +135,34 @@ QString cross_hits_text(const std::vector<CrossAspectHit>& hits) {
     ++shown;
   }
   return out;
+}
+
+// lifts one 128 byte chart record into the exchange format, the DAT
+// clock is already Universal Time
+AafRecord aaf_from_chart_record(const ChartRecord& c) {
+  AafRecord a;
+  a.surname = c.name;
+  a.day = c.day;
+  a.month = c.month;
+  a.year = c.year;
+  a.hour = static_cast<int>(c.hour);
+  a.minute = static_cast<int>(c.minute);
+  a.second = static_cast<int>((c.minute - static_cast<int>(c.minute)) * 60.0 + 0.5);
+  a.place = c.place;
+  a.comment = c.remark;
+  a.calendar = c.calendar();
+  a.lat_ns = c.lat < 0 ? 'S' : 'N';
+  a.lon_ew = c.lon < 0 ? 'W' : 'E';
+  const double alat = std::abs(c.lat);
+  const double alon = std::abs(c.lon);
+  a.lat_deg = static_cast<int>(alat);
+  a.lat_min = static_cast<int>((alat - a.lat_deg) * 60.0);
+  a.lat_sec = static_cast<int>(((alat - a.lat_deg) * 60.0 - a.lat_min) * 60.0 + 0.5);
+  a.lon_deg = static_cast<int>(alon);
+  a.lon_min = static_cast<int>((alon - a.lon_deg) * 60.0);
+  a.lon_sec = static_cast<int>(((alon - a.lon_deg) * 60.0 - a.lon_min) * 60.0 + 0.5);
+  a.zone = "00hE00:00";
+  return a;
 }
 
 }  // namespace
@@ -307,6 +336,8 @@ void MainWindow::build_ui() {
   file->addAction(tr("Horoskop als PDF…"), this, &MainWindow::export_pdf);
   file->addAction(tr("Drucken…"), QKeySequence::Print, this, &MainWindow::print_chart);
   file->addAction(tr("Umrechnungen…"), this, &MainWindow::converters);
+  file->addAction(tr("Dateien verketten…"), this, &MainWindow::chain_files);
+  file->addAction(tr("Vorgaben (Orbes, Fixpunkt)…"), this, &MainWindow::orb_settings);
   file->addSeparator();
   file->addAction(tr("Beenden"), QKeySequence::Quit, this, &QWidget::close);
   // the return charts of his solar and lunar menu
@@ -321,6 +352,7 @@ void MainWindow::build_ui() {
   horo->addAction(tr("Transit-Liste…"), this, &MainWindow::transit_list);
   horo->addAction(tr("Ingresse…"), this, &MainWindow::ingress_table);
   horo->addAction(tr("Aspektarium…"), this, &MainWindow::open_aspektarium);
+  horo->addAction(tr("Halbsummen-Bäume…"), this, &MainWindow::midpoint_tree);
   horo->addAction(tr("Fixsterne…"), this, &MainWindow::fixed_star_table);
   horo->addAction(tr("Arabische Teile…"), this, &MainWindow::arabic_table);
   horo->addAction(tr("Grad-Liste…"), this, &MainWindow::degree_list);
@@ -328,6 +360,7 @@ void MainWindow::build_ui() {
   horo->addAction(tr("Aufgang/Untergang…"), this, &MainWindow::rise_set);
   horo->addAction(tr("Finsternisse…"), this, &MainWindow::eclipse_table);
   horo->addAction(tr("Großes Jahr…"), this, &MainWindow::great_year);
+  horo->addAction(tr("Korrektur…"), this, &MainWindow::correction);
   horo->addAction(tr("Rhythmenlehre (Auslösungen)…"), this, &MainWindow::rhythm_table);
   horo->addAction(tr("Dynamogramm…"), this, &MainWindow::dynamogram_view);
   // the direction tables of the original evaluation menu in one place
@@ -661,6 +694,15 @@ void MainWindow::recompute() {
     banner_->set_record(tr("Geog. Breite zu groß für dieses Häusersystem"));
     return;
   }
+  // the user defined fixed point rides on slot zero like fixpunkt_def
+  if (fixpunkt_ >= 0.0 && !s.heliocentric) {
+    chart.b[0].present = true;
+    chart.b[0].valid = true;
+    chart.b[0].el = fixpunkt_;
+    if (mundane) {
+      chart.b[0].el = mundane_longitude(fixpunkt_, kEps, chart.smo.ekls, chart.armc_deg * kDegToRad, in.lat_deg);
+    }
+  }
   const AspectResult aspects = scan_aspects(chart, s, aspect_settings_);
   last_chart_ = chart;
   last_aspects_ = aspects;
@@ -871,8 +913,12 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
     }
     const int row = bodies_->rowCount();
     bodies_->insertRow(row);
-    const std::string_view tag = (helio && slot == body::kMoon) ? body::kTag[0]
-                                                                : body::kTag[static_cast<std::size_t>(slot)];
+    std::string_view tag = (helio && slot == body::kMoon) ? body::kTag[0]
+                                                           : body::kTag[static_cast<std::size_t>(slot)];
+    if (slot == 0) {
+      //RR Fixpunkt, sein SP
+      tag = "sp";
+    }
     row_names << QString::fromUtf8(tag.data(), static_cast<int>(tag.size()));
     if (!b.valid) {
       bodies_->setItem(row, 0, new QTableWidgetItem(tr("außerhalb der Ephemeride")));
@@ -1071,6 +1117,300 @@ void MainWindow::arabic_table() {
   v->addWidget(buttons);
   dialog.resize(680, 640);
   dialog.exec();
+}
+
+void MainWindow::midpoint_tree() {
+  if (!last_chart_) {
+    return;
+  }
+  QDialog dialog(this);
+  //RR HALBSUMMEN
+  dialog.setWindowTitle(tr("Halbsummen-Bäume"));
+  auto* v = new QVBoxLayout(&dialog);
+  const Chart& chart = *last_chart_;
+  const MidpointResult mid = scan_midpoints(chart, current_settings(), aspect_settings_, true);
+  auto* table = new QTableWidget(0, 4, &dialog);
+  //RR 45°-Dial, die Sortierung über 8 mal die Länge
+  table->setHorizontalHeaderLabels({tr("Punkt"), tr("Länge"), QString::fromUtf8("45°-Dial"), tr("Halbsummen auf dem Punkt")});
+  table->horizontalHeader()->setStretchLastSection(true);
+  table->verticalHeader()->setVisible(false);
+  table->verticalHeader()->setDefaultSectionSize(20);
+  table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  static constexpr const char* kLevel[9] = {"", "360", "180", "", "90", "", "", "", "45"};
+  for (int slot = 1; slot < body::kSlotCount; ++slot) {
+    const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
+    if (!b.present || !b.valid || slot == body::kNodeDesc) {
+      continue;
+    }
+    const int row = table->rowCount();
+    table->insertRow(row);
+    table->setItem(row, 0, new QTableWidgetItem(QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
+                                                                  static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size()))));
+    table->setItem(row, 1, new QTableWidgetItem(zodiac(b.el)));
+    // his sort key, eight times the longitude folded into the circle
+    const double dial = norm_rad(8.0 * b.el) * kRadToDeg;
+    auto* dial_item = new QTableWidgetItem(QString::asprintf("%7.2f°", dial));
+    // close company on the eight fold circle glows like his red rows
+    for (int o = 1; o < body::kSlotCount; ++o) {
+      const BodyState& ob = chart.b[static_cast<std::size_t>(o)];
+      if (o == slot || !ob.present || !ob.valid || o == body::kNodeDesc) {
+        continue;
+      }
+      if ((slot == 11 && o == 12) || (slot == 12 && o == 11)) {
+        continue;
+      }
+      double w1 = norm_rad(8.0 * b.el);
+      double w2 = norm_rad(8.0 * ob.el);
+      vergl1(w1, w2);
+      const double gate = std::max(org(aspect_settings_, slot, 8), org(aspect_settings_, o, 8));
+      if (std::abs(w1 - w2) < gate && std::abs(w1 - w2) > 0.0) {
+        dial_item->setForeground(QColor(0xE8, 0x5D, 0x4E));
+        break;
+      }
+    }
+    table->setItem(row, 2, dial_item);
+    QString contacts;
+    for (const MidpointHit& h : mid.hits) {
+      if (h.t != slot) {
+        continue;
+      }
+      if (!contacts.isEmpty()) {
+        contacts += ",  ";
+      }
+      contacts += QString("%1/%2 (%3°)")
+                      .arg(QString::fromUtf8(body::kTag[static_cast<std::size_t>(h.u)].data(),
+                                             static_cast<int>(body::kTag[static_cast<std::size_t>(h.u)].size())),
+                           QString::fromUtf8(body::kTag[static_cast<std::size_t>(h.w)].data(),
+                                             static_cast<int>(body::kTag[static_cast<std::size_t>(h.w)].size())),
+                           QString(kLevel[h.nh]));
+    }
+    table->setItem(row, 3, new QTableWidgetItem(contacts));
+  }
+  table->resizeColumnsToContents();
+  auto* counts = new QLabel(tr("Direkt %1,  Quadrat %2,  Halbquadrat %3")
+                                .arg(mid.direct)
+                                .arg(mid.square)
+                                .arg(mid.semi),
+                            &dialog);
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+  connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+  v->addWidget(table, 1);
+  v->addWidget(counts);
+  v->addWidget(buttons);
+  dialog.resize(820, 640);
+  dialog.exec();
+}
+
+void MainWindow::correction() {
+  if (!last_chart_) {
+    return;
+  }
+  QDialog dialog(this);
+  //RR Womit Korrigieren ?
+  dialog.setWindowTitle(tr("Korrektur der Geburtszeit"));
+  auto* v = new QVBoxLayout(&dialog);
+  auto* form = new QFormLayout();
+  auto* what = new QComboBox(&dialog);
+  what->addItem(tr("Sternzeit (h)"), 1);
+  what->addItem("MC", 2);
+  what->addItem("AC", 3);
+  what->addItem(tr("Sonne"), 4);
+  what->addItem(tr("Mond"), 5);
+  auto* target = new QDoubleSpinBox(&dialog);
+  target->setRange(0.0, 360.0);
+  target->setDecimals(4);
+  form->addRow(tr("Korrigieren mit"), what);
+  form->addRow(tr("Soll-Wert"), target);
+  auto* note = new QLabel(tr("Die Uhrzeit des Panels wird so verschoben, dass die gewählte Größe den Soll-Wert erreicht. Sternzeit in Stunden, alles andere in Grad."), &dialog);
+  note->setWordWrap(true);
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+  connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+  connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+  v->addLayout(form);
+  v->addWidget(note);
+  v->addWidget(buttons);
+  if (dialog.exec() != QDialog::Accepted) {
+    return;
+  }
+  const int mode = what->currentData().toInt();
+  const Chart& radix = *last_chart_;
+  const SearchContext ctx = make_context();
+  double jd = radix.jd_ut;
+  bool found = false;
+  if (mode == 1 || mode == 2) {
+    // sidereal time and midheaven turn into a clock directly
+    double hs = target->value();
+    if (mode == 2) {
+      const double mc = target->value() * kDegToRad;
+      const double z = std::sin(mc) * std::cos(radix.ekls0);
+      hs = norm_hours(atn(z, std::cos(mc)) * kRadToDeg / kDegPerHour - lon_->value() / kDegPerHour);
+    }
+    const double d0 = std::floor(radix.jd_ut + 0.5) - 0.5;
+    double hd = 0.0;
+    for (int i = 0; i < 8; ++i) {
+      const double h0 = gmst0_hours(d0);
+      const double next = norm_hours(hs - h0) / kSolarToSiderealRate;
+      if (std::abs(next - hd) < 1.0e-9) {
+        hd = next;
+        break;
+      }
+      hd = next;
+    }
+    jd = d0 + hd / 24.0;
+    found = true;
+  } else if (mode == 3) {
+    // the ascendant needs the damped walk on the daily turn
+    const double pz = target->value() * kDegToRad;
+    for (int i = 0; i < 200 && !found; ++i) {
+      ChartInput in = ctx.base;
+      in.date_ut = calendar_date(jd, ctx.settings.calendar);
+      const Chart c = compute_chart(in, ctx.settings, vsop_, eph_);
+      if (!c.ok) {
+        break;
+      }
+      double d = norm_rad(pz - c.houses.angles.ac);
+      if (d > kPi) {
+        d -= kTwoPi;
+      }
+      if (std::abs(d) < 1.0e-8) {
+        found = true;
+        break;
+      }
+      jd += 0.5 * d / kTwoPi / kSolarToSiderealRate;
+    }
+  } else {
+    // sun or moon walk to the wanted longitude near the birth
+    const int slot = mode == 4 ? body::kSun : body::kMoon;
+    const double pz = target->value() * kDegToRad;
+    //RR jd-Startwert
+    const LongitudeCrossing hit = find_longitude_backward(radix.jd_ut + 32.0, slot, pz, ctx);
+    if (hit.ok) {
+      jd = hit.jd_ut;
+      found = true;
+    }
+  }
+  if (!found) {
+    banner_->set_record(tr("Korrektur nicht gefunden"));
+    return;
+  }
+  apply_moment(jd, tr("KORRIGIERT"));
+}
+
+void MainWindow::chain_files() {
+  //RR ZU VERKETTENDE DATEN-DATEIEN NACHEINANDER AUFRUFEN !
+  const QStringList sources = QFileDialog::getOpenFileNames(
+      this, tr("Zu verkettende Dateien wählen"), QString(),
+      tr("HORCOM Daten (*.DAT *.dat *.AAF *.aaf)"));
+  if (sources.isEmpty()) {
+    return;
+  }
+  const QString target = QFileDialog::getSaveFileName(this, tr("Ketten-Datei"), "kette.aaf", tr("AAF (*.aaf *.AAF)"));
+  if (target.isEmpty()) {
+    return;
+  }
+  std::vector<AafRecord> all;
+  for (const QString& src : sources) {
+    const std::filesystem::path p(src.toStdWString());
+    if (src.endsWith(".dat", Qt::CaseInsensitive)) {
+      if (const auto records = read_chart_file(p)) {
+        for (const ChartRecord& r : *records) {
+          all.push_back(aaf_from_chart_record(r));
+        }
+      }
+    } else if (const auto records = read_aaf(p)) {
+      for (const AafRecord& r : *records) {
+        all.push_back(r);
+      }
+    }
+  }
+  if (all.empty() || !write_aaf(std::filesystem::path(target.toStdWString()), all)) {
+    QMessageBox::warning(this, "HORCOM", tr("Die Ketten-Datei ließ sich nicht schreiben."));
+    return;
+  }
+  QMessageBox::information(this, "HORCOM", tr("%1 Datensätze verkettet.").arg(all.size()));
+}
+
+void MainWindow::orb_settings() {
+  QDialog dialog(this);
+  //RR VORGABEN
+  dialog.setWindowTitle(tr("Vorgaben, Orbes und Fixpunkt"));
+  auto* v = new QVBoxLayout(&dialog);
+  auto* form = new QFormLayout();
+  auto* orb = new QDoubleSpinBox(&dialog);
+  orb->setRange(0.1, 2.0);
+  orb->setDecimals(3);
+  orb->setSingleStep(0.125);
+  orb->setValue(aspect_settings_.orb);
+  auto* divisors = new QSpinBox(&dialog);
+  divisors->setRange(1, 16);
+  divisors->setValue(aspect_settings_.divisors);
+  auto* equal = new QCheckBox(tr("Orbes gleicher Wahrscheinlichkeit"), &dialog);
+  equal->setChecked(aspect_settings_.equal_probability);
+  auto* fix_on = new QCheckBox(tr("Fixpunkt verwenden"), &dialog);
+  fix_on->setChecked(fixpunkt_ >= 0.0);
+  auto* fix_deg = new QDoubleSpinBox(&dialog);
+  fix_deg->setRange(0.0, 360.0);
+  fix_deg->setDecimals(4);
+  fix_deg->setValue(fixpunkt_ >= 0.0 ? fixpunkt_ * kRadToDeg : 0.0);
+  form->addRow(tr("Orbis-Faktor"), orb);
+  form->addRow(tr("Maximaler Teiler"), divisors);
+  form->addRow(equal);
+  form->addRow(fix_on);
+  form->addRow(tr("Fixpunkt (Ekliptik-Grad)"), fix_deg);
+  // the per body orb weights of his table, zero silences a body
+  auto* weights = new QTableWidget(1, 14, &dialog);
+  QStringList heads;
+  for (int slot = 1; slot <= 14; ++slot) {
+    heads << QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
+                               static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size()));
+    auto* item = new QTableWidgetItem(QString::number(aspect_settings_.weight[static_cast<std::size_t>(slot)]));
+    weights->setItem(0, slot - 1, item);
+  }
+  weights->setHorizontalHeaderLabels(heads);
+  weights->verticalHeader()->setVisible(false);
+  weights->setFixedHeight(64);
+  auto* wlabel = new QLabel(tr("Planeten-Gewichte in Prozent, 0 schaltet einen Punkt stumm."), &dialog);
+  wlabel->setWordWrap(true);
+  auto* save = new QCheckBox(tr("Als konsta.int neben den Daten speichern"), &dialog);
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+  connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+  connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+  v->addLayout(form);
+  v->addWidget(weights);
+  v->addWidget(wlabel);
+  v->addWidget(save);
+  v->addWidget(buttons);
+  if (dialog.exec() != QDialog::Accepted) {
+    return;
+  }
+  aspect_settings_.orb = orb->value();
+  aspect_settings_.divisors = divisors->value();
+  aspect_settings_.equal_probability = equal->isChecked();
+  if (aspect_settings_.equal_probability) {
+    aspect_settings_.preset_equal_orbs();
+  }
+  for (int slot = 1; slot <= 14; ++slot) {
+    bool ok = false;
+    const int w = weights->item(0, slot - 1)->text().toInt(&ok);
+    if (ok && w >= 0 && w <= 200) {
+      aspect_settings_.weight[static_cast<std::size_t>(slot)] = w;
+    }
+  }
+  fixpunkt_ = fix_on->isChecked() ? fix_deg->value() * kDegToRad : -1.0;
+  if (save->isChecked()) {
+    konsta_.orb = aspect_settings_.orb;
+    konsta_.nasp = aspect_settings_.divisors;
+    konsta_.orbe_on = aspect_settings_.equal_probability;
+    for (int slot = 0; slot < body::kSlotCount; ++slot) {
+      konsta_.or_weight[static_cast<std::size_t>(slot)] = aspect_settings_.weight[static_cast<std::size_t>(slot)];
+    }
+    konsta_.fixpunkt = fixpunkt_ >= 0.0 ? 1 : 2;
+    konsta_.fixpunkt_name = fixpunkt_ >= 0.0 ? std::to_string(fixpunkt_ * kRadToDeg) : std::string();
+    if (!save_konsta(data_dir_ / "konsta.int", konsta_)) {
+      QMessageBox::warning(this, "HORCOM", tr("Die Vorgaben ließen sich nicht speichern."));
+    }
+  }
+  recompute();
 }
 
 void MainWindow::degree_list() {
@@ -2031,30 +2371,7 @@ std::optional<AafRecord> MainWindow::choose_record(const QString& title) {
     const auto r = read_chart_file(path.toStdWString());
     if (r) {
       for (const ChartRecord& c : *r) {
-        AafRecord a;
-        a.surname = c.name;
-        a.day = c.day;
-        a.month = c.month;
-        a.year = c.year;
-        a.hour = static_cast<int>(c.hour);
-        a.minute = static_cast<int>(c.minute);
-        a.second = static_cast<int>((c.minute - static_cast<int>(c.minute)) * 60.0 + 0.5);
-        a.place = c.place;
-        a.comment = c.remark;
-        a.calendar = c.calendar();
-        a.lat_ns = c.lat < 0 ? 'S' : 'N';
-        a.lon_ew = c.lon < 0 ? 'W' : 'E';
-        const double alat = std::abs(c.lat);
-        const double alon = std::abs(c.lon);
-        a.lat_deg = static_cast<int>(alat);
-        a.lat_min = static_cast<int>((alat - a.lat_deg) * 60.0);
-        a.lat_sec = static_cast<int>(((alat - a.lat_deg) * 60.0 - a.lat_min) * 60.0 + 0.5);
-        a.lon_deg = static_cast<int>(alon);
-        a.lon_min = static_cast<int>((alon - a.lon_deg) * 60.0);
-        a.lon_sec = static_cast<int>(((alon - a.lon_deg) * 60.0 - a.lon_min) * 60.0 + 0.5);
-        // the DAT clock is already UT
-        a.zone = "00hE00:00";
-        records.push_back(std::move(a));
+        records.push_back(aaf_from_chart_record(c));
       }
     }
   }

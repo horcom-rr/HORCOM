@@ -102,6 +102,10 @@ class MainWindow : public QMainWindow {
   void eclipse_table();
   void rhythm_table();
   void dynamogram_view();
+  void midpoint_tree();
+  void correction();
+  void chain_files();
+  void orb_settings();
   void converters();
   void planetar_chart();
   void personar_chart();
@@ -137,6 +141,8 @@ class MainWindow : public QMainWindow {
   std::filesystem::path data_dir_;
   Konsta konsta_;
   AspectSettings aspect_settings_;
+  /// the user defined fixed point in radians, negative when off
+  double fixpunkt_ = -1.0;
   WheelWidget* wheel_ = nullptr;
   Banner* banner_ = nullptr;
   QDateEdit* date_ = nullptr;
