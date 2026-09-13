@@ -41,6 +41,7 @@ topocentric parallax.
   <tr><td><code>a180, a180_1, a180a, a180b</code></td><td><code>scan_transits</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
   <tr><td><code>ingre1</code></td><td><code>sign_ingresses</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
   <tr><td><code>a13, halbsmin, a13comp_1, a13comp_2</code> and <code>a14</code></td><td><code>composite_chart, midpoint_near, combin_input</code></td><td><code>src/horcom/chart/composite.*</code></td></tr>
+  <tr><td><code>prima, primhorg, richtung$</code></td><td><code>direct_axes</code></td><td><code>src/horcom/chart/directions.*</code></td></tr>
 </table>
 
 <h2>The two clocks of the original</h2>
@@ -160,6 +161,20 @@ composite has no latitudes or speeds and the port leaves them at zero.
 The combin of a14 simply averages moment and place and runs the normal
 pipeline. In the shell both live in the Horoskop menu over the same
 partner as the comparison, the house mode follows his profile flags.
+</p>
+
+<h2>The directed axes</h2>
+<p>
+prima turns the radix ARMC at his Naibod style rate, three hundred
+sixty degrees per tropical year of elapsed days over the year length,
+direct or converse, and recomputes the axes and cusps from the directed
+ARMC at the chosen place, drawn slightly smaller over the radix
+positions with the STZ difference in the centre and no chords. His
+sidereal time variation rides on the same turn, one degree being four
+clock minutes of birth time, which made this screen his rectification
+tool. The port keeps the rate, the variation and the display, the
+interactive summing of test variations stays with the operator through
+repeated runs.
 </p>
 
 <h2>Verification</h2>
