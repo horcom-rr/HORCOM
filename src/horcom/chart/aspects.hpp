@@ -173,6 +173,8 @@ struct MidpointResult {
 /// @param s     the chart settings
 /// @param a     orb configuration
 /// @return counters per pass and the hit list
-[[nodiscard]] MidpointResult scan_midpoints(const Chart& chart, const ChartSettings& s, const AspectSettings& a);
+/// with_45 opens the fourth pass of the midpoint tree screen, the 45
+/// degree level, the three pass counters stay untouched by it
+[[nodiscard]] MidpointResult scan_midpoints(const Chart& chart, const ChartSettings& s, const AspectSettings& a, bool with_45 = false);
 
 }  // namespace horcom

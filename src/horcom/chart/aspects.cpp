@@ -243,7 +243,7 @@ AspectResult scan_aspects(const Chart& chart, const ChartSettings& s, const Aspe
   return out;
 }
 
-MidpointResult scan_midpoints(const Chart& chart, const ChartSettings& s, const AspectSettings& a) {
+MidpointResult scan_midpoints(const Chart& chart, const ChartSettings& s, const AspectSettings& a, bool with_45) {
   MidpointResult out;
   const std::array<double, body::kSlotCount> as = positions(chart);
   const int np = s.body_count();
@@ -251,7 +251,10 @@ MidpointResult scan_midpoints(const Chart& chart, const ChartSettings& s, const 
   // the drk! cube spans all three passes like the DIM in halbs1
   auto drk = std::make_unique<std::array<std::array<std::array<bool, body::kSlotCount>, body::kSlotCount>, body::kSlotCount>>();
 
-  for (int nh : {1, 2, 4}) {
+  // the midpoint tree screen adds the 45 degree level
+  const int levels[4] = {1, 2, 4, 8};
+  for (int li = 0; li < (with_45 ? 4 : 3); ++li) {
+    const int nh = levels[li];
     const double dd = a.equal_probability ? a.orb * a.orbe[14] : a.orb * kDegToRad;
     for (int t = 1; t <= bb; ++t) {
       t = next_slot(chart, s, t, np);
