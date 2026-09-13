@@ -4,6 +4,7 @@ add_executable(horcom_tests
   test_calendar.cpp
   test_delta_t.cpp
   test_sidereal.cpp
+  test_statist_eval.cpp
   test_vsop.cpp
   test_sunmoon.cpp
   test_kepler.cpp

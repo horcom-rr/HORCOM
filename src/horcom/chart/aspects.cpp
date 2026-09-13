@@ -19,26 +19,6 @@ constexpr double kDefaultOrbDivisor = 30.0;
 constexpr double kPercent = 100.0;
 
 // the original org, weight percent to orb fraction
-double org(const AspectSettings& a, int slot, int nh) {
-  return a.weight[static_cast<std::size_t>(slot)] / (nh * kPercent);
-}
-
-// the original orbis_discr2
-double orbis_discr2(double o1, double o2, double dd) {
-  if (o1 > 0.0 && o2 > 0.0) {
-    return std::max(o1, o2) * dd;
-  }
-  return 0.0;
-}
-
-// the original orbis_discr3, the third weight only gates positivity
-double orbis_discr3(double o1, double o2, double o3, double dd) {
-  if (o1 > 0.0 && o2 > 0.0 && o3 > 0.0) {
-    return std::max(o1, o2) * dd;
-  }
-  return 0.0;
-}
-
 // the original a18st for the geocentric scan, jumps the gap between the
 // angles and the extra bodies and skips bodies outside their ephemeris
 int next_slot(const Chart& chart, const ChartSettings& s, int slot, int np) {
@@ -67,7 +47,34 @@ std::array<double, 41> positions(const Chart& chart) {
   return as;
 }
 
-// the equal probability multiple filter of the original asp1
+bool node_pair(int t, int w) {
+  return (t == 11 && w == 12) || (t == 12 && w == 11);
+}
+
+}  // namespace
+
+// ported from HORCOM org
+double org(const AspectSettings& a, int slot, int nh) {
+  return a.weight[static_cast<std::size_t>(slot)] / (nh * kPercent);
+}
+
+// ported from HORCOM orbis_discr2
+double orbis_discr2(double o1, double o2, double dd) {
+  if (o1 > 0.0 && o2 > 0.0) {
+    return std::max(o1, o2) * dd;
+  }
+  return 0.0;
+}
+
+// ported from HORCOM orbis_discr3
+double orbis_discr3(double o1, double o2, double o3, double dd) {
+  if (o1 > 0.0 && o2 > 0.0 && o3 > 0.0) {
+    return std::max(o1, o2) * dd;
+  }
+  return 0.0;
+}
+
+// the shared table of asp1 and bed_erf_asp1
 bool multiple_allowed(int n, int m) {
   switch (n) {
     case 2: return true;
@@ -84,12 +91,6 @@ bool multiple_allowed(int n, int m) {
     default: return false;
   }
 }
-
-bool node_pair(int t, int w) {
-  return (t == 11 && w == 12) || (t == 12 && w == 11);
-}
-
-}  // namespace
 
 void AspectSettings::preset_equal_orbs() {
   //RR Grundwinkel

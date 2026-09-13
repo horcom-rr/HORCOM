@@ -73,6 +73,42 @@ struct AspectResult {
 /// @return the aspect matrix, counters and hit list
 [[nodiscard]] AspectResult scan_aspects(const Chart& chart, const ChartSettings& s, const AspectSettings& a);
 
+/// The per body orb fraction of the original org, the weight percent
+/// over one hundred, halved again on midpoint scans.
+///
+/// @param a    orb configuration
+/// @param slot the body slot whose weight applies
+/// @param nh   1 for aspects, 2 for the midpoint passes
+/// @return the orb fraction, zero switches the body off
+[[nodiscard]] double org(const AspectSettings& a, int slot, int nh);
+
+/// The pair orb of the original orbis_discr2.
+///
+/// @param o1 first body orb fraction
+/// @param o2 second body orb fraction
+/// @param dd base orb in radians
+/// @return the larger fraction times the base, zero when either body is
+///         switched off
+[[nodiscard]] double orbis_discr2(double o1, double o2, double dd);
+
+/// The triple orb of the original orbis_discr3.
+///
+/// @param o1 first body orb fraction
+/// @param o2 second body orb fraction
+/// @param o3 third body orb fraction, only gates positivity, his quirk
+/// @param dd base orb in radians
+/// @return the larger of the first two times the base, zero when any
+///         body is switched off
+[[nodiscard]] double orbis_discr3(double o1, double o2, double o3, double dd);
+
+/// The equal probability multiple filter shared by asp1 and the
+/// statistics aspect windows, drops multiples a smaller divisor covers.
+///
+/// @param n the divisor
+/// @param m the multiple 1 to n minus 1
+/// @return true when the multiple is scanned under equal orbs
+[[nodiscard]] bool multiple_allowed(int n, int m);
+
 /// Names a matched angle for the Aspektarium, the original aspdis.
 ///
 /// The angle folds to the near side, then every divisor up to the scan
