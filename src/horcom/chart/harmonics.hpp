@@ -24,11 +24,11 @@ enum class HarmonicHouses {
 /// Builds the harmonic of a chart, the original harm21 with the houses
 /// of mc_armcb CASE 7.
 ///
-/// Planets and extras multiply onto the order, the south node follows
-/// the transformed north node by half a circle, Transpluto drops out
-/// like the original's CASE list leaves it, and the Part of Fortune
-/// recomputes from the harmonic angles with the day night formula of
-/// a901_m. Nodes stay, the original forced the mean ones there.
+/// Planets and extras multiply onto the order, the Part of Fortune
+/// among them since harm21 keeps its a901_m rebuild commented out, the
+/// south node follows the transformed north node by half a circle and
+/// Transpluto drops out like the original's CASE list leaves it.
+/// Nodes stay, the original forced the mean ones there.
 ///
 /// @param base    the radix
 /// @param n       the ORDNUNGS-ZAHL, an integer order
@@ -37,6 +37,56 @@ enum class HarmonicHouses {
 /// @param lat_deg latitude for the recomputation
 /// @return the harmonic chart
 [[nodiscard]] Chart harmonic_chart(const Chart& base, double n, HarmonicHouses mode, HouseSystem system, double lat_deg);
+
+/// The six multiple direction modes of the MULTI menu, his mul&.
+enum class MultiMode {
+  /// own position plus age times the degree within its sign
+  kMulti1 = 1,
+  /// own position plus age times the whole longitude
+  kMulti2 = 2,
+  /// a reference point plus age times the degree within sign
+  kMulti3 = 3,
+  /// MULTI-0-OST, every body runs from its day rulership sign start
+  kZeroEast = 4,
+  /// MULTI-0-WEST, the night rulership sign starts
+  kZeroWest = 5,
+  /// MULTI-ARC, reference plus age times the arc to the body
+  kArc = 6,
+};
+
+/// The Bezugspunkt of MULTI 3 and MULTI-ARC, his mc_armcb1 choices.
+struct MultiReference {
+  enum class Kind { kBody, kCusp, kRuler, kSignStart };
+  Kind kind = Kind::kBody;
+  /// body slot for kBody, 13 the ascendant, 14 the midheaven
+  int body = 1;
+  /// house number for kCusp and kRuler, the ruler reads the classic
+  /// table like his forced alt switch
+  int house = 1;
+  /// sign 1 to 12 for kSignStart, his hz
+  int sign = 1;
+};
+
+/// Builds one multiple direction over the radix, the multiN1 transforms
+/// with the houses of mc_armcb.
+///
+/// Bodies and extras follow the mode formula, Transpluto stays dark
+/// like everywhere in the MULTI world, the south node follows the
+/// directed north node. Under kLikeBodies the axes run the same
+/// formula and the intermediate cusps clear, the zero point modes keep
+/// only AC and MC, under kFromNewMc the directed MC hands a fresh ARMC
+/// to the full house computation and a901_m rebuilds the Part of
+/// Fortune from the directed lights.
+///
+/// @param base    the radix
+/// @param mode    which MULTI
+/// @param lja     the age in tropical years at the event, his lja
+/// @param ref     the reference point, read for kMulti3 and kArc only
+/// @param houses  his haus_ber question
+/// @param system  house system for the kFromNewMc recomputation
+/// @param lat_deg latitude for the recomputation
+/// @return the directed chart
+[[nodiscard]] Chart multi_chart(const Chart& base, MultiMode mode, double lja, const MultiReference& ref, HarmonicHouses houses, HouseSystem system, double lat_deg);
 
 /// The a12f transform of the 90 degree circle. Every present slot
 /// multiplies by the factor, the axes of the house array ride along and

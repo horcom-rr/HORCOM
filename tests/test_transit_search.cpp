@@ -5,6 +5,7 @@
 #include <cmath>
 
 #include "doctest.h"
+#include "horcom/chart/progressions.hpp"
 #include "horcom/chart/transit_search.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
@@ -171,4 +172,90 @@ TEST_CASE("an extra body outside his ephemeris rides the element fallback") {
   const LongitudeCrossing hit = find_longitude_backward(julian_day({1, 1, 900, 0, 0.0}), body::kChiron, 0.0, ctx);
   REQUIRE(hit.ok);
   CHECK(residual_arcsec(hit, body::kChiron, 0.0, ctx) < 0.5);
+}
+
+TEST_CASE("the planetar and the personar land on their radix targets") {
+  const SearchContext ctx = context();
+  const double birth = julian_day({13, 10, 1992, 3, 0.0});
+  const double radix_mars = body_longitude(birth, body::kMars, ctx).el;
+  // the first mars return comes after one mars period of near 687 days
+  const LongitudeCrossing ret = planetar_return(birth, body::kMars, radix_mars, 1, true, ctx);
+  REQUIRE(ret.ok);
+  CHECK(residual_arcsec(ret, body::kMars, radix_mars, ctx) < 5.0);
+  CHECK(ret.jd_ut - birth > 500.0);
+  CHECK(ret.jd_ut - birth < 900.0);
+  // the personar is the sun reaching the radix body within the first year
+  const double tja = 365.2422;
+  const LongitudeCrossing pers = find_longitude_backward(birth + tja, body::kSun, radix_mars, ctx);
+  REQUIRE(pers.ok);
+  CHECK(residual_arcsec(pers, body::kSun, radix_mars, ctx) < 5.0);
+  CHECK(pers.jd_ut > birth - 40.0);
+  CHECK(pers.jd_ut < birth + tja);
+}
+
+TEST_CASE("the progressions map one day onto one year") {
+  const SearchContext ctx = context();
+  ChartInput in;
+  in.date_ut = {13, 10, 1992, 3, 0.0};
+  in.lon_deg_east = ctx.base.lon_deg_east;
+  in.lat_deg = ctx.base.lat_deg;
+  const Chart radix = compute_chart(in, ctx.settings, vsop(), eph());
+  REQUIRE(radix.ok);
+  const double event = julian_day({13, 10, 2022, 3, 0.0});
+  // the strict interpolation lands thirty days after birth
+  const ProgressedMoment prop = progressed_moment(radix, event, ProgressionMode::kProportional, ctx);
+  REQUIRE(prop.ok);
+  CHECK(prop.years == doctest::Approx(30.0).epsilon(1e-3));
+  CHECK(prop.jd_ut - radix.jd_ut == doctest::Approx(prop.years).epsilon(1e-9));
+  // the radix clock mode keeps the birth clock on the progressed day
+  const ProgressedMoment clock = progressed_moment(radix, event, ProgressionMode::kRadixClock, ctx);
+  REQUIRE(clock.ok);
+  const double birth_frac = radix.jd_ut + 0.5 - std::floor(radix.jd_ut + 0.5);
+  const double prog_frac = clock.jd_ut + 0.5 - std::floor(clock.jd_ut + 0.5);
+  CHECK(prog_frac == doctest::Approx(birth_frac).epsilon(1e-9));
+  CHECK(std::abs(clock.jd_ut - prop.jd_ut) < 1.0);
+  // the true solar time mode reproduces the birth's sun hour angle
+  const ProgressedMoment wahr = progressed_moment(radix, event, ProgressionMode::kTrueSolarTime, ctx);
+  REQUIRE(wahr.ok);
+  ChartInput win = in;
+  win.date_ut = calendar_date(wahr.jd_ut);
+  const Chart wc = compute_chart(win, ctx.settings, vsop(), eph());
+  double dv = std::abs(norm_rad(sun_hour_angle(wc)) - norm_rad(sun_hour_angle(radix)));
+  if (dv > kPi) {
+    dv = kTwoPi - dv;
+  }
+  CHECK(dv < 2.0e-7);
+  // the house rotation mode advances the sidereal time by the yearly
+  // surplus of near four clock minutes
+  const ProgressedMoment rot = progressed_moment(radix, event, ProgressionMode::kHouseRotation, ctx);
+  REQUIRE(rot.ok);
+  ChartInput rin = in;
+  rin.date_ut = calendar_date(rot.jd_ut);
+  const Chart rc = compute_chart(rin, ctx.settings, vsop(), eph());
+  const double hs_target = radix.hs + 0.98565 * prop.years / 15.0;
+  double dh = std::abs(rc.hs - hs_target);
+  while (dh > 12.0) {
+    dh = std::abs(dh - 24.0);
+  }
+  CHECK(dh < 0.01);
+}
+
+TEST_CASE("the day chart holds the birth's true solar time") {
+  const SearchContext ctx = context();
+  ChartInput in;
+  in.date_ut = {13, 10, 1992, 3, 0.0};
+  in.lon_deg_east = ctx.base.lon_deg_east;
+  in.lat_deg = ctx.base.lat_deg;
+  const Chart radix = compute_chart(in, ctx.settings, vsop(), eph());
+  REQUIRE(radix.ok);
+  const ProgressedMoment day = day_chart_moment(radix, julian_day({1, 6, 2026, 3, 0.0}), ctx);
+  REQUIRE(day.ok);
+  ChartInput din = in;
+  din.date_ut = calendar_date(day.jd_ut);
+  const Chart dc = compute_chart(din, ctx.settings, vsop(), eph());
+  double dv = std::abs(norm_rad(sun_hour_angle(dc)) - norm_rad(sun_hour_angle(radix)));
+  if (dv > kPi) {
+    dv = kTwoPi - dv;
+  }
+  CHECK(dv < 2.0e-7);
 }

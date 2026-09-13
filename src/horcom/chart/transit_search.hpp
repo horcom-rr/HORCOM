@@ -67,6 +67,28 @@ struct LongitudeCrossing {
 /// @return the return moment
 [[nodiscard]] LongitudeCrossing solar_return(const CalendarDate& birth_ut, double radix_sun_rad, int year, const SearchContext& ctx);
 
+/// The orbital period of a body in days, the table the return searches
+/// pace themselves with.
+///
+/// @param slot body slot
+/// @param tja  length of the tropical year in days
+/// @return the period, zero for slots without an orbit
+[[nodiscard]] double body_period_days(int slot, double tja);
+
+/// The return of a body onto its own radix longitude, the planetar of
+/// the a16 flow. The Nth return seeds itself from the birth moment plus
+/// N periods with a per body head start, generous for the slow and
+/// eccentric bodies, then the backward search lands on the crossing.
+///
+/// @param jd_birth_ut the birth moment
+/// @param slot        the returning body, Mercury through the extras
+/// @param radix_rad   the body's radix longitude, radians
+/// @param n           which return, counted from birth
+/// @param future      true counts forward in life, false backward
+/// @param ctx         observer and settings
+/// @return the return moment
+[[nodiscard]] LongitudeCrossing planetar_return(double jd_birth_ut, int slot, double radix_rad, int n, bool future, const SearchContext& ctx);
+
 /// The lunar return preceding the given moment, the a16 lunar flow.
 ///
 /// @param jd_before_ut   the search starts here, usually a date at 0h UT

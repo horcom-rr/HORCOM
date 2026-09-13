@@ -45,6 +45,9 @@ topocentric parallax.
   <tr><td><code>mundan, mundh1, md11, md, mundhorp, mundhorh</code></td><td><code>mundane_longitude, to_mundane</code></td><td><code>src/horcom/chart/mundane.*</code></td></tr>
   <tr><td>the <code>hrg!</code> branches of <code>plko_einz</code> and <code>par</code></td><td><code>helio_display</code> and the heliocentric gates of <code>compute_chart</code></td><td><code>src/horcom/chart/chart.cpp</code></td></tr>
   <tr><td><code>harm21, a901_m, mc_armcb</code> CASE 7, <code>a12f</code></td><td><code>harmonic_chart, dial_chart, dial_display</code></td><td><code>src/horcom/chart/harmonics.*</code></td></tr>
+  <tr><td><code>multi11, multi21, multi31, multi0ost1, multi0west1, multiarc1, mc_armcb, mc_armcb1</code></td><td><code>multi_chart</code></td><td><code>src/horcom/chart/harmonics.*</code></td></tr>
+  <tr><td><code>proho, taho, wahrso, hd_hs, zeit_korr, prog_mode</code></td><td><code>progressed_moment, day_chart_moment, sun_hour_angle</code></td><td><code>src/horcom/chart/progressions.*</code></td></tr>
+  <tr><td>the planetar and personar branches of <code>a16</code>, <code>solnummer</code></td><td><code>planetar_return, body_period_days</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
 </table>
 
 <h2>The two clocks of the original</h2>
@@ -213,14 +216,54 @@ unchanged over whatever stands on the slots, exactly his trick of
 reusing one machinery for every mode.
 </p>
 
+<h2>The return family</h2>
+<p>
+Beyond solar and lunar, the a16 flow returns every body. A planetar is
+a body's return onto its own radix longitude, the Nth return seeded a
+safe head start past the crossing and then found by the backward
+search, with the count stamped in front of the name just as solnummer
+did. A personar is the sun crossing the radix position of a chosen
+body within the first year of life. A septar is the solar return of
+the year of life whose seven year phase covers the chosen age, the
+rhythm the Döbereiner school reads in periods of seven, the first
+septar being the radix itself. In heliocentric mode the solar becomes
+the terrar, the Earth's return.
+</p>
+
+<h2>Progressions and the day chart</h2>
+<p>
+The secondary progression of proho maps one day of sky motion onto one
+tropical year of life. Four clock answers decide the moment within the
+progressed day, the birth clock kept, the birth's true solar time
+found again by the damped search of wahrso, the houses turned at one
+day per year through the sidereal ladder of hd_hs, or the julian date
+interpolated strictly. The day chart of taho finds on any chosen day
+the moment whose sun stands at the birth's hour angle, the same true
+solar time that ruled the first breath.
+</p>
+
+<h2>The multiple directions</h2>
+<p>
+The MULTI menu directs the whole chart by age. MULTI 1 advances every
+body by its age times its degree within the sign, MULTI 2 by age times
+the whole longitude, MULTI 3 runs the same sign referred rate from a
+chosen reference point, a body, an angle, a cusp, the classic ruler of
+a house or a sign start. The zero point pairs anchor every body on the
+start of its own rulership sign, the day signs eastward, the night
+signs westward, and MULTI-ARC scales the arc between reference and
+body. The axes answer the haus_ber question like the harmonics, and
+under the new MC answer a901_m rebuilds the Part of Fortune from the
+directed lights. Transpluto stays dark across the whole MULTI world.
+</p>
+
 <h2>Harmonics and the 90 degree circle</h2>
 <p>
 A harmonic multiplies every longitude onto an integer order, harm21's
 world. The south node follows the transformed north node by half a
 circle rather than turning itself, which differs for even orders,
 Transpluto drops out exactly as his CASE list leaves it, and the Part
-of Fortune rebuilds from the harmonic angles through the day and night
-formulas of a901_m. Houses answer his haus_ber question, treated like
+of Fortune multiplies like every other extra, harm21 keeps its a901_m
+rebuild commented out. Houses answer his haus_ber question, treated like
 bodies every cusp multiplies, or the new MC derives a fresh ARMC and
 the whole house system recomputes at the birth latitude. The 90 degree
 circle of a12f is the times four special case on the double wheel, the
@@ -249,8 +292,11 @@ mode pins the Earth on the Moon's slot at the Meeus geometric longitude,
 the planets against their own sun centred state, and the absence of
 every geocentric idea including the houses.
 <code>test_harmonics.cpp</code> pins the multiplied longitudes, the even
-order node quirk, the dark Transpluto, the rebuilt Part of Fortune,
-both house answers and the a12f transform with its divide back.
+order node quirk, the dark Transpluto, both house answers, the a12f
+transform with its divide back and all six MULTI modes over a
+synthetic radix. <code>test_transit_search.cpp</code> adds the first mars
+return and the personar landing on their radix targets and all four
+progression clocks against their defining properties.
 </p>
 
 </main>

@@ -390,6 +390,39 @@ LongitudeCrossing lunar_return(double jd_before_ut, double radix_moon_rad, const
   return find_longitude_backward(jd_before_ut, body::kMoon, radix_moon_rad, ctx);
 }
 
+double body_period_days(int slot, double tja) {
+  return period_days(slot, tja);
+}
+
+// ported from the planetar branch of a16. The seeds place the search
+// start safely past the wanted crossing, the backward walk then finds
+// it. Mercury and Venus return almost yearly so their seeds count in
+// years, the outer planets get a growing head start, the eccentric
+// centaurs and the comet five years, the main belt asteroids a hundred
+// days forward and a year backward.
+LongitudeCrossing planetar_return(double jd_birth_ut, int slot, double radix_rad, int n, bool future, const SearchContext& ctx) {
+  const double tja = eval_chart(jd_birth_ut, ctx).ta.tropical_year_days;
+  const double ta = period_days(slot, tja);
+  const double ns = future ? n : -n;
+  double jd = jd_birth_ut;
+  const bool centaur = slot == body::kChiron || slot == body::kHalley || slot == body::kPholus ||
+                       slot == body::kDamokles || slot == body::kNessus;
+  const bool belt = slot >= body::kCeres && slot <= body::kVesta;
+  if (slot == body::kMercury) {
+    jd += ns * tja + 0.5 * ta;
+  } else if (slot == body::kVenus) {
+    jd += ns * tja + 0.9 * ta;
+  } else if (centaur) {
+    jd += ns * ta + 5.0 * tja;
+  } else if (belt) {
+    jd += ns * ta + (future ? 100.0 : tja);
+  } else {
+    jd += ns * ta + (future ? tja * (slot - 4) : 0.5 * ta);
+  }
+  //RR jd-Startwert
+  return find_longitude_backward(jd + 15.0, slot, radix_rad, ctx);
+}
+
 // ported from ingre1
 std::array<LongitudeCrossing, 12> sign_ingresses(double jd_start_ut, int slot, const SearchContext& ctx) {
   std::array<LongitudeCrossing, 12> out{};

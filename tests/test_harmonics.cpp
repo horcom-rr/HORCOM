@@ -22,7 +22,7 @@ Chart synthetic() {
   const std::initializer_list<std::pair<int, double>> bodies = {
       {body::kSun, 15.0},      {body::kMoon, 95.0},     {body::kMars, 200.0},
       {body::kNodeAsc, 40.0},  {body::kNodeDesc, 220.0}, {body::kTranspluto, 123.0},
-      {body::kChiron, 300.0},  {body::kFortune, 90.0},   {body::kAscendant, 10.0},
+      {body::kChiron, 300.0},  {body::kFortune, 91.0},   {body::kAscendant, 10.0},
       {body::kMc, 280.0}};
   for (const auto& [slot, deg] : bodies) {
     BodyState& b = c.b[static_cast<std::size_t>(slot)];
@@ -65,10 +65,9 @@ TEST_CASE("the harmonic multiplies longitudes and keeps his quirks") {
   CHECK(deg(h.houses.cusp[2]) == doctest::Approx(160.0));
   CHECK(deg(h.b[body::kAscendant].el) == doctest::Approx(40.0));
   CHECK(deg(h.b[body::kMc].el) == doctest::Approx(deg(h.houses.cusp[10])));
-  // the radix is a night chart, sun below the ascendant axis, so the
-  // part of fortune takes AC minus moon plus sun on harmonic values
-  CHECK(ta_na(base.b[body::kAscendant].el, base.b[body::kSun].el) == 2);
-  CHECK(deg(h.b[body::kFortune].el) == doctest::Approx(80.0));
+  // the a901_m rebuild stays commented out in harm21, the point of
+  // fortune multiplies like every other extra
+  CHECK(deg(h.b[body::kFortune].el) == doctest::Approx(4.0));
 }
 
 TEST_CASE("the recomputed harmonic houses answer to the new MC") {
@@ -96,4 +95,41 @@ TEST_CASE("the 90 degree circle transforms like a12f") {
   dial_display(d, 4.0);
   CHECK(deg(d.b[body::kAscendant].el) == doctest::Approx(10.0));
   CHECK(deg(d.b[body::kMc].el) == doctest::Approx(norm_deg(4.0 * 280.0) / 4.0));
+}
+
+TEST_CASE("the multi directions run every mode over the radix") {
+  const Chart base = synthetic();
+  const MultiReference sun{MultiReference::Kind::kBody, body::kSun, 1, 1};
+  const double lja = 2.0;
+  // each body advances by age times its degree within the sign
+  Chart m1 = multi_chart(base, MultiMode::kMulti1, lja, sun, HarmonicHouses::kLikeBodies, HouseSystem::kPlacidus, 48.0);
+  CHECK(deg(m1.b[body::kMars].el) == doctest::Approx(240.0));
+  CHECK(deg(m1.b[body::kNodeAsc].el) == doctest::Approx(60.0));
+  CHECK(deg(m1.b[body::kNodeDesc].el) == doctest::Approx(240.0));
+  CHECK_FALSE(m1.b[body::kTranspluto].present);
+  CHECK(deg(m1.houses.cusp[1]) == doctest::Approx(30.0));
+  CHECK(m1.houses.cusp[2] == 0.0);
+  // the whole longitude drives the second mode
+  const Chart m2 = multi_chart(base, MultiMode::kMulti2, lja, sun, HarmonicHouses::kLikeBodies, HouseSystem::kPlacidus, 48.0);
+  CHECK(deg(m2.b[body::kMars].el) == doctest::Approx(240.0));
+  CHECK(deg(m2.b[body::kSun].el) == doctest::Approx(45.0));
+  // the third mode runs from a reference point
+  const Chart m3 = multi_chart(base, MultiMode::kMulti3, lja, sun, HarmonicHouses::kLikeBodies, HouseSystem::kPlacidus, 48.0);
+  CHECK(deg(m3.b[body::kMars].el) == doctest::Approx(55.0));
+  // the zero point modes anchor every body on its rulership sign
+  const Chart me = multi_chart(base, MultiMode::kZeroEast, lja, sun, HarmonicHouses::kLikeBodies, HouseSystem::kPlacidus, 48.0);
+  CHECK(deg(me.b[body::kSun].el) == doctest::Approx(150.0));
+  CHECK(deg(me.b[body::kMoon].el) == doctest::Approx(100.0));
+  CHECK(deg(me.b[body::kMars].el) == doctest::Approx(40.0));
+  CHECK(deg(me.houses.cusp[1]) == doctest::Approx(20.0));
+  CHECK(deg(me.houses.cusp[10]) == doctest::Approx(290.0));
+  const Chart mw = multi_chart(base, MultiMode::kZeroWest, lja, sun, HarmonicHouses::kLikeBodies, HouseSystem::kPlacidus, 48.0);
+  CHECK(deg(mw.b[body::kMars].el) == doctest::Approx(250.0));
+  // the arc mode scales the distance to the reference
+  const Chart ma = multi_chart(base, MultiMode::kArc, lja, sun, HarmonicHouses::kLikeBodies, HouseSystem::kPlacidus, 48.0);
+  CHECK(deg(ma.b[body::kMars].el) == doctest::Approx(25.0));
+  // the recomputed houses answer to the directed midheaven
+  const Chart mh = multi_chart(base, MultiMode::kMulti1, lja, sun, HarmonicHouses::kFromNewMc, HouseSystem::kPlacidus, 48.0);
+  REQUIRE(mh.houses.ok);
+  CHECK(deg(mh.houses.angles.mc) == doctest::Approx(300.0).epsilon(1e-6));
 }
