@@ -38,6 +38,9 @@ IngressDialog::IngressDialog(SearchContext ctx, QWidget* parent) : QDialog(paren
   for (int slot = 1; slot <= 10; ++slot) {
     body_->addItem(kBodyName[slot - 1], slot);
   }
+  // the MC and AC entries of his ingress menu
+  body_->addItem("AC", 13);
+  body_->addItem("MC", 14);
   when_ = new QDateEdit(QDate::currentDate(), this);
   when_->setCalendarPopup(true);
   when_->setDisplayFormat("dd.MM.yyyy");
@@ -70,7 +73,8 @@ void IngressDialog::run_scan() {
   const QDate d = when_->date();
   const double jd = julian_day({d.day(), d.month(), d.year(), 12, 0.0}, ctx_.settings.calendar);
   QApplication::setOverrideCursor(Qt::WaitCursor);
-  table_data_ = sign_ingresses(jd, body_->currentData().toInt(), ctx_);
+  const int slot = body_->currentData().toInt();
+  table_data_ = slot >= 13 ? angle_ingresses(jd, slot, ctx_) : sign_ingresses(jd, slot, ctx_);
   QApplication::restoreOverrideCursor();
   table_->setRowCount(0);
   for (int t = 0; t < 12; ++t) {

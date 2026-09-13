@@ -423,6 +423,50 @@ LongitudeCrossing planetar_return(double jd_birth_ut, int slot, double radix_rad
   return find_longitude_backward(jd + 15.0, slot, radix_rad, ctx);
 }
 
+// the MC and AC branches of the ingress menu, solved on the daily turn
+std::array<LongitudeCrossing, 12> angle_ingresses(double jd_start_ut, int slot, const SearchContext& ctx) {
+  std::array<LongitudeCrossing, 12> out{};
+  //RR Sterntag
+  const double day = 1.0 / kSolarToSiderealRate;
+  const auto angle_at = [&](double jd) {
+    const Chart c = eval_chart(jd, ctx);
+    if (!c.ok) {
+      return -1.0;
+    }
+    return slot == body::kAscendant ? c.houses.angles.ac : c.houses.angles.mc;
+  };
+  for (int t = 1; t <= 12; ++t) {
+    //RR vermeide 29/59/60
+    const double pz = kEps + (t - 1) * kPi / 6.0;
+    double jd = jd_start_ut;
+    LongitudeCrossing hit;
+    for (int i = 0; i < 240; ++i) {
+      const double a = angle_at(jd);
+      if (a < 0.0) {
+        break;
+      }
+      double d = norm_rad(pz - a);
+      if (i == 0) {
+        // walk forward onto the next passage
+        jd += d / kTwoPi * day;
+        continue;
+      }
+      if (d > kPi) {
+        d -= kTwoPi;
+      }
+      if (std::abs(d) < 1.0e-9) {
+        hit.ok = true;
+        hit.jd_ut = jd;
+        break;
+      }
+      // half steps keep the uneven rise rates converging
+      jd += 0.5 * d / kTwoPi * day;
+    }
+    out[static_cast<std::size_t>(t - 1)] = hit;
+  }
+  return out;
+}
+
 // ported from ingre1
 std::array<LongitudeCrossing, 12> sign_ingresses(double jd_start_ut, int slot, const SearchContext& ctx) {
   std::array<LongitudeCrossing, 12> out{};

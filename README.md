@@ -54,7 +54,7 @@ The port advances routine by routine, every step verified against Meeus's worked
 - the wheel renderer with his exact geometry, SVG export and the `horcom` command line tool
 - his file formats byte for byte, chart collections, places, the zone and country tables, the KONSTA settings stream and the AAF exchange format
 
-The Qt 6 desktop shell carries his visual identity and starts on his own settings profile, the topocentric parallax on just as he ran it. It already covers the heart of his menu tree, place search over his gazetteer with the historic zone catalogue, transits on his double wheel with the running sky outside the signs, the transit event list, solar and lunar returns, sign ingresses, chart comparison, a record mask writing real AAF collections, and the running UHR clock chart. It speaks German natively, his language, and English through a bundled translation. Ahead lie golden fixtures recorded from the original program, composite charts, directions and his statistics module.
+The Qt 6 desktop shell carries his visual identity and starts on his own settings profile, the topocentric parallax on just as he ran it. It covers his menu tree nearly end to end, place search over his gazetteer with the historic zone catalogue, transits on his double wheel with the event list, solar, lunar, septar, planetar and personar returns, sign ingresses up to MC and AC, comparison with composite, combin and the 90° dial, secondary progressions and the day chart, the six multiple directions, harmonics, the symbolic and Kühr primary direction evaluations, the mundane and heliocentric views, the Aspektarium, his statistics module with the stat_ausw search conditions, his commentary texts from a local folder, printing and PDF export, an adjustable text size, a record mask writing real AAF collections, and the running UHR clock chart. It speaks German natively, his language, and English through a bundled translation. Ahead lie golden fixtures recorded from the original program and the last special screens, the Dynamogramm, the Rhythmenlehre trigger tables, fixed stars, arabic parts, eclipses and rise and set times.
 
 ```
 build\apps\horcom.exe --date 13.10.1992 --time 03:00 --lon 11.32 --lat 48.17 --extras --svg wheel.svg
@@ -78,6 +78,6 @@ GPL-3.0-or-later, see `LICENSE`. The rewrite stays open, every derivative stays 
 
 ---
 
-<p align="center">Thanks to close friend André, who made this possible.</p>
+<p align="center">Thanks to Robert's close friend André, who made this possible.</p>
 
-<p align="center"><i>In loving memory Ingrid &amp; Robert Rettig ❤️</i></p>
+<p align="center"><i>In loving memory of Ingrid &amp; Robert Rettig ❤️</i></p>

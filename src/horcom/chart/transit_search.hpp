@@ -108,6 +108,18 @@ struct LongitudeCrossing {
 /// @return one crossing per sign, Aries first
 [[nodiscard]] std::array<LongitudeCrossing, 12> sign_ingresses(double jd_start_ut, int slot, const SearchContext& ctx);
 
+/// The sign entries of the ascendant or the midheaven after a start
+/// moment. The angles turn through the whole circle every day, so
+/// every entry lies within the following day. A damped iteration on
+/// the daily turn lands on each one, a deliberate simplification over
+/// the planetary stepping which the daily wrap would mislead.
+///
+/// @param jd_start_ut the search anchor, entries follow it
+/// @param slot        13 the ascendant, 14 the midheaven
+/// @param ctx         observer and settings
+/// @return one crossing per sign, Aries first
+[[nodiscard]] std::array<LongitudeCrossing, 12> angle_ingresses(double jd_start_ut, int slot, const SearchContext& ctx);
+
 /// One transit event, a running body crossing a radix target.
 struct TransitEvent {
   double jd_ut = 0.0;

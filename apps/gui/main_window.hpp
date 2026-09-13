@@ -93,6 +93,10 @@ class MainWindow : public QMainWindow {
   void solar_chart();
   void lunar_chart();
   void septar_chart();
+  void degree_list();
+  void house_table();
+  void great_year();
+  void converters();
   void planetar_chart();
   void personar_chart();
   void progression_chart();

@@ -55,7 +55,10 @@
 #include "painter.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
+#include "horcom/core/coords.hpp"
 #include "horcom/data/place_file.hpp"
+#include "horcom/ephem/precession.hpp"
+#include "horcom/time/delta_t.hpp"
 #include "horcom/render/svg.hpp"
 #include "place_dialog.hpp"
 #include "record_dialog.hpp"
@@ -297,6 +300,7 @@ void MainWindow::build_ui() {
   //RR DRUCKER-GRAPHIK, the druck_graph_ein world over one shared painter
   file->addAction(tr("Horoskop als PDF…"), this, &MainWindow::export_pdf);
   file->addAction(tr("Drucken…"), QKeySequence::Print, this, &MainWindow::print_chart);
+  file->addAction(tr("Umrechnungen…"), this, &MainWindow::converters);
   file->addSeparator();
   file->addAction(tr("Beenden"), QKeySequence::Quit, this, &QWidget::close);
   // the return charts of his solar and lunar menu
@@ -311,6 +315,9 @@ void MainWindow::build_ui() {
   horo->addAction(tr("Transit-Liste…"), this, &MainWindow::transit_list);
   horo->addAction(tr("Ingresse…"), this, &MainWindow::ingress_table);
   horo->addAction(tr("Aspektarium…"), this, &MainWindow::open_aspektarium);
+  horo->addAction(tr("Grad-Liste…"), this, &MainWindow::degree_list);
+  horo->addAction(tr("Häuser-Tabelle…"), this, &MainWindow::house_table);
+  horo->addAction(tr("Großes Jahr…"), this, &MainWindow::great_year);
   // the direction tables of the original evaluation menu in one place
   horo->addAction(QString::fromUtf8("Direktionen-Auswertung…"), this, [this]() {
     if (!last_chart_) {
@@ -954,6 +961,237 @@ void MainWindow::run_solar(int year) {
     return;
   }
   apply_moment(hit.jd_ut, QString("SOLAR %1").arg(year));
+}
+
+void MainWindow::degree_list() {
+  if (!last_chart_) {
+    return;
+  }
+  QDialog dialog(this);
+  //RR GRAD-LISTE
+  dialog.setWindowTitle(tr("Grad-Liste"));
+  auto* v = new QVBoxLayout(&dialog);
+  auto* with_houses = new QCheckBox(tr("Zwischen-Häuser hinzunehmen"), &dialog);
+  auto* table = new QTableWidget(0, 3, &dialog);
+  table->setHorizontalHeaderLabels({tr("Grad"), tr("Punkt"), tr("Zeichen")});
+  table->horizontalHeader()->setStretchLastSection(true);
+  table->verticalHeader()->setVisible(false);
+  table->verticalHeader()->setDefaultSectionSize(20);
+  table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  const Chart chart = *last_chart_;
+  const auto fill = [table, chart, with_houses]() {
+    std::vector<std::pair<double, QString>> rows;
+    for (int slot = 0; slot < body::kSlotCount; ++slot) {
+      const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
+      if (b.present && b.valid && b.el > kEps) {
+        rows.emplace_back(b.el, QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
+                                                  static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size())));
+      }
+    }
+    if (with_houses->isChecked()) {
+      for (int h = 1; h <= 12; ++h) {
+        if (chart.houses.cusp[static_cast<std::size_t>(h)] > 0.0) {
+          rows.emplace_back(chart.houses.cusp[static_cast<std::size_t>(h)], QString("H%1").arg(h));
+        }
+      }
+    }
+    std::sort(rows.begin(), rows.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+    table->setRowCount(0);
+    for (const auto& [el, name] : rows) {
+      const int row = table->rowCount();
+      table->insertRow(row);
+      table->setItem(row, 0, new QTableWidgetItem(QString::asprintf("%8.2f", el * kRadToDeg)));
+      table->setItem(row, 1, new QTableWidgetItem(name));
+      table->setItem(row, 2, new QTableWidgetItem(zodiac(el)));
+    }
+  };
+  connect(with_houses, &QCheckBox::toggled, &dialog, fill);
+  fill();
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+  connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+  v->addWidget(with_houses);
+  v->addWidget(table, 1);
+  v->addWidget(buttons);
+  dialog.resize(380, 560);
+  dialog.exec();
+}
+
+void MainWindow::house_table() {
+  if (!last_chart_ || !last_chart_->houses.ok) {
+    return;
+  }
+  const Chart& chart = *last_chart_;
+  QDialog dialog(this);
+  //RR Häuserspitzen nach System, In wahrer ekliptikaler Länge u. AR
+  dialog.setWindowTitle(tr("Häuser-Tabelle (%1)").arg(QString::fromUtf8(chart.houses.name.data(),
+                                                                        static_cast<int>(chart.houses.name.size()))));
+  auto* v = new QVBoxLayout(&dialog);
+  const bool placidus = current_settings().houses == HouseSystem::kPlacidus;
+  auto* table = new QTableWidget(13, placidus ? 6 : 4, &dialog);
+  QStringList heads{tr("Haus"), tr("Länge"), "AR", tr("Dekl.")};
+  if (placidus) {
+    //RR AO und Polhöhe
+    heads << "AO" << tr("Polhöhe");
+  }
+  table->setHorizontalHeaderLabels(heads);
+  table->horizontalHeader()->setStretchLastSection(true);
+  table->verticalHeader()->setVisible(false);
+  table->verticalHeader()->setDefaultSectionSize(20);
+  table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  const double armcb = chart.armc_deg * kDegToRad;
+  for (int t = 1; t <= 13; ++t) {
+    const bool vertex = t == 13;
+    const double pa = vertex ? chart.houses.angles.vertex : chart.houses.cusp[static_cast<std::size_t>(t)];
+    QString name = QString("H%1").arg(t);
+    if (t == 1) {
+      name = "AC";
+    } else if (t == 10) {
+      name = "MC";
+    } else if (vertex) {
+      name = "VERTEX";
+    }
+    table->setItem(t - 1, 0, new QTableWidgetItem(name));
+    table->setItem(t - 1, 1, new QTableWidgetItem(zodiac(pa) + QString::asprintf("  = %8.3f°", pa * kRadToDeg)));
+    const Equatorial eq = ecliptic_to_equatorial(pa, 0.0, chart.ekls0);
+    table->setItem(t - 1, 2, new QTableWidgetItem(QString::asprintf("%8.3f°", eq.ra * kRadToDeg)));
+    table->setItem(t - 1, 3, new QTableWidgetItem(QString::asprintf("%8.3f°", eq.dec * kRadToDeg)));
+    if (placidus && !vertex) {
+      // under Placidus every cusp owns an oblique ascension and the
+      // pole that raises it there
+      const double aoe = norm_rad(armcb + kPi / 2.0 + (t - 1) * kPi / 6.0);
+      const double ph = std::atan(std::sin(eq.ra - aoe) / std::tan(eq.dec + kEps));
+      table->setItem(t - 1, 4, new QTableWidgetItem(QString::asprintf("%8.3f°", aoe * kRadToDeg)));
+      table->setItem(t - 1, 5, new QTableWidgetItem(QString::asprintf("%8.3f°", ph * kRadToDeg)));
+    }
+  }
+  table->resizeColumnsToContents();
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+  connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+  v->addWidget(table, 1);
+  v->addWidget(buttons);
+  dialog.resize(placidus ? 720 : 540, 440);
+  dialog.exec();
+}
+
+void MainWindow::great_year() {
+  if (!last_chart_) {
+    return;
+  }
+  const Chart& chart = *last_chart_;
+  QDialog dialog(this);
+  dialog.setWindowTitle(tr("Großes (Platonisches) Jahr"));
+  auto* v = new QVBoxLayout(&dialog);
+  auto* form = new QFormLayout();
+  auto* age = new QComboBox(&dialog);
+  //RR Zeitalter - Start wählen !
+  age->addItem(tr("Widder = 30°"), 30);
+  age->addItem(tr("Fische = 360°"), 360);
+  age->addItem(tr("Wassermann = 330°"), 330);
+  age->addItem(tr("Steinbock = 300°"), 300);
+  age->setCurrentIndex(2);
+  //RR CHAUVIN f.AQU.
+  const CalendarDate ref0 = calendar_date(2370832.0, current_settings().calendar);
+  auto* refdate = new QDateEdit(QDate(ref0.year, ref0.month, ref0.day), &dialog);
+  refdate->setCalendarPopup(true);
+  refdate->setDisplayFormat("dd.MM.yyyy");
+  form->addRow(tr("Zeitalters-Punkt"), age);
+  form->addRow(tr("Bezugsdatum"), refdate);
+  auto* result = new QLabel(&dialog);
+  result->setWordWrap(true);
+  auto* note = new QLabel(tr("Pro Zeichen ca. 2148 Jahre, rund 50.269\" pro Jahr, der Punkt wandert rückläufig."), &dialog);
+  note->setWordWrap(true);
+  const auto update = [this, &chart, age, refdate, result]() {
+    const QDate rd = refdate->date();
+    const double jda = julian_day({rd.day(), rd.month(), rd.year(), 12, 0.0}, current_settings().calendar);
+    const double la0 = age->currentData().toInt() * kDegToRad;
+    const Equatorial eq0 = ecliptic_to_equatorial(la0, 0.0, chart.smo.ekls);
+    double ar = 0.0;
+    double de = 0.0;
+    precess_newcomb(chart.jd_et, chart.ta.tropical_year_days, jda, eq0.ra, eq0.dec, ar, de);
+    const Ecliptic ec = equatorial_to_ecliptic(ar, de, chart.smo.ekls);
+    const double di = (la0 - ec.lon) * kRadToDeg;
+    const double point = norm_deg(age->currentData().toInt() + di);
+    result->setText(tr("Längen-Differenz zur Bezugs-Länge: %1°\n"
+                       "Der Zeitalter-Punkt für das Horoskop-Datum steht bei %2 = %3°")
+                        .arg(std::min(std::abs(di), std::abs(360.0 - di)), 0, 'f', 4)
+                        .arg(zodiac(point * kDegToRad))
+                        .arg(point, 0, 'f', 4));
+  };
+  connect(age, &QComboBox::currentIndexChanged, &dialog, update);
+  connect(refdate, &QDateEdit::dateChanged, &dialog, update);
+  update();
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+  connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+  v->addLayout(form);
+  v->addWidget(result);
+  v->addWidget(note);
+  v->addWidget(buttons);
+  dialog.exec();
+}
+
+void MainWindow::converters() {
+  QDialog dialog(this);
+  dialog.setWindowTitle(tr("Umrechnungen"));
+  auto* v = new QVBoxLayout(&dialog);
+  auto* form = new QFormLayout();
+  // julian date against the calendar, both ways
+  auto* jd_in = new QDoubleSpinBox(&dialog);
+  jd_in->setRange(0.0, 4000000.0);
+  jd_in->setDecimals(5);
+  jd_in->setValue(2451545.0);
+  auto* jd_out = new QLabel(&dialog);
+  form->addRow(tr("Julianisches Datum"), jd_in);
+  form->addRow(tr("ergibt (UT)"), jd_out);
+  const Calendar cal = current_settings().calendar;
+  const auto jd_update = [jd_in, jd_out, cal]() {
+    const CalendarDate d = calendar_date(jd_in->value(), cal);
+    int seconds = static_cast<int>((d.hour * 60.0 + d.minute) * 60.0 + 0.5);
+    if (seconds >= kSecondsPerDay) {
+      seconds = kSecondsPerDay - 1;
+    }
+    jd_out->setText(QString::asprintf("%02d.%02d.%d  %02d:%02d:%02d", d.day, d.month, d.year, seconds / 3600,
+                                      (seconds / 60) % 60, seconds % 60));
+  };
+  connect(jd_in, &QDoubleSpinBox::valueChanged, &dialog, jd_update);
+  jd_update();
+  // delta T of the panel date carries UT to ET and back
+  const double jd_panel = last_chart_ ? last_chart_->jd_ut : 2451545.0;
+  auto* delt = new QLabel(QString::fromUtf8("ΔT = %1 min,  ET = UT + ΔT")
+                              .arg(delta_t_minutes(jd_panel), 0, 'f', 2),
+                          &dialog);
+  form->addRow(tr("Zum Panel-Datum"), delt);
+  // local time against greenwich by the panel longitude
+  auto* lt = new QLabel(QString::fromUtf8("LT = UT %1%2 h (Länge %3°)")
+                            .arg(lon_->value() >= 0 ? "+ " : "− ")
+                            .arg(std::abs(lon_->value()) / kDegPerHour, 0, 'f', 4)
+                            .arg(lon_->value(), 0, 'f', 4),
+                        &dialog);
+  form->addRow(tr("Ortszeit"), lt);
+  // decimal degrees against degree minute second
+  auto* deg_in = new QDoubleSpinBox(&dialog);
+  deg_in->setRange(-360.0, 360.0);
+  deg_in->setDecimals(6);
+  auto* deg_out = new QLabel(&dialog);
+  form->addRow(tr("Winkel dezimal"), deg_in);
+  form->addRow(tr("ergibt"), deg_out);
+  const auto deg_update = [deg_in, deg_out]() {
+    int d = 0;
+    int m = 0;
+    int s = 0;
+    to_dms(deg_in->value(), d, m, s);
+    deg_out->setText(QString::fromUtf8("%1%2° %3' %4\"")
+                         .arg(deg_in->value() < 0 ? "−" : "")
+                         .arg(d)
+                         .arg(m, 2, 10, QChar('0'))
+                         .arg(s, 2, 10, QChar('0')));
+  };
+  connect(deg_in, &QDoubleSpinBox::valueChanged, &dialog, deg_update);
+  deg_update();
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+  connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+  v->addLayout(form);
+  v->addWidget(buttons);
+  dialog.exec();
 }
 
 SearchContext MainWindow::make_context() const {
