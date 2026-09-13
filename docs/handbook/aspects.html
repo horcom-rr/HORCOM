@@ -30,10 +30,11 @@ different offsets, finds the midpoint contacts.
 <h2>Origin map</h2>
 <table>
   <tr><th>original</th><th>ported as</th><th>file</th></tr>
-  <tr><td><code>asp0, asp10, asp1, asp11</code></td><td><code>scan_aspects</code></td><td rowspan="4"><code>src/horcom/chart/aspects.*</code></td></tr>
+  <tr><td><code>asp0, asp10, asp1, asp11</code></td><td><code>scan_aspects</code></td><td rowspan="5"><code>src/horcom/chart/aspects.*</code></td></tr>
   <tr><td><code>a12asp</code></td><td><code>scan_aspects_between</code></td></tr>
   <tr><td><code>org, orbis_discr2, orbis_discr3</code></td><td>internal orb helpers</td></tr>
   <tr><td><code>halbs1, halbs11, halbs111</code></td><td><code>scan_midpoints</code></td></tr>
+  <tr><td><code>aspdis</code></td><td><code>aspect_symbol</code></td></tr>
   <tr><td><code>orb, nasp&amp;, orbe!, orbe(), or&amp;()</code></td><td><code>AspectSettings</code></td><td><code>src/horcom/chart/aspects.hpp</code></td></tr>
   <tr><td><code>a18st</code></td><td>internal slot walker</td><td><code>src/horcom/chart/aspects.cpp</code></td></tr>
 </table>
@@ -94,6 +95,24 @@ aspects at all because the original tests the raw position against zero.
 The tests document both.
 </p>
 
+<h2>The Aspektarium</h2>
+<p>
+aspar draws the whole scan as one triangular matrix and the shell keeps
+it as its own dialog. Exact separations in degrees and minutes stand
+above the diagonal, only for pairs the scan matched, the named aspect
+below it, the per body hit counts on the diagonal, beside it the
+divisor table with angle and orb and under it his planet weights. The
+naming runs through aspdis, ported as <code>aspect_symbol</code>, which folds
+the matched angle to the near side and divides it down through every
+divisor until a known aspect degree appears, the main aspects and the
+named minors get their glyph, everything else prints as divisor and
+rounded angle exactly like his DEFAULT branch. The maximal divisor
+choice of eight, twelve or sixteen rescans on the spot, sixteen only
+outside the equal probability orbs like his selection box, and the
+matrix folds its truncation quirks along, a five elevenths angle
+truncates onto the forty degree family just as his FIX did.
+</p>
+
 <h2>Verification</h2>
 <p>
 <code>test_aspects.cpp</code> runs synthetic charts through the scanner,
@@ -102,7 +121,9 @@ smaller divisor claiming a pair before a larger one can, the silent node
 pair, silent zero weight bodies, the orb factor scaling, the equal
 probability multiple filter, a chained conjunction for the Triga counter,
 a closed grand trine, midpoint hits in all three passes, the antipode
-rule and the cross pass duplicate guard.
+rule and the cross pass duplicate guard. The aspdis transcription pins
+every named angle, the multiples folding back onto their divisors and
+the truncation onto CASE 22.
 </p>
 
 </main>
