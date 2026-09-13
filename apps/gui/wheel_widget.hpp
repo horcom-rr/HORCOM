@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// horcom, the C++ rewrite of HORCOM by Robert Rettig (1970s to 2010)
+// horcom, the C++ rewrite of HORCOM by Robert Rettig (1989 to 2010)
 // Copyright (c) 2026 Dominik Schwimmbeck
 
 #pragma once
@@ -19,6 +19,9 @@ class WheelWidget : public QWidget {
 
   /// Replaces the drawing and repaints.
   void set_display_list(DisplayList dl);
+
+  /// @return the current drawing, the print and PDF paths read it
+  [[nodiscard]] const DisplayList& display_list() const { return dl_; }
 
  protected:
   void paintEvent(QPaintEvent* event) override;

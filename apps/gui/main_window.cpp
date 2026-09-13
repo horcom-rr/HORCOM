@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// horcom, the C++ rewrite of HORCOM by Robert Rettig (1970s to 2010)
+// horcom, the C++ rewrite of HORCOM by Robert Rettig (1989 to 2010)
 // Copyright (c) 2026 Dominik Schwimmbeck
 
 #include "main_window.hpp"
@@ -22,6 +22,12 @@
 #include <QListWidget>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QPageLayout>
+#include <QPageSize>
+#include <QPainter>
+#include <QPdfWriter>
+#include <QPrintDialog>
+#include <QPrinter>
 #include <QPushButton>
 #include <QTableWidget>
 #include <QTimeEdit>
@@ -40,6 +46,7 @@
 #include "horcom/chart/mundane.hpp"
 #include "horcom/chart/transit_search.hpp"
 #include "ingress_dialog.hpp"
+#include "painter.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
 #include "horcom/data/place_file.hpp"
@@ -280,6 +287,9 @@ void MainWindow::build_ui() {
   file->addAction(tr("Statistik…"), this, &MainWindow::open_statistics);
   file->addAction(tr("Als AAF speichern…"), QKeySequence::Save, this, &MainWindow::save_aaf);
   file->addAction(tr("Horoskop als SVG…"), this, &MainWindow::export_svg);
+  //RR DRUCKER-GRAPHIK, the druck_graph_ein world over one shared painter
+  file->addAction(tr("Horoskop als PDF…"), this, &MainWindow::export_pdf);
+  file->addAction(tr("Drucken…"), QKeySequence::Print, this, &MainWindow::print_chart);
   file->addSeparator();
   file->addAction(tr("Beenden"), QKeySequence::Quit, this, &QWidget::close);
   // the return charts of his solar and lunar menu
@@ -1288,10 +1298,62 @@ void MainWindow::export_svg() {
   }
 }
 
+bool MainWindow::export_pdf_to(const QString& path) {
+  const DisplayList& dl = wheel_->display_list();
+  if (dl.items.empty()) {
+    return false;
+  }
+  QPdfWriter writer(path);
+  writer.setPageSize(QPageSize(QPageSize::A4));
+  //RR DIN A4, the wheel canvas lies landscape
+  writer.setPageOrientation(QPageLayout::Landscape);
+  writer.setResolution(300);
+  writer.setTitle("HORCOM");
+  QPainter p(&writer);
+  if (!p.isActive()) {
+    return false;
+  }
+  paint_fitted(p, dl, QRectF(0, 0, writer.width(), writer.height()));
+  p.end();
+  return true;
+}
+
+void MainWindow::export_pdf() {
+  const QString path = QFileDialog::getSaveFileName(this, tr("Horoskop als PDF"), "horoskop.pdf", tr("PDF (*.pdf)"));
+  if (path.isEmpty()) {
+    return;
+  }
+  if (!export_pdf_to(path)) {
+    QMessageBox::warning(this, "HORCOM", tr("Die PDF-Datei ließ sich nicht schreiben."));
+  }
+}
+
+void MainWindow::print_chart() {
+  const DisplayList& dl = wheel_->display_list();
+  if (dl.items.empty()) {
+    return;
+  }
+  QPrinter printer(QPrinter::HighResolution);
+  printer.setPageOrientation(QPageLayout::Landscape);
+  QPrintDialog dialog(&printer, this);
+  //RR AUSGABE auf BILDSCHIRM oder als DRUCKER-GRAPHIK ?
+  dialog.setWindowTitle(tr("Horoskop drucken"));
+  if (dialog.exec() != QDialog::Accepted) {
+    return;
+  }
+  QPainter p(&printer);
+  if (!p.isActive()) {
+    QMessageBox::warning(this, "HORCOM", tr("Der Drucker nahm die Seite nicht an."));
+    return;
+  }
+  paint_fitted(p, dl, QRectF(printer.pageRect(QPrinter::DevicePixel)));
+  p.end();
+}
+
 void MainWindow::about() {
   QMessageBox::about(this, tr("Über HORCOM"),
                      tr("<b>horcom</b><br>Die C++ Neufassung von HORCOM,<br>"
-                        "geschrieben von Robert Rettig, 1970er bis 2010.<br><br>"
+                        "geschrieben von Robert Rettig, 1989 bis 2010.<br><br>"
                         "Im Andenken an Robert Rettig, der all dies zuerst gebaut hat.<br><br>"
                         "GPL-3.0-or-later · betreut von Dominik Schwimmbeck"));
 }

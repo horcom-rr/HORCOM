@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// horcom, the C++ rewrite of HORCOM by Robert Rettig (1970s to 2010)
+// horcom, the C++ rewrite of HORCOM by Robert Rettig (1989 to 2010)
 // Copyright (c) 2026 Dominik Schwimmbeck
 
 #pragma once
@@ -73,6 +73,13 @@ class MainWindow : public QMainWindow {
   /// Opens the 90 degree circle over a partner, the capture hook's path.
   void show_dial(const AafRecord& partner);
 
+  /// Writes the current wheel as a PDF page, also the capture hook's
+  /// path into the print world.
+  ///
+  /// @param path the target file
+  /// @return true when the page was written
+  bool export_pdf_to(const QString& path);
+
  private slots:
   void recompute();
   void open_records();
@@ -88,6 +95,8 @@ class MainWindow : public QMainWindow {
   void combin_chart();
   void save_aaf();
   void export_svg();
+  void print_chart();
+  void export_pdf();
   void about();
 
  private:

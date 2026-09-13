@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// horcom, the C++ rewrite of HORCOM by Robert Rettig (1970s to 2010)
+// horcom, the C++ rewrite of HORCOM by Robert Rettig (1989 to 2010)
 // Copyright (c) 2026 Dominik Schwimmbeck
 
 #include <QApplication>
@@ -261,6 +261,13 @@ int main(int argc, char** argv) {
   if (shot_directions >= 0) {
     shot = shot_directions;
     window.show_directions(horcom::julian_day({13, 10, 2026, 0, 0.0}), false);
+  }
+  // --shot-pdf FILE writes the current wheel as a PDF page and quits,
+  // the headless check of the print path
+  const int shot_pdf = args.indexOf("--shot-pdf");
+  if (shot_pdf >= 0 && shot_pdf + 1 < args.size()) {
+    window.export_pdf_to(args[shot_pdf + 1]);
+    return 0;
   }
   if (shot >= 0) {
     window.showMinimized();
