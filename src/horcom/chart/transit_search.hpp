@@ -75,6 +75,17 @@ struct LongitudeCrossing {
 /// @return the return moment
 [[nodiscard]] LongitudeCrossing lunar_return(double jd_before_ut, double radix_moon_rad, const SearchContext& ctx);
 
+/// The twelve sign entries of a body around a start moment, the ingre1
+/// table. Each target is the sign start plus the epsilon that keeps the
+/// zero longitude guard quiet, searched backward with plant, the sun
+/// corrected into the calendar year of the start.
+///
+/// @param jd_start_ut the search anchor
+/// @param slot        body slot, sun and moon like his menu, planets too
+/// @param ctx         observer and settings
+/// @return one crossing per sign, Aries first
+[[nodiscard]] std::array<LongitudeCrossing, 12> sign_ingresses(double jd_start_ut, int slot, const SearchContext& ctx);
+
 /// One transit event, a running body crossing a radix target.
 struct TransitEvent {
   double jd_ut = 0.0;

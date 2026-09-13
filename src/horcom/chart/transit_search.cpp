@@ -390,6 +390,37 @@ LongitudeCrossing lunar_return(double jd_before_ut, double radix_moon_rad, const
   return find_longitude_backward(jd_before_ut, body::kMoon, radix_moon_rad, ctx);
 }
 
+// ported from ingre1
+std::array<LongitudeCrossing, 12> sign_ingresses(double jd_start_ut, int slot, const SearchContext& ctx) {
+  std::array<LongitudeCrossing, 12> out{};
+  const int year0 = calendar_date(jd_start_ut, ctx.settings.calendar).year;
+  for (int t = 1; t <= 12; ++t) {
+    //RR vermeide 29/59/60
+    const double pz = kEps + (t - 1) * kPi / 6.0;
+    double jdz = jd_start_ut;
+    LongitudeCrossing hit;
+    for (int retry = 0; retry < 4; ++retry) {
+      hit = find_longitude_backward(jdz, slot, pz, ctx);
+      if (!hit.ok || slot != body::kSun) {
+        break;
+      }
+      // the sun ingress belongs to the calendar year of the start
+      const int ja = calendar_date(hit.jd_ut, ctx.settings.calendar).year;
+      if (ja > year0) {
+        jdz -= 365.0;
+        continue;
+      }
+      if (ja < year0) {
+        jdz += 365.0;
+        continue;
+      }
+      break;
+    }
+    out[static_cast<std::size_t>(t - 1)] = hit;
+  }
+  return out;
+}
+
 namespace {
 
 // the caps of a180_1, the speed limit per interval, the stationary

@@ -147,6 +147,22 @@ TEST_CASE("the transit sweep finds the sun over radix venus") {
   CHECK(sun_venus);
 }
 
+TEST_CASE("the sun ingress table lands every sign in its year") {
+  const SearchContext ctx = context();
+  const auto table = sign_ingresses(julian_day({31, 12, 1993, 12, 0.0}), body::kSun, ctx);
+  for (int t = 0; t < 12; ++t) {
+    REQUIRE(table[static_cast<std::size_t>(t)].ok);
+    const CalendarDate d = calendar_date(table[static_cast<std::size_t>(t)].jd_ut);
+    CHECK(d.year == 1993);
+    const double target = kEps + t * kPi / 6.0;
+    CHECK(residual_arcsec(table[static_cast<std::size_t>(t)], body::kSun, target, ctx) < 0.5);
+  }
+  // Aries is the equinox of the earlier pin
+  const CalendarDate aries = calendar_date(table[0].jd_ut);
+  CHECK(aries.month == 3);
+  CHECK(aries.day == 20);
+}
+
 TEST_CASE("an extra body outside his ephemeris rides the element fallback") {
   SearchContext ctx = context();
   ctx.settings.enable_standard_extras();
