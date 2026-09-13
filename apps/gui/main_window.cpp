@@ -34,6 +34,7 @@
 
 #include "banner.hpp"
 #include "horcom/chart/composite.hpp"
+#include "horcom/chart/directions.hpp"
 #include "horcom/chart/transit_search.hpp"
 #include "ingress_dialog.hpp"
 #include "horcom/core/angle.hpp"
@@ -316,6 +317,51 @@ void MainWindow::build_ui() {
     }
   });
   horo->addAction(tr("Combin…"), this, &MainWindow::combin_chart);
+  // the primary directed axes of prima with his sidereal time variation
+  directions_action_ = horo->addAction(tr("Direktionen…"));
+  directions_action_->setCheckable(true);
+  connect(directions_action_, &QAction::toggled, this, [this](bool on) {
+    if (!on) {
+      recompute();
+      banner_->set_record(record_label_.trimmed());
+      return;
+    }
+    QDialog dialog(this);
+    dialog.setWindowTitle(tr("Direktionen"));
+    auto* v = new QVBoxLayout(&dialog);
+    auto* form = new QFormLayout();
+    auto* when = new QDateEdit(QDate::currentDate(), &dialog);
+    when->setCalendarPopup(true);
+    when->setDisplayFormat("dd.MM.yyyy");
+    auto* dirbox = new QComboBox(&dialog);
+    dirbox->addItem(tr("DIREKT ( + )"));
+    dirbox->addItem(tr("KONVERS ( - )"));
+    auto* vary = new QDoubleSpinBox(&dialog);
+    vary->setRange(-30.0, 30.0);
+    vary->setDecimals(3);
+    vary->setSingleStep(0.25);
+    //RR 1° STZ entspr. 4 Zeitminuten
+    form->addRow(tr("Ereignis-Datum"), when);
+    form->addRow(tr("Richtung"), dirbox);
+    form->addRow(tr("STZ-Variation (°)"), vary);
+    auto* note = new QLabel(tr("1° STZ entspricht 4 Zeitminuten."), &dialog);
+    auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+    connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    v->addLayout(form);
+    v->addWidget(note);
+    v->addWidget(buttons);
+    if (dialog.exec() != QDialog::Accepted) {
+      const QSignalBlocker block(directions_action_);
+      directions_action_->setChecked(false);
+      return;
+    }
+    const QDate d = when->date();
+    dir_jd_ = julian_day({d.day(), d.month(), d.year(), 0, 0.0}, current_settings().calendar);
+    dir_converse_ = dirbox->currentIndex() == 1;
+    dir_vary_ = vary->value();
+    recompute();
+  });
   horo->addSeparator();
   //RR Solange UHR SICHTBAR wird HOROSKOP ALLE 15 SEK NACHGEZEICHNET !
   clock_action_ = horo->addAction(tr("Uhr"));
@@ -451,6 +497,7 @@ void MainWindow::recompute() {
   QString cross_text;
   Chart comp_holder;
   AspectResult comp_aspects_holder;
+  Chart dir_holder;
   const Chart* shown = &chart;
   const AspectResult* shown_aspects = &aspects;
   if (clock) {
@@ -481,6 +528,27 @@ void MainWindow::recompute() {
       cross_text = tr("<span style='color:#D4A94A'>TRANSITE</span>&nbsp; ");
       cross_text += cross.empty() ? tr("keine") : cross_hits_text(cross);
     }
+  } else if (directions_action_ != nullptr && directions_action_->isChecked() && dir_jd_ > 0.0) {
+    // the directed axes of prima over the radix positions, no chords
+    // like primhorg
+    const DirectedAxes d =
+        direct_axes(chart, lon_->value(), lat_->value(), dir_jd_, dir_converse_, dir_vary_, s.houses);
+    dir_holder = chart;
+    dir_holder.houses = d.houses;
+    dir_holder.armc_deg = d.armc_deg;
+    dir_holder.b[body::kAscendant].el = d.houses.angles.ac;
+    dir_holder.b[body::kMc].el = d.houses.angles.mc;
+    WheelOptions opt = wopt;
+    //RR STZ-DIFF=
+    opt.center_label = QString("STZ-DIFF=%1°").arg(d.arc_deg, 0, 'f', 3).toStdString();
+    opt.scale = kDirectedWheelScale;
+    opt.aspect_lines = false;
+    wheel_->set_display_list(build_wheel(dir_holder, s, aspects, opt));
+    shown = &dir_holder;
+    transit_drawn = true;
+    banner_->set_record(QString("%1 %2°")
+                            .arg(dir_converse_ ? "KONVERS" : "DIREKT")
+                            .arg(d.arc_deg, 0, 'f', 3));
   } else if (composite_action_ != nullptr && composite_action_->isChecked() && partner_chart_) {
     // the a13 composite, house mode from his profile flags, the panel
     // place stands in as the Robert Hand residence
@@ -903,6 +971,15 @@ void MainWindow::show_composite(const AafRecord& partner) {
   if (set_partner(partner)) {
     composite_action_->setChecked(true);
   }
+}
+
+void MainWindow::show_directions(double jd_event_ut, bool converse) {
+  dir_jd_ = jd_event_ut;
+  dir_converse_ = converse;
+  dir_vary_ = 0.0;
+  const QSignalBlocker block(directions_action_);
+  directions_action_->setChecked(true);
+  recompute();
 }
 
 void MainWindow::apply_record(const AafRecord& r) {

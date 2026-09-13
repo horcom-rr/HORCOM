@@ -57,6 +57,10 @@ class MainWindow : public QMainWindow {
   /// Opens the composite over the given partner record.
   void show_composite(const AafRecord& partner);
 
+  /// Opens the directed axes for an event moment, the capture hook's
+  /// path into the Direktionen toggle.
+  void show_directions(double jd_event_ut, bool converse);
+
  private slots:
   void recompute();
   void open_records();
@@ -111,6 +115,10 @@ class MainWindow : public QMainWindow {
   QTimer* clock_timer_ = nullptr;
   QAction* compare_action_ = nullptr;
   QAction* composite_action_ = nullptr;
+  QAction* directions_action_ = nullptr;
+  double dir_jd_ = 0.0;
+  bool dir_converse_ = false;
+  double dir_vary_ = 0.0;
   std::optional<Chart> partner_chart_;
   ChartInput partner_input_;
   QString partner_name_;
