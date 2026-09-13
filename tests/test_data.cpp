@@ -11,6 +11,7 @@
 #include "horcom/data/encoding.hpp"
 #include "horcom/data/countries.hpp"
 #include "horcom/data/place_file.hpp"
+#include "horcom/data/kommen.hpp"
 #include "horcom/data/statist.hpp"
 #include "horcom/data/zone_names.hpp"
 
@@ -291,3 +292,25 @@ TEST_CASE("the statistics store round trips with the original packing") {
   std::filesystem::remove(par);
 }
 
+
+TEST_CASE("the kommen reader keeps the lese_text rules") {
+  const auto dir = std::filesystem::temp_directory_path();
+  const auto path = dir / "KOMM1.TXT";
+  {
+    std::ofstream out(path, std::ios::binary);
+    // his 1252 bytes, a tilde ruler line, the dash terminator
+    out << "Willkommen, sch\xF6ne Gr\xFC\xDF" << "e !\r\n";
+    out << "~~~~~~~~~~~~\r\n";
+    out << "Zweite Zeile\r\n";
+    out << "-\r\n";
+    out << "unsichtbar\r\n";
+  }
+  const auto text = read_kommen(path);
+  REQUIRE(text.has_value());
+  CHECK(*text == "Willkommen, sch\xC3\xB6ne Gr\xC3\xBC\xC3\x9F""e !\nZweite Zeile\n");
+  const auto entries = kommen_entries(dir);
+  REQUIRE(!entries.empty());
+  CHECK(entries[0].index == 1);
+  CHECK(entries[0].title == "Einf\xC3\xBChrender Kommentar");
+  std::filesystem::remove(path);
+}

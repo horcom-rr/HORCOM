@@ -49,6 +49,7 @@
 #include "horcom/chart/mundane.hpp"
 #include "horcom/chart/transit_search.hpp"
 #include "ingress_dialog.hpp"
+#include "kommen_dialog.hpp"
 #include "painter.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
@@ -463,6 +464,11 @@ void MainWindow::build_ui() {
   view->addAction(tr("Normale Schrift"), QKeySequence(Qt::CTRL | Qt::Key_0), this, [set_scale]() { set_scale(100); });
 
   QMenu* help = menuBar()->addMenu(tr("&Hilfe"));
+  //RR TEXT-DATEI LESEN, his commentary texts from the local folder
+  help->addAction(tr("Original-Kommentare…"), this, [this]() {
+    KommenDialog dialog(data_dir_ / "kommen", this);
+    dialog.exec();
+  });
   help->addAction(tr("Über HORCOM"), this, &MainWindow::about);
 
   // recompute on every change like the original recalculated per screen

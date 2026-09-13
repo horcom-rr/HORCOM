@@ -14,6 +14,7 @@
 #include <QTranslator>
 
 #include "aspektarium_dialog.hpp"
+#include "kommen_dialog.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
 #include "main_window.hpp"
@@ -157,6 +158,12 @@ int main(int argc, char** argv) {
     const horcom::Chart chart = horcom::compute_chart(in, cs, vsop, eph);
     horcom::AspektariumDialog dialog(chart, cs, {}, "13.10.1992");
     dialog.grab().save(args[shot_aspektarium + 1]);
+    return 0;
+  }
+  const int shot_kommen = args.indexOf("--shot-kommen");
+  if (shot_kommen >= 0 && shot_kommen + 1 < args.size()) {
+    horcom::KommenDialog dialog(data / "kommen");
+    dialog.grab().save(args[shot_kommen + 1]);
     return 0;
   }
   const int shot_list = args.indexOf("--shot-transit-list");
