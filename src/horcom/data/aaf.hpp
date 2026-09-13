@@ -62,6 +62,13 @@ struct AafRecord {
   [[nodiscard]] double longitude() const;
 };
 
+/// Composes the zone field from hours east of Greenwich, the shape
+/// 01hE00:00 with the letter carrying the side, like zeitzon builds it.
+///
+/// @param hours_east the zone in hours, east positive
+/// @return the verbatim zone string
+[[nodiscard]] std::string aaf_zone(double hours_east);
+
 /// Parses AAF text.
 ///
 /// Lines containing a tilde are dropped like the original's universal

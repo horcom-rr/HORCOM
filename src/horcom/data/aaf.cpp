@@ -5,6 +5,7 @@
 #include "horcom/data/aaf.hpp"
 
 #include <cctype>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
@@ -209,6 +210,23 @@ void parse_b93(std::string_view content, AafRecord& r) {
 }
 
 }  // namespace
+
+// ported from the zone string composition in zeitzon
+std::string aaf_zone(double hours_east) {
+  const double za = std::abs(hours_east);
+  const int hh = static_cast<int>(za);
+  const double rem = (za - hh) * 60.0;
+  int mm = static_cast<int>(rem);
+  int ss = static_cast<int>((rem - mm) * 60.0 + 0.5);
+  if (ss >= 60) {
+    ss -= 60;
+    ++mm;
+  }
+  const char side = hours_east < 0.0 ? 'W' : 'E';
+  char out[16];
+  std::snprintf(out, sizeof(out), "%02dh%c%02d:%02d", hh, side, mm, ss);
+  return out;
+}
 
 double AafRecord::latitude() const {
   const double v = lat_deg + lat_min / 60.0 + lat_sec / 3600.0;

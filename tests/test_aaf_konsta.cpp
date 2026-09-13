@@ -101,6 +101,14 @@ TEST_CASE("his profile carries Robert Rettig's switches and round trips") {
   CHECK(format_konsta(back) == format_konsta(k));
 }
 
+TEST_CASE("the zone field composes like zeitzon") {
+  CHECK(aaf_zone(0.0) == "00hE00:00");
+  CHECK(aaf_zone(1.0) == "01hE00:00");
+  // Newfoundland west three and a half hours
+  CHECK(aaf_zone(-3.5) == "03hW30:00");
+  CHECK(aaf_zone(5.75) == "05hE45:00");
+}
+
 TEST_CASE("AAF parses a synthetic record with every quirk") {
   const char* text =
       "~ eine Zeile mit Tilde wird komplett verworfen\r\n"
