@@ -35,6 +35,7 @@
 #include "banner.hpp"
 #include "horcom/chart/composite.hpp"
 #include "horcom/chart/directions.hpp"
+#include "horcom/chart/mundane.hpp"
 #include "horcom/chart/transit_search.hpp"
 #include "ingress_dialog.hpp"
 #include "horcom/core/angle.hpp"
@@ -362,6 +363,15 @@ void MainWindow::build_ui() {
     dir_vary_ = vary->value();
     recompute();
   });
+  // the horm 2 view, semi arc house space instead of the ecliptic
+  mundane_action_ = horo->addAction(tr("Mundan"));
+  mundane_action_->setCheckable(true);
+  connect(mundane_action_, &QAction::toggled, this, [this](bool on) {
+    recompute();
+    if (!on) {
+      banner_->set_record(record_label_.trimmed());
+    }
+  });
   horo->addSeparator();
   //RR Solange UHR SICHTBAR wird HOROSKOP ALLE 15 SEK NACHGEZEICHNET !
   clock_action_ = horo->addAction(tr("Uhr"));
@@ -449,7 +459,12 @@ void MainWindow::recompute() {
     in = current_input();
   }
   const ChartSettings s = current_settings();
-  const Chart chart = compute_chart(in, s, vsop_, eph_);
+  Chart chart = compute_chart(in, s, vsop_, eph_);
+  // the horm 2 transform runs before every scanner like the original
+  const bool mundane = mundane_action_ != nullptr && mundane_action_->isChecked() && !clock;
+  if (mundane && chart.ok) {
+    to_mundane(chart, in.lat_deg);
+  }
   if (!chart.ok) {
     //RR Geog. Breite zu groß !
     banner_->set_record(tr("Geog. Breite zu groß für dieses Häusersystem"));
@@ -528,6 +543,12 @@ void MainWindow::recompute() {
       cross_text = tr("<span style='color:#D4A94A'>TRANSITE</span>&nbsp; ");
       cross_text += cross.empty() ? tr("keine") : cross_hits_text(cross);
     }
+  } else if (mundane) {
+    WheelOptions opt = wopt;
+    opt.center_label = "MUNDAN";
+    wheel_->set_display_list(build_wheel(chart, s, aspects, opt));
+    transit_drawn = true;
+    banner_->set_record("MUNDAN");
   } else if (directions_action_ != nullptr && directions_action_->isChecked() && dir_jd_ > 0.0) {
     // the directed axes of prima over the radix positions, no chords
     // like primhorg
@@ -971,6 +992,10 @@ void MainWindow::show_composite(const AafRecord& partner) {
   if (set_partner(partner)) {
     composite_action_->setChecked(true);
   }
+}
+
+void MainWindow::show_mundane() {
+  mundane_action_->setChecked(true);
 }
 
 void MainWindow::show_directions(double jd_event_ut, bool converse) {

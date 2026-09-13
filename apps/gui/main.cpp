@@ -174,6 +174,11 @@ int main(int argc, char** argv) {
     partner.lon_min = 19;
     window.show_composite(partner);
   }
+  const int shot_mundane = args.indexOf("--shot-mundane");
+  if (shot_mundane >= 0) {
+    shot = shot_mundane;
+    window.show_mundane();
+  }
   const int shot_directions = args.indexOf("--shot-directions");
   if (shot_directions >= 0) {
     shot = shot_directions;

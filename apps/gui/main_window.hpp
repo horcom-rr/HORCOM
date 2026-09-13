@@ -61,6 +61,9 @@ class MainWindow : public QMainWindow {
   /// path into the Direktionen toggle.
   void show_directions(double jd_event_ut, bool converse);
 
+  /// Switches the mundane view on, the horm 2 mode.
+  void show_mundane();
+
  private slots:
   void recompute();
   void open_records();
@@ -116,6 +119,7 @@ class MainWindow : public QMainWindow {
   QAction* compare_action_ = nullptr;
   QAction* composite_action_ = nullptr;
   QAction* directions_action_ = nullptr;
+  QAction* mundane_action_ = nullptr;
   double dir_jd_ = 0.0;
   bool dir_converse_ = false;
   double dir_vary_ = 0.0;
