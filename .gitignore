@@ -11,3 +11,6 @@ CMakeUserPresets.json
 
 # Working instructions, kept local
 /CLAUDE.md
+
+# tool logs
+aqtinstall.log
