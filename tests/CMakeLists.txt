@@ -10,6 +10,7 @@ add_executable(horcom_tests
   test_eph_file.cpp
   test_houses.cpp
   test_chart.cpp
+  test_aspects.cpp
 )
 
 target_link_libraries(horcom_tests PRIVATE horcom)
