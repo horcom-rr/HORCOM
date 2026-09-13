@@ -10,6 +10,7 @@
 #include <QListWidget>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QFileDialog>
 #include <QVBoxLayout>
 
 namespace horcom {
@@ -17,14 +18,10 @@ namespace horcom {
 KommenDialog::KommenDialog(const std::filesystem::path& dir, QWidget* parent) : QDialog(parent) {
   //RR TEXT-DATEI LESEN
   setWindowTitle(tr("Text-Datei lesen"));
-  entries_ = kommen_entries(dir);
   auto* v = new QVBoxLayout(this);
   auto* split = new QHBoxLayout();
   list_ = new QListWidget(this);
   list_->setFixedWidth(240);
-  for (const KommenEntry& e : entries_) {
-    list_->addItem(QString::fromUtf8(e.title.c_str()));
-  }
   text_ = new QPlainTextEdit(this);
   text_->setReadOnly(true);
   //RR FIXEDSYS, his reading box was fixed width
@@ -42,8 +39,30 @@ KommenDialog::KommenDialog(const std::filesystem::path& dir, QWidget* parent) : 
   auto* find_button = new QPushButton(tr("Suchen"), this);
   bottom->addWidget(find_, 1);
   bottom->addWidget(find_button);
+  // whoever keeps the original texts elsewhere points the reader there
+  auto* pick = new QPushButton(tr("Ordner wählen…"), this);
+  bottom->addWidget(pick);
   v->addLayout(bottom);
 
+  connect(list_, &QListWidget::currentRowChanged, this, &KommenDialog::show_entry);
+  connect(find_button, &QPushButton::clicked, this, &KommenDialog::search);
+  connect(find_, &QLineEdit::returnPressed, this, &KommenDialog::search);
+  connect(pick, &QPushButton::clicked, this, [this]() {
+    const QString chosen = QFileDialog::getExistingDirectory(this, tr("KOMMEN7P-Ordner wählen"));
+    if (!chosen.isEmpty()) {
+      reload(std::filesystem::path(chosen.toStdWString()));
+    }
+  });
+  reload(dir);
+  resize(920, 640);
+}
+
+void KommenDialog::reload(const std::filesystem::path& dir) {
+  entries_ = kommen_entries(dir);
+  list_->clear();
+  for (const KommenEntry& e : entries_) {
+    list_->addItem(QString::fromUtf8(e.title.c_str()));
+  }
   if (entries_.empty()) {
     text_->setPlainText(
         tr("Keine Kommentar-Texte gefunden.\n\n"
@@ -51,16 +70,12 @@ KommenDialog::KommenDialog(const std::filesystem::path& dir, QWidget* parent) : 
            "Repository. Wer sie besitzt, legt die Dateien des Ordners\n"
            "KOMMEN7P (KOMM1.TXT bis KOMM9.TXT, KOMMSTAT.TXT,\n"
            "AAF_KOMM.TXT, dazu AENDLIST.TXT, HINWEIS5.TXT und\n"
-           "KURZANL5.TXT) in den Ordner:\n\n    %1")
-            .arg(QString::fromStdWString((dir).wstring())));
-  }
-  connect(list_, &QListWidget::currentRowChanged, this, &KommenDialog::show_entry);
-  connect(find_button, &QPushButton::clicked, this, &KommenDialog::search);
-  connect(find_, &QLineEdit::returnPressed, this, &KommenDialog::search);
-  if (!entries_.empty()) {
+           "KURZANL5.TXT) in den Ordner:\n\n    %1\n\n"
+           "oder wählt seinen KOMMEN7P-Ordner unten direkt aus.")
+            .arg(QString::fromStdWString(dir.wstring())));
+  } else {
     list_->setCurrentRow(0);
   }
-  resize(920, 640);
 }
 
 void KommenDialog::show_entry(int row) {

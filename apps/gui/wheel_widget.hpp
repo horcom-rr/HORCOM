@@ -10,7 +10,9 @@
 
 namespace horcom {
 
-/// Paints the wheel display list, one more backend beside the SVG writer.
+/// Paints the wheel display list, one more backend beside the SVG
+/// writer. The mouse wheel zooms around the cursor, a left drag pans
+/// the zoomed sheet and a double click resets the view.
 class WheelWidget : public QWidget {
   Q_OBJECT
 
@@ -25,9 +27,19 @@ class WheelWidget : public QWidget {
 
  protected:
   void paintEvent(QPaintEvent* event) override;
+  void wheelEvent(QWheelEvent* event) override;
+  void mousePressEvent(QMouseEvent* event) override;
+  void mouseMoveEvent(QMouseEvent* event) override;
+  void mouseReleaseEvent(QMouseEvent* event) override;
+  void mouseDoubleClickEvent(QMouseEvent* event) override;
 
  private:
   DisplayList dl_;
+  double zoom_ = 1.0;
+  QPointF pan_;
+  QPointF drag_start_;
+  QPointF pan_start_;
+  bool dragging_ = false;
 };
 
 }  // namespace horcom

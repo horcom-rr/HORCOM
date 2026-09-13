@@ -27,6 +27,7 @@ class KommenDialog : public QDialog {
   explicit KommenDialog(const std::filesystem::path& dir, QWidget* parent = nullptr);
 
  private:
+  void reload(const std::filesystem::path& dir);
   void show_entry(int row);
   void search();
 

@@ -4,9 +4,12 @@
 
 #include "wheel_widget.hpp"
 
+#include <QMouseEvent>
 #include <QPaintEvent>
 #include <QPainter>
+#include <QWheelEvent>
 #include <algorithm>
+#include <cmath>
 
 #include "painter.hpp"
 
@@ -30,6 +33,9 @@ void WheelWidget::paintEvent(QPaintEvent* /*event*/) {
   if (dl_.items.empty()) {
     return;
   }
+  // the view the mouse built, pan then zoom about the origin
+  p.translate(pan_);
+  p.scale(zoom_, zoom_);
   // map the virtual canvas into the widget, aspect preserved, with a
   // margin for the paper card
   const double margin = 14.0;
@@ -53,6 +59,54 @@ void WheelWidget::paintEvent(QPaintEvent* /*event*/) {
   p.scale(s, s);
 
   paint_display_list(p, dl_);
+}
+
+void WheelWidget::wheelEvent(QWheelEvent* event) {
+  const double factor = std::pow(1.15, event->angleDelta().y() / 120.0);
+  const double next = std::clamp(zoom_ * factor, 1.0, 12.0);
+  const double f = next / zoom_;
+  // the point under the cursor stays put while the sheet grows
+  pan_ = event->position() - (event->position() - pan_) * f;
+  zoom_ = next;
+  if (zoom_ == 1.0) {
+    pan_ = QPointF();
+  }
+  update();
+  event->accept();
+}
+
+void WheelWidget::mousePressEvent(QMouseEvent* event) {
+  if (event->button() == Qt::LeftButton && zoom_ > 1.0) {
+    dragging_ = true;
+    drag_start_ = event->position();
+    pan_start_ = pan_;
+    setCursor(Qt::ClosedHandCursor);
+  }
+  QWidget::mousePressEvent(event);
+}
+
+void WheelWidget::mouseMoveEvent(QMouseEvent* event) {
+  if (dragging_) {
+    pan_ = pan_start_ + (event->position() - drag_start_);
+    update();
+  }
+  QWidget::mouseMoveEvent(event);
+}
+
+void WheelWidget::mouseReleaseEvent(QMouseEvent* event) {
+  if (dragging_) {
+    dragging_ = false;
+    unsetCursor();
+  }
+  QWidget::mouseReleaseEvent(event);
+}
+
+void WheelWidget::mouseDoubleClickEvent(QMouseEvent* event) {
+  // back to the whole sheet
+  zoom_ = 1.0;
+  pan_ = QPointF();
+  update();
+  QWidget::mouseDoubleClickEvent(event);
 }
 
 }  // namespace horcom
