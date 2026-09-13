@@ -200,16 +200,6 @@ void compute_kepler_body(const Ctx& c, int slot, int nk_index, double jd, const 
   par_ap_ktr(c, slot, b, sun_el, sun_eb);
 }
 
-//RR GL
-// the original ta_na and a901, the Part of Fortune by day or night birth
-int ta_na(double ac, double sun_el) {
-  const double w1 = norm_rad(ac + kPi);
-  double w2 = ac - kEps;
-  double w3 = sun_el;
-  vergl2(w1, w2, w3);
-  return (w1 < w3 && w3 < w2) ? 1 : 2;
-}
-
 // the original vel_om_pd, node and apogee speeds from a symmetric hour
 void node_apogee_speeds(const ChartSettings& s, double jd_et, Chart& chart) {
   //RR 1h
@@ -242,6 +232,16 @@ void node_apogee_speeds(const ChartSettings& s, double jd_et, Chart& chart) {
 }
 
 }  // namespace
+
+//RR GL
+// ported from HORCOM ta_na
+int ta_na(double ac, double sun_el) {
+  const double w1 = norm_rad(ac + kPi);
+  double w2 = ac - kEps;
+  double w3 = sun_el;
+  vergl2(w1, w2, w3);
+  return (w1 < w3 && w3 < w2) ? 1 : 2;
+}
 
 Chart compute_chart(const ChartInput& in, const ChartSettings& s, const VsopTables& vsop, const Ephemerides& eph) {
   Chart chart;

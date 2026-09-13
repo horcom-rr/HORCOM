@@ -154,9 +154,12 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
   // clears it in the hrg mode so zero Aries anchors the wheel
   const double fza = opt.heliocentric ? 0.0 : chart.houses.angles.ac;
 
-  // sign band as explicit annular sectors with the element colours
-  for (int j = 1; j <= 12; ++j) {
-    const double a0 = wheel_angle((j - 1) * kPi / 6.0, fza);
+  // sign band as explicit annular sectors with the element colours, the
+  // 90 degree circle keeps three sectors like the zein fill under dop 4
+  const int signs = opt.dial ? 3 : 12;
+  const double span = kTwoPi / signs;
+  for (int j = 1; j <= signs; ++j) {
+    const double a0 = wheel_angle((j - 1) * span, fza);
     Primitive sec;
     sec.kind = Primitive::Kind::kSector;
     sec.x1 = kCx;
@@ -164,7 +167,7 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
     sec.r1 = km * kSignInner;
     sec.r2 = km * kSignOuter;
     sec.a1 = a0;
-    sec.a2 = a0 + kPi / 6.0;
+    sec.a2 = a0 + span;
     sec.fill = kElementColor[(j - 1) % 4];
     sec.color = 0x000000;
     add(sec);
@@ -190,15 +193,16 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
     }
   }
   //RR Zeichentrenn-Linien
-  for (int j = 0; j < 12; ++j) {
-    const double w = wheel_angle(j * kPi / 6.0, fza);
+  for (int j = 0; j < signs; ++j) {
+    const double w = wheel_angle(j * span, fza);
     const Pt a = at(w, kSignInner - 1.0);
     const Pt b = at(w, kSignOuter + 1.0);
     add({Primitive::Kind::kLine, a.x, a.y, b.x, b.y});
   }
-  // sign glyphs centred in their sign like zein1
-  for (int j = 1; j <= 12; ++j) {
-    const double w = norm_rad(j * kPi / 6.0 + 11.0 * kPi / 12.0 - fza);
+  // sign glyphs centred in their sign like zein1, the dial shows the
+  // three qualities as their first signs
+  for (int j = 1; j <= signs; ++j) {
+    const double w = wheel_angle((j - 0.5) * span, fza);
     const Pt p = at(w, kSignGlyphRing);
     Primitive g;
     g.kind = Primitive::Kind::kGlyph;
@@ -211,8 +215,28 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
 
   // houses like horg11, thick axes to 188 with labels at 200, thin
   // cusps, the whole block stays dark in the hrg mode like the original
-  const bool houses_drawn = !opt.heliocentric && !(s.houses == HouseSystem::kAcMcOnly || s.houses == HouseSystem::kNone);
-  if (!opt.heliocentric && s.houses != HouseSystem::kNone) {
+  const bool houses_drawn = !opt.heliocentric && !opt.dial && !(s.houses == HouseSystem::kAcMcOnly || s.houses == HouseSystem::kNone);
+  if (opt.dial) {
+    // only AC and MC survive the times four, DC and IC land on them,
+    // aeqh blanks their labels
+    static constexpr const char* kDialLabel[2] = {"AC", "MC"};
+    const int dial_axes[2] = {1, 10};
+    for (int a = 0; a < 2; ++a) {
+      const double w = wheel_angle(chart.houses.cusp[static_cast<std::size_t>(dial_axes[a])], fza);
+      const Pt p1 = at(w, kAspectRing);
+      const Pt p2 = at(w, kAxisEnd);
+      add({Primitive::Kind::kLine, p1.x, p1.y, p2.x, p2.y, 0, 0, 0, 0, 0, 0x000000, 0xFFFFFF, Primitive::Style::kSolid, 2.0});
+      const Pt pl = at(w, kAxisLabel);
+      Primitive t;
+      t.kind = Primitive::Kind::kText;
+      t.x1 = pl.x;
+      t.y1 = pl.y;
+      t.size = kAxisTextSize;
+      t.text = kDialLabel[a];
+      add(t);
+    }
+  }
+  if (!opt.heliocentric && !opt.dial && s.houses != HouseSystem::kNone) {
     static constexpr const char* kAxisLabelText[4] = {"AC", "IC", "DC", "MC"};
     const int axes[4] = {1, 4, 7, 10};
     for (int a = 0; a < 4; ++a) {
@@ -457,7 +481,7 @@ DisplayList build_double_wheel(const Chart& inner, const Chart& outer, const Cha
       add({Primitive::Kind::kLine, p1.x, p1.y, p2.x, p2.y, 0, 0, 0, 0, 0, 0x000000, 0xFFFFFF, Primitive::Style::kSolid, 2.0});
     }
   }
-  if (!opt.heliocentric && !(s.houses == HouseSystem::kAcMcOnly || s.houses == HouseSystem::kNone)) {
+  if (!opt.heliocentric && !opt.dial && !(s.houses == HouseSystem::kAcMcOnly || s.houses == HouseSystem::kNone)) {
     for (int i : {2, 3, 5, 6, 8, 9, 11, 12}) {
       const double w = wheel_angle(outer.houses.cusp[static_cast<std::size_t>(i)], fza);
       const Pt p1 = at(w, kAspectRing);

@@ -85,6 +85,9 @@ struct WheelOptions {
   double scale = 0.0;
   /// the hrg mode, the moon slot carries the earth and wears its glyph
   bool heliocentric = false;
+  /// the 90 degree circle of a12, three sign sectors, AC and MC as the
+  /// only axes since DC and IC land on top of them
+  bool dial = false;
   /// which divisors draw chords, the stand in for the original's per
   /// aspect aspli flags until the KONSTA colours are wired through. The
   /// default shows the classical set, conjunction to sextile and the

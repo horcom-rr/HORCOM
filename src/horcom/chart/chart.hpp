@@ -63,6 +63,14 @@ struct Chart {
   std::array<BodyState, body::kSlotCount> b{};
 };
 
+/// The original ta_na, the day or night decision behind the Part of
+/// Fortune formulas.
+///
+/// @param ac     the ascendant in radians
+/// @param sun_el the sun's ecliptic longitude in radians
+/// @return 1 for a day chart, 2 for a night chart
+[[nodiscard]] int ta_na(double ac, double sun_el);
+
 /// Computes a geocentric chart.
 ///
 /// @param in    date in UT, place with east positive longitude

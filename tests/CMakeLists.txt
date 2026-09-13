@@ -9,6 +9,7 @@ add_executable(horcom_tests
   test_sunmoon.cpp
   test_kepler.cpp
   test_eph_file.cpp
+  test_harmonics.cpp
   test_houses.cpp
   test_chart.cpp
   test_transit_search.cpp
