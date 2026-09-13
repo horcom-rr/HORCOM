@@ -19,6 +19,8 @@ if(Qt6_FOUND)
     gui/place_dialog.hpp
     gui/record_dialog.cpp
     gui/record_dialog.hpp
+    gui/statist_dialog.cpp
+    gui/statist_dialog.hpp
     gui/transit_list_dialog.cpp
     gui/transit_list_dialog.hpp
     gui/wheel_widget.cpp

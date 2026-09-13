@@ -15,6 +15,7 @@
 #include "main_window.hpp"
 #include "place_dialog.hpp"
 #include "record_dialog.hpp"
+#include "statist_dialog.hpp"
 #include "theme.hpp"
 #include "transit_list_dialog.hpp"
 #include "zone_dialog.hpp"
@@ -103,6 +104,14 @@ int main(int argc, char** argv) {
     sample.country = "D";
     horcom::RecordDialog dialog(sample, countries);
     dialog.grab().save(args[shot_record + 1]);
+    return 0;
+  }
+  const int shot_statist = args.indexOf("--shot-statist");
+  if (shot_statist >= 0 && shot_statist + 2 < args.size()) {
+    horcom::StatistDialog dialog;
+    if (dialog.load(args[shot_statist + 2])) {
+      dialog.grab().save(args[shot_statist + 1]);
+    }
     return 0;
   }
   const int shot_list = args.indexOf("--shot-transit-list");

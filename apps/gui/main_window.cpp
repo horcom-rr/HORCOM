@@ -44,6 +44,7 @@
 #include "horcom/render/svg.hpp"
 #include "place_dialog.hpp"
 #include "record_dialog.hpp"
+#include "statist_dialog.hpp"
 #include "transit_list_dialog.hpp"
 #include "wheel_widget.hpp"
 #include "zone_dialog.hpp"
@@ -271,6 +272,7 @@ void MainWindow::build_ui() {
   file->addAction(tr("Datensätze öffnen…"), QKeySequence::Open, this, &MainWindow::open_records);
   file->addAction(tr("Datensatz bearbeiten…"), QKeySequence(Qt::CTRL | Qt::Key_D), this, &MainWindow::edit_record);
   file->addAction(tr("Ort suchen…"), QKeySequence(Qt::CTRL | Qt::Key_L), this, &MainWindow::open_place);
+  file->addAction(tr("Statistik…"), this, &MainWindow::open_statistics);
   file->addAction(tr("Als AAF speichern…"), QKeySequence::Save, this, &MainWindow::save_aaf);
   file->addAction(tr("Horoskop als SVG…"), this, &MainWindow::export_svg);
   file->addSeparator();
@@ -1044,6 +1046,48 @@ void MainWindow::refresh_record_label() {
                       .arg(d.month(), 2, 10, QChar('0'))
                       .arg(d.year());
   banner_->set_record(record_label_.trimmed());
+}
+
+void MainWindow::open_statistics() {
+  const QString path = QFileDialog::getOpenFileName(this, tr("Statistik-Datei öffnen"), QString(),
+                                                    tr("HORCOM Statistik (*.STA *.sta)"));
+  if (path.isEmpty()) {
+    return;
+  }
+  StatistDialog dialog(this);
+  if (!dialog.load(path)) {
+    QMessageBox::warning(this, "HORCOM", tr("Die Statistik-Datei ließ sich nicht laden, fehlt die .PAR daneben?"));
+    return;
+  }
+  if (dialog.exec() != QDialog::Accepted || !dialog.chosen()) {
+    return;
+  }
+  const StatRecord& r = *dialog.chosen();
+  if (r.year < 1) {
+    QMessageBox::information(this, "HORCOM",
+                             tr("Jahre vor 1 n.Chr. berechnet derzeit nur das Kommandozeilenwerkzeug."));
+    return;
+  }
+  // the store keeps the clock as the original computed it, treated as UT
+  record_ = AafRecord{};
+  record_.surname = r.name;
+  record_.place = r.place;
+  const QSignalBlocker b1(date_);
+  const QSignalBlocker b2(time_);
+  const QSignalBlocker b3(zone_);
+  const QSignalBlocker b4(lon_);
+  const QSignalBlocker b5(lat_);
+  date_->setDate(QDate(r.year, r.month, r.day));
+  int seconds = static_cast<int>((r.hour * 60.0 + r.minute) * 60.0 + 0.5);
+  if (seconds >= 86400) {
+    seconds = 86399;
+  }
+  time_->setTime(QTime(seconds / 3600, (seconds / 60) % 60, seconds % 60));
+  zone_->setValue(0.0);
+  lon_->setValue(r.lon);
+  lat_->setValue(r.lat);
+  recompute();
+  refresh_record_label();
 }
 
 void MainWindow::edit_record() {
