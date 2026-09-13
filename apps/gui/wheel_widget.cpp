@@ -1,0 +1,110 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// horcom, the C++ rewrite of HORCOM by Robert Rettig (1970s to 2010)
+// Copyright (c) 2026 Dominik Schwimmbeck
+
+#include "wheel_widget.hpp"
+
+#include <QPaintEvent>
+#include <QPainter>
+#include <QPainterPath>
+
+#include "horcom/core/constants.hpp"
+
+namespace horcom {
+
+namespace {
+
+QColor rgb(Rgb c, int alpha = 255) {
+  return QColor((c >> 16) & 0xFF, (c >> 8) & 0xFF, c & 0xFF, alpha);
+}
+
+Qt::PenStyle pen_style(Primitive::Style s) {
+  switch (s) {
+    case Primitive::Style::kDashed: return Qt::DashLine;
+    case Primitive::Style::kDotted: return Qt::DotLine;
+    default: return Qt::SolidLine;
+  }
+}
+
+}  // namespace
+
+WheelWidget::WheelWidget(QWidget* parent) : QWidget(parent) {
+  setMinimumSize(480, 360);
+}
+
+void WheelWidget::set_display_list(DisplayList dl) {
+  dl_ = std::move(dl);
+  update();
+}
+
+void WheelWidget::paintEvent(QPaintEvent* /*event*/) {
+  QPainter p(this);
+  p.setRenderHint(QPainter::Antialiasing, true);
+  p.setRenderHint(QPainter::TextAntialiasing, true);
+  p.fillRect(rect(), Qt::white);
+  if (dl_.items.empty()) {
+    return;
+  }
+  // map the virtual canvas into the widget, aspect preserved
+  const double s = std::min(width() / dl_.width, height() / dl_.height);
+  p.translate((width() - dl_.width * s) / 2.0, (height() - dl_.height * s) / 2.0);
+  p.scale(s, s);
+
+  QFont font = p.font();
+  for (const Primitive& item : dl_.items) {
+    switch (item.kind) {
+      case Primitive::Kind::kCircle: {
+        p.setPen(QPen(rgb(item.color), item.width));
+        p.setBrush(Qt::NoBrush);
+        p.drawEllipse(QPointF(item.x1, item.y1), item.r1, item.r1);
+        break;
+      }
+      case Primitive::Kind::kLine: {
+        QPen pen(rgb(item.color), item.width);
+        pen.setStyle(pen_style(item.style));
+        p.setPen(pen);
+        p.drawLine(QPointF(item.x1, item.y1), QPointF(item.x2, item.y2));
+        break;
+      }
+      case Primitive::Kind::kSector: {
+        // the wheel angle equals the Qt arc angle, both run counter
+        // clockwise on screen
+        const QRectF outer(item.x1 - item.r2, item.y1 - item.r2, 2.0 * item.r2, 2.0 * item.r2);
+        const QRectF inner(item.x1 - item.r1, item.y1 - item.r1, 2.0 * item.r1, 2.0 * item.r1);
+        const double a1 = item.a1 * kRadToDeg;
+        const double sweep = (item.a2 - item.a1) * kRadToDeg;
+        QPainterPath path;
+        path.arcMoveTo(inner, a1);
+        const QPointF start = path.currentPosition();
+        path.arcMoveTo(outer, a1);
+        const QPointF outer_start = path.currentPosition();
+        path.moveTo(start);
+        path.lineTo(outer_start);
+        path.arcTo(outer, a1, sweep);
+        path.arcTo(inner, a1 + sweep, -sweep);
+        path.closeSubpath();
+        p.setPen(QPen(rgb(item.color), 0.5));
+        p.setBrush(rgb(item.fill, 64));
+        p.drawPath(path);
+        break;
+      }
+      case Primitive::Kind::kGlyph:
+      case Primitive::Kind::kText: {
+        p.setPen(QPen(rgb(item.color)));
+        font.setPixelSize(static_cast<int>(item.size));
+        p.setFont(font);
+        const QRectF box(item.x1 - 40.0, item.y1 - 20.0, 80.0, 40.0);
+        p.drawText(box, Qt::AlignCenter, QString::fromStdString(item.text));
+        break;
+      }
+      case Primitive::Kind::kDot: {
+        p.setPen(Qt::NoPen);
+        p.setBrush(rgb(item.color));
+        p.drawEllipse(QPointF(item.x1, item.y1), item.r1, item.r1);
+        break;
+      }
+    }
+  }
+}
+
+}  // namespace horcom

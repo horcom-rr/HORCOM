@@ -64,6 +64,12 @@ struct DisplayList {
 struct WheelOptions {
   /// draw the aspect chords of a scan result
   bool aspect_lines = true;
+  /// which divisors draw chords, the stand in for the original's per
+  /// aspect aspli flags until the KONSTA colours are wired through. The
+  /// default shows the classical set, conjunction to sextile and the
+  /// quincunx family
+  std::array<bool, 17> chord_divisor = {false, true, true,  true,  true,  true, true, false, false,
+                                        false, false, false, true, false, false, false, false};
   /// draw the blue dashed node axis like the original Mondknotenlinie
   bool node_axis = true;
   /// print the degree within sign under each glyph, the original pziff

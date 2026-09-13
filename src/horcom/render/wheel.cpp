@@ -274,9 +274,13 @@ DisplayList build_wheel(const Chart& chart, const ChartSettings& s, const Aspect
     add({Primitive::Kind::kLine, a.x, a.y, b.x, b.y, 0, 0, 0, 0, 0, 0x0000FF, 0xFFFFFF, Primitive::Style::kDashed, 1.0});
   }
 
-  // aspect chords on the inner ring like aspz0 and aspz1
+  // aspect chords on the inner ring like aspz0 and aspz1, gated per
+  // divisor like the original aspli flags
   if (opt.aspect_lines) {
     for (const AspectHit& h : aspects.hits) {
+      if (h.n < 1 || h.n > 16 || !opt.chord_divisor[static_cast<std::size_t>(h.n)]) {
+        continue;
+      }
       const double w1 = wheel_angle(chart.b[static_cast<std::size_t>(h.t)].el, fza);
       const double w2 = wheel_angle(chart.b[static_cast<std::size_t>(h.w)].el, fza);
       if (h.n == 1) {

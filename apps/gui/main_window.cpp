@@ -1,0 +1,399 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// horcom, the C++ rewrite of HORCOM by Robert Rettig (1970s to 2010)
+// Copyright (c) 2026 Dominik Schwimmbeck
+
+#include "main_window.hpp"
+
+#include <QCheckBox>
+#include <QComboBox>
+#include <QDateEdit>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QDockWidget>
+#include <QDoubleSpinBox>
+#include <QFile>
+#include <QFileDialog>
+#include <QFormLayout>
+#include <QHeaderView>
+#include <QLabel>
+#include <QListWidget>
+#include <QMenuBar>
+#include <QMessageBox>
+#include <QTableWidget>
+#include <QTimeEdit>
+#include <QVBoxLayout>
+
+#include "horcom/core/angle.hpp"
+#include "horcom/core/constants.hpp"
+#include "horcom/render/svg.hpp"
+#include "wheel_widget.hpp"
+
+namespace horcom {
+
+namespace {
+
+// the sign tags of the original zei$ table
+constexpr const char* kSignTag[12] = {"AR", "TA", "GM", "CN", "LE", "VI", "LI", "SC", "SG", "CP", "AQ", "PS"};
+
+QString zodiac(double rad) {
+  const double deg = norm_deg(rad * kRadToDeg);
+  const int sign = static_cast<int>(deg / kDegPerSign);
+  const double in_sign = deg - sign * kDegPerSign;
+  int total = static_cast<int>(in_sign * 3600.0 + 0.5);
+  return QString::asprintf("%2d %s %02d'%02d\"", total / 3600, kSignTag[sign], (total / 60) % 60, total % 60);
+}
+
+QString degs(double rad) {
+  return QString::asprintf("%+9.4f", rad * kRadToDeg);
+}
+
+}  // namespace
+
+MainWindow::MainWindow(VsopTables vsop, Ephemerides eph, QWidget* parent)
+    : QMainWindow(parent), vsop_(std::move(vsop)), eph_(std::move(eph)) {
+  build_ui();
+  recompute();
+}
+
+void MainWindow::build_ui() {
+  setWindowTitle("HORCOM");
+  setWindowIcon(QIcon(":/logo.svg"));
+
+  wheel_ = new WheelWidget(this);
+  auto* central = new QWidget(this);
+  auto* layout = new QVBoxLayout(central);
+  header_ = new QLabel(central);
+  header_->setAlignment(Qt::AlignCenter);
+  layout->addWidget(header_);
+  layout->addWidget(wheel_, 1);
+  setCentralWidget(central);
+
+  // the input panel
+  auto* input_dock = new QDockWidget(tr("Eingabe"), this);
+  input_dock->setFeatures(QDockWidget::DockWidgetMovable);
+  auto* form_host = new QWidget(input_dock);
+  auto* form = new QFormLayout(form_host);
+  date_ = new QDateEdit(QDate(1992, 10, 13), form_host);
+  date_->setCalendarPopup(true);
+  date_->setDisplayFormat("dd.MM.yyyy");
+  time_ = new QTimeEdit(QTime(3, 0), form_host);
+  time_->setDisplayFormat("HH:mm:ss");
+  zone_ = new QDoubleSpinBox(form_host);
+  zone_->setRange(-14.0, 14.0);
+  zone_->setDecimals(2);
+  zone_->setSingleStep(0.5);
+  zone_->setValue(0.0);
+  lon_ = new QDoubleSpinBox(form_host);
+  lon_->setRange(-180.0, 180.0);
+  lon_->setDecimals(4);
+  lon_->setValue(11.3244);
+  lat_ = new QDoubleSpinBox(form_host);
+  lat_->setRange(-89.99, 89.99);
+  lat_->setDecimals(4);
+  lat_->setValue(48.1742);
+  houses_ = new QComboBox(form_host);
+  // his menu order in hausw
+  houses_->addItems({"PLACIDUS", "TOPOZENTRISCH", "KOCH-GOH", "REGIOMONTANUS", "CAMPANUS",
+                     "ÄQUAL EKLIPTIKAL ab AC", "ÄQUAL n. VEHLOW", "NUR AC und MC", "KEINE"});
+  parallax_ = new QCheckBox(tr("Parallaxe (topozentrisch)"), form_host);
+  // off at startup like the original klpl!
+  extras_ = new QCheckBox(tr("Zusatzplaneten"), form_host);
+  true_node_ = new QCheckBox(tr("Wahrer Mondknoten"), form_host);
+  true_apogee_ = new QCheckBox(tr("Wahres Apogäum"), form_host);
+  form->addRow(tr("Datum"), date_);
+  form->addRow(tr("Zeit"), time_);
+  form->addRow(tr("Zone (h östl.)"), zone_);
+  form->addRow(tr("Länge (Ost +)"), lon_);
+  form->addRow(tr("Breite (Nord +)"), lat_);
+  form->addRow(tr("Häuser"), houses_);
+  form->addRow(parallax_);
+  form->addRow(extras_);
+  form->addRow(true_node_);
+  form->addRow(true_apogee_);
+  input_dock->setWidget(form_host);
+  addDockWidget(Qt::LeftDockWidgetArea, input_dock);
+
+  // the result docks
+  auto* body_dock = new QDockWidget(tr("Koordinaten"), this);
+  bodies_ = new QTableWidget(0, 5, body_dock);
+  bodies_->setHorizontalHeaderLabels({tr("Länge"), tr("Breite"), tr("Deklin."), tr("Geschw."), ""});
+  bodies_->horizontalHeader()->setStretchLastSection(true);
+  bodies_->verticalHeader()->setDefaultSectionSize(18);
+  bodies_->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  body_dock->setWidget(bodies_);
+  addDockWidget(Qt::RightDockWidgetArea, body_dock);
+
+  auto* cusp_dock = new QDockWidget(tr("Häuser"), this);
+  auto* cusp_host = new QWidget(cusp_dock);
+  auto* cusp_layout = new QVBoxLayout(cusp_host);
+  cusps_ = new QTableWidget(12, 1, cusp_host);
+  cusps_->setHorizontalHeaderLabels({tr("Spitze")});
+  cusps_->horizontalHeader()->setStretchLastSection(true);
+  cusps_->verticalHeader()->setDefaultSectionSize(18);
+  cusps_->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  aspects_label_ = new QLabel(cusp_host);
+  aspects_label_->setWordWrap(true);
+  cusp_layout->addWidget(cusps_, 1);
+  cusp_layout->addWidget(aspects_label_);
+  cusp_dock->setWidget(cusp_host);
+  addDockWidget(Qt::RightDockWidgetArea, cusp_dock);
+
+  // the menu
+  QMenu* file = menuBar()->addMenu(tr("&Datei"));
+  file->addAction(tr("Datensätze öffnen…"), QKeySequence::Open, this, &MainWindow::open_records);
+  file->addAction(tr("Als AAF speichern…"), QKeySequence::Save, this, &MainWindow::save_aaf);
+  file->addAction(tr("Horoskop als SVG…"), this, &MainWindow::export_svg);
+  file->addSeparator();
+  file->addAction(tr("Beenden"), QKeySequence::Quit, this, &QWidget::close);
+  QMenu* help = menuBar()->addMenu(tr("&Hilfe"));
+  help->addAction(tr("Über HORCOM"), this, &MainWindow::about);
+
+  // recompute on every change like the original recalculated per screen
+  connect(date_, &QDateEdit::dateChanged, this, &MainWindow::recompute);
+  connect(time_, &QTimeEdit::timeChanged, this, &MainWindow::recompute);
+  connect(zone_, &QDoubleSpinBox::valueChanged, this, &MainWindow::recompute);
+  connect(lon_, &QDoubleSpinBox::valueChanged, this, &MainWindow::recompute);
+  connect(lat_, &QDoubleSpinBox::valueChanged, this, &MainWindow::recompute);
+  connect(houses_, &QComboBox::currentIndexChanged, this, &MainWindow::recompute);
+  for (QCheckBox* box : {parallax_, extras_, true_node_, true_apogee_}) {
+    connect(box, &QCheckBox::toggled, this, &MainWindow::recompute);
+  }
+  resize(1280, 760);
+}
+
+ChartInput MainWindow::current_input() const {
+  ChartInput in;
+  const QDate d = date_->date();
+  const QTime t = time_->time();
+  CalendarDate local{d.day(), d.month(), d.year(), static_cast<double>(t.hour()),
+                     t.minute() + t.second() / 60.0};
+  // zone hours east of Greenwich lead back to UT by subtraction
+  const double jd_ut = julian_day(local) - zone_->value() / 24.0;
+  in.date_ut = calendar_date(jd_ut);
+  in.lon_deg_east = lon_->value();
+  in.lat_deg = lat_->value();
+  return in;
+}
+
+ChartSettings MainWindow::current_settings() const {
+  ChartSettings s;
+  s.houses = static_cast<HouseSystem>(houses_->currentIndex() + 1);
+  s.topocentric_parallax = parallax_->isChecked();
+  s.true_node = true_node_->isChecked();
+  s.true_apogee = true_apogee_->isChecked();
+  if (extras_->isChecked()) {
+    s.enable_standard_extras();
+  }
+  return s;
+}
+
+void MainWindow::recompute() {
+  const ChartInput in = current_input();
+  const ChartSettings s = current_settings();
+  const Chart chart = compute_chart(in, s, vsop_, eph_);
+  if (!chart.ok) {
+    //RR Geog. Breite zu groß !
+    header_->setText(tr("Geog. Breite zu groß für dieses Häusersystem"));
+    return;
+  }
+  const AspectResult aspects = scan_aspects(chart, s, {});
+  last_chart_ = chart;
+  last_aspects_ = aspects;
+  wheel_->set_display_list(build_wheel(chart, s, aspects));
+  header_->setText(QString("JD(UT) %1   ΔT %2 min   ARMC %3°   %4%5")
+                       .arg(chart.jd_ut, 0, 'f', 5)
+                       .arg(chart.delt_minutes, 0, 'f', 2)
+                       .arg(chart.armc_deg, 0, 'f', 4)
+                       .arg(QString::fromUtf8(chart.houses.name.data(), static_cast<int>(chart.houses.name.size())))
+                       .arg(s.topocentric_parallax ? "   MitParall." : ""));
+  fill_tables(chart, aspects);
+}
+
+void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
+  bodies_->setRowCount(0);
+  QStringList row_names;
+  for (int slot = 0; slot <= 40; ++slot) {
+    const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
+    if (!b.present) {
+      continue;
+    }
+    const int row = bodies_->rowCount();
+    bodies_->insertRow(row);
+    row_names << QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
+                                   static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size()));
+    if (!b.valid) {
+      bodies_->setItem(row, 0, new QTableWidgetItem(tr("außerhalb der Ephemeride")));
+      continue;
+    }
+    const bool angle_slot = slot == body::kAscendant || slot == body::kMc;
+    bodies_->setItem(row, 0, new QTableWidgetItem(zodiac(b.el)));
+    if (!angle_slot) {
+      bodies_->setItem(row, 1, new QTableWidgetItem(degs(b.eb)));
+      bodies_->setItem(row, 2, new QTableWidgetItem(degs(b.de)));
+      bodies_->setItem(row, 3, new QTableWidgetItem(degs(b.tb)));
+      bodies_->setItem(row, 4, new QTableWidgetItem(b.tb < 0.0 ? "R" : ""));
+    }
+  }
+  bodies_->setVerticalHeaderLabels(row_names);
+  for (int i = 1; i <= 12; ++i) {
+    cusps_->setItem(i - 1, 0, new QTableWidgetItem(zodiac(chart.houses.cusp[static_cast<std::size_t>(i)])));
+  }
+  aspects_label_->setText(tr("Aspekte  konj %1  opp %2  trigon %3  quadrat %4  sextil %5")
+                              .arg(aspects.zh[1])
+                              .arg(aspects.zh[2])
+                              .arg(aspects.zh[3])
+                              .arg(aspects.zh[4])
+                              .arg(aspects.zh[6]));
+}
+
+void MainWindow::open_records() {
+  const QString path = QFileDialog::getOpenFileName(this, tr("Datensätze öffnen"), QString(),
+                                                    tr("HORCOM Datensätze (*.DAT *.dat *.AAF *.aaf)"));
+  if (path.isEmpty()) {
+    return;
+  }
+  std::vector<AafRecord> records;
+  if (path.endsWith(".aaf", Qt::CaseInsensitive)) {
+    const auto r = read_aaf(path.toStdWString());
+    if (r) {
+      records = *r;
+    }
+  } else {
+    const auto r = read_chart_file(path.toStdWString());
+    if (r) {
+      for (const ChartRecord& c : *r) {
+        AafRecord a;
+        a.surname = c.name;
+        a.day = c.day;
+        a.month = c.month;
+        a.year = c.year;
+        a.hour = static_cast<int>(c.hour);
+        a.minute = static_cast<int>(c.minute);
+        a.second = static_cast<int>((c.minute - static_cast<int>(c.minute)) * 60.0 + 0.5);
+        a.place = c.place;
+        a.comment = c.remark;
+        a.calendar = c.calendar();
+        a.lat_ns = c.lat < 0 ? 'S' : 'N';
+        a.lon_ew = c.lon < 0 ? 'W' : 'E';
+        const double alat = std::abs(c.lat);
+        const double alon = std::abs(c.lon);
+        a.lat_deg = static_cast<int>(alat);
+        a.lat_min = static_cast<int>((alat - a.lat_deg) * 60.0);
+        a.lat_sec = static_cast<int>(((alat - a.lat_deg) * 60.0 - a.lat_min) * 60.0 + 0.5);
+        a.lon_deg = static_cast<int>(alon);
+        a.lon_min = static_cast<int>((alon - a.lon_deg) * 60.0);
+        a.lon_sec = static_cast<int>(((alon - a.lon_deg) * 60.0 - a.lon_min) * 60.0 + 0.5);
+        // the DAT clock is already UT
+        a.zone = "00hE00:00";
+        records.push_back(std::move(a));
+      }
+    }
+  }
+  if (records.empty()) {
+    QMessageBox::warning(this, "HORCOM", tr("Keine Datensätze gefunden."));
+    return;
+  }
+  QDialog dialog(this);
+  dialog.setWindowTitle(tr("Datensatz wählen"));
+  auto* v = new QVBoxLayout(&dialog);
+  auto* list = new QListWidget(&dialog);
+  for (const AafRecord& r : records) {
+    list->addItem(QString("%1 %2   %3.%4.%5   %6")
+                      .arg(QString::fromStdString(r.surname), QString::fromStdString(r.given))
+                      .arg(r.day, 2, 10, QChar('0'))
+                      .arg(r.month, 2, 10, QChar('0'))
+                      .arg(r.year)
+                      .arg(QString::fromStdString(r.place)));
+  }
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+  connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+  connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+  connect(list, &QListWidget::itemDoubleClicked, &dialog, &QDialog::accept);
+  v->addWidget(list, 1);
+  v->addWidget(buttons);
+  dialog.resize(560, 420);
+  if (dialog.exec() == QDialog::Accepted && list->currentRow() >= 0) {
+    apply_record(records[static_cast<std::size_t>(list->currentRow())]);
+  }
+}
+
+void MainWindow::apply_record(const AafRecord& r) {
+  if (r.year < 1) {
+    QMessageBox::information(this, "HORCOM",
+                             tr("Jahre vor 1 n.Chr. berechnet derzeit nur das Kommandozeilenwerkzeug."));
+    return;
+  }
+  const QSignalBlocker b1(date_);
+  const QSignalBlocker b2(time_);
+  const QSignalBlocker b3(zone_);
+  const QSignalBlocker b4(lon_);
+  const QSignalBlocker b5(lat_);
+  date_->setDate(QDate(r.year, r.month, r.day));
+  time_->setTime(QTime(r.hour, r.minute, r.second));
+  // zone strings like 01hE00:00 mean the clock is zone time, east leads
+  double zone_hours = 0.0;
+  if (r.zone.size() >= 3 && (r.zone.find('E') != std::string::npos || r.zone.find('W') != std::string::npos)) {
+    zone_hours = std::atof(r.zone.c_str());
+    if (r.zone.find('W') != std::string::npos) {
+      zone_hours = -zone_hours;
+    }
+  }
+  zone_->setValue(zone_hours);
+  lon_->setValue(r.longitude());
+  lat_->setValue(r.latitude());
+  recompute();
+}
+
+void MainWindow::save_aaf() {
+  const ChartInput in = current_input();
+  const QString path = QFileDialog::getSaveFileName(this, tr("Als AAF speichern"), "chart.aaf", tr("AAF (*.aaf)"));
+  if (path.isEmpty()) {
+    return;
+  }
+  AafRecord r;
+  r.surname = "horcom";
+  r.day = in.date_ut.day;
+  r.month = in.date_ut.month;
+  r.year = in.date_ut.year;
+  r.hour = static_cast<int>(in.date_ut.hour);
+  r.minute = static_cast<int>(in.date_ut.minute);
+  r.second = static_cast<int>((in.date_ut.minute - r.minute) * 60.0 + 0.5);
+  r.zone = "00hE00:00";
+  const double alat = std::abs(in.lat_deg);
+  const double alon = std::abs(in.lon_deg_east);
+  r.lat_ns = in.lat_deg < 0 ? 'S' : 'N';
+  r.lon_ew = in.lon_deg_east < 0 ? 'W' : 'E';
+  r.lat_deg = static_cast<int>(alat);
+  r.lat_min = static_cast<int>((alat - r.lat_deg) * 60.0 + 0.5);
+  r.lon_deg = static_cast<int>(alon);
+  r.lon_min = static_cast<int>((alon - r.lon_deg) * 60.0 + 0.5);
+  r.jd = julian_day(in.date_ut);
+  if (!write_aaf(path.toStdWString(), {r})) {
+    QMessageBox::warning(this, "HORCOM", tr("Speichern fehlgeschlagen."));
+  }
+}
+
+void MainWindow::export_svg() {
+  if (!last_chart_ || !last_aspects_) {
+    return;
+  }
+  const QString path = QFileDialog::getSaveFileName(this, tr("Horoskop als SVG"), "wheel.svg", tr("SVG (*.svg)"));
+  if (path.isEmpty()) {
+    return;
+  }
+  const std::string svg = to_svg(build_wheel(*last_chart_, current_settings(), *last_aspects_));
+  QFile f(path);
+  if (f.open(QIODevice::WriteOnly)) {
+    f.write(svg.data(), static_cast<qint64>(svg.size()));
+  }
+}
+
+void MainWindow::about() {
+  QMessageBox::about(this, tr("Über HORCOM"),
+                     tr("<b>horcom</b><br>Die C++ Neufassung von HORCOM,<br>"
+                        "geschrieben von Robert Rettig, 1970er bis 2010.<br><br>"
+                        "Im Andenken an Robert Rettig, der all dies zuerst gebaut hat.<br><br>"
+                        "GPL-3.0-or-later · betreut von Dominik Schwimmbeck"));
+}
+
+}  // namespace horcom
