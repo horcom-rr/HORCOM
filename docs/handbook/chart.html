@@ -44,6 +44,7 @@ topocentric parallax.
   <tr><td><code>prima, primhorg, richtung$</code></td><td><code>direct_axes</code></td><td><code>src/horcom/chart/directions.*</code></td></tr>
   <tr><td><code>mundan, mundh1, md11, md, mundhorp, mundhorh</code></td><td><code>mundane_longitude, to_mundane</code></td><td><code>src/horcom/chart/mundane.*</code></td></tr>
   <tr><td>the <code>hrg!</code> branches of <code>plko_einz</code> and <code>par</code></td><td><code>helio_display</code> and the heliocentric gates of <code>compute_chart</code></td><td><code>src/horcom/chart/chart.cpp</code></td></tr>
+  <tr><td><code>harm21, a901_m, mc_armcb</code> CASE 7, <code>a12f</code></td><td><code>harmonic_chart, dial_chart, dial_display</code></td><td><code>src/horcom/chart/harmonics.*</code></td></tr>
 </table>
 
 <h2>The two clocks of the original</h2>
@@ -212,6 +213,24 @@ unchanged over whatever stands on the slots, exactly his trick of
 reusing one machinery for every mode.
 </p>
 
+<h2>Harmonics and the 90 degree circle</h2>
+<p>
+A harmonic multiplies every longitude onto an integer order, harm21's
+world. The south node follows the transformed north node by half a
+circle rather than turning itself, which differs for even orders,
+Transpluto drops out exactly as his CASE list leaves it, and the Part
+of Fortune rebuilds from the harmonic angles through the day and night
+formulas of a901_m. Houses answer his haus_ber question, treated like
+bodies every cusp multiplies, or the new MC derives a fresh ARMC and
+the whole house system recomputes at the birth latitude. The 90 degree
+circle of a12f is the times four special case on the double wheel, the
+aspect scan runs on the multiplied state including the angles, then
+the AC and MC glyphs divide back into the first quarter for display
+exactly like his pl(13) line. The shell offers both from the Horoskop
+menu, the harmonic as its own double wheel over the radix and the dial
+as the second mode of the comparison.
+</p>
+
 <h2>Verification</h2>
 <p>
 <code>test_houses.cpp</code> checks the angles against independent textbook
@@ -229,6 +248,9 @@ the independent vector computation to a nanoradian. The heliocentric
 mode pins the Earth on the Moon's slot at the Meeus geometric longitude,
 the planets against their own sun centred state, and the absence of
 every geocentric idea including the houses.
+<code>test_harmonics.cpp</code> pins the multiplied longitudes, the even
+order node quirk, the dark Transpluto, the rebuilt Part of Fortune,
+both house answers and the a12f transform with its divide back.
 </p>
 
 </main>
