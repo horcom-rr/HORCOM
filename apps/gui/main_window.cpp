@@ -33,6 +33,7 @@
 #include <initializer_list>
 
 #include "banner.hpp"
+#include "horcom/chart/composite.hpp"
 #include "horcom/chart/transit_search.hpp"
 #include "ingress_dialog.hpp"
 #include "horcom/core/angle.hpp"
@@ -297,6 +298,24 @@ void MainWindow::build_ui() {
     }
     recompute();
   });
+  // the composite over the same partner, house mode from his profile
+  composite_action_ = horo->addAction(tr("Composit"));
+  composite_action_->setCheckable(true);
+  connect(composite_action_, &QAction::toggled, this, [this](bool on) {
+    if (on && !partner_chart_) {
+      const auto r = choose_record(tr("Vergleichs-Datensatz wählen"));
+      if (!r || !set_partner(*r)) {
+        const QSignalBlocker block(composite_action_);
+        composite_action_->setChecked(false);
+        return;
+      }
+    }
+    recompute();
+    if (!on && !partner_chart_) {
+      banner_->set_record(record_label_.trimmed());
+    }
+  });
+  horo->addAction(tr("Combin…"), this, &MainWindow::combin_chart);
   horo->addSeparator();
   //RR Solange UHR SICHTBAR wird HOROSKOP ALLE 15 SEK NACHGEZEICHNET !
   clock_action_ = horo->addAction(tr("Uhr"));
@@ -430,6 +449,10 @@ void MainWindow::recompute() {
 
   bool transit_drawn = false;
   QString cross_text;
+  Chart comp_holder;
+  AspectResult comp_aspects_holder;
+  const Chart* shown = &chart;
+  const AspectResult* shown_aspects = &aspects;
   if (clock) {
     WheelOptions opt = wopt;
     //RR " UHR "
@@ -458,6 +481,25 @@ void MainWindow::recompute() {
       cross_text = tr("<span style='color:#D4A94A'>TRANSITE</span>&nbsp; ");
       cross_text += cross.empty() ? tr("keine") : cross_hits_text(cross);
     }
+  } else if (composite_action_ != nullptr && composite_action_->isChecked() && partner_chart_) {
+    // the a13 composite, house mode from his profile flags, the panel
+    // place stands in as the Robert Hand residence
+    const CompositeHouses mode = konsta_.comp_mstz
+                                     ? CompositeHouses::kMeanSidereal
+                                     : (konsta_.comp_hand ? CompositeHouses::kRobertHand : CompositeHouses::kSchematic);
+    comp_holder = composite_chart(chart, in, *partner_chart_, partner_input_, mode, lat_->value(), s);
+    comp_aspects_holder = scan_aspects(comp_holder, s, aspect_settings_);
+    WheelOptions opt = wopt;
+    opt.center_label = "COMPOSIT";
+    wheel_->set_display_list(build_wheel(comp_holder, s, comp_aspects_holder, opt));
+    shown = &comp_holder;
+    shown_aspects = &comp_aspects_holder;
+    transit_drawn = true;
+    QString mine = QString::fromStdString(record_.surname).trimmed();
+    if (mine.isEmpty()) {
+      mine = "RADIX";
+    }
+    banner_->set_record(QString("COMPOSIT %1-%2").arg(mine, partner_name_));
   } else if (partner_chart_) {
     // the a12 double wheel, the partner outside at full scale
     wheel_->set_display_list(build_double_wheel(chart, *partner_chart_, s, aspects, wopt));
@@ -480,7 +522,7 @@ void MainWindow::recompute() {
                         .arg(chart.armc_deg, 0, 'f', 4)
                         .arg(QString::fromUtf8(chart.houses.name.data(), static_cast<int>(chart.houses.name.size())))
                         .arg(s.topocentric_parallax ? "   MitParall." : ""));
-  fill_tables(chart, aspects);
+  fill_tables(*shown, *shown_aspects);
   if (!cross_text.isEmpty()) {
     aspects_label_->setText(cross_text);
   }
@@ -680,6 +722,25 @@ void MainWindow::ingress_table() {
   }
 }
 
+void MainWindow::combin_chart() {
+  const auto r = choose_record(tr("Combin-Datensatz wählen"));
+  if (!r || (r->year < 1 && r->jd <= 0.0)) {
+    return;
+  }
+  // the a14 mean of moment and place lands in the panel as one chart
+  const ChartInput mixed = combin_input({current_input(), record_input(*r)}, current_settings().calendar);
+  const QSignalBlocker b1(lon_);
+  const QSignalBlocker b2(lat_);
+  lon_->setValue(mixed.lon_deg_east);
+  lat_->setValue(mixed.lat_deg);
+  QString mine = QString::fromStdString(record_.surname).trimmed();
+  if (mine.isEmpty()) {
+    mine = "RADIX";
+  }
+  apply_moment(julian_day(mixed.date_ut, current_settings().calendar),
+               QString("COMBIN %1-%2").arg(mine, QString::fromStdString(r->surname).trimmed()));
+}
+
 void MainWindow::show_transits(const QDate& date, const QTime& time) {
   const QSignalBlocker b1(tdate_);
   const QSignalBlocker b2(ttime_);
@@ -816,11 +877,13 @@ bool MainWindow::set_partner(const AafRecord& r) {
   if (r.year < 1 && r.jd <= 0.0) {
     return false;
   }
-  const Chart partner = compute_chart(record_input(r), current_settings(), vsop_, eph_);
+  const ChartInput pin = record_input(r);
+  const Chart partner = compute_chart(pin, current_settings(), vsop_, eph_);
   if (!partner.ok) {
     return false;
   }
   partner_chart_ = partner;
+  partner_input_ = pin;
   partner_name_ = QString::fromStdString(r.surname).trimmed();
   if (partner_name_.isEmpty()) {
     partner_name_ = QString::fromStdString(r.given).trimmed();
@@ -833,6 +896,12 @@ void MainWindow::show_compare(const AafRecord& partner) {
     const QSignalBlocker block(compare_action_);
     compare_action_->setChecked(true);
     recompute();
+  }
+}
+
+void MainWindow::show_composite(const AafRecord& partner) {
+  if (set_partner(partner)) {
+    composite_action_->setChecked(true);
   }
 }
 

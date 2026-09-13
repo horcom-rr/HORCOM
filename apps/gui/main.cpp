@@ -158,6 +158,22 @@ int main(int argc, char** argv) {
     partner.lon_min = 19;
     window.show_compare(partner);
   }
+  const int shot_composite = args.indexOf("--shot-composite");
+  if (shot_composite >= 0) {
+    shot = shot_composite;
+    horcom::AafRecord partner;
+    partner.surname = "Partner";
+    partner.day = 1;
+    partner.month = 6;
+    partner.year = 1990;
+    partner.hour = 12;
+    partner.zone = "00hE00:00";
+    partner.lat_deg = 48;
+    partner.lat_min = 10;
+    partner.lon_deg = 11;
+    partner.lon_min = 19;
+    window.show_composite(partner);
+  }
   if (shot >= 0) {
     window.showMinimized();
   } else {

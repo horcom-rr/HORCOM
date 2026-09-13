@@ -54,6 +54,9 @@ class MainWindow : public QMainWindow {
   /// capture hook's path into the Vergleich toggle.
   void show_compare(const AafRecord& partner);
 
+  /// Opens the composite over the given partner record.
+  void show_composite(const AafRecord& partner);
+
  private slots:
   void recompute();
   void open_records();
@@ -64,6 +67,7 @@ class MainWindow : public QMainWindow {
   void lunar_chart();
   void transit_list();
   void ingress_table();
+  void combin_chart();
   void save_aaf();
   void export_svg();
   void about();
@@ -106,7 +110,9 @@ class MainWindow : public QMainWindow {
   QAction* clock_action_ = nullptr;
   QTimer* clock_timer_ = nullptr;
   QAction* compare_action_ = nullptr;
+  QAction* composite_action_ = nullptr;
   std::optional<Chart> partner_chart_;
+  ChartInput partner_input_;
   QString partner_name_;
   QTableWidget* bodies_ = nullptr;
   QTableWidget* cusps_ = nullptr;
