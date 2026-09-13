@@ -23,10 +23,12 @@ bool md_east(double ar, double arm, double aric) {
   return w3 > w1 && w3 < w2;
 }
 
-// ported from md, the semi arc proportion per quadrant
-void md(bool east, double g, double arm, double aric, double ar, double de, double& aoe, double& doe) {
+// ported from md, the semi arc proportion per quadrant, phs is the
+// pole the point stands under
+void md(bool east, double g, double arm, double aric, double ar, double de, double& aoe, double& doe, double& phs) {
   aoe = 0.0;
   doe = 0.0;
+  phs = 0.0;
   const double ad = std::asin(std::tan(g) * std::tan(de));
   const double sad = kPi / 2.0 + ad;
   const double san = kPi / 2.0 - ad;
@@ -38,12 +40,16 @@ void md(bool east, double g, double arm, double aric, double ar, double de, doub
     if (w2 - w1 > sad && w2 < w1 + kPi) {
       //RR 1. Quadrant
       const double dist = w1 + kPi - w2;
-      aoe = ar - dist * ad / (san + kEps);
+      const double ade = dist * ad / (san + kEps);
+      phs = std::atan(std::sin(ade) / (std::tan(de) + kEps));
+      aoe = ar - ade;
     }
     if (w2 - w1 < sad && w2 > w1) {
       //RR 4. Quadrant
       const double dist = w2 - w1;
-      aoe = ar - dist * ad / (sad + kEps);
+      const double ade = dist * ad / (sad + kEps);
+      phs = std::atan(std::sin(ade) / (std::tan(de) + kEps));
+      aoe = ar - ade;
     }
   } else {
     //RR rechte Hälfte
@@ -52,16 +58,34 @@ void md(bool east, double g, double arm, double aric, double ar, double de, doub
     vergl1(w1, w2);
     if (w2 - w1 < san && w2 > w1) {
       //RR 2. Quadrant
-      doe = ar + (w2 - w1) * ad / san;
+      const double ade = (w2 - w1) * ad / san;
+      phs = std::atan(std::sin(ade) / (std::tan(de) + kEps));
+      doe = ar + ade;
     }
     if (w2 - w1 > san && w2 < w1 + kPi) {
       //RR 3. Quadrant
-      doe = ar + (w1 + kPi - w2) * ad / sad;
+      const double ade = (w1 + kPi - w2) * ad / sad;
+      phs = std::atan(std::sin(ade) / (std::tan(de) + kEps));
+      doe = ar + ade;
     }
   }
 }
 
 }  // namespace
+
+// ported from md11 and md for the primary directions
+SemiArcPoint semi_arc_point(double ar, double de, double armcb, double lat_deg) {
+  SemiArcPoint out;
+  const double g = lat_deg * kDegToRad;
+  const double arm = armcb;
+  const double aric = norm_rad(arm + kPi);
+  out.east = md_east(ar, arm, aric);
+  double aoe = 0.0;
+  double doe = 0.0;
+  md(out.east, g, arm, aric, ar, de, aoe, doe, out.pole);
+  out.oblique = out.east ? aoe : doe;
+  return out;
+}
 
 // ported from mundan with mundh1
 double mundane_longitude(double la_rad, double br_rad, double ekls, double armcb, double lat_deg) {
@@ -71,8 +95,9 @@ double mundane_longitude(double la_rad, double br_rad, double ekls, double armcb
   const Equatorial eq = ecliptic_to_equatorial(la_rad, br_rad, ekls);
   double aoe = 0.0;
   double doe = 0.0;
+  double phs = 0.0;
   const bool east = md_east(eq.ra, arm, aric);
-  md(east, g, arm, aric, eq.ra, eq.dec, aoe, doe);
+  md(east, g, arm, aric, eq.ra, eq.dec, aoe, doe, phs);
   if (east) {
     double w2 = aoe + 3.0 * kPi / 2.0;
     double w1 = arm;

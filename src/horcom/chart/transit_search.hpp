@@ -132,6 +132,9 @@ struct TransitScan {
   /// the original mas flag, without it the fast moon stays filtered by
   /// the speed cap exactly like his default
   bool moon_aspects = false;
+  /// restricts the sweep to one running body, zero runs them all, the
+  /// arc directions send only their light through
+  int only_slot = 0;
 };
 
 /// Sweeps the window for transits over the radix like a180, the interval

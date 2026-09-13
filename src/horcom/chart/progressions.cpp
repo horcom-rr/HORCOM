@@ -4,6 +4,7 @@
 
 #include "horcom/chart/progressions.hpp"
 
+#include <algorithm>
 #include <cmath>
 
 #include "horcom/chart/bodies.hpp"
@@ -135,6 +136,60 @@ ProgressedMoment progressed_moment(const Chart& radix, double jd_event_ut, Progr
 ProgressedMoment day_chart_moment(const Chart& radix, double jd_day_ut, const SearchContext& ctx) {
   ProgressedMoment out = solve_true_solar(sun_hour_angle(radix), jd_day_ut, ctx);
   out.years = (jd_day_ut - radix.jd_ut) / radix.ta.tropical_year_days;
+  return out;
+}
+
+// the SECDIR table of the original evaluation screens, the sweep runs
+// on the compressed axis and the dates stretch back into life
+std::vector<DirectedEvent> secondary_direction_events(const Chart& radix, double jd_from_ut, double jd_to_ut, double base_angle_deg, const SearchContext& ctx) {
+  std::vector<DirectedEvent> out;
+  const double tja = radix.ta.tropical_year_days;
+  TransitScan scan;
+  //RR 1 TAG = 1 JAHR
+  scan.jd_from_ut = radix.jd_ut + (jd_from_ut - radix.jd_ut) / tja;
+  scan.jd_to_ut = radix.jd_ut + (jd_to_ut - radix.jd_ut) / tja;
+  scan.base_angle_deg = base_angle_deg;
+  scan.moon_aspects = true;
+  for (const TransitEvent& e : scan_transits(radix, scan, ctx)) {
+    out.push_back({e, radix.jd_ut + (e.jd_ut - radix.jd_ut) * tja});
+  }
+  return out;
+}
+
+// the SOBDIR table. A rigid arc moves every radix point equally, so
+// body t reaches target u exactly when the light itself reaches the
+// target shifted by the light's own distance to t
+std::vector<DirectedEvent> arc_direction_events(const Chart& radix, bool moon_arc, double jd_from_ut, double jd_to_ut, double base_angle_deg, const SearchContext& ctx) {
+  std::vector<DirectedEvent> out;
+  const double tja = radix.ta.tropical_year_days;
+  const int light = moon_arc ? body::kMoon : body::kSun;
+  const double light_el = radix.b[static_cast<std::size_t>(light)].el;
+  TransitScan scan;
+  scan.jd_from_ut = radix.jd_ut + (jd_from_ut - radix.jd_ut) / tja;
+  scan.jd_to_ut = radix.jd_ut + (jd_to_ut - radix.jd_ut) / tja;
+  scan.base_angle_deg = base_angle_deg;
+  scan.moon_aspects = true;
+  scan.only_slot = light;
+  for (int t = 1; t < body::kSlotCount; ++t) {
+    const BodyState& moving = radix.b[static_cast<std::size_t>(t)];
+    if (!moving.present || !moving.valid || t == body::kNodeDesc) {
+      continue;
+    }
+    Chart shifted = radix;
+    const double shift = light_el - moving.el;
+    for (int u = 0; u < body::kSlotCount; ++u) {
+      BodyState& b = shifted.b[static_cast<std::size_t>(u)];
+      if (b.present && b.valid) {
+        b.el = norm_rad(radix.b[static_cast<std::size_t>(u)].el + shift);
+      }
+    }
+    for (TransitEvent e : scan_transits(shifted, scan, ctx)) {
+      // the running light stands in for the directed body
+      e.transiting = t;
+      out.push_back({e, radix.jd_ut + (e.jd_ut - radix.jd_ut) * tja});
+    }
+  }
+  std::sort(out.begin(), out.end(), [](const DirectedEvent& a, const DirectedEvent& b) { return a.jd_life_ut < b.jd_life_ut; });
   return out;
 }
 

@@ -63,4 +63,38 @@ struct ProgressedMoment {
 /// @return the solved moment
 [[nodiscard]] ProgressedMoment day_chart_moment(const Chart& radix, double jd_day_ut, const SearchContext& ctx);
 
+/// One direction event on the life axis. The transit machinery finds it
+/// on the compressed day for a year scale, the life date says when the
+/// direction becomes exact in real time.
+struct DirectedEvent {
+  TransitEvent event;
+  double jd_life_ut = 0.0;
+};
+
+/// The secondary direction list. Every progressed body against the
+/// radix targets over a life window, the a180 sweep run on the day for
+/// a year axis and mapped back.
+///
+/// @param radix        the birth chart
+/// @param jd_from_ut   life window start
+/// @param jd_to_ut     life window end
+/// @param base_angle_deg the aspect grid in degrees
+/// @param ctx          observer and settings
+/// @return the events ordered by life time
+[[nodiscard]] std::vector<DirectedEvent> secondary_direction_events(const Chart& radix, double jd_from_ut, double jd_to_ut, double base_angle_deg, const SearchContext& ctx);
+
+/// The sun or moon arc direction list. The whole radix moves rigidly by
+/// the progressed light's arc, so every directed contact is a crossing
+/// of that light alone over shifted targets.
+///
+/// @param radix        the birth chart
+/// @param moon_arc     true takes the moon's arc, the tertiary flavour
+/// @param jd_from_ut   life window start
+/// @param jd_to_ut     life window end
+/// @param base_angle_deg the aspect grid in degrees
+/// @param ctx          observer and settings
+/// @return the events ordered by life time, the directed body in the
+///         transiting field, the reached radix point in the radix field
+[[nodiscard]] std::vector<DirectedEvent> arc_direction_events(const Chart& radix, bool moon_arc, double jd_from_ut, double jd_to_ut, double base_angle_deg, const SearchContext& ctx);
+
 }  // namespace horcom

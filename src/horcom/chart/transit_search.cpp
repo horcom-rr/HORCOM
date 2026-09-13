@@ -501,6 +501,9 @@ std::vector<TransitEvent> scan_transits(const Chart& radix, const TransitScan& s
     if (t == body::kNodeDesc || t == body::kAscendant || t == body::kMc || t == body::kFortune) {
       continue;
     }
+    if (scan.only_slot > 0 && t != scan.only_slot) {
+      continue;
+    }
     const BodyState& b = radix.b[static_cast<std::size_t>(t)];
     if (b.present) {
       transiting.push_back(t);

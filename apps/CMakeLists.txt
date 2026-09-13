@@ -15,6 +15,8 @@ if(Qt6_FOUND)
     gui/aspektarium_dialog.hpp
     gui/banner.cpp
     gui/banner.hpp
+    gui/direction_list_dialog.cpp
+    gui/direction_list_dialog.hpp
     gui/ingress_dialog.cpp
     gui/ingress_dialog.hpp
     gui/main_window.cpp

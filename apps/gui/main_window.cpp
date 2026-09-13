@@ -43,6 +43,7 @@
 
 #include "aspektarium_dialog.hpp"
 #include "banner.hpp"
+#include "direction_list_dialog.hpp"
 #include "horcom/chart/composite.hpp"
 #include "horcom/chart/directions.hpp"
 #include "horcom/chart/harmonics.hpp"
@@ -310,6 +311,14 @@ void MainWindow::build_ui() {
   horo->addAction(tr("Transit-Liste…"), this, &MainWindow::transit_list);
   horo->addAction(tr("Ingresse…"), this, &MainWindow::ingress_table);
   horo->addAction(tr("Aspektarium…"), this, &MainWindow::open_aspektarium);
+  // the direction tables of the original evaluation menu in one place
+  horo->addAction(QString::fromUtf8("Direktionen-Auswertung…"), this, [this]() {
+    if (!last_chart_) {
+      return;
+    }
+    DirectionListDialog dialog(*last_chart_, make_context(), this);
+    dialog.exec();
+  });
   // the double wheel of a12, a second person over the radix
   compare_action_ = horo->addAction(tr("Vergleich"));
   compare_action_->setCheckable(true);

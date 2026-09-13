@@ -20,6 +20,7 @@ add_library(horcom STATIC
   horcom/chart/harmonics.cpp
   horcom/chart/mundane.cpp
   horcom/chart/progressions.cpp
+  horcom/chart/symbolic.cpp
   horcom/chart/aspects.cpp
   horcom/render/wheel.cpp
   horcom/render/svg.cpp

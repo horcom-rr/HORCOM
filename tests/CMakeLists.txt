@@ -6,6 +6,7 @@ add_executable(horcom_tests
   test_sidereal.cpp
   test_statist_eval.cpp
   test_vsop.cpp
+  test_symbolic.cpp
   test_sunmoon.cpp
   test_kepler.cpp
   test_eph_file.cpp
