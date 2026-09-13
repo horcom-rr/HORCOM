@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>horcom Handbook — Tutorial</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="sky">
+  <h1>Tutorial</h1>
+  <p class="sub">A first tour through the HORCOM shell</p>
+</header>
+
+<main>
+
+<p><a href="index.html">&larr; back to the handbook</a></p>
+
+<h2>Getting started</h2>
+<p>
+Download the newest release from the GitHub releases page, unpack it
+anywhere and start <code>horcom_gui.exe</code>. The <code>data</code> folder must stay
+beside the program, it carries the planetary tables, the ephemeris
+files and the place and zone catalogues. The program speaks German on
+a German Windows and English everywhere else, <code>--lang de</code> or
+<code>--lang en</code> on the command line overrides that.
+</p>
+
+<h2>The first chart</h2>
+<p>
+The Eingabe panel on the left is the whole input. Type a birth date
+and clock time, then the time zone in hours east of Greenwich, the
+little <code>…</code> button beside it opens Robert's zone name catalogue when
+you only know the zone by name. Longitude and latitude take decimal
+degrees, east and north positive, and <b>Ort suchen</b> in the Datei menu
+(Ctrl+L) finds both from his gazetteer of places instead. Choose the
+house system, Placidus is his default, and the chart recomputes with
+every change, there is no calculate button.
+</p>
+<p>
+The switches under the fields are his classic options. Parallaxe
+computes topocentrically, his special pride, the positions then carry
+the correction of the observer standing on the Earth's surface rather
+than its centre. Zusatzplaneten opens the extra bodies, Chiron and
+the asteroids among them, where an ephemeris file reaches. Wahrer
+Mondknoten and Wahres Apogäum switch the node and the Black Moon from
+their mean to their true positions. Heliozentrisch turns the whole
+sky sun centred, the Earth appears on the wheel and the houses
+disappear, exactly as the original did it.
+</p>
+
+<h2>Reading the screen</h2>
+<p>
+The banner on top shows the Julian date, delta T, the sidereal time
+as ARMC and the active house system. The wheel lies like paper on the
+desk, the ascendant on the left, aspect chords in the middle, and the
+birth data written down the left margin of the sheet. The Koordinaten
+table lists every body with longitude, latitude, declination and
+daily motion, an R marks retrograde. The Häuser table lists the
+twelve cusps, and the line under the wheel counts the found aspects.
+</p>
+
+<h2>Records</h2>
+<p>
+<b>Datensätze öffnen</b> (Ctrl+O) reads his chart collections, the original
+DAT files as well as the AAF exchange format. Double click a record
+and it fills the panel. <b>Datensatz bearbeiten</b> (Ctrl+D) opens the
+record mask with name, place and country, and <b>Als AAF speichern</b>
+(Ctrl+S) writes the current chart back into an AAF collection, so
+your records travel between HORCOM and every program that reads AAF.
+</p>
+
+<h2>The running sky</h2>
+<p>
+The Transite switch lays the sky of the transit moment as an outer
+ring over the radix, with the running aspects listed under the wheel.
+<b>Transit-Liste</b> scans a whole date range for exact transit events and
+<b>Ingresse</b> tables the sign entries of the running bodies. <b>Uhr</b> turns
+the chart into his running clock, redrawn every fifteen seconds for
+the present moment at the panel's place.
+</p>
+
+<h2>Returns</h2>
+<p>
+<b>Solar</b> finds the moment the transiting sun returns exactly onto its
+radix degree in a chosen year and draws that chart, <b>Lunar</b> does the
+same with the moon in a chosen month. Both use his backward search,
+the same machinery his plant routine drove.
+</p>
+
+<h2>Two people</h2>
+<p>
+<b>Vergleich</b> asks for a second record and rides it as an outer ring
+over the radix, with the cross aspects listed below. <b>Composit</b>
+builds the midpoint chart of both, the house mode follows his
+profile, and <b>Combin</b> averages moment and place into one chart. The
+<b>90°-Kreis</b> shows the comparison on the 90 degree dial, everything
+multiplied by four so the hard aspects of both charts stand side by
+side, the three sign qualities colour the band.
+</p>
+
+<h2>Special charts</h2>
+<p>
+<b>Direktionen</b> turns the axes at his Naibod rate to an event date,
+direct or converse, with the sidereal time variation he used for
+rectification. <b>Mundan</b> switches to the horm 2 view, every body
+projected along its semi arc into house space. <b>Harmonic</b> asks for an
+order and lays the harmonic chart, every longitude multiplied, as an
+outer ring over the radix.
+</p>
+
+<h2>The Aspektarium</h2>
+<p>
+<b>Aspektarium</b> in the Horoskop menu opens his triangular aspect
+matrix, exact separations above the diagonal, the named aspects below
+it, the hit count of every body on the diagonal, and the divisor
+table with angle and orb beside it. The Maximaler Teiler box rescans
+with eight, twelve or sixteen divisors on the spot.
+</p>
+
+<h2>Statistics</h2>
+<p>
+<b>Statistik</b> in the Datei menu loads one of his STATIST7 datasets,
+lists the charts and shows the sign distribution of any object over
+the whole set. Below that the search conditions of his stat_ausw
+world wait, pick an object, a body, a ruler, a midpoint, an aspect, a
+mirror point, a name fragment or an arabic part, say where it must
+stand, and apply. Conditions chain, UND keeps only records that
+survived the previous ones, and the record list filters to the hits.
+</p>
+
+<h2>Output</h2>
+<p>
+<b>Horoskop als SVG</b> writes the wheel as a vector file, <b>Horoskop als
+PDF</b> writes an A4 landscape page, and <b>Drucken</b> (Ctrl+P) sends
+whatever the wheel currently shows to a printer, transits, dial and
+comparison included.
+</p>
+
+<h2>Comfort</h2>
+<p>
+The Ansicht menu scales the text of the whole shell, Schrift größer
+and kleiner (Ctrl+Plus, Ctrl+Minus), remembered between runs. Under
+Hilfe the <b>Original-Kommentare</b> open Robert Rettig's own commentary
+texts when their folder lies beside the data, the dialog says where
+to put them. They are his writing, from the introduction to the
+Erläuterungen on directions and the Münchner Rhythmenlehre, and they
+remain the best companion to this program.
+</p>
+
+</main>
+
+<footer class="page">In memory of Robert Rettig, who built all of this first.</footer>
+
+</body>
+</html>
