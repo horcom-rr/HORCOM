@@ -45,6 +45,18 @@ Implementation is under way. Ported and green so far: phase 1, the calculation k
 build\apps\horcom.exe --date 13.10.1992 --time 03:00 --lon 11.32 --lat 48.17 --extras --svg wheel.svg
 ```
 
+## Building
+
+A C++20 compiler (MSVC 2022 on Windows) and CMake 3.25 or newer build the library, the command line tool and the tests. Qt 6 with Widgets, Svg and the Linguist tools additionally builds the desktop shell, the target is skipped where Qt is absent.
+
+```
+cmake -S . -B build -DCMAKE_PREFIX_PATH=C:/Qt/6.8.3/msvc2022_64
+cmake --build build --config Release
+ctest --test-dir build -C Release
+```
+
+The programs expect the `data` folder next to the executable or above it. Every push builds and tests on GitHub and refreshes the rolling Windows release, so a ready build is always one download away.
+
 ## License
 
 GPL-3.0-or-later, see `LICENSE`. The rewrite stays open, every derivative stays open, and Robert Rettig's name stays attached to his work. Maintained by Dominik Schwimmbeck.
