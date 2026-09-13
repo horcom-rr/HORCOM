@@ -9,6 +9,7 @@
 #include "doctest.h"
 #include "horcom/data/chart_file.hpp"
 #include "horcom/data/encoding.hpp"
+#include "horcom/data/countries.hpp"
 #include "horcom/data/place_file.hpp"
 #include "horcom/data/zone_names.hpp"
 
@@ -187,6 +188,23 @@ TEST_CASE("the shipped zone catalogue decodes to its 176 entries") {
     }
   }
   CHECK(local_rows == 2);
+}
+
+TEST_CASE("the country tables load with the Aruba fix in place") {
+  const auto nima = load_nima_countries(HORCOM_TEST_DATA_DIR "/landnima.int");
+  REQUIRE(nima.has_value());
+  CHECK(nima->size() == 263);
+  CHECK((*nima)[0].code == "AA");
+  // the original discriminator never reaches its first slot, the
+  // rewrite finds Aruba, a documented deviation
+  CHECK(nima_country_name(*nima, "aa") == "ARUBA");
+  CHECK(nima_country_name(*nima, "gm") == "GERMANY");
+  CHECK(nima_country_name(*nima, "qq").empty());
+  const auto german = load_german_countries(HORCOM_TEST_DATA_DIR "/laender.int");
+  REQUIRE(german.has_value());
+  CHECK(german->size() == 57);
+  CHECK((*german)[0].abbrev == "A");
+  CHECK((*german)[0].name == "Österreich");
 }
 
 TEST_CASE("the preferred place accepts both coordinate encodings") {

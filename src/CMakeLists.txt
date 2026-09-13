@@ -21,6 +21,7 @@ add_library(horcom STATIC
   horcom/data/chart_file.cpp
   horcom/data/place_file.cpp
   horcom/data/zone_names.cpp
+  horcom/data/countries.cpp
   horcom/data/gfa_stream.cpp
   horcom/data/konsta.cpp
   horcom/data/aaf.cpp
