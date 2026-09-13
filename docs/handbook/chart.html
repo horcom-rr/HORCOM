@@ -43,6 +43,7 @@ topocentric parallax.
   <tr><td><code>a13, halbsmin, a13comp_1, a13comp_2</code> and <code>a14</code></td><td><code>composite_chart, midpoint_near, combin_input</code></td><td><code>src/horcom/chart/composite.*</code></td></tr>
   <tr><td><code>prima, primhorg, richtung$</code></td><td><code>direct_axes</code></td><td><code>src/horcom/chart/directions.*</code></td></tr>
   <tr><td><code>mundan, mundh1, md11, md, mundhorp, mundhorh</code></td><td><code>mundane_longitude, to_mundane</code></td><td><code>src/horcom/chart/mundane.*</code></td></tr>
+  <tr><td>the <code>hrg!</code> branches of <code>plko_einz</code> and <code>par</code></td><td><code>helio_display</code> and the heliocentric gates of <code>compute_chart</code></td><td><code>src/horcom/chart/chart.cpp</code></td></tr>
 </table>
 
 <h2>The two clocks of the original</h2>
@@ -193,6 +194,24 @@ linear, quadrant by quadrant, and on a real chart whose grid and
 ascendant land exactly.
 </p>
 
+<h2>The heliocentric mode</h2>
+<p>
+hrg turns the whole pipeline sun centred. Every planet, ephemeris body
+and Kepler body simply keeps its heliocentric spherical state, ecliptic
+longitude, latitude and the sun distance, converted to right ascension
+and declination but never through the geocentric correction chain, no
+aberration, no light time, no parallax. The Earth takes the Moon's slot
+carrying the VSOP Earth itself, the Sun's slot stays empty, and the
+geocentric ideas leave with it, no Moon, no nodes, no Black Moon, no
+Part of Fortune. Houses do not exist on a sun centred sky, horg11 and
+bes111 stayed dark in the original and the port computes none, the
+wheel anchors zero Aries on the left like horbeg clearing fza and marks
+the Sun as the small circle in the centre that horg1 drew, the Earth
+wearing the crossed circle glyph on the ring. The aspect scanner runs
+unchanged over whatever stands on the slots, exactly his trick of
+reusing one machinery for every mode.
+</p>
+
 <h2>Verification</h2>
 <p>
 <code>test_houses.cpp</code> checks the angles against independent textbook
@@ -206,7 +225,10 @@ examples come out of the full chain, Mars turns retrograde in late
 December 1992, Pluto and Chiron ride along from the files, the Part of
 Fortune obeys its two formulas, the true node and apogee switches move
 their slots, and the parallax section holds his protected cluster against
-the independent vector computation to a nanoradian.
+the independent vector computation to a nanoradian. The heliocentric
+mode pins the Earth on the Moon's slot at the Meeus geometric longitude,
+the planets against their own sun centred state, and the absence of
+every geocentric idea including the houses.
 </p>
 
 </main>
