@@ -313,6 +313,23 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
     }
   }
 
+  // the chart data block like bes11, down the left margin the original
+  // kept free of the wheel
+  {
+    double y = 18.0;
+    for (const std::string& line : opt.info_lines) {
+      Primitive t;
+      t.kind = Primitive::Kind::kText;
+      t.x1 = 8.0;
+      t.y1 = y;
+      t.size = kLabelSize;
+      t.align_left = true;
+      t.text = line;
+      add(t);
+      y += 13.0;
+    }
+  }
+
   // the centre label like textc in zeitwi and in the uhr loop
   if (!opt.center_label.empty()) {
     Primitive t;

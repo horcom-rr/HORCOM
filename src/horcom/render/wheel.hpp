@@ -50,6 +50,9 @@ struct Primitive {
   Rgb fill = 0xFFFFFF;
   Style style = Style::kSolid;
   double width = 1.0;
+  /// text grows rightward from x1 instead of centring on it, the text
+  /// column of the original screens
+  bool align_left = false;
   std::string text;  // glyph character or label
 };
 
@@ -71,6 +74,9 @@ struct WheelOptions {
   /// the centre label, TRANSIT with the moment on the transit wheel or
   /// the running UHR of the clock chart
   std::string center_label;
+  /// the chart data block of bes11, written down the left margin the
+  /// original kept free of the wheel
+  std::vector<std::string> info_lines;
   /// which divisors draw chords, the stand in for the original's per
   /// aspect aspli flags until the KONSTA colours are wired through. The
   /// default shows the classical set, conjunction to sextile and the

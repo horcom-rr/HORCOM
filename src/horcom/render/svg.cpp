@@ -90,7 +90,8 @@ std::string to_svg(const DisplayList& dl) {
       case Primitive::Kind::kGlyph:
       case Primitive::Kind::kText:
         s << "<text x=\"" << num(p.x1) << "\" y=\"" << num(p.y1) << "\" font-size=\"" << num(p.size)
-          << "\" text-anchor=\"middle\" dominant-baseline=\"middle\" fill=\"" << hex(p.color) << "\">"
+          << "\" text-anchor=\"" << (p.align_left ? "start" : "middle")
+          << "\" dominant-baseline=\"middle\" fill=\"" << hex(p.color) << "\">"
           << escape(p.text) << "</text>\n";
         break;
       case Primitive::Kind::kDot:
