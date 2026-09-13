@@ -67,6 +67,9 @@ struct DisplayList {
 /// ring, the original km there
 inline constexpr double kTransitWheelScale = 0.85;
 
+/// primhorg draws the directed axes wheel slightly smaller
+inline constexpr double kDirectedWheelScale = 0.89;
+
 /// Options of the wheel builder.
 struct WheelOptions {
   /// draw the aspect chords of a scan result
@@ -77,6 +80,9 @@ struct WheelOptions {
   /// the chart data block of bes11, written down the left margin the
   /// original kept free of the wheel
   std::vector<std::string> info_lines;
+  /// overrides the wheel scale when positive, primhorg draws the
+  /// directed axes at 0.89
+  double scale = 0.0;
   /// which divisors draw chords, the stand in for the original's per
   /// aspect aspli flags until the KONSTA colours are wired through. The
   /// default shows the classical set, conjunction to sextile and the

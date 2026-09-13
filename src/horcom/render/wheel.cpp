@@ -344,7 +344,7 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
 
 DisplayList build_wheel(const Chart& chart, const ChartSettings& s, const AspectResult& aspects, const WheelOptions& opt) {
   DisplayList dl;
-  build_base(dl, chart, s, aspects, opt, kKm);
+  build_base(dl, chart, s, aspects, opt, opt.scale > 0.0 ? opt.scale : kKm);
   return dl;
 }
 

@@ -16,6 +16,7 @@ add_library(horcom STATIC
   horcom/chart/chart.cpp
   horcom/chart/transit_search.cpp
   horcom/chart/composite.cpp
+  horcom/chart/directions.cpp
   horcom/chart/aspects.cpp
   horcom/render/wheel.cpp
   horcom/render/svg.cpp

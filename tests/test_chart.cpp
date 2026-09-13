@@ -7,6 +7,7 @@
 #include "doctest.h"
 #include "horcom/chart/chart.hpp"
 #include "horcom/chart/composite.hpp"
+#include "horcom/chart/directions.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
 #include "horcom/time/delta_t.hpp"
@@ -234,4 +235,27 @@ TEST_CASE("the combin averages moment and place like a14") {
   CHECK(julian_day(c.date_ut) == doctest::Approx((julian_day(ia.date_ut) + julian_day(ib.date_ut)) / 2.0));
   CHECK(c.lon_deg_east == doctest::Approx(11.0));
   CHECK(c.lat_deg == doctest::Approx(49.0));
+}
+
+TEST_CASE("the directed axes turn at his naibod style rate") {
+  ChartInput in;
+  in.date_ut = {13, 10, 1992, 3, 0.0};
+  in.lon_deg_east = 11.3244;
+  in.lat_deg = 48.1742;
+  const Chart radix = compute_chart(in, {}, vsop(), eph());
+  REQUIRE(radix.ok);
+  const double tja = radix.ta.tropical_year_days;
+  const DirectedAxes one_year = direct_axes(radix, in.lon_deg_east, in.lat_deg,
+                                            radix.jd_ut + tja, false, 0.0, HouseSystem::kPlacidus);
+  // one tropical year turns the axes by 360 over the year length
+  CHECK(one_year.arc_deg == doctest::Approx(360.0 / tja));
+  CHECK(one_year.armc_deg == doctest::Approx(norm_deg(one_year.arm_deg + one_year.arc_deg)));
+  CHECK(one_year.houses.ok);
+  const DirectedAxes back = direct_axes(radix, in.lon_deg_east, in.lat_deg,
+                                        radix.jd_ut + tja, true, 0.0, HouseSystem::kPlacidus);
+  CHECK(back.arc_deg == doctest::Approx(-360.0 / tja));
+  // a degree of sidereal time variation adds at the same rate
+  const DirectedAxes varied = direct_axes(radix, in.lon_deg_east, in.lat_deg,
+                                          radix.jd_ut + tja, false, 1.0, HouseSystem::kPlacidus);
+  CHECK(varied.arc_deg - one_year.arc_deg == doctest::Approx(360.0 / tja));
 }
