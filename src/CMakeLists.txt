@@ -17,6 +17,9 @@ add_library(horcom STATIC
   horcom/chart/aspects.cpp
   horcom/render/wheel.cpp
   horcom/render/svg.cpp
+  horcom/data/encoding.cpp
+  horcom/data/chart_file.cpp
+  horcom/data/place_file.cpp
 )
 
 target_include_directories(horcom PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

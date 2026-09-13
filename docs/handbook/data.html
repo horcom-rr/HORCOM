@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>horcom Handbook, data</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="sky">
+  <h1>data</h1>
+  <p class="sub">His file formats, byte for byte</p>
+</header>
+
+<nav class="crumbs"><a href="index.html">handbook</a> / data</nav>
+
+<main>
+
+<h2>Purpose</h2>
+<p>
+The loaders that keep his files alive. Every format was specified byte
+level in the legacy analysis and verified against real files before a
+loader was written. Text arrives as Windows 1252 and is normalised to
+UTF-8 on read, numbers are right aligned like RSET STR$, text left
+aligned like LSET, and overlong text truncates exactly where his fields
+truncated it. He knew about that himself
+</p>
+<blockquote class="rr">HORCOM speichert z.B. die Zeit immer nur als GMT = UT , Bemerkungen werden nach 51 Zeichen abgeschnitten.Das stammt noch aus der Zeit als Speicher-Platz knapp war.Heute kann man dies vergessen.
+<footer>from his commentary on the file formats</footer>
+</blockquote>
+
+<h2>Origin map</h2>
+<table>
+  <tr><th>original</th><th>ported as</th><th>file</th></tr>
+  <tr><td>Windows 1252 text, <code>_ANSI$(_OEM$())</code> round trips</td><td><code>cp1252_to_utf8, utf8_to_cp1252</code></td><td><code>src/horcom/data/encoding.*</code></td></tr>
+  <tr><td><code>SPEZIAL\*.DAT</code>, 128 byte records, <code>oeffne20, a201, a2011</code></td><td><code>ChartRecord, read_chart_file, write_chart_file</code></td><td><code>src/horcom/data/chart_file.*</code></td></tr>
+  <tr><td><code>SPEZ_ORT\*.INT</code>, 36 byte records, the picker zone suffix, <code>ORT.EXT</code> with both encodings</td><td><code>PlaceRecord, read_place_file, read_preferred_place</code></td><td><code>src/horcom/data/place_file.*</code></td></tr>
+</table>
+
+<h2>The chart record</h2>
+<p>
+Day, month, astronomical year, hour in Universal Time, minutes with the
+seconds as fraction, longitude east positive, latitude north positive,
+then 25 bytes of name, 20 of place and 51 of remark. A remark starting
+with the calendar flag forces the Julian or the proleptic Gregorian
+calendar, the loader exposes it as the same Calendar enum the time module
+uses. There is no header and no index, sorting was always in memory.
+</p>
+
+<h2>Places</h2>
+<p>
+Eight bytes longitude, eight latitude, twenty name. The picker files
+carry the time zone difference in the last five name bytes, stored as
+the correction that leads from zone time to UT, so MEZ reads minus one.
+The preferred place file has two coordinate encodings in the wild,
+integer micro degrees from the write once writer and plain decimals from
+older files, the reader takes the original's branch on the missing
+decimal point including its kk epsilon.
+</p>
+
+<h2>Privacy rule</h2>
+<p>
+His real chart collections contain real people and never enter the
+repository. The loader tests run on synthetic records written on the
+fly, the byte layout itself was verified against non personal files,
+places and settings, during the analysis.
+</p>
+
+<h2>Still to come in this module</h2>
+<p>
+The KONSTA settings stream with its one token reader, the AAF exchange
+format as the port's archive format, and the seed conversion of the
+timezone and country tables.
+</p>
+
+<h2>Verification</h2>
+<p>
+<code>test_data.cpp</code> pins the 1252 round trip including the high
+row, the exact field offsets and alignments of an encoded chart record,
+file round trips with a BC year and the Julian flag, rejection of torn
+files, the place layout, the zone suffix readings for east and west, and
+both preferred place encodings.
+</p>
+
+</main>
+
+<footer class="page">In memory of Robert Rettig, who built all of this first.</footer>
+
+</body>
+</html>

@@ -1,6 +1,8 @@
-# horcom
+<p align="center">
+  <img src="assets/logo.svg" alt="the HORCOM logo" width="128">
+</p>
 
-<img src="assets/logo.svg" alt="the HORCOM logo" width="96" align="right">
+<h1 align="center">horcom</h1>
 
 A modern C++ rewrite of **HORCOM**, the astrology program that **Robert Rettig** wrote and refined over more than three decades, from the 1970s until 2010.
 
