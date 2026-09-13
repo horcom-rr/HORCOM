@@ -5,12 +5,14 @@
 #pragma once
 
 #include <QMainWindow>
+#include <filesystem>
 #include <optional>
 
 #include "horcom/chart/aspects.hpp"
 #include "horcom/chart/chart.hpp"
 #include "horcom/data/aaf.hpp"
 #include "horcom/data/chart_file.hpp"
+#include "horcom/data/konsta.hpp"
 
 class QCheckBox;
 class QComboBox;
@@ -31,11 +33,12 @@ class MainWindow : public QMainWindow {
   Q_OBJECT
 
  public:
-  MainWindow(VsopTables vsop, Ephemerides eph, QWidget* parent = nullptr);
+  MainWindow(VsopTables vsop, Ephemerides eph, std::filesystem::path data_dir, QWidget* parent = nullptr);
 
  private slots:
   void recompute();
   void open_records();
+  void open_place();
   void save_aaf();
   void export_svg();
   void about();
@@ -50,6 +53,9 @@ class MainWindow : public QMainWindow {
 
   VsopTables vsop_;
   Ephemerides eph_;
+  std::filesystem::path data_dir_;
+  Konsta konsta_;
+  AspectSettings aspect_settings_;
   WheelWidget* wheel_ = nullptr;
   Banner* banner_ = nullptr;
   QDateEdit* date_ = nullptr;

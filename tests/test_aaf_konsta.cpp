@@ -76,6 +76,20 @@ TEST_CASE("KONSTA maps onto the pipeline settings like kon_dhol") {
   CHECK(a.orbe[7] == doctest::Approx(2.0 * kDegToRad));
 }
 
+TEST_CASE("the shipped profile carries Robert Rettig's switches") {
+  const auto k = load_konsta(HORCOM_TEST_DATA_DIR "/konsta7p.int");
+  REQUIRE(k.has_value());
+  CHECK(k->haw == 1);
+  CHECK(k->haus == "Placidus");
+  CHECK(k->orb == doctest::Approx(1.0));
+  CHECK(k->nasp == 12);
+  const ChartSettings s = k->chart_settings();
+  // he ran with the topocentric parallax on, true node and true apogee
+  CHECK(s.topocentric_parallax);
+  CHECK(s.true_node);
+  CHECK(s.true_apogee);
+}
+
 TEST_CASE("AAF parses a synthetic record with every quirk") {
   const char* text =
       "~ eine Zeile mit Tilde wird komplett verworfen\r\n"

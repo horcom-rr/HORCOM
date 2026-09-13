@@ -58,6 +58,14 @@ integer micro degrees from the write once writer and plain decimals from
 older files, the reader takes the original's branch on the missing
 decimal point including its kk epsilon.
 </p>
+<p>
+The repository ships his two hand curated zone picker files as
+<code>data/places/europa.int</code> and <code>welt.int</code>, the Qt
+shell's place search reads any file in that folder plus files opened by
+hand, so the full SPEZ_ORT gazetteer of the archive works when copied
+in. A <code>data/ort.ext</code> in the original format seeds the startup
+coordinates when present.
+</p>
 
 <h2>Privacy rule</h2>
 <p>
@@ -76,7 +84,10 @@ strings with commas inside included. The struct keeps his variable names
 as the schema, the mapping onto the pipeline settings follows kon_dhol
 with the sixteen to twelve divisor rule of the equal probability mode.
 Validated against his real settings file, which showed his own
-configuration ran with the topocentric parallax switched on.
+configuration ran with the topocentric parallax switched on. That file
+holds no personal data and ships as <code>data/konsta7p.int</code>, the
+Qt shell loads it at startup as the default profile, so the rewrite
+opens with his own switches, parallax on, true node and true apogee.
 </p>
 
 <h2>The AAF exchange format</h2>
@@ -96,7 +107,9 @@ Still open here, the seed conversion of the timezone and country tables.
 row, the exact field offsets and alignments of an encoded chart record,
 file round trips with a BC year and the Julian flag, rejection of torn
 files, the place layout, the zone suffix readings for east and west, and
-both preferred place encodings.
+both preferred place encodings. The shipped seeds are pinned too, the
+europa picker decodes to its 465 places with Agram at minus one, and
+the profile parses back to his own switches.
 </p>
 
 </main>

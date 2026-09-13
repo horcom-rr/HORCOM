@@ -13,6 +13,8 @@ if(Qt6_FOUND)
     gui/banner.hpp
     gui/main_window.cpp
     gui/main_window.hpp
+    gui/place_dialog.cpp
+    gui/place_dialog.hpp
     gui/wheel_widget.cpp
     gui/wheel_widget.hpp
   )

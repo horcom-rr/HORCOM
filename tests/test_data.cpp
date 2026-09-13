@@ -127,6 +127,25 @@ TEST_CASE("the zone picker suffix reads like the original") {
   CHECK(*q.zone_to_ut() == doctest::Approx(6.0));
 }
 
+TEST_CASE("the shipped europa picker file decodes with zones") {
+  const auto places = read_place_file(HORCOM_TEST_DATA_DIR "/places/europa.int");
+  REQUIRE(places.has_value());
+  CHECK(places->size() == 465);
+  bool found = false;
+  for (const PlaceRecord& r : *places) {
+    if (r.name.rfind("Agram", 0) == 0) {
+      found = true;
+      REQUIRE(r.zone_to_ut().has_value());
+      CHECK(*r.zone_to_ut() == doctest::Approx(-1.0));
+      CHECK(r.lon > 15.0);
+      CHECK(r.lon < 17.0);
+      CHECK(r.lat > 45.0);
+      CHECK(r.lat < 47.0);
+    }
+  }
+  CHECK(found);
+}
+
 TEST_CASE("the preferred place accepts both coordinate encodings") {
   const auto path = temp_file("horcom_test_ort.ext");
   {

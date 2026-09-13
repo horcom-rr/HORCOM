@@ -27,7 +27,9 @@
 #include "banner.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
+#include "horcom/data/place_file.hpp"
 #include "horcom/render/svg.hpp"
+#include "place_dialog.hpp"
 #include "wheel_widget.hpp"
 
 namespace horcom {
@@ -51,8 +53,14 @@ QString degs(double rad) {
 
 }  // namespace
 
-MainWindow::MainWindow(VsopTables vsop, Ephemerides eph, QWidget* parent)
-    : QMainWindow(parent), vsop_(std::move(vsop)), eph_(std::move(eph)) {
+MainWindow::MainWindow(VsopTables vsop, Ephemerides eph, std::filesystem::path data_dir, QWidget* parent)
+    : QMainWindow(parent), vsop_(std::move(vsop)), eph_(std::move(eph)), data_dir_(std::move(data_dir)) {
+  // his settings profile travels with the data under its original name,
+  // absent file means the built in defaults like kon_dhol
+  if (const auto k = load_konsta(data_dir_ / "konsta7p.int")) {
+    konsta_ = *k;
+  }
+  aspect_settings_ = konsta_.aspect_settings();
   build_ui();
   recompute();
 }
@@ -127,6 +135,22 @@ void MainWindow::build_ui() {
   input_dock->setWidget(form_host);
   addDockWidget(Qt::LeftDockWidgetArea, input_dock);
 
+  // his profile presets the switches, klpl stays off at startup and the
+  // KONSTA table only says which extras appear once it goes on
+  const ChartSettings preset = konsta_.chart_settings();
+  const int preset_houses = static_cast<int>(preset.houses) - 1;
+  if (preset_houses >= 0 && preset_houses < houses_->count()) {
+    houses_->setCurrentIndex(preset_houses);
+  }
+  parallax_->setChecked(preset.topocentric_parallax);
+  true_node_->setChecked(preset.true_node);
+  true_apogee_->setChecked(preset.true_apogee);
+  // the preferred place of the original ORT.EXT seeds the coordinates
+  if (const auto home = read_preferred_place(data_dir_ / "ort.ext")) {
+    lon_->setValue(home->lon);
+    lat_->setValue(home->lat);
+  }
+
   // the result docks
   auto* body_dock = new QDockWidget(tr("Koordinaten"), this);
   bodies_ = new QTableWidget(0, 5, body_dock);
@@ -158,6 +182,7 @@ void MainWindow::build_ui() {
   // the menu
   QMenu* file = menuBar()->addMenu(tr("&Datei"));
   file->addAction(tr("Datensätze öffnen…"), QKeySequence::Open, this, &MainWindow::open_records);
+  file->addAction(tr("Ort suchen…"), QKeySequence(Qt::CTRL | Qt::Key_L), this, &MainWindow::open_place);
   file->addAction(tr("Als AAF speichern…"), QKeySequence::Save, this, &MainWindow::save_aaf);
   file->addAction(tr("Horoskop als SVG…"), this, &MainWindow::export_svg);
   file->addSeparator();
@@ -193,13 +218,19 @@ ChartInput MainWindow::current_input() const {
 }
 
 ChartSettings MainWindow::current_settings() const {
-  ChartSettings s;
+  // his profile carries the base, the panel switches ride on top
+  ChartSettings s = konsta_.chart_settings();
   s.houses = static_cast<HouseSystem>(houses_->currentIndex() + 1);
   s.topocentric_parallax = parallax_->isChecked();
   s.true_node = true_node_->isChecked();
   s.true_apogee = true_apogee_->isChecked();
   if (extras_->isChecked()) {
-    s.enable_standard_extras();
+    if (!s.extra_bodies) {
+      s.enable_standard_extras();
+    }
+    s.extra_bodies = true;
+  } else {
+    s.extra_bodies = false;
   }
   return s;
 }
@@ -213,7 +244,7 @@ void MainWindow::recompute() {
     banner_->set_record(tr("Geog. Breite zu groß für dieses Häusersystem"));
     return;
   }
-  const AspectResult aspects = scan_aspects(chart, s, {});
+  const AspectResult aspects = scan_aspects(chart, s, aspect_settings_);
   last_chart_ = chart;
   last_aspects_ = aspects;
   wheel_->set_display_list(build_wheel(chart, s, aspects));
@@ -265,6 +296,25 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
                               .arg(aspects.zh[3])
                               .arg(aspects.zh[4])
                               .arg(aspects.zh[6]));
+}
+
+void MainWindow::open_place() {
+  PlaceDialog dialog(data_dir_ / "places", this);
+  if (dialog.exec() != QDialog::Accepted) {
+    return;
+  }
+  const PlaceRecord& r = dialog.chosen();
+  const QSignalBlocker b1(lon_);
+  const QSignalBlocker b2(lat_);
+  const QSignalBlocker b3(zone_);
+  lon_->setValue(r.lon);
+  lat_->setValue(r.lat);
+  // the picker files store the step from zone time to UT, the panel
+  // wants hours east
+  if (const auto to_ut = r.zone_to_ut()) {
+    zone_->setValue(-*to_ut);
+  }
+  recompute();
 }
 
 void MainWindow::open_records() {
