@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <vector>
 
+#include "horcom/data/countries.hpp"
 #include "horcom/data/place_file.hpp"
 
 class QComboBox;
@@ -25,8 +26,10 @@ class PlaceDialog : public QDialog {
 
  public:
   /// @param places_dir directory scanned for 36 byte place files
+  /// @param nima_table the landnima.int file naming the file prefixes
   /// @param parent the owning widget
-  explicit PlaceDialog(std::filesystem::path places_dir, QWidget* parent = nullptr);
+  PlaceDialog(std::filesystem::path places_dir, const std::filesystem::path& nima_table,
+              QWidget* parent = nullptr);
 
   /// @return the accepted place, valid after exec returns accepted
   [[nodiscard]] const PlaceRecord& chosen() const { return chosen_; }
@@ -39,6 +42,7 @@ class PlaceDialog : public QDialog {
   void accept_row(int row);
 
   std::filesystem::path dir_;
+  std::vector<NimaCountry> nima_;
   std::vector<PlaceRecord> records_;
   PlaceRecord chosen_;
   QComboBox* files_ = nullptr;

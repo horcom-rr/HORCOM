@@ -318,7 +318,7 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
 }
 
 void MainWindow::open_place() {
-  PlaceDialog dialog(data_dir_ / "places", this);
+  PlaceDialog dialog(data_dir_ / "places", data_dir_ / "landnima.int", this);
   if (dialog.exec() != QDialog::Accepted) {
     return;
   }

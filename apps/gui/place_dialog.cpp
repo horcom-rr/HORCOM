@@ -37,8 +37,12 @@ QString display_name(const PlaceRecord& r, bool has_zone) {
 
 }  // namespace
 
-PlaceDialog::PlaceDialog(std::filesystem::path places_dir, QWidget* parent)
+PlaceDialog::PlaceDialog(std::filesystem::path places_dir, const std::filesystem::path& nima_table,
+                         QWidget* parent)
     : QDialog(parent), dir_(std::move(places_dir)) {
+  if (const auto n = load_nima_countries(nima_table)) {
+    nima_ = *n;
+  }
   setWindowTitle(tr("Ort suchen"));
   auto* v = new QVBoxLayout(this);
   auto* top = new QHBoxLayout();
@@ -83,7 +87,15 @@ void PlaceDialog::scan_directory() {
   const QSignalBlocker block(files_);
   files_->clear();
   for (const QString& n : names) {
-    files_->addItem(n, dir.absoluteFilePath(n));
+    // the big files spell CC_A_K, the NIMA table names the country
+    QString label = n;
+    if (n.size() >= 6 && n[2] == '_' && n[4] == '_') {
+      const std::string country = nima_country_name(nima_, n.left(2).toStdString());
+      if (!country.empty()) {
+        label = QString("%1   %2").arg(n, QString::fromStdString(country));
+      }
+    }
+    files_->addItem(label, dir.absoluteFilePath(n));
   }
   load_current_file();
 }

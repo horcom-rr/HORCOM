@@ -5,8 +5,11 @@
 #include <QApplication>
 #include <QCoreApplication>
 #include <QDir>
+#include <QLibraryInfo>
+#include <QLocale>
 #include <QMessageBox>
 #include <QTimer>
+#include <QTranslator>
 
 #include "main_window.hpp"
 #include "place_dialog.hpp"
@@ -34,34 +37,54 @@ int main(int argc, char** argv) {
   app.setStyleSheet(horcom::theme::kStyleSheet);
   QApplication::setApplicationName("horcom");
   QApplication::setOrganizationName("horcom");
+  const QStringList args = QApplication::arguments();
+
+  // German is the native language of the program, every other locale
+  // reads the English translation, --lang de|en overrides for checks
+  QString lang;
+  const int lang_arg = args.indexOf("--lang");
+  if (lang_arg >= 0 && lang_arg + 1 < args.size()) {
+    lang = args[lang_arg + 1];
+  }
+  const bool german = lang.isEmpty() ? QLocale::system().language() == QLocale::German : lang == "de";
+  QTranslator translator;
+  if (!german && translator.load(":/i18n/horcom_en.qm")) {
+    QApplication::installTranslator(&translator);
+  }
+  QTranslator qt_translator;
+  if (german && qt_translator.load(QLocale(QLocale::German), "qtbase", "_",
+                                   QLibraryInfo::path(QLibraryInfo::TranslationsPath))) {
+    QApplication::installTranslator(&qt_translator);
+  }
 
   const std::filesystem::path data = find_data_dir();
   if (data.empty()) {
-    QMessageBox::critical(nullptr, "HORCOM", "Der Ordner 'data' mit planets.dat wurde nicht gefunden.");
+    QMessageBox::critical(nullptr, "HORCOM",
+                          QCoreApplication::translate("main", "Der Ordner 'data' mit planets.dat wurde nicht gefunden."));
     return 1;
   }
   horcom::VsopTables vsop;
   try {
     vsop = horcom::VsopTables::load(data / "planets.ndx", data / "planets.dat");
   } catch (const std::exception&) {
-    QMessageBox::critical(nullptr, "HORCOM", "Die Planetentafeln konnten nicht geladen werden.");
+    QMessageBox::critical(nullptr, "HORCOM",
+                          QCoreApplication::translate("main", "Die Planetentafeln konnten nicht geladen werden."));
     return 1;
   }
   horcom::Ephemerides eph(data / "eph");
 
   // --shot-place and --shot-zone capture the dialogs unshown, the same
   // hook for visual checks as --shot below
-  const QStringList early_args = QApplication::arguments();
-  const int shot_place = early_args.indexOf("--shot-place");
-  if (shot_place >= 0 && shot_place + 1 < early_args.size()) {
-    horcom::PlaceDialog dialog(data / "places");
-    dialog.grab().save(early_args[shot_place + 1]);
+  const int shot_place = args.indexOf("--shot-place");
+  if (shot_place >= 0 && shot_place + 1 < args.size()) {
+    horcom::PlaceDialog dialog(data / "places", data / "landnima.int");
+    dialog.grab().save(args[shot_place + 1]);
     return 0;
   }
-  const int shot_zone = early_args.indexOf("--shot-zone");
-  if (shot_zone >= 0 && shot_zone + 1 < early_args.size()) {
+  const int shot_zone = args.indexOf("--shot-zone");
+  if (shot_zone >= 0 && shot_zone + 1 < args.size()) {
     horcom::ZoneDialog dialog(data / "zonnamen.int");
-    dialog.grab().save(early_args[shot_zone + 1]);
+    dialog.grab().save(args[shot_zone + 1]);
     return 0;
   }
 
@@ -69,7 +92,6 @@ int main(int argc, char** argv) {
 
   // --shot FILE saves a capture of the window and quits, the hook for
   // visual checks without touching the desktop
-  const QStringList args = QApplication::arguments();
   const int shot = args.indexOf("--shot");
   if (shot >= 0) {
     window.showMinimized();
