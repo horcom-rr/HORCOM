@@ -1,0 +1,181 @@
+Name der Zeit-Zone                         Abkürzung        UT - ZEIT
+Greenwich Mean Time                           GMT        00 h 00 m
+Universal Time ( Weltzeit )                   UT         00 h 00 m
+Local Mean Time (after  ca. 1810 s. Erl.2)    LMT                 
+Local True Time (before ca. 1810 s. Erl.2)    LTT                 
+Western European Time                         WET        00 h 00 m
+Pariser Time ( 1891 - 1911 )                            -00 h 09 m
+Bruesseler Time ( 1880 - 1892 )                         -00 h 17 m
+Amsterdamer Time ( 1892 - 1940 )              AMT       -00 h 20 m
+Amsterdamer Summer Time                       AMT /S    -01 h 20 m
+Berner Time ( 1848 - 1894 )                             -00 h 30 m
+Cagliari Time ( 1866 - 1893 )                           -00 h 38 m
+Romer Time ( 1866 - 1893 )                              -00 h 50 m
+Palermo Time ( 1866 - 1893 )                            -00 h 53 m
+Prager Time ( 1850 - 1891 )                             -00 h 58 m
+Western European Summer Time                  WET /S    -01 h 00 m
+Western European Double Summer Time           WET /DS   -02 h 00 m
+Stockholmer Time ( 1878 - 1900 )                        -01 h 13 m
+Warschauer Time ( 1916 - 1946 )                         -01 h 24 m
+Athener Time ( 1895 - 1916 )                            -01 h 35 m
+Middle European Time                          MET       -01 h 00 m
+Middle European Summer Time                   MET /S    -02 h 00 m
+Middle European Double Summer Time            MET /DS   -03 h 00 m
+Rigaer (Riga) Time ( 1918 - 1926 )                      -01 h 37 m
+Revaler (Tallin) Time (1880 - 1921)                     -01 h 39 m
+Helsinki Time ( 1878 - 1921 )                           -01 h 40 m
+Romania Local Time                            RLMT      -01 h 44 m
+Bukarester Time ( 1891 - 1931 )                         -01 h 45 m
+Istanbuler Time ( 1880 - 1910 )                         -01 h 57 m
+Eastern European Time                         EET       -02 h 00 m
+Eastern European Summer Time                  EET /S    -03 h 00 m
+Kenya Time                                    KYT       -02 h 30 m
+Ethiopia Local Time                           ˆÑTLMT    -02 h 35 m
+Kenya Local Time                              KYLMT     -02 h 45 m
+Tanzania Local Time                           TZLMT     -02 h 45 m
+Uganda Local Time                             UGLMT     -02 h 45 m
+Bagdad Time                                   BGT       -03 h 00 m
+Bagdad Summer Time                            BGT /S    -04 h 00 m
+Iran Time ( 1940 - 1977 )                     IRT       -03 h 30 m
+Iran Local Time (Teheran 1916 - 1949)         IRLMT     -03 h 26 m
+Iran Summer Time                              IRT /S    -04 h 30 m
+Russian Zone 2 Time                           R2T       -02 h 00 m
+Russian Zone 2 Summer Time                    R2T /S    -03 h 00 m
+Russian Zone 3 Time                           R3T       -03 h 00 m
+Indian Ocean Time                             IOT       -04 h 00 m
+Indian Ocean Summer Time                      IOT /S    -05 h 00 m
+Russian Zone 3 Summer Time                    R3T /S    -04 h 00 m
+Afghanistan Time                              AGT       -04 h 30 m
+Afghanistan Summer Time                       AGT /S    -05 h 30 m
+Russian Zone 4 Time                           R4T       -04 h 00 m
+Russian Zone 4 Summer Time                    R4T /S    -05 h 00 m
+Maledives Local Time                          MVLMT     -04 h 54 m
+Russian Zone 5 Time                           R5T       -05 h 00 m
+Russian Zone 5 Summer Time                    R5T /S    -06 h 00 m
+East Indian Ocean Time                        EIT       -05 h 00 m
+East Indian Ocean Summer Time                 EIT /S    -06 h 00 m
+Colombo Time ( 1880 - 1906 )                            -05 h 20 m
+Indian Standard Time                          IST       -05 h 30 m
+Indian Standard Summer Time                   IST /S    -06 h 30 m
+Nepal Time                                    NPT       -05 h 45 m
+Nepal Summer Time                             NPT /S    -06 h 45 m
+Kalkutta Time ( 1880 - 1941 )                           -05 h 54 m
+Russian Zone 6 Time                           R6T       -06 h 00 m
+Russian Zone 6 Summer Time                    R6T /S    -07 h 00 m
+North Sumatra Time                            NST       -06 h 30 m
+North Sumatra Summer Time                     NST /S    -07 h 30 m
+Rangun Time ( 1880 - 1920 )                             -06 h 30 m
+Singapur Time ( 1880 - 1905 )                           -06 h 55 m
+South Sumatra Time                            SST       -07 h 00 m
+South Sumatra Summer Time                     SST /S    -08 h 00 m
+Jakarta Time ( 1884 - 1924 )                            -07 h 07 m
+Java Time                                     JVT       -07 h 30 m
+Java Summer Time                              JVT /S    -08 h 30 m
+Russian Zone 7 Time                           R7T       -07 h 00 m
+Russian Zone 7 Summer Time                    R7T /S    -08 h 00 m
+Russian Zone 8 Time                           R8T       -08 h 00 m
+Russian Zone 8 Summer Time                    R8T /S    -09 h 00 m
+China Coast Time                              CCT       -08 h 00 m
+China Coast Summer Time                       CCT /S    -09 h 00 m
+Malaysia Local Time                           MYLMT     -08 h 20 m
+Korea Local Time                              KRLMT     -08 h 30 m
+Moluccas Time                                 MT        -08 h 30 m
+Japan Standard Time                           JST       -09 h 00 m
+Japan Standard Summer Time                    JST /S    -10 h 00 m
+Russian Zone 9 Time                           R9T       -09 h 00 m
+Russian Zone 9 Summer Time                    R9T /S    -10 h 00 m
+Australien Central Standard Time              ACST      -09 h 30 m
+Australien Central Savings Time               ACST /S   -10 h 30 m
+Australien Eastern Standard Time              AEST      -10 h 00 m
+Australien Eastern Daylight Time              AEST /S   -11 h 00 m
+Russian Zone 10 Time                          R10       -10 h 00 m
+Russian Zone 10 Summer Time                   R10 /S    -11 h 00 m
+Guam Standard Time                            GST       -10 h 00 m
+Guam Standard Summer Time                     GST /S    -11 h 00 m
+Russian Zone 11 Time                          R11       -11 h 00 m
+Russian Zone 11 Summer Time                   R11 /S    -12 h 00 m
+Sounth Pacific Time                           SPT       -11 h 00 m
+Sounth Pacific Summer Time                    SPT /S    -12 h 00 m
+Norfolk Island Time                           NIT       -11 h 12 m
+Old New Zealand Time                          OZT       -11 h 30 m
+Old New Zealand Summer Time                   OZT /S    -12 h 30 m
+New Zealand Time                              NZT       -12 h 00 m
+New Zealand Summer Time                       NZT /S    -13 h 00 m
+Russian Zone 12 Time                          Z12       -12 h 00 m
+Russian Zone 12 Summer Time                   Z12 /S    -13 h 00 m
+Tonga Time                                    TGT       -12 h 20 m
+Russian Zone 13 Time                          Z13       -13 h 00 m
+Russian Zone 13 Summer Time                   Z13 /S    -14 h 00 m
+------------------------------------------------------------------
+International Date Line ( 180 Grad E )        IDL /E    -12 h 00 m
+International Date Line ( 180 Grad W )        IDL /W    +12 h 00 m
+------------------------------------------------------------------
+Niue Standard Time                            NTT       +11 h 30 m
+Niue Time                                     NUT       +11 h 20 m
+Nome Time                                     NAT       +11 h 00 m
+Bering Standard Time                          BRST      +11 h 00 m
+Bering Daylight Time                          BRDT      +10 h 00 m
+Bering War Time                               BRWT      +10 h 00 m
+Kiribati Time                                 KBT       +10 h 40 m
+Hawaiian Standard Time (1900 - 1947)          HAST      +10 h 30 m
+Hawaiian Standard Time                        HAST      +10 h 30 m
+Alaska - Hawaiian Standart Time               AHST      +10 h 00 m
+Cook Island Time                              COT       +09 h 30 m
+Hawaiian Daylight Time                        HDT       +09 h 30 m
+Hawaiian War Time                             HWT       +09 h 30 m
+Alaska + Hawaiian Daylight Time               AHDT      +09 h 00 m
+Alaska + Hawaiian War Time                    AHWT      +09 h 00 m
+Yukon Standard Time                           YST       +09 h 00 m
+Pitcairn Time                                 PCT       +08 h 30 m
+Yukon Daylight Time                           YDT       +08 h 00 m
+Yukon War Time                                YWT       +08 h 00 m
+Pacific Standard Time                         PST       +08 h 00 m
+Pacific Daylight Time                         PDT       +07 h 00 m
+Pacific War Time                              PWT       +07 h 00 m
+Mountain Standard Time                        MST       +07 h 00 m
+Mountain War Time                             MWT       +06 h 00 m
+Mountain Daylight Time                        MDT       +06 h 00 m
+Central Standard Time                         CST       +06 h 00 m
+Managua Time ( 1890 - 1934 )                            +05 h 45 m
+Havanna Time ( 1890 - 1925 )                            +05 h 30 m
+Kingston Time ( 1890 - 1912 )                           +05 h 07 m
+La Paz Time ( 1890 - 1932 )                             +05 h 01 m
+Central Daylight Time                         CDT       +05 h 00 m
+Central War Time                              CWT       +05 h 00 m
+Eastern Standard Time                         EST       +05 h 00 m
+Belice Summer Time                            BLZ /S    +05 h 30 m
+Santiago Time ( 1890 - 1910 )                           +04 h 43 m
+Dominican Republic Local Mean Time            DRLMT     +04 h 40 m
+Bolivian Standard Time                        BST       +04 h 30 m
+Bolivian Summer Time                          BST /S    +03 h 30 m
+Cordoba Time                                            +04 h 17 m
+Eastern War Time                              EWT       +04 h 00 m
+Eastern Daylight Time                         EDT       +04 h 00 m
+Belice Standart Time                          BLZ       +04 h 30 m
+Atlantic Standard Time                        AST       +04 h 00 m
+Atlantic Standard Summer Time                 AST /S    +03 h 00 m
+Montevideo Time ( 1898 - 1920 )                         +03 h 45 m
+Suriname Local Mean Time                      SULMT     +03 h 41 m
+Newfoundland Time                             NFT       +03 h 30 m
+Newfoundland Daylight Time                    NFT /S    +02 h 30 m
+Newfoundland War Time                         NFT /W    +02 h 30 m
+Brazil Zone 2 Time                            BZT       +03 h 00 m
+Brazil Zone 2 Summer Time                     BZT /S    +02 h 00 m
+Azores Time                                   AZT       +02 h 00 m
+Azores Summer Time                            AZT /S    +01 h 00 m
+Azores Double Summer Time                     AZT /DS   +00 h 00 m
+Reykjavik Time ( 1837 - 1908 )                          +01 h 28 m
+West Africa Time                              WAT       +01 h 00 m
+West Africa Summer Time                       WAT /S    +00 h 00 m
+West Africa Double Summer Time                WAT /DS   -01 h 00 m
+Western European Time                         WET       +01 h 00 m
+Liberia Local Time                            LBLMT     +00 h 44 m
+Lissaboner Time ( 1903 - 1912 )                         +00 h 37 m
+Dubliner Time ( 1880 - 1916 )                           +00 h 25 m
+Belfaster Time ( 1880 - 1916 )                          +00 h 24 m
+Madrider Time ( ca.1880 - 1901 )                        +00 h 15 m
+Greenwich Mean Time                            GMT       00 h 00 m
+
+
+
+
