@@ -100,7 +100,18 @@ marker, stars as empty fields, HTML stripped so saved web pages still
 parse, plain lines continuing a comment, the calendar suffix on the year
 and the rule that a Julian date outranks the clock fields. The writer
 reproduces the A93 and B93 lines of make_aaf including STR$(jd,13,5).
-Still open here, the seed conversion of the country tables.
+</p>
+
+<h2>The country tables</h2>
+<p>
+landnima.int names the two letter NIMA prefixes of the big place files,
+263 code lines in the shape XX = NAME, and the shell's place search uses
+it to label the files with their countries. One documented deviation,
+the original discriminator starts behind its first array slot and can
+never match Aruba, the rewrite searches every entry. laender.int carries
+the 57 German auto style abbreviations of the record mask behind its
+header row, loaded and pinned for the record editor to come. Both ship
+as seeds in data.
 </p>
 
 <h2>The zone name catalogue</h2>
