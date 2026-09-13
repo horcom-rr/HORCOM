@@ -8,6 +8,7 @@
   <a href="https://github.com/horcom-rr/HORCOM/actions/workflows/build.yml"><img src="https://github.com/horcom-rr/HORCOM/actions/workflows/build.yml/badge.svg" alt="build"></a>
   <a href="https://github.com/horcom-rr/HORCOM/releases/latest"><img src="https://img.shields.io/github/v/release/horcom-rr/HORCOM?label=release&color=2f6f4f" alt="latest release"></a>
   <a href="https://github.com/horcom-rr/HORCOM/releases"><img src="https://img.shields.io/github/downloads/horcom-rr/HORCOM/total?color=6f5f2f" alt="downloads"></a>
+  <a href="https://horcom-rr.github.io/HORCOM/"><img src="https://img.shields.io/badge/handbook-online-7a5ea6" alt="handbook"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue" alt="license"></a>
   <img src="https://img.shields.io/badge/C%2B%2B-20-1f4f6f" alt="C++20">
   <img src="https://img.shields.io/badge/Qt-6-41cd52" alt="Qt 6">
