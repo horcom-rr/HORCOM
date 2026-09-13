@@ -6,6 +6,7 @@
 
 #include "doctest.h"
 #include "horcom/chart/chart.hpp"
+#include "horcom/chart/composite.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
 #include "horcom/time/delta_t.hpp"
@@ -185,4 +186,52 @@ TEST_CASE("true node and apogee switches change the slots as configured") {
   const int ag = mean.nk[1];
   CHECK(cm.b[static_cast<std::size_t>(ag)].el == doctest::Approx(cm.lunar.mean_apogee));
   CHECK(ct.b[static_cast<std::size_t>(ag)].el == doctest::Approx(ct.lunar.true_apogee));
+}
+
+TEST_CASE("the composite midpoints two charts like a13") {
+  ChartInput ia;
+  ia.date_ut = {13, 10, 1992, 3, 0.0};
+  ia.lon_deg_east = 11.3244;
+  ia.lat_deg = 48.1742;
+  ChartInput ib;
+  ib.date_ut = {1, 6, 1990, 12, 0.0};
+  ib.lon_deg_east = 11.3244;
+  ib.lat_deg = 48.1742;
+  const Chart a = compute_chart(ia, {}, vsop(), eph());
+  const Chart b = compute_chart(ib, {}, vsop(), eph());
+  REQUIRE(a.ok);
+  REQUIRE(b.ok);
+  const Chart c = composite_chart(a, ia, b, ib, CompositeHouses::kSchematic, ia.lat_deg, {});
+  REQUIRE(c.ok);
+  // the sun sits on the near side midpoint
+  CHECK(c.b[body::kSun].el == doctest::Approx(midpoint_near(a.b[body::kSun].el, b.b[body::kSun].el)));
+  // the south node follows the north by half a circle
+  CHECK(norm_rad(c.b[body::kNodeDesc].el - c.b[body::kNodeAsc].el) == doctest::Approx(kPi));
+  // opposite cusps stay opposite
+  CHECK(norm_rad(c.houses.cusp[7] - c.houses.cusp[1]) == doctest::Approx(kPi));
+  CHECK(norm_rad(c.houses.cusp[4] - c.houses.cusp[10]) == doctest::Approx(kPi));
+  // the mean sidereal mode computes real houses at the mean place
+  const Chart m = composite_chart(a, ia, b, ib, CompositeHouses::kMeanSidereal, ia.lat_deg, {});
+  CHECK(m.houses.ok);
+  CHECK(m.houses.cusp[1] == doctest::Approx(m.houses.angles.ac));
+}
+
+TEST_CASE("the halbsmin midpoint takes the near side") {
+  CHECK(midpoint_near(350.0 * kDegToRad, 10.0 * kDegToRad) == doctest::Approx(0.0).epsilon(1e-9));
+  CHECK(midpoint_near(10.0 * kDegToRad, 50.0 * kDegToRad) == doctest::Approx(30.0 * kDegToRad));
+}
+
+TEST_CASE("the combin averages moment and place like a14") {
+  ChartInput ia;
+  ia.date_ut = {13, 10, 1992, 3, 0.0};
+  ia.lon_deg_east = 10.0;
+  ia.lat_deg = 48.0;
+  ChartInput ib;
+  ib.date_ut = {13, 10, 1994, 3, 0.0};
+  ib.lon_deg_east = 12.0;
+  ib.lat_deg = 50.0;
+  const ChartInput c = combin_input({ia, ib}, Calendar::kAuto);
+  CHECK(julian_day(c.date_ut) == doctest::Approx((julian_day(ia.date_ut) + julian_day(ib.date_ut)) / 2.0));
+  CHECK(c.lon_deg_east == doctest::Approx(11.0));
+  CHECK(c.lat_deg == doctest::Approx(49.0));
 }
