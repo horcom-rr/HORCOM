@@ -36,6 +36,7 @@ truncated it. He knew about that himself
   <tr><td>Windows 1252 text, <code>_ANSI$(_OEM$())</code> round trips</td><td><code>cp1252_to_utf8, utf8_to_cp1252</code></td><td><code>src/horcom/data/encoding.*</code></td></tr>
   <tr><td><code>SPEZIAL\*.DAT</code>, 128 byte records, <code>oeffne20, a201, a2011</code></td><td><code>ChartRecord, read_chart_file, write_chart_file</code></td><td><code>src/horcom/data/chart_file.*</code></td></tr>
   <tr><td><code>SPEZ_ORT\*.INT</code>, 36 byte records, the picker zone suffix, <code>ORT.EXT</code> with both encodings</td><td><code>PlaceRecord, read_place_file, read_preferred_place</code></td><td><code>src/horcom/data/place_file.*</code></td></tr>
+  <tr><td><code>stat_ausw, stat_ausw_1, bed_erf, bed_erf_asp, haus_def, haus_sel, ze_pl, sum_z_h, stat_ausg_ar</code></td><td><code>evaluate_statistics, stat_houses, sign_ruler</code></td><td><code>src/horcom/data/statist_eval.*</code></td></tr>
 </table>
 
 <h2>The chart record</h2>
@@ -105,7 +106,32 @@ trip. Verified locally against his real datasets, over sixteen hundred
 charts parse with each sun standing where its calendar date demands.
 The shell's Statistik browser lists a dataset, shows the sign
 distribution of any object over the whole set and hands a chart back to
-the panel, the full search condition engine of stat_ausw follows.
+the panel.
+</p>
+
+<h2>The search conditions</h2>
+<p>
+stat_ausw runs conditions over a loaded dataset, ported as
+<code>evaluate_statistics</code>. The object menu covers a single body, a house
+cusp or the ruler of a cusp's sign, the lights, all bodies at once, the
+ruler of a house, a midpoint, an aspect between two operands or against
+a midpoint, mirror points around both axes, a name fragment and the
+arabic parts with their day and night formula swap. The condition menu
+places the object at a degree, in a sign, in a house, near another
+body or anywhere. Windows that cross the zero point run as extra
+passes exactly like his two follow up loops. haus_def rebuilds all
+twelve cusps from the six the record stores, ze_pl hands each sign its
+ruler with the alt switch to the classical ones, and the aspect
+windows share org, orbis_discr and the equal probability multiple
+filter with the aspect engine, including his sticky per record flags
+under UND. Conditions chain through the mz survivor mask, UND keeps
+only records that carried a previous match, and the lights and all
+bodies walks never write the mask on a match, only their failures
+clear it, his split kept knowingly. sum_z_h tallies every tested value
+into a sign or house distribution as the baseline the counts compare
+against. The Statistik dialog builds the conditions with UND chaining,
+filters the record list to the survivors and prints hit count and
+distribution.
 </p>
 
 <h2>The AAF exchange format</h2>
@@ -158,6 +184,10 @@ files, the place layout, the zone suffix readings for east and west, and
 both preferred place encodings. The shipped europa picker is pinned to
 its 465 places with Agram at minus one, and his profile is pinned on
 every switch and round trips through the writer and reader unchanged.
+<code>test_statist_eval.cpp</code> runs invented charts through every object
+and window, the cusp mirroring, the twelve rulers with the alt switch,
+the zero wrap, the aspect fold with the multiple filter, the UND
+survivors and the mask silence of the collective walks.
 </p>
 
 </main>
