@@ -182,3 +182,26 @@ TEST_CASE("the comparison scan lists the running sky over the radix") {
   CHECK(hits[1].n == 4);
   CHECK(hits[1].sep_deg == doctest::Approx(90.4).epsilon(0.001));
 }
+
+TEST_CASE("aspdis names every matched angle for the aspektarium") {
+  // the conjunction carries two pi in the asp matrix
+  CHECK(aspect_symbol(kTwoPi, 12) == 1);
+  CHECK(aspect_symbol(kPi, 12) == 2);
+  CHECK(aspect_symbol(120.0 * kDegToRad, 12) == 3);
+  CHECK(aspect_symbol(90.0 * kDegToRad, 12) == 4);
+  CHECK(aspect_symbol(72.0 * kDegToRad, 12) == 5);
+  CHECK(aspect_symbol(60.0 * kDegToRad, 12) == 6);
+  // the named minor aspects of his CASE ladder
+  CHECK(aspect_symbol(45.0 * kDegToRad, 12) == 8);
+  CHECK(aspect_symbol(30.0 * kDegToRad, 12) == 12);
+  CHECK(aspect_symbol(144.0 * kDegToRad, 12) == 17);
+  CHECK(aspect_symbol(150.0 * kDegToRad, 12) == 18);
+  CHECK(aspect_symbol(135.0 * kDegToRad, 12) == 19);
+  // multiples fold back onto their divisor through the t loop
+  CHECK(aspect_symbol(2.0 * 360.0 / 7.0 * kDegToRad, 12) == 7);
+  CHECK(aspect_symbol(80.0 * kDegToRad, 12) == 9);
+  // the far side folds first
+  CHECK(aspect_symbol(240.0 * kDegToRad, 12) == 3);
+  // the 22.5 degree family truncates onto CASE 22, his FIX at work
+  CHECK(aspect_symbol(22.5 * kDegToRad, 16) == 16);
+}

@@ -73,6 +73,21 @@ struct AspectResult {
 /// @return the aspect matrix, counters and hit list
 [[nodiscard]] AspectResult scan_aspects(const Chart& chart, const ChartSettings& s, const AspectSettings& a);
 
+/// Names a matched angle for the Aspektarium, the original aspdis.
+///
+/// The angle folds to the near side, then every divisor up to the scan
+/// limit divides it down until a known aspect degree appears, which
+/// maps multiples back onto their divisor.
+///
+/// @param w        the matched angle from the asp matrix, radians, two
+///                 pi for the conjunction
+/// @param divisors the original nasp&, the highest divisor tried
+/// @return his symbol index, 1 to 6 the main aspects, 8 the semi
+///         square, 12 the semi sextile, 17 biquintile, 18 quincunx,
+///         19 sesquiquadrate, other divisors their own number, 0 when
+///         nothing fits
+[[nodiscard]] int aspect_symbol(double w, int divisors);
+
 /// One aspect between two charts, the a12asp comparison hit.
 struct CrossAspectHit {
   int t = 0;             // first chart slot, the standing radix

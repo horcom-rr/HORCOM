@@ -400,4 +400,50 @@ std::vector<CrossAspectHit> scan_aspects_between(const Chart& first, const Chart
   return out;
 }
 
+// ported from HORCOM aspdis
+int aspect_symbol(double w, int divisors) {
+  if (w > kPi && w < kTwoPi) {
+    w = kTwoPi - w;
+  }
+  for (int t = 1; t <= divisors; ++t) {
+    const int n = static_cast<int>(0.001 + kRadToDeg * w / t);
+    int m = 0;
+    switch (n) {
+      case 360:
+      case 180:
+      case 120:
+      case 90:
+      case 72:
+      case 60:
+      case 51:
+      case 45:
+      case 40:
+      case 36:
+      case 32:
+      case 30:
+      case 27:
+      case 25:
+      case 24:
+      case 22:
+        m = static_cast<int>(360.0 / n + 0.001);
+        break;
+      case 144:
+        m = 17;  //RR Biquintil
+        break;
+      case 150:
+        m = 18;  //RR Quinkunx
+        break;
+      case 135:
+        m = 19;  //RR Anderthalbquad.
+        break;
+      default:
+        break;
+    }
+    if (m > 0) {
+      return m;
+    }
+  }
+  return 0;
+}
+
 }  // namespace horcom
