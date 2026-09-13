@@ -100,6 +100,11 @@ marker, stars as empty fields, HTML stripped so saved web pages still
 parse, plain lines continuing a comment, the calendar suffix on the year
 and the rule that a Julian date outranks the clock fields. The writer
 reproduces the A93 and B93 lines of make_aaf including STR$(jd,13,5).
+The shell writes real records through it, the record mask carries the
+person, the place name, the country abbreviation and the summer time
+code of the original sommerzeit table, the clock stays civil with the
+zone string beside it composed like zeitzon, and saving into an
+existing file can append to the collection instead of replacing it.
 </p>
 
 <h2>The country tables</h2>
