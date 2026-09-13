@@ -36,6 +36,10 @@ Analysis complete, implementation not yet started. The original program (50,397 
 
 Next step is phase 0 of the architecture: installing a C++ toolchain (MSVC Build Tools or MSYS2), then porting the calculation kernel with golden tests against the original program.
 
+## License
+
+GPL-3.0-or-later, see `LICENSE`. The rewrite stays open, every derivative stays open, and Robert Rettig's name stays attached to his work. Maintained by Dominik Schwimmbeck.
+
 ---
 
 *In memory of Robert Rettig, who built all of this first.*
