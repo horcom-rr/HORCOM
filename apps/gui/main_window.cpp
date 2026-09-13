@@ -46,10 +46,12 @@
 #include "direction_list_dialog.hpp"
 #include "horcom/chart/composite.hpp"
 #include "horcom/chart/directions.hpp"
+#include "horcom/chart/dynamogram.hpp"
 #include "horcom/chart/harmonics.hpp"
 #include "horcom/chart/mundane.hpp"
 #include "horcom/chart/arabic.hpp"
 #include "horcom/chart/progressions.hpp"
+#include "horcom/chart/rhythm.hpp"
 #include "horcom/chart/riseset.hpp"
 #include "horcom/chart/stars.hpp"
 #include "horcom/chart/transit_search.hpp"
@@ -326,6 +328,8 @@ void MainWindow::build_ui() {
   horo->addAction(tr("Aufgang/Untergang…"), this, &MainWindow::rise_set);
   horo->addAction(tr("Finsternisse…"), this, &MainWindow::eclipse_table);
   horo->addAction(tr("Großes Jahr…"), this, &MainWindow::great_year);
+  horo->addAction(tr("Rhythmenlehre (Auslösungen)…"), this, &MainWindow::rhythm_table);
+  horo->addAction(tr("Dynamogramm…"), this, &MainWindow::dynamogram_view);
   // the direction tables of the original evaluation menu in one place
   horo->addAction(QString::fromUtf8("Direktionen-Auswertung…"), this, [this]() {
     if (!last_chart_) {
@@ -1176,6 +1180,189 @@ void MainWindow::house_table() {
   v->addWidget(table, 1);
   v->addWidget(buttons);
   dialog.resize(placidus ? 720 : 540, 440);
+  dialog.exec();
+}
+
+void MainWindow::rhythm_table() {
+  if (!last_chart_ || !last_chart_->houses.ok) {
+    return;
+  }
+  QDialog dialog(this);
+  //RR nach W.Döbereiner
+  dialog.setWindowTitle(tr("Münchner Rhythmenlehre, Auslösungen nach W. Döbereiner"));
+  auto* v = new QVBoxLayout(&dialog);
+  auto* top = new QHBoxLayout();
+  auto* phase = new QDoubleSpinBox(&dialog);
+  phase->setRange(-30.0, 30.0);
+  phase->setDecimals(1);
+  phase->setValue(7.0);
+  phase->setPrefix(tr("Phase "));
+  auto* unit = new QComboBox(&dialog);
+  unit->addItem(tr("Jahr"), 0);
+  unit->addItem(tr("Monat"), 1);
+  auto* begin = new QSpinBox(&dialog);
+  begin->setRange(1, 12);
+  begin->setPrefix(tr("ab Haus "));
+  auto* direction = new QComboBox(&dialog);
+  direction->addItem(tr("Links"), 1);
+  direction->addItem(tr("Rechts"), 0);
+  auto* sextile = new QCheckBox(tr("Sextil"), &dialog);
+  auto* run = new QPushButton(tr("Rechnen"), &dialog);
+  top->addWidget(phase);
+  top->addWidget(unit);
+  top->addWidget(begin);
+  top->addWidget(direction);
+  top->addWidget(sextile);
+  top->addWidget(run, 1);
+  auto* table = new QTableWidget(0, 6, &dialog);
+  table->setHorizontalHeaderLabels({tr("Phase"), tr("Haus"), tr("Alter"), tr("Punkt"), tr("Art"), tr("Quelle")});
+  table->horizontalHeader()->setStretchLastSection(true);
+  table->verticalHeader()->setVisible(false);
+  table->verticalHeader()->setDefaultSectionSize(20);
+  table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  auto* count = new QLabel(&dialog);
+  const Chart chart = *last_chart_;
+  const ChartSettings cs = current_settings();
+  const AspectSettings base = aspect_settings_;
+  const auto fill = [this, table, count, chart, cs, base, phase, unit, begin, direction, sextile]() {
+    RhythmOptions opt;
+    opt.phase_years = phase->value();
+    opt.months = unit->currentData().toInt() == 1;
+    opt.begin_house = begin->value();
+    opt.leftward = direction->currentData().toInt() == 1;
+    opt.sextile = sextile->isChecked();
+    opt.apogee_opposite = true_apogee_ != nullptr && extras_ != nullptr && extras_->isChecked();
+    AspectSettings a = base;
+    //RR nasp bei der Rhythmenlehre 4, mit Sextil 6
+    a.divisors = opt.sextile ? 6 : 4;
+    const AspectResult scan = scan_aspects(chart, cs, a);
+    const std::vector<RhythmTrigger> rows = rhythm_triggers(chart, scan, a, opt);
+    static constexpr const char* kKind[6] = {"D", "P", "P2", "P3", "A", "S"};
+    table->setRowCount(0);
+    for (const RhythmTrigger& t : rows) {
+      const int row = table->rowCount();
+      table->insertRow(row);
+      table->setItem(row, 0, new QTableWidgetItem(QString::number(t.phase)));
+      table->setItem(row, 1, new QTableWidgetItem(QString("H%1").arg(t.house)));
+      table->setItem(row, 2, new QTableWidgetItem(QString::asprintf("%8.3f", t.value)));
+      table->setItem(row, 3, new QTableWidgetItem(QString::fromUtf8(body::kTag[static_cast<std::size_t>(t.slot)].data(),
+                                                                    static_cast<int>(body::kTag[static_cast<std::size_t>(t.slot)].size()))));
+      QString art = kKind[static_cast<int>(t.kind)];
+      if (t.kind == RhythmKind::kAspect) {
+        art += QString::asprintf(" %g°", t.angle_deg);
+      }
+      table->setItem(row, 4, new QTableWidgetItem(art));
+      table->setItem(row, 5,
+                     new QTableWidgetItem(t.source > 0
+                                              ? QString::fromUtf8(body::kTag[static_cast<std::size_t>(t.source)].data(),
+                                                                  static_cast<int>(body::kTag[static_cast<std::size_t>(t.source)].size()))
+                                              : QString()));
+    }
+    count->setText(tr("%1 Auslösungen").arg(rows.size()));
+  };
+  connect(run, &QPushButton::clicked, &dialog, fill);
+  fill();
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+  connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+  v->addLayout(top);
+  v->addWidget(table, 1);
+  v->addWidget(count);
+  v->addWidget(buttons);
+  dialog.resize(680, 640);
+  dialog.exec();
+}
+
+void MainWindow::dynamogram_view() {
+  if (!last_chart_) {
+    return;
+  }
+  QDialog dialog(this);
+  //RR nach KRAFFT-GOERNER
+  dialog.setWindowTitle(tr("Dynamogramm nach Krafft-Goerner"));
+  auto* v = new QVBoxLayout(&dialog);
+  auto* top = new QHBoxLayout();
+  auto* age = new QDoubleSpinBox(&dialog);
+  age->setRange(0.0, 120.0);
+  age->setDecimals(0);
+  age->setValue(std::floor((julian_day({QDate::currentDate().day(), QDate::currentDate().month(),
+                                        QDate::currentDate().year(), 12, 0.0}) -
+                            last_chart_->jd_ut) /
+                           last_chart_->ta.tropical_year_days));
+  age->setPrefix(tr("ab Lebensjahr "));
+  auto* moon = new QCheckBox(tr("Mond"), &dialog);
+  auto* gauss = new QCheckBox(tr("Gauß-Kurven"), &dialog);
+  auto* minors = new QCheckBox(tr("Nebenaspekte"), &dialog);
+  auto* regress = new QCheckBox(tr("Regressiv dazu"), &dialog);
+  auto* run = new QPushButton(tr("Rechnen"), &dialog);
+  top->addWidget(age);
+  top->addWidget(moon);
+  top->addWidget(gauss);
+  top->addWidget(minors);
+  top->addWidget(regress);
+  top->addWidget(run, 1);
+  auto* graph = new WheelWidget(&dialog);
+  auto* note = new QLabel(tr("Gold die Grundstimmung, Rot die existenzielle Linie der Achsen. Fünf Lebensjahre je Bild."), &dialog);
+  note->setWordWrap(true);
+  const auto fill = [this, age, moon, gauss, minors, regress, graph]() {
+    DynamogramOptions opt;
+    opt.from_age = age->value();
+    opt.with_moon = moon->isChecked();
+    opt.gauss = gauss->isChecked();
+    opt.classic_minors = minors->isChecked();
+    opt.regressive = regress->isChecked();
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    const Dynamogram d = dynamogram(*last_chart_, opt, make_context());
+    QApplication::restoreOverrideCursor();
+    // the visible window of the original, five years from the asked
+    // age, one hundred twenty samples a year on a 640 wide sheet
+    DisplayList dl;
+    const double x0 = 20.0;
+    const double y0 = 240.0;
+    const double sx = 600.0 / 600.0;
+    dl.items.push_back({Primitive::Kind::kLine, x0, y0, x0 + 600.0, y0});
+    double peak = 1.0;
+    for (int i = 3000; i <= 3600; ++i) {
+      peak = std::max({peak, std::abs(d.mood[static_cast<std::size_t>(i)]),
+                       std::abs(d.existential[static_cast<std::size_t>(i)])});
+    }
+    const double sy = 200.0 / peak;
+    for (int year = 0; year <= 5; ++year) {
+      const double x = x0 + year * 120.0 * sx;
+      dl.items.push_back({Primitive::Kind::kLine, x, y0 - 6.0, x, y0 + 6.0});
+      Primitive t;
+      t.kind = Primitive::Kind::kText;
+      t.x1 = x;
+      t.y1 = y0 + 22.0;
+      t.size = 12.0;
+      t.text = std::to_string(static_cast<int>(opt.from_age) + year);
+      dl.items.push_back(t);
+    }
+    const auto curve = [&](const std::vector<double>& c, Rgb color) {
+      for (int i = 3000; i < 3600; ++i) {
+        Primitive l;
+        l.kind = Primitive::Kind::kLine;
+        l.x1 = x0 + (i - 3000) * sx;
+        l.y1 = y0 - c[static_cast<std::size_t>(i)] * sy;
+        l.x2 = x0 + (i + 1 - 3000) * sx;
+        l.y2 = y0 - c[static_cast<std::size_t>(i + 1)] * sy;
+        l.color = color;
+        l.width = 1.4;
+        dl.items.push_back(l);
+      }
+    };
+    curve(d.mood, 0xB8860B);
+    curve(d.existential, 0xC03020);
+    graph->set_display_list(dl);
+  };
+  connect(run, &QPushButton::clicked, &dialog, fill);
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+  connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+  v->addLayout(top);
+  v->addWidget(graph, 1);
+  v->addWidget(note);
+  v->addWidget(buttons);
+  dialog.resize(880, 620);
+  fill();
   dialog.exec();
 }
 

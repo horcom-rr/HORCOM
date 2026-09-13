@@ -18,10 +18,12 @@ add_library(horcom STATIC
   horcom/chart/transit_search.cpp
   horcom/chart/composite.cpp
   horcom/chart/directions.cpp
+  horcom/chart/dynamogram.cpp
   horcom/chart/harmonics.cpp
   horcom/chart/mundane.cpp
   horcom/chart/progressions.cpp
   horcom/chart/arabic.cpp
+  horcom/chart/rhythm.cpp
   horcom/chart/riseset.cpp
   horcom/chart/stars.cpp
   horcom/chart/symbolic.cpp

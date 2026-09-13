@@ -100,6 +100,8 @@ class MainWindow : public QMainWindow {
   void great_year();
   void rise_set();
   void eclipse_table();
+  void rhythm_table();
+  void dynamogram_view();
   void converters();
   void planetar_chart();
   void personar_chart();

@@ -5,6 +5,7 @@
 #include <cmath>
 
 #include "doctest.h"
+#include "horcom/chart/dynamogram.hpp"
 #include "horcom/chart/progressions.hpp"
 #include "horcom/chart/riseset.hpp"
 #include "horcom/chart/transit_search.hpp"
@@ -273,4 +274,28 @@ TEST_CASE("the sun rises and sets on the solstice clock") {
   CHECK(set.hour * 60.0 + set.minute == doctest::Approx(19.0 * 60 + 17).epsilon(0.02));
   const CalendarDate noon = calendar_date(rs.jd_transit_ut);
   CHECK(noon.hour * 60.0 + noon.minute == doctest::Approx(11.0 * 60 + 15).epsilon(0.02));
+}
+
+TEST_CASE("the dynamogram sums arcs into its two curves") {
+  const SearchContext ctx = context();
+  ChartInput in;
+  in.date_ut = {13, 10, 1992, 3, 0.0};
+  in.lon_deg_east = ctx.base.lon_deg_east;
+  in.lat_deg = ctx.base.lat_deg;
+  const Chart radix = compute_chart(in, ctx.settings, vsop(), eph());
+  REQUIRE(radix.ok);
+  DynamogramOptions opt;
+  opt.from_age = 20.0;
+  const Dynamogram d = dynamogram(radix, opt, ctx);
+  REQUIRE(d.mood.size() == 6001);
+  double mood_peak = 0.0;
+  double exist_peak = 0.0;
+  for (std::size_t i = 3000; i < 3600; ++i) {
+    mood_peak = std::max(mood_peak, std::abs(d.mood[i]));
+    exist_peak = std::max(exist_peak, std::abs(d.existential[i]));
+  }
+  // arcs land in the visible window and stay within a sane band
+  CHECK(mood_peak > 0.0);
+  CHECK(exist_peak > 0.0);
+  CHECK(mood_peak < 5000.0);
 }

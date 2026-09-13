@@ -6,6 +6,7 @@
 
 #include "doctest.h"
 #include "horcom/chart/bodies.hpp"
+#include "horcom/chart/rhythm.hpp"
 #include "horcom/chart/symbolic.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
@@ -100,4 +101,66 @@ TEST_CASE("the equatorial, mundane and primary frames answer") {
     cusp_seen = cusp_seen || (h.target >= 15 && h.target <= 18) || (h.directed >= 15 && h.directed <= 18);
   }
   CHECK(cusp_seen);
+}
+
+TEST_CASE("the rhythm walk triggers houses, rulers and chains") {
+  Chart c;
+  c.ok = true;
+  const std::initializer_list<std::pair<int, double>> bodies = {
+      {body::kSun, 15.0}, {body::kMars, 105.0}, {body::kAscendant, 10.0}, {body::kMc, 280.0}};
+  for (const auto& [slot, deg] : bodies) {
+    BodyState& b = c.b[static_cast<std::size_t>(slot)];
+    b.present = true;
+    b.valid = true;
+    b.el = deg * kDegToRad;
+  }
+  c.houses.ok = true;
+  for (int k = 1; k <= 12; ++k) {
+    c.houses.cusp[static_cast<std::size_t>(k)] = (10.0 + (k - 1) * 30.0) * kDegToRad;
+  }
+  c.houses.cusp[13] = c.houses.cusp[1];
+  AspectSettings as;
+  as.divisors = 4;
+  ChartSettings cs;
+  const AspectResult scan = scan_aspects(c, cs, as);
+  RhythmOptions opt;
+  const std::vector<RhythmTrigger> rows = rhythm_triggers(c, scan, as, opt);
+  REQUIRE(!rows.empty());
+  // the first phase rises in Aries, its ruler mars stands five degrees
+  // into the fourth house, one sixth of a seven year phase
+  bool ruler = false;
+  bool direct = false;
+  bool chain = false;
+  for (const RhythmTrigger& t : rows) {
+    if (t.phase == 1 && t.kind == RhythmKind::kRuler && t.slot == body::kMars) {
+      ruler = true;
+      CHECK(t.value == doctest::Approx(7.0 / 6.0).epsilon(1e-6));
+    }
+    if (t.phase == 1 && t.kind == RhythmKind::kDirect && t.slot == body::kSun) {
+      direct = true;
+      CHECK(t.value == doctest::Approx(7.0 / 6.0).epsilon(1e-6));
+    }
+    if (t.phase == 1 && t.kind == RhythmKind::kAspect && t.slot == body::kSun && t.source == body::kMars) {
+      chain = true;
+      CHECK(t.angle_deg == doctest::Approx(90.0));
+    }
+    // the tenth phase carries the midheaven at its cusp
+    if (t.phase == 10 && t.kind == RhythmKind::kDirect && t.slot == body::kMc) {
+      CHECK(t.value == doctest::Approx(63.0).epsilon(1e-4));
+    }
+  }
+  CHECK(ruler);
+  CHECK(direct);
+  CHECK(chain);
+  // the month unit divides every age by twelve
+  RhythmOptions monthly = opt;
+  monthly.months = true;
+  const std::vector<RhythmTrigger> m = rhythm_triggers(c, scan, as, monthly);
+  bool scaled = false;
+  for (const RhythmTrigger& t : m) {
+    if (t.phase == 1 && t.kind == RhythmKind::kDirect && t.slot == body::kSun) {
+      scaled = t.value == doctest::Approx(7.0 / 72.0).epsilon(1e-6);
+    }
+  }
+  CHECK(scaled);
 }
