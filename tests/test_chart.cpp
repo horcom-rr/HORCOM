@@ -6,6 +6,7 @@
 
 #include "doctest.h"
 #include "horcom/chart/chart.hpp"
+#include "horcom/chart/stars.hpp"
 #include "horcom/chart/composite.hpp"
 #include "horcom/chart/directions.hpp"
 #include "horcom/chart/mundane.hpp"
@@ -337,4 +338,30 @@ TEST_CASE("the heliocentric mode of hrg puts the earth on the moon slot") {
   CHECK(h.houses.cusp[1] == 0.0);
   // the sidereal chain still runs, the banner keeps its armc
   CHECK(h.armc_deg == doctest::Approx(g.armc_deg));
+}
+
+TEST_CASE("the fixed stars land on their catalogue places") {
+  ChartInput in;
+  in.date_ut = {1, 1, 2000, 12, 0.0};
+  in.lon_deg_east = 11.3244;
+  in.lat_deg = 48.1742;
+  ChartSettings s;
+  const Chart c = compute_chart(in, s, vsop(), eph());
+  REQUIRE(c.ok);
+  const std::vector<StarRow> rows = fixed_stars(c, 1.0);
+  REQUIRE(rows.size() == 62);
+  double regulus = 0.0;
+  double aldebaran = 0.0;
+  for (const StarRow& r : rows) {
+    if (r.name == "REGULUS") {
+      regulus = r.la * kRadToDeg;
+    }
+    if (r.name == "ALDEBARAN") {
+      aldebaran = r.la * kRadToDeg;
+    }
+  }
+  // the almanac puts Regulus near 29 degrees 50 Leo at the millennium
+  // and Aldebaran near 9 degrees 47 Gemini
+  CHECK(regulus == doctest::Approx(149.8).epsilon(0.005));
+  CHECK(aldebaran == doctest::Approx(69.8).epsilon(0.005));
 }

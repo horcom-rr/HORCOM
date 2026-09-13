@@ -14,6 +14,7 @@ add_executable(horcom_tests
   test_houses.cpp
   test_chart.cpp
   test_transit_search.cpp
+  test_arabic.cpp
   test_aspects.cpp
   test_render.cpp
   test_data.cpp

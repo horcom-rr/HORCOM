@@ -94,6 +94,8 @@ class MainWindow : public QMainWindow {
   void lunar_chart();
   void septar_chart();
   void degree_list();
+  void fixed_star_table();
+  void arabic_table();
   void house_table();
   void great_year();
   void converters();

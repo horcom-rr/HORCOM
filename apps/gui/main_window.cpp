@@ -48,7 +48,9 @@
 #include "horcom/chart/directions.hpp"
 #include "horcom/chart/harmonics.hpp"
 #include "horcom/chart/mundane.hpp"
+#include "horcom/chart/arabic.hpp"
 #include "horcom/chart/progressions.hpp"
+#include "horcom/chart/stars.hpp"
 #include "horcom/chart/transit_search.hpp"
 #include "ingress_dialog.hpp"
 #include "kommen_dialog.hpp"
@@ -315,6 +317,8 @@ void MainWindow::build_ui() {
   horo->addAction(tr("Transit-Liste…"), this, &MainWindow::transit_list);
   horo->addAction(tr("Ingresse…"), this, &MainWindow::ingress_table);
   horo->addAction(tr("Aspektarium…"), this, &MainWindow::open_aspektarium);
+  horo->addAction(tr("Fixsterne…"), this, &MainWindow::fixed_star_table);
+  horo->addAction(tr("Arabische Teile…"), this, &MainWindow::arabic_table);
   horo->addAction(tr("Grad-Liste…"), this, &MainWindow::degree_list);
   horo->addAction(tr("Häuser-Tabelle…"), this, &MainWindow::house_table);
   horo->addAction(tr("Großes Jahr…"), this, &MainWindow::great_year);
@@ -961,6 +965,104 @@ void MainWindow::run_solar(int year) {
     return;
   }
   apply_moment(hit.jd_ut, QString("SOLAR %1").arg(year));
+}
+
+void MainWindow::fixed_star_table() {
+  if (!last_chart_) {
+    return;
+  }
+  QDialog dialog(this);
+  dialog.setWindowTitle(tr("Fixsterne"));
+  auto* v = new QVBoxLayout(&dialog);
+  const std::vector<StarRow> rows = fixed_stars(*last_chart_, aspect_settings_.orb);
+  auto* table = new QTableWidget(static_cast<int>(rows.size()), 8, &dialog);
+  table->setHorizontalHeaderLabels({tr("Stern"), tr("Ekl.Länge"), tr("Aspekte"), tr("Qualität"),
+                                    tr("Astron. Name"), tr("Breite"), "Rekt./Dekl.", "D/LJ"});
+  table->horizontalHeader()->setStretchLastSection(true);
+  table->verticalHeader()->setVisible(false);
+  table->verticalHeader()->setDefaultSectionSize(20);
+  table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  for (int i = 0; i < static_cast<int>(rows.size()); ++i) {
+    const StarRow& r = rows[static_cast<std::size_t>(i)];
+    table->setItem(i, 0, new QTableWidgetItem(QString::fromUtf8(r.name.data(), static_cast<int>(r.name.size()))));
+    table->setItem(i, 1, new QTableWidgetItem(zodiac(r.la)));
+    QString asp;
+    for (const auto& [slot, kind] : r.aspects) {
+      if (!asp.isEmpty()) {
+        asp += "  ";
+      }
+      asp += QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
+                               static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size())) +
+             " " + QChar(kind);
+    }
+    auto* aspects = new QTableWidgetItem(asp);
+    if (!asp.isEmpty()) {
+      aspects->setForeground(QColor(0xD4, 0xA9, 0x4A));
+    }
+    table->setItem(i, 2, aspects);
+    table->setItem(i, 3, new QTableWidgetItem(QString::fromUtf8(r.quality.data(), static_cast<int>(r.quality.size()))));
+    table->setItem(i, 4, new QTableWidgetItem(QString::fromUtf8(r.astro.data(), static_cast<int>(r.astro.size()))));
+    table->setItem(i, 5, new QTableWidgetItem(QString::asprintf("%+7.2f°", r.br * kRadToDeg)));
+    table->setItem(i, 6, new QTableWidgetItem(QString::asprintf("%7.2f° / %+7.2f°", r.ar * kRadToDeg, r.de * kRadToDeg)));
+    //RR NN
+    table->setItem(i, 7, new QTableWidgetItem(r.lightyears > 0 ? QString::number(r.lightyears) : "NN"));
+  }
+  table->resizeColumnsToContents();
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+  connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+  v->addWidget(table, 1);
+  v->addWidget(buttons);
+  dialog.resize(940, 640);
+  dialog.exec();
+}
+
+void MainWindow::arabic_table() {
+  if (!last_chart_ || !last_chart_->houses.ok) {
+    return;
+  }
+  QDialog dialog(this);
+  dialog.setWindowTitle(tr("Arabische Teile (Sensitive Punkte)"));
+  auto* v = new QVBoxLayout(&dialog);
+  auto* top = new QHBoxLayout();
+  auto* mode = new QComboBox(&dialog);
+  //RR TRADITIONELLE FORMEL / TAG / NACHT
+  mode->addItem(tr("Traditionell"), 1);
+  mode->addItem(tr("Immer als Tag-Geburt"), 2);
+  mode->addItem(tr("Immer als Nacht-Geburt"), 3);
+  top->addWidget(new QLabel(tr("Formel"), this));
+  top->addWidget(mode);
+  top->addStretch(1);
+  auto* table = new QTableWidget(0, 4, &dialog);
+  table->setHorizontalHeaderLabels({tr("Punkt"), tr("Länge"), tr("Formel"), tr("Bemerkung")});
+  table->horizontalHeader()->setStretchLastSection(true);
+  table->verticalHeader()->setVisible(false);
+  table->verticalHeader()->setDefaultSectionSize(20);
+  table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  const Chart chart = *last_chart_;
+  const std::filesystem::path own = data_dir_;
+  const auto fill = [table, chart, own, mode]() {
+    const std::vector<ArabicPart> parts =
+        arabic_parts(chart, static_cast<ArabicFormula>(mode->currentData().toInt()), own);
+    table->setRowCount(0);
+    for (const ArabicPart& p : parts) {
+      const int row = table->rowCount();
+      table->insertRow(row);
+      table->setItem(row, 0, new QTableWidgetItem(QString::fromUtf8(p.name.c_str())));
+      table->setItem(row, 1, new QTableWidgetItem(zodiac(p.la)));
+      table->setItem(row, 2, new QTableWidgetItem(QString::fromUtf8(p.formula.c_str())));
+      table->setItem(row, 3, new QTableWidgetItem(QString::fromUtf8(p.remark.c_str())));
+    }
+    table->resizeColumnsToContents();
+  };
+  connect(mode, &QComboBox::currentIndexChanged, &dialog, fill);
+  fill();
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+  connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+  v->addLayout(top);
+  v->addWidget(table, 1);
+  v->addWidget(buttons);
+  dialog.resize(680, 640);
+  dialog.exec();
 }
 
 void MainWindow::degree_list() {
