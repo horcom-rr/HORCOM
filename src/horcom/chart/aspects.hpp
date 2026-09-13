@@ -73,6 +73,28 @@ struct AspectResult {
 /// @return the aspect matrix, counters and hit list
 [[nodiscard]] AspectResult scan_aspects(const Chart& chart, const ChartSettings& s, const AspectSettings& a);
 
+/// One aspect between two charts, the a12asp comparison hit.
+struct CrossAspectHit {
+  int t = 0;             // first chart slot, the standing radix
+  int w = 0;             // second chart slot, the running or compared sky
+  int n = 0;             // divisor 1 2 3 4 or 6, the fifth is never scanned
+  int m = 0;             // multiple of the base angle
+  double sep_deg = 0.0;  // the separation the original lists, 0 to 180
+};
+
+/// The comparison scan between two charts, ported from a12asp, the list
+/// behind transits and chart comparisons. Divisors one to six without
+/// the fifth, the multiples with his skips, and the near side guard
+/// that keeps a pair from matching the same angle twice.
+///
+/// @param first  the standing chart, the radix of a transit view
+/// @param second the running or compared chart
+/// @param a      orb configuration, the weights like the single scan
+/// @param transit_orbs true takes the drgrph rule, the first chart
+///               body's weight times one degree
+/// @return the hits in scan order
+[[nodiscard]] std::vector<CrossAspectHit> scan_aspects_between(const Chart& first, const Chart& second, const AspectSettings& a, bool transit_orbs);
+
 /// One found midpoint contact.
 struct MidpointHit {
   int t = 0;   // body on the midpoint

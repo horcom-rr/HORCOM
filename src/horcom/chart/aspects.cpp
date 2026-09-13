@@ -326,4 +326,78 @@ MidpointResult scan_midpoints(const Chart& chart, const ChartSettings& s, const 
   return out;
 }
 
+// ported from a12asp
+std::vector<CrossAspectHit> scan_aspects_between(const Chart& first, const Chart& second, const AspectSettings& a, bool transit_orbs) {
+  std::vector<CrossAspectHit> out;
+  const auto active = [](const Chart& c, int slot) {
+    const BodyState& b = c.b[static_cast<std::size_t>(slot)];
+    return b.present && b.valid && slot != body::kNodeDesc;
+  };
+  for (int t = 1; t <= 40; ++t) {
+    if (!active(first, t)) {
+      continue;
+    }
+    const double wa1 = norm_rad(first.b[static_cast<std::size_t>(t)].el);
+    for (int w = 1; w <= 40; ++w) {
+      if (!active(second, w)) {
+        continue;
+      }
+      const double wa2 = norm_rad(second.b[static_cast<std::size_t>(w)].el);
+      int n = 0;
+      while (n != 6) {
+        ++n;
+        // the fifth harmonic stays out of every comparison
+        if (n == 5) {
+          ++n;
+        }
+        const double pn = kTwoPi / n;
+        const double dd = a.orb * pn / 30.0;
+        const int m_end = std::max(1, n - 1);
+        int m = 0;
+        while (m != m_end) {
+          ++m;
+          if (n == 4 && m == 2) {
+            ++m;
+          }
+          if (n == 6 && m == 2) {
+            m = 5;
+          }
+          const double pnm = m * pn;
+          const double o1 = org(a, t, 1);
+          const double o2 = org(a, w, 1);
+          double dds = orbis_discr2(o1, o2, dd);
+          if (transit_orbs) {
+            //RR 1 Grad
+            dds = o1 * kDegToRad;
+          }
+          double w2 = norm_rad(std::abs(wa2 - wa1));
+          if (w2 < dds) {
+            w2 = kTwoPi - w2;
+          }
+          double w1 = pnm;
+          vergl1(w1, w2);
+          const double diff = std::abs(w2 - w1);
+          if (diff > kEps && wa1 > kEps && wa2 > kEps && diff < dds && w2 > dds) {
+            CrossAspectHit h;
+            h.t = t;
+            h.w = w;
+            h.n = n;
+            h.m = m;
+            double sep = std::abs(wa2 - wa1);
+            if (sep < dds) {
+              sep = kTwoPi - sep;
+            }
+            if (sep > kPi) {
+              sep = kTwoPi - sep;
+            }
+            h.sep_deg = sep * kRadToDeg;
+            out.push_back(h);
+          }
+        }
+      }
+    }
+  }
+  return out;
+}
+
 }  // namespace horcom

@@ -166,3 +166,19 @@ TEST_CASE("the duplicate cube spans the passes") {
   }
   CHECK(count == 1);
 }
+
+TEST_CASE("the comparison scan lists the running sky over the radix") {
+  const Chart radix = synthetic({{body::kVenus, 231.95}});
+  // the running sun close by, a square mars, and a quincunx jupiter
+  // that the comparison never scans
+  const Chart running = synthetic({{body::kSun, 232.10}, {body::kMars, 322.35}, {body::kJupiter, 21.95}});
+  const std::vector<CrossAspectHit> hits = scan_aspects_between(radix, running, {}, true);
+  REQUIRE(hits.size() == 2);
+  CHECK(hits[0].t == body::kVenus);
+  CHECK(hits[0].w == body::kSun);
+  CHECK(hits[0].n == 1);
+  CHECK(hits[0].sep_deg == doctest::Approx(0.15).epsilon(0.01));
+  CHECK(hits[1].w == body::kMars);
+  CHECK(hits[1].n == 4);
+  CHECK(hits[1].sep_deg == doctest::Approx(90.4).epsilon(0.001));
+}
