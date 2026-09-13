@@ -8,6 +8,7 @@
 #include "horcom/chart/chart.hpp"
 #include "horcom/chart/composite.hpp"
 #include "horcom/chart/directions.hpp"
+#include "horcom/chart/mundane.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
 #include "horcom/time/delta_t.hpp"
@@ -267,4 +268,34 @@ TEST_CASE("the directed axes turn at his naibod style rate") {
   const DirectedAxes varied = direct_axes(radix, in.lon_deg_east, in.lat_deg,
                                           radix.jd_ut + tja, false, 1.0, HouseSystem::kPlacidus);
   CHECK(varied.arc_deg - one_year.arc_deg == doctest::Approx(360.0 / tja));
+}
+
+TEST_CASE("the mundane longitude follows the semi arc quadrants") {
+  // a flat sky, obliquity zero and bodies on the equator, makes the
+  // proportion linear and the quadrants readable
+  const double armcb = 0.0;
+  CHECK(mundane_longitude(100.0 * kDegToRad, kEps, 0.0, armcb, 48.0) == doctest::Approx(10.0 * kDegToRad).epsilon(1e-6));
+  CHECK(mundane_longitude(30.0 * kDegToRad, kEps, 0.0, armcb, 48.0) == doctest::Approx(300.0 * kDegToRad).epsilon(1e-6));
+  CHECK(mundane_longitude(200.0 * kDegToRad, kEps, 0.0, armcb, 48.0) == doctest::Approx(110.0 * kDegToRad).epsilon(1e-6));
+  // the ascendant lands at zero on the circle
+  const double ac = mundane_longitude(90.0 * kDegToRad, kEps, 0.0, armcb, 48.0);
+  CHECK(std::min(ac, kTwoPi - ac) < 1e-6);
+}
+
+TEST_CASE("the mundane chart carries the equal grid of mundhorh") {
+  ChartInput in;
+  in.date_ut = {13, 10, 1992, 3, 0.0};
+  in.lon_deg_east = 11.3244;
+  in.lat_deg = 48.1742;
+  Chart c = compute_chart(in, {}, vsop(), eph());
+  REQUIRE(c.ok);
+  to_mundane(c, in.lat_deg);
+  CHECK(c.houses.cusp[1] == doctest::Approx(kEps));
+  CHECK(c.houses.cusp[10] == doctest::Approx(kEps + 9.0 * kPi / 6.0));
+  CHECK(c.b[body::kAscendant].el == doctest::Approx(c.houses.cusp[1]));
+  for (int t = 1; t <= 10; ++t) {
+    const double v = c.b[static_cast<std::size_t>(t)].el;
+    CHECK(v >= 0.0);
+    CHECK(v < kTwoPi);
+  }
 }
