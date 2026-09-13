@@ -92,6 +92,22 @@ equal probability mode. A konsta file placed next to the data still
 overrides the profile, the historical file name included.
 </p>
 
+<h2>The statistics store</h2>
+<p>
+STATIST7 keeps one dataset as three files. The .STA carries 210 byte
+records, name, place, a packed clock and 34 int32 angles in radians
+times ten million, the .STH twin adds the six late extras under the
+eight characters plus one naming rule, and the .PAR parameters give the
+extra slots their meaning, without it a .STA cannot be read. The loader
+maps everything onto body slots, detects heliocentric files by the
+zeroed axes, and the writer packs byte for byte, pinned by a round
+trip. Verified locally against his real datasets, over sixteen hundred
+charts parse with each sun standing where its calendar date demands.
+The shell's Statistik browser lists a dataset, shows the sign
+distribution of any object over the whole set and hands a chart back to
+the panel, the full search condition engine of stat_ausw follows.
+</p>
+
 <h2>The AAF exchange format</h2>
 <p>
 The tagged text format is the port archive format going forward. The
