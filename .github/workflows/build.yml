@@ -51,12 +51,12 @@ jobs:
           name: horcom-windows-x64
           path: horcom-windows-x64.zip
 
-      - name: Rolling release
+      - name: Release
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: rolling
-          name: rolling
-          body: The rolling Windows build, refreshed on every push. Unzip and start horcom_gui.exe.
+          tag_name: v0.${{ github.run_number }}
+          name: v0.${{ github.run_number }}
+          body: Windows build of this push. Unzip and start horcom_gui.exe. Versions stay 0.x until the port of the original is complete.
           make_latest: true
           files: horcom-windows-x64.zip

@@ -70,7 +70,7 @@ cmake --build build --config Release
 ctest --test-dir build -C Release
 ```
 
-The programs expect the `data` folder next to the executable or above it. The project lives at [github.com/horcom-rr/HORCOM](https://github.com/horcom-rr/HORCOM). Every push builds and tests there and refreshes the [rolling Windows release](https://github.com/horcom-rr/HORCOM/releases/tag/rolling), so a ready build is always one download away.
+The programs expect the `data` folder next to the executable or above it. The project lives at [github.com/horcom-rr/HORCOM](https://github.com/horcom-rr/HORCOM). Every push builds and tests there and publishes a fresh [Windows release](https://github.com/horcom-rr/HORCOM/releases/latest), versioned 0.x until the port of the original is complete, so a ready build is always one download away.
 
 ## License
 
