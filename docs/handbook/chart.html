@@ -39,6 +39,7 @@ topocentric parallax.
   <tr><td><code>plant, plant1, ver, ver1r, a16_ta</code></td><td><code>find_longitude_backward, body_longitude</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
   <tr><td><code>korh</code> and the a16 solar and lunar flow</td><td><code>solar_return, lunar_return</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
   <tr><td><code>a180, a180_1, a180a, a180b</code></td><td><code>scan_transits</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
+  <tr><td><code>ingre1</code></td><td><code>sign_ingresses</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
 </table>
 
 <h2>The two clocks of the original</h2>
@@ -138,8 +139,11 @@ a hit that fails to refine into its interval is dropped rather than
 guessed. The moon stays filtered by the cap unless the moon flag opens
 it, matching his default. Verified over November 1992 against the 1992
 radix, every event sits on its target to under an arc second and the
-sun finds radix venus on the fourteenth. The multi passage continuation
-of plant and the ingress driver ingre1 come next.
+sun finds radix venus on the fourteenth. The ingress driver ingre1
+rides the same search, twelve sign entries per body with the epsilon
+that keeps the zero longitude guard quiet and the sun corrected into
+the calendar year of the start, the 1993 table pinned sign by sign.
+The multi passage continuation of plant comes next.
 </p>
 
 <h2>Verification</h2>
