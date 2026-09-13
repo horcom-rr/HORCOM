@@ -176,7 +176,7 @@
     </message>
     <message>
         <location filename="../main_window.cpp" line="273"/>
-        <location filename="../main_window.cpp" line="783"/>
+        <location filename="../main_window.cpp" line="811"/>
         <source>Über HORCOM</source>
         <translation>About HORCOM</translation>
     </message>
@@ -186,117 +186,127 @@
         <translation>Geographic latitude too high for this house system</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="402"/>
+        <location filename="../main_window.cpp" line="379"/>
+        <source>&lt;span style=&apos;color:#D4A94A&apos;&gt;TRANSITE&lt;/span&gt;&amp;nbsp; </source>
+        <translation>&lt;span style=&apos;color:#D4A94A&apos;&gt;TRANSITS&lt;/span&gt;&amp;nbsp; </translation>
+    </message>
+    <message>
+        <location filename="../main_window.cpp" line="398"/>
+        <source>keine</source>
+        <translation>none</translation>
+    </message>
+    <message>
+        <location filename="../main_window.cpp" line="430"/>
         <source>außerhalb der Ephemeride</source>
         <translation>outside the ephemeris</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="421"/>
+        <location filename="../main_window.cpp" line="449"/>
         <source>&lt;span style=&apos;color:#D4A94A&apos;&gt;ASPEKTE&lt;/span&gt;&amp;nbsp; konj %1  opp %2  trigon %3  quadrat %4  sextil %5</source>
         <translation>&lt;span style=&apos;color:#D4A94A&apos;&gt;ASPECTS&lt;/span&gt;&amp;nbsp; conj %1  opp %2  trine %3  square %4  sextile %5</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="468"/>
+        <location filename="../main_window.cpp" line="496"/>
         <source>Solar</source>
         <translation>Solar return</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="468"/>
+        <location filename="../main_window.cpp" line="496"/>
         <source>Gewünschtes Kalender-Jahr</source>
         <translation>Desired calendar year</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="494"/>
+        <location filename="../main_window.cpp" line="522"/>
         <source>Kein Solar gefunden</source>
         <translation>No solar return found</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="505"/>
+        <location filename="../main_window.cpp" line="533"/>
         <source>Lunar</source>
         <translation>Lunar return</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="508"/>
+        <location filename="../main_window.cpp" line="536"/>
         <source>Das diesem Datum, 0h UT, vorausgehende Lunar wird berechnet.</source>
         <translation>The lunar return preceding this date, 0h UT, is computed.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="531"/>
+        <location filename="../main_window.cpp" line="559"/>
         <source>Kein Lunar gefunden</source>
         <translation>No lunar return found</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="574"/>
+        <location filename="../main_window.cpp" line="602"/>
         <source>Die Datei zonnamen.int fehlt im Datenordner.</source>
         <translation>The file zonnamen.int is missing from the data folder.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="595"/>
+        <location filename="../main_window.cpp" line="623"/>
         <source>Datensätze öffnen</source>
         <translation>Open records</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="596"/>
+        <location filename="../main_window.cpp" line="624"/>
         <source>HORCOM Datensätze (*.DAT *.dat *.AAF *.aaf)</source>
         <translation>HORCOM records (*.DAT *.dat *.AAF *.aaf)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="638"/>
+        <location filename="../main_window.cpp" line="666"/>
         <source>Keine Datensätze gefunden.</source>
         <translation>No records found.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="642"/>
+        <location filename="../main_window.cpp" line="670"/>
         <source>Datensatz wählen</source>
         <translation>Choose a record</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="668"/>
+        <location filename="../main_window.cpp" line="696"/>
         <source>Jahre vor 1 n.Chr. berechnet derzeit nur das Kommandozeilenwerkzeug.</source>
         <translation>Years before 1 AD are currently computed only by the command line tool.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="718"/>
+        <location filename="../main_window.cpp" line="746"/>
         <source>Als AAF speichern</source>
         <translation>Save as AAF</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="719"/>
+        <location filename="../main_window.cpp" line="747"/>
         <source>AAF (*.aaf)</source>
         <translation>AAF (*.aaf)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="747"/>
+        <location filename="../main_window.cpp" line="775"/>
         <source>Die Datei gibt es schon. Datensatz an die Sammlung anhängen?</source>
         <translation>The file already exists. Append the record to the collection?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="748"/>
+        <location filename="../main_window.cpp" line="776"/>
         <source>Anhängen</source>
         <translation>Append</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="749"/>
+        <location filename="../main_window.cpp" line="777"/>
         <source>Überschreiben</source>
         <translation>Overwrite</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="763"/>
+        <location filename="../main_window.cpp" line="791"/>
         <source>Speichern fehlgeschlagen.</source>
         <translation>Saving failed.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="771"/>
+        <location filename="../main_window.cpp" line="799"/>
         <source>Horoskop als SVG</source>
         <translation>Chart as SVG</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="771"/>
+        <location filename="../main_window.cpp" line="799"/>
         <source>SVG (*.svg)</source>
         <translation>SVG (*.svg)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="784"/>
+        <location filename="../main_window.cpp" line="812"/>
         <source>&lt;b&gt;horcom&lt;/b&gt;&lt;br&gt;Die C++ Neufassung von HORCOM,&lt;br&gt;geschrieben von Robert Rettig, 1970er bis 2010.&lt;br&gt;&lt;br&gt;Im Andenken an Robert Rettig, der all dies zuerst gebaut hat.&lt;br&gt;&lt;br&gt;GPL-3.0-or-later · betreut von Dominik Schwimmbeck</source>
         <translation>&lt;b&gt;horcom&lt;/b&gt;&lt;br&gt;The C++ rewrite of HORCOM,&lt;br&gt;written by Robert Rettig, 1970s to 2010.&lt;br&gt;&lt;br&gt;In memory of Robert Rettig, who built all of this first.&lt;br&gt;&lt;br&gt;GPL-3.0-or-later · maintained by Dominik Schwimmbeck</translation>
     </message>

@@ -350,6 +350,7 @@ void MainWindow::recompute() {
   last_chart_ = chart;
   last_aspects_ = aspects;
   bool transit_drawn = false;
+  QString cross_text;
   if (clock) {
     WheelOptions opt;
     //RR " UHR "
@@ -372,6 +373,30 @@ void MainWindow::recompute() {
           QString("TRANSIT=>%1 %2 UT").arg(td.toString("dd.MM.yyyy"), tt.toString("HH:mm")).toStdString();
       wheel_->set_display_list(build_transit_wheel(chart, tchart, s, aspects, opt));
       transit_drawn = true;
+      // the comparison list of a12asp, running body, separation, radix
+      // body, with his one degree transit orb rule
+      const std::vector<CrossAspectHit> cross = scan_aspects_between(chart, tchart, aspect_settings_, true);
+      cross_text = tr("<span style='color:#D4A94A'>TRANSITE</span>&nbsp; ");
+      int shown = 0;
+      for (const CrossAspectHit& h : cross) {
+        if (shown >= 14) {
+          cross_text += QString::fromUtf8("…");
+          break;
+        }
+        if (shown > 0) {
+          cross_text += ",  ";
+        }
+        cross_text += QString("%1 %2° %3")
+                          .arg(QString::fromUtf8(body::kTag[static_cast<std::size_t>(h.w)].data(),
+                                                 static_cast<int>(body::kTag[static_cast<std::size_t>(h.w)].size())))
+                          .arg(qRound(h.sep_deg))
+                          .arg(QString::fromUtf8(body::kTag[static_cast<std::size_t>(h.t)].data(),
+                                                 static_cast<int>(body::kTag[static_cast<std::size_t>(h.t)].size())));
+        ++shown;
+      }
+      if (cross.empty()) {
+        cross_text += tr("keine");
+      }
     }
   }
   if (!transit_drawn) {
@@ -384,6 +409,9 @@ void MainWindow::recompute() {
                         .arg(QString::fromUtf8(chart.houses.name.data(), static_cast<int>(chart.houses.name.size())))
                         .arg(s.topocentric_parallax ? "   MitParall." : ""));
   fill_tables(chart, aspects);
+  if (!cross_text.isEmpty()) {
+    aspects_label_->setText(cross_text);
+  }
 }
 
 void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
