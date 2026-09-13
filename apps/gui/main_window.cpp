@@ -50,6 +50,7 @@
 #include "horcom/chart/mundane.hpp"
 #include "horcom/chart/arabic.hpp"
 #include "horcom/chart/progressions.hpp"
+#include "horcom/chart/riseset.hpp"
 #include "horcom/chart/stars.hpp"
 #include "horcom/chart/transit_search.hpp"
 #include "ingress_dialog.hpp"
@@ -59,6 +60,7 @@
 #include "horcom/core/constants.hpp"
 #include "horcom/core/coords.hpp"
 #include "horcom/data/place_file.hpp"
+#include "horcom/ephem/eclipses.hpp"
 #include "horcom/ephem/precession.hpp"
 #include "horcom/time/delta_t.hpp"
 #include "horcom/render/svg.hpp"
@@ -321,6 +323,8 @@ void MainWindow::build_ui() {
   horo->addAction(tr("Arabische Teile…"), this, &MainWindow::arabic_table);
   horo->addAction(tr("Grad-Liste…"), this, &MainWindow::degree_list);
   horo->addAction(tr("Häuser-Tabelle…"), this, &MainWindow::house_table);
+  horo->addAction(tr("Aufgang/Untergang…"), this, &MainWindow::rise_set);
+  horo->addAction(tr("Finsternisse…"), this, &MainWindow::eclipse_table);
   horo->addAction(tr("Großes Jahr…"), this, &MainWindow::great_year);
   // the direction tables of the original evaluation menu in one place
   horo->addAction(QString::fromUtf8("Direktionen-Auswertung…"), this, [this]() {
@@ -1172,6 +1176,144 @@ void MainWindow::house_table() {
   v->addWidget(table, 1);
   v->addWidget(buttons);
   dialog.resize(placidus ? 720 : 540, 440);
+  dialog.exec();
+}
+
+void MainWindow::rise_set() {
+  QDialog dialog(this);
+  dialog.setWindowTitle(tr("Aufgang, Meridian-Durchgang, Untergang"));
+  auto* v = new QVBoxLayout(&dialog);
+  auto* top = new QHBoxLayout();
+  auto* when = new QDateEdit(date_->date(), &dialog);
+  when->setCalendarPopup(true);
+  when->setDisplayFormat("dd.MM.yyyy");
+  auto* mode = new QComboBox(&dialog);
+  //RR WAHRE POSITION ? SCHEINBARE POSITION ?
+  mode->addItem(tr("Scheinbar"), 0);
+  mode->addItem(tr("Wahr"), 1);
+  auto* run = new QPushButton(tr("Rechnen"), &dialog);
+  top->addWidget(when);
+  top->addWidget(mode);
+  top->addWidget(run, 1);
+  auto* table = new QTableWidget(0, 4, &dialog);
+  table->setHorizontalHeaderLabels({tr("Planet"), tr("Aufgang"), tr("Meridian"), tr("Untergang")});
+  table->horizontalHeader()->setStretchLastSection(true);
+  table->verticalHeader()->setVisible(false);
+  table->verticalHeader()->setDefaultSectionSize(20);
+  table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  auto* note = new QLabel(tr("Zeiten in UT für den Ort des Panels."), &dialog);
+  const auto clock = [this](double jd) {
+    const CalendarDate d = calendar_date(jd, current_settings().calendar);
+    int seconds = static_cast<int>((d.hour * 60.0 + d.minute) * 60.0 + 0.5);
+    if (seconds >= kSecondsPerDay) {
+      seconds = kSecondsPerDay - 1;
+    }
+    return QString::asprintf("%02d:%02d", seconds / 3600, (seconds / 60) % 60);
+  };
+  const auto fill = [this, when, mode, table, clock]() {
+    const QDate d = when->date();
+    const double jd = julian_day({d.day(), d.month(), d.year(), 12, 0.0}, current_settings().calendar);
+    const SearchContext ctx = make_context();
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    table->setRowCount(0);
+    for (int slot = 1; slot <= 10; ++slot) {
+      const RiseSet rs = rise_transit_set(jd, slot, mode->currentData().toInt() == 1, ctx);
+      const int row = table->rowCount();
+      table->insertRow(row);
+      table->setItem(row, 0, new QTableWidgetItem(QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
+                                                                    static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size()))));
+      if (!rs.ok) {
+        //RR AUßER BEREICH !
+        table->setItem(row, 1, new QTableWidgetItem(rs.circumpolar ? tr("außer Bereich") : QString::fromUtf8("—")));
+        continue;
+      }
+      table->setItem(row, 1, new QTableWidgetItem(clock(rs.jd_rise_ut)));
+      table->setItem(row, 2, new QTableWidgetItem(clock(rs.jd_transit_ut)));
+      table->setItem(row, 3, new QTableWidgetItem(clock(rs.jd_set_ut)));
+    }
+    QApplication::restoreOverrideCursor();
+  };
+  connect(run, &QPushButton::clicked, &dialog, fill);
+  fill();
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+  connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+  v->addLayout(top);
+  v->addWidget(table, 1);
+  v->addWidget(note);
+  v->addWidget(buttons);
+  dialog.resize(460, 420);
+  dialog.exec();
+}
+
+void MainWindow::eclipse_table() {
+  QDialog dialog(this);
+  dialog.setWindowTitle(tr("Neumond, Vollmond und Finsternisse"));
+  auto* v = new QVBoxLayout(&dialog);
+  auto* top = new QHBoxLayout();
+  auto* when = new QDateEdit(date_->date(), &dialog);
+  when->setCalendarPopup(true);
+  when->setDisplayFormat("dd.MM.yyyy");
+  auto* run = new QPushButton(tr("Rechnen"), &dialog);
+  top->addWidget(new QLabel(tr("Such-Datum"), this));
+  top->addWidget(when);
+  top->addWidget(run, 1);
+  auto* table = new QTableWidget(0, 4, &dialog);
+  table->setHorizontalHeaderLabels({tr("Neumond (UT)"), tr("Sonnenfinsternis"), tr("Vollmond (UT)"), tr("Mondfinsternis")});
+  table->horizontalHeader()->setStretchLastSection(true);
+  table->verticalHeader()->setVisible(false);
+  table->verticalHeader()->setDefaultSectionSize(20);
+  table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  //RR die Zeichen-Erklärung seines Schirms
+  auto* legend = new QLabel(tr("ZT = zentral, EX = exzentrisch, TOT = total, RF = ringförmig, N/S = nördlich/südlich,\n"
+                               "KERNSCH = Kernschatten, HALBSCH = Halbschatten. Zeiten in UT."),
+                            &dialog);
+  legend->setWordWrap(true);
+  const auto stamp = [this](double jd) {
+    const CalendarDate d = calendar_date(jd, current_settings().calendar);
+    int seconds = static_cast<int>((d.hour * 60.0 + d.minute) * 60.0 + 0.5);
+    if (seconds >= kSecondsPerDay) {
+      seconds = kSecondsPerDay - 1;
+    }
+    return QString::asprintf("%02d.%02d.%04d %02d:%02d", d.day, d.month, d.year, seconds / 3600, (seconds / 60) % 60);
+  };
+  const auto fill = [this, when, table, stamp]() {
+    const QDate d = when->date();
+    const double jd = julian_day({d.day(), d.month(), d.year(), 0, 0.0}, current_settings().calendar);
+    //RR 27 Zeilen wie sein Schirm
+    const std::vector<Lunation> nm = lunations(jd, 27, false);
+    const std::vector<Lunation> fm = lunations(jd, 27, true);
+    table->setRowCount(0);
+    for (std::size_t i = 0; i < nm.size(); ++i) {
+      const int row = table->rowCount();
+      table->insertRow(row);
+      auto* ndate = new QTableWidgetItem(stamp(nm[i].jd_ut));
+      auto* nkind = new QTableWidgetItem(QString::fromUtf8(nm[i].kind.c_str()));
+      if (nm[i].eclipse) {
+        ndate->setForeground(QColor(0xE8, 0x5D, 0x4E));
+        nkind->setForeground(QColor(0xE8, 0x5D, 0x4E));
+      }
+      table->setItem(row, 0, ndate);
+      table->setItem(row, 1, nkind);
+      auto* fdate = new QTableWidgetItem(stamp(fm[i].jd_ut));
+      auto* fkind = new QTableWidgetItem(QString::fromUtf8(fm[i].kind.c_str()));
+      if (fm[i].eclipse) {
+        fdate->setForeground(QColor(0xE8, 0x5D, 0x4E));
+        fkind->setForeground(QColor(0xE8, 0x5D, 0x4E));
+      }
+      table->setItem(row, 2, fdate);
+      table->setItem(row, 3, fkind);
+    }
+    table->resizeColumnsToContents();
+  };
+  connect(run, &QPushButton::clicked, &dialog, fill);
+  fill();
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+  connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+  v->addLayout(top);
+  v->addWidget(table, 1);
+  v->addWidget(legend);
+  v->addWidget(buttons);
+  dialog.resize(640, 640);
   dialog.exec();
 }
 

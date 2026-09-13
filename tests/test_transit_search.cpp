@@ -6,6 +6,7 @@
 
 #include "doctest.h"
 #include "horcom/chart/progressions.hpp"
+#include "horcom/chart/riseset.hpp"
 #include "horcom/chart/transit_search.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
@@ -258,4 +259,18 @@ TEST_CASE("the day chart holds the birth's true solar time") {
     dv = kTwoPi - dv;
   }
   CHECK(dv < 2.0e-7);
+}
+
+TEST_CASE("the sun rises and sets on the solstice clock") {
+  const SearchContext ctx = context();
+  const RiseSet rs = rise_transit_set(julian_day({21, 6, 2000, 12, 0.0}), body::kSun, false, ctx);
+  REQUIRE(rs.ok);
+  // the almanac for eleven degrees east and forty eight north puts the
+  // solstice sunrise near 3:13 and the sunset near 19:17 UT
+  const CalendarDate rise = calendar_date(rs.jd_rise_ut);
+  const CalendarDate set = calendar_date(rs.jd_set_ut);
+  CHECK(rise.hour * 60.0 + rise.minute == doctest::Approx(3.0 * 60 + 13).epsilon(0.02));
+  CHECK(set.hour * 60.0 + set.minute == doctest::Approx(19.0 * 60 + 17).epsilon(0.02));
+  const CalendarDate noon = calendar_date(rs.jd_transit_ut);
+  CHECK(noon.hour * 60.0 + noon.minute == doctest::Approx(11.0 * 60 + 15).epsilon(0.02));
 }

@@ -4,7 +4,11 @@
 
 #include <cmath>
 
+#include <vector>
+
 #include "doctest.h"
+#include "horcom/ephem/eclipses.hpp"
+#include "horcom/time/calendar.hpp"
 #include "horcom/core/constants.hpp"
 #include "horcom/ephem/moon.hpp"
 #include "horcom/ephem/sunmoon.hpp"
@@ -77,4 +81,32 @@ TEST_CASE("true node and apogee stay near their mean counterparts") {
   const double apogee_diff = std::remainder(p.true_apogee - p.mean_apogee, kTwoPi) * kRadToDeg;
   CHECK(std::abs(apogee_diff) < 35.0);
   CHECK(p.mean_node_speed == doctest::Approx(-0.00092422029));
+}
+
+TEST_CASE("the lunation series finds the 1999 total eclipse") {
+  // the new moons of the summer of 1999, the August one darkened
+  // central europe on the eleventh at 11:08 UT
+  const std::vector<Lunation> nm = lunations(julian_day({1, 7, 1999, 0, 0.0}), 4, false);
+  bool found = false;
+  for (const Lunation& l : nm) {
+    const CalendarDate d = calendar_date(l.jd_ut);
+    if (d.year == 1999 && d.month == 8 && d.day == 11) {
+      found = true;
+      CHECK(l.eclipse);
+      CHECK(l.kind == "ZT TOT N");
+      CHECK(d.hour * 60.0 + d.minute == doctest::Approx(11.0 * 60 + 8).epsilon(0.01));
+    }
+  }
+  CHECK(found);
+  // the full moon of 2000 January 21 sank into the umbra at 4:44 UT
+  const std::vector<Lunation> fm = lunations(julian_day({1, 1, 2000, 0, 0.0}), 3, true);
+  bool umbral = false;
+  for (const Lunation& l : fm) {
+    const CalendarDate d = calendar_date(l.jd_ut);
+    if (d.year == 2000 && d.month == 1 && d.day == 21) {
+      umbral = l.kind == "KERNSCH";
+      CHECK(d.hour * 60.0 + d.minute == doctest::Approx(4.0 * 60 + 44).epsilon(0.02));
+    }
+  }
+  CHECK(umbral);
 }

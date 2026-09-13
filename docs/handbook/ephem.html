@@ -115,6 +115,22 @@ lunar LATITUDE, and it stores a latitude computed at the node on the apogee
 slot with the comment Breite des Knotens.
 </p>
 
+<h2>Lunations and eclipses</h2>
+<p>
+The finst screen walks the lunation series after Meeus, the exact new
+and full moons with the planetary perturbation terms, and reads the
+gamma and u quantities for the shadow rules, central or excentric,
+total or annular, north or south for the sun, umbral or penumbral for
+the moon. Pinned on the total eclipse that crossed central Europe on
+the eleventh of August 1999 to the minute and on the umbral lunar
+eclipse of January 2000. The rise and set screen of auf_unt brackets
+each day with three positions, opens with the standard hour angle and
+iterates the Meeus interpolation with the altitude correction, the sun
+with its refraction depth, the moon with the depth of its own
+parallax refreshed as the iteration moves, pinned on the solstice
+clocks of the year two thousand.
+</p>
+
 <h2>Verification</h2>
 <p>
 <code>test_vsop.cpp</code> pins the loader to 2430 terms and reproduces the

@@ -98,6 +98,8 @@ class MainWindow : public QMainWindow {
   void arabic_table();
   void house_table();
   void great_year();
+  void rise_set();
+  void eclipse_table();
   void converters();
   void planetar_chart();
   void personar_chart();

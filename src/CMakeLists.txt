@@ -6,6 +6,7 @@ add_library(horcom STATIC
   horcom/ephem/sunmoon.cpp
   horcom/ephem/moon.cpp
   horcom/ephem/kepler.cpp
+  horcom/ephem/eclipses.cpp
   horcom/ephem/elements.cpp
   horcom/ephem/precession.cpp
   horcom/ephem/eph_file.cpp
@@ -21,6 +22,7 @@ add_library(horcom STATIC
   horcom/chart/mundane.cpp
   horcom/chart/progressions.cpp
   horcom/chart/arabic.cpp
+  horcom/chart/riseset.cpp
   horcom/chart/stars.cpp
   horcom/chart/symbolic.cpp
   horcom/chart/aspects.cpp
