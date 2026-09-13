@@ -10,6 +10,7 @@
 #include "horcom/data/chart_file.hpp"
 #include "horcom/data/encoding.hpp"
 #include "horcom/data/place_file.hpp"
+#include "horcom/data/zone_names.hpp"
 
 using namespace horcom;
 
@@ -144,6 +145,48 @@ TEST_CASE("the shipped europa picker file decodes with zones") {
     }
   }
   CHECK(found);
+}
+
+TEST_CASE("zone catalogue lines parse like zeitzon_nam_horc") {
+  const ZoneEntry amt =
+      parse_zone_line("Amsterdamer Time ( 1892 - 1940 )              AMT       -00 h 20 m\r");
+  CHECK(amt.name == "Amsterdamer Time ( 1892 - 1940 )");
+  CHECK(amt.abbrev == "AMT");
+  REQUIRE(amt.to_ut_hours.has_value());
+  CHECK(*amt.to_ut_hours == doctest::Approx(-20.0 / 60.0));
+  // the sign lives in the first character, VAL of the hours loses it
+  const ZoneEntry deep =
+      parse_zone_line("Somewhere                                     XYZ       -11 h 23 m");
+  REQUIRE(deep.to_ut_hours.has_value());
+  CHECK(*deep.to_ut_hours == doctest::Approx(-(11.0 + 23.0 / 60.0)));
+  // a plus field stays positive, Madrid west of Greenwich
+  const ZoneEntry madrid =
+      parse_zone_line("Madrider Time ( ca.1880 - 1901 )                        +00 h 15 m");
+  CHECK(madrid.abbrev.empty());
+  REQUIRE(madrid.to_ut_hours.has_value());
+  CHECK(*madrid.to_ut_hours == doctest::Approx(0.25));
+  // the local time rows carry no number
+  const ZoneEntry lmt =
+      parse_zone_line("Local Mean Time (after  ca. 1810 s. Erl.2)    LMT                 ");
+  CHECK(lmt.is_local_time());
+  CHECK_FALSE(lmt.to_ut_hours.has_value());
+}
+
+TEST_CASE("the shipped zone catalogue decodes to its 176 entries") {
+  const auto zones = load_zone_names(HORCOM_TEST_DATA_DIR "/zonnamen.int");
+  REQUIRE(zones.has_value());
+  CHECK(zones->size() == 176);
+  CHECK((*zones)[0].name == "Greenwich Mean Time");
+  CHECK((*zones)[0].abbrev == "GMT");
+  REQUIRE((*zones)[0].to_ut_hours.has_value());
+  CHECK(*(*zones)[0].to_ut_hours == doctest::Approx(0.0));
+  int local_rows = 0;
+  for (const ZoneEntry& z : *zones) {
+    if (z.is_local_time()) {
+      ++local_rows;
+    }
+  }
+  CHECK(local_rows == 2);
 }
 
 TEST_CASE("the preferred place accepts both coordinate encodings") {
