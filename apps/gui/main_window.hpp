@@ -102,6 +102,7 @@ class MainWindow : public QMainWindow {
   void eclipse_table();
   void rhythm_table();
   void dynamogram_view();
+  void linear_graph();
   void midpoint_tree();
   void correction();
   void chain_files();

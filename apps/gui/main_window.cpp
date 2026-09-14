@@ -66,6 +66,7 @@
 #include "horcom/ephem/precession.hpp"
 #include "horcom/time/delta_t.hpp"
 #include "horcom/time/sidereal.hpp"
+#include "horcom/render/linear.hpp"
 #include "horcom/render/svg.hpp"
 #include "place_dialog.hpp"
 #include "record_dialog.hpp"
@@ -363,6 +364,7 @@ void MainWindow::build_ui() {
   horo->addAction(tr("Korrektur…"), this, &MainWindow::correction);
   horo->addAction(tr("Rhythmenlehre (Auslösungen)…"), this, &MainWindow::rhythm_table);
   horo->addAction(tr("Dynamogramm…"), this, &MainWindow::dynamogram_view);
+  horo->addAction(tr("Linear-Graphik…"), this, &MainWindow::linear_graph);
   // the direction tables of the original evaluation menu in one place
   horo->addAction(QString::fromUtf8("Direktionen-Auswertung…"), this, [this]() {
     if (!last_chart_) {
@@ -1609,6 +1611,85 @@ void MainWindow::rhythm_table() {
   v->addWidget(count);
   v->addWidget(buttons);
   dialog.resize(680, 640);
+  dialog.exec();
+}
+
+void MainWindow::linear_graph() {
+  if (!last_chart_) {
+    return;
+  }
+  QDialog dialog(this);
+  //RR LINEAR-GRAPHIK
+  dialog.setWindowTitle(tr("Linear-Graphik"));
+  auto* v = new QVBoxLayout(&dialog);
+  auto* top = new QHBoxLayout();
+  auto* kind = new QComboBox(&dialog);
+  kind->addItem(tr("Sekundär-Direktion"), 1);
+  kind->addItem(tr("Sonnenbogen-Direktion"), 2);
+  //RR MOND-BOGEN-DIREKTION = 'TERTIÄR 2'-DIREKTION , viele Auslösungen !
+  kind->addItem(tr("Mondbogen-Direktion"), 3);
+  kind->addItem(tr("Transite"), 0);
+  auto* base = new QComboBox(&dialog);
+  //RR jeder Winkel durch ganzzahlige Teilung von 360, nicht unter 15 Grad
+  for (double b : {360.0, 180.0, 120.0, 90.0, 60.0, 45.0, 30.0, 15.0}) {
+    base->addItem(QString::number(b) + QString::fromUtf8("°"), b);
+  }
+  base->setCurrentIndex(3);
+  auto* from_age = new QSpinBox(&dialog);
+  from_age->setRange(0, 150);
+  from_age->setSuffix(tr(" J."));
+  auto* span = new QComboBox(&dialog);
+  //RR ein Zeitraum von 5,10,20,40,80 oder 160 Jahren
+  for (int s : {5, 10, 20, 40, 80, 160}) {
+    span->addItem(tr("%1 Jahre").arg(s), s);
+  }
+  span->setCurrentIndex(2);
+  auto* down = new QCheckBox(tr("Nach unten positiv (R. Ebertin)"), &dialog);
+  auto* zeichen = new QCheckBox(tr("Zeichen"), &dialog);
+  auto* houses = new QCheckBox(tr("Zwischenhäuser"), &dialog);
+  top->addWidget(kind);
+  top->addWidget(new QLabel(tr("Grundwinkel"), &dialog));
+  top->addWidget(base);
+  top->addWidget(new QLabel(tr("ab Lebensjahr"), &dialog));
+  top->addWidget(from_age);
+  top->addWidget(span);
+  top->addWidget(down);
+  top->addWidget(zeichen);
+  top->addWidget(houses);
+  top->addStretch(1);
+  auto* view = new WheelWidget(&dialog);
+  view->setMinimumSize(780, 560);
+  v->addLayout(top);
+  v->addWidget(view, 1);
+  const auto draw = [this, kind, base, from_age, span, down, zeichen, houses, view]() {
+    const Chart& radix = *last_chart_;
+    LinearOptions opt;
+    switch (kind->currentData().toInt()) {
+      case 0: opt.kind = LinearKind::kTransits; break;
+      case 2: opt.kind = LinearKind::kSunArc; break;
+      case 3: opt.kind = LinearKind::kMoonArc; break;
+      default: opt.kind = LinearKind::kSecondary; break;
+    }
+    opt.base_angle_deg = base->currentData().toDouble();
+    const double tja = radix.ta.tropical_year_days;
+    opt.jd_from_ut = radix.jd_ut + from_age->value() * tja;
+    opt.jd_to_ut = opt.jd_from_ut + span->currentData().toInt() * tja;
+    opt.downward = down->isChecked();
+    opt.sign_lines = zeichen->isChecked();
+    opt.with_houses = houses->isChecked();
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    view->set_display_list(build_linear_graph(radix, opt, make_context()));
+    QApplication::restoreOverrideCursor();
+  };
+  connect(kind, &QComboBox::currentIndexChanged, &dialog, draw);
+  connect(base, &QComboBox::currentIndexChanged, &dialog, draw);
+  connect(span, &QComboBox::currentIndexChanged, &dialog, draw);
+  connect(from_age, &QSpinBox::valueChanged, &dialog, draw);
+  connect(down, &QCheckBox::toggled, &dialog, draw);
+  connect(zeichen, &QCheckBox::toggled, &dialog, draw);
+  connect(houses, &QCheckBox::toggled, &dialog, draw);
+  draw();
+  dialog.resize(1040, 700);
   dialog.exec();
 }
 

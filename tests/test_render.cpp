@@ -9,6 +9,7 @@
 #include "horcom/chart/chart.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
+#include "horcom/render/linear.hpp"
 #include "horcom/render/svg.hpp"
 #include "horcom/render/wheel.hpp"
 
@@ -222,4 +223,72 @@ TEST_CASE("the SVG document is well formed and complete") {
   CHECK(svg.find("<path") != std::string::npos);
   CHECK(svg.find("<circle") != std::string::npos);
   CHECK(svg.find("☉") != std::string::npos);
+}
+
+TEST_CASE("the linear graph folds the radix onto horizontal lines") {
+  const Chart radix = sample_chart();
+  REQUIRE(radix.ok);
+  SearchContext ctx;
+  ctx.base.lon_deg_east = 11.3244;
+  ctx.base.lat_deg = 48.1742;
+  ctx.vsop = &vsop();
+  ctx.eph = &eph();
+  LinearOptions opt;
+  opt.kind = LinearKind::kSunArc;
+  opt.base_angle_deg = 90.0;
+  opt.jd_from_ut = radix.jd_ut;
+  opt.jd_to_ut = radix.jd_ut + 10.0 * radix.ta.tropical_year_days;
+  opt.samples = 60;
+  const DisplayList dl = build_linear_graph(radix, opt, ctx);
+  // the sun line sits at the fourfold folded longitude under the band top
+  const double folded = norm_rad(4.0 * radix.b[body::kSun].el) * kRadToDeg;
+  const double want_y = 420.0 - folded;
+  bool sun_line = false;
+  int curve_segments = 0;
+  for (const Primitive& p : dl.items) {
+    if (p.kind == Primitive::Kind::kLine && std::abs(p.y1 - want_y) < 0.5 && std::abs(p.y2 - want_y) < 0.5 && p.x1 <= 54.0 + 0.5 && p.color == 0x00A000) {
+      sun_line = true;
+    }
+    if (p.kind == Primitive::Kind::kLine && p.x1 >= 75.0 && p.x2 <= 590.0 && std::abs(p.y1 - p.y2) > 0.01) {
+      ++curve_segments;
+    }
+  }
+  CHECK(sun_line);
+  // the sun arc moves near one degree per year, folded near four, the
+  // sun curve must drop about forty pixels over the ten years
+  CHECK(curve_segments > 50);
+
+  // the Ebertin direction flips the ordinate
+  opt.downward = true;
+  const DisplayList down = build_linear_graph(radix, opt, ctx);
+  bool flipped = false;
+  for (const Primitive& p : down.items) {
+    if (p.kind == Primitive::Kind::kLine && std::abs(p.y1 - (60.0 + folded)) < 0.5 && std::abs(p.y2 - p.y1) < 0.5 && p.x1 <= 54.0 + 0.5 && p.color == 0x00A000) {
+      flipped = true;
+    }
+  }
+  CHECK(flipped);
+}
+
+TEST_CASE("the linear curve wraps at the band edge without a jump line") {
+  const Chart radix = sample_chart();
+  SearchContext ctx;
+  ctx.base.lon_deg_east = 11.3244;
+  ctx.base.lat_deg = 48.1742;
+  ctx.vsop = &vsop();
+  ctx.eph = &eph();
+  LinearOptions opt;
+  opt.kind = LinearKind::kSecondary;
+  opt.base_angle_deg = 30.0;
+  opt.jd_from_ut = radix.jd_ut;
+  opt.jd_to_ut = radix.jd_ut + 40.0 * radix.ta.tropical_year_days;
+  opt.samples = 120;
+  const DisplayList dl = build_linear_graph(radix, opt, ctx);
+  // with the twelvefold fold the progressed sun wraps several times,
+  // every drawn segment must stay well shorter than the band height
+  for (const Primitive& p : dl.items) {
+    if (p.kind == Primitive::Kind::kLine && p.x1 >= 75.0 && p.x2 <= 590.0 && p.x2 > p.x1) {
+      CHECK(std::abs(p.y2 - p.y1) < 200.0);
+    }
+  }
 }

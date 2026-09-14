@@ -493,4 +493,12 @@ DisplayList build_double_wheel(const Chart& inner, const Chart& outer, const Cha
   return dl;
 }
 
+const char* body_glyph(int slot) {
+  return (slot >= 0 && slot < body::kSlotCount) ? kBodyGlyph[slot] : "";
+}
+
+const char* sign_glyph(int index) {
+  return (index >= 0 && index < 12) ? kSignGlyph[index] : "";
+}
+
 }  // namespace horcom

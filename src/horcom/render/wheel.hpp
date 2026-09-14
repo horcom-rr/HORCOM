@@ -137,4 +137,17 @@ struct WheelOptions {
 /// @return primitives on the virtual canvas, in paint order
 [[nodiscard]] DisplayList build_double_wheel(const Chart& inner, const Chart& outer, const ChartSettings& s, const AspectResult& inner_aspects, const WheelOptions& opt = {});
 
+/// The unicode glyph of a body slot, his two letter tag where none
+/// exists, shared by every drawing that stamps bodies.
+///
+/// @param slot a body slot 0 through 40
+/// @return the glyph as UTF-8 text
+[[nodiscard]] const char* body_glyph(int slot);
+
+/// The unicode glyph of a zodiac sign.
+///
+/// @param index 0 for Aries through 11 for Pisces
+/// @return the glyph as UTF-8 text
+[[nodiscard]] const char* sign_glyph(int index);
+
 }  // namespace horcom
