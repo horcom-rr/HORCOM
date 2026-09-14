@@ -302,8 +302,10 @@ void MainWindow::build_ui() {
 
   // the result docks
   auto* body_dock = new QDockWidget(tr("Koordinaten"), this);
-  bodies_ = new QTableWidget(0, 5, body_dock);
-  bodies_->setHorizontalHeaderLabels({tr("Länge"), tr("Breite"), tr("Deklin."), tr("Geschw."), ""});
+  bodies_ = new QTableWidget(0, 7, body_dock);
+  //RR Spalte A trägt das Vorzeichen der Beschleunigung, ENTF die
+  //RR gegenseitige Entfernung in AE
+  bodies_->setHorizontalHeaderLabels({tr("Länge"), tr("Breite"), tr("Deklin."), tr("Geschw."), "A", tr("Entf."), ""});
   bodies_->horizontalHeader()->setStretchLastSection(true);
   bodies_->verticalHeader()->setDefaultSectionSize(18);
   bodies_->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -969,9 +971,14 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
       bodies_->setItem(row, 1, new QTableWidgetItem(degs(b.eb)));
       bodies_->setItem(row, 2, new QTableWidgetItem(degs(b.de)));
       bodies_->setItem(row, 3, new QTableWidgetItem(degs(b.tb)));
+      //RR Spalte A, das Vorzeichen der Beschleunigung am Umkehrpunkt
+      bodies_->setItem(row, 4, new QTableWidgetItem(b.ttb < 0.0 ? QString::fromUtf8("−") : "+"));
+      if (b.dr > 0.0) {
+        bodies_->setItem(row, 5, new QTableWidgetItem(QString::number(b.dr, 'f', 3)));
+      }
       auto* retro = new QTableWidgetItem(b.tb < 0.0 ? "R" : "");
       retro->setForeground(QColor(0xE8, 0x5D, 0x4E));
-      bodies_->setItem(row, 4, retro);
+      bodies_->setItem(row, 6, retro);
     }
   }
   bodies_->setVerticalHeaderLabels(row_names);
@@ -981,13 +988,24 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
     cusps_->setItem(i - 1, 0,
                     new QTableWidgetItem(helio ? QString() : zodiac(chart.houses.cusp[static_cast<std::size_t>(i)])));
   }
+  //RR die MONDPHASE als Längendifferenz MOND-SONNE mit der %-Angabe,
+  //RR Vollmond 100, Neumond 0
+  QString phase_text;
+  if (!helio && chart.b[body::kSun].valid && chart.b[body::kMoon].valid) {
+    const double d = norm_rad(chart.b[body::kMoon].el - chart.b[body::kSun].el) * kRadToDeg;
+    const double pct = (180.0 - std::abs(d - 180.0)) / 180.0 * kPercent;
+    phase_text = tr("&nbsp;&nbsp;<span style='color:#D4A94A'>MONDPHASE</span>&nbsp; %1° (%2%)")
+                     .arg(d, 0, 'f', 0)
+                     .arg(pct, 0, 'f', 0);
+  }
   aspects_label_->setText(tr("<span style='color:#D4A94A'>ASPEKTE</span>&nbsp; "
                              "konj %1  opp %2  trigon %3  quadrat %4  sextil %5")
                               .arg(aspects.zh[1])
                               .arg(aspects.zh[2])
                               .arg(aspects.zh[3])
                               .arg(aspects.zh[4])
-                              .arg(aspects.zh[6]));
+                              .arg(aspects.zh[6]) +
+                          phase_text);
 }
 
 void MainWindow::open_place() {
