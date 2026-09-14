@@ -3793,6 +3793,65 @@ void MainWindow::export_svg() {
   }
 }
 
+// ported from bes_big, the data sheet of the DINA4 chart print with
+// the coordinate block, the houses and the midpoint list
+void MainWindow::paint_data_sheet(QPainter& p, const QRectF& page) {
+  if (!last_chart_ || !last_aspects_) {
+    return;
+  }
+  const Chart& chart = *last_chart_;
+  QFont font = p.font();
+  font.setPixelSize(static_cast<int>(page.height() / 52.0));
+  p.setFont(font);
+  p.setPen(Qt::black);
+  const double lh = page.height() / 46.0;
+  const double col_w = page.width() / 3.0;
+  const auto tag_of = [](int slot) {
+    return QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
+                             static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size()));
+  };
+  double y = page.top() + lh;
+  p.drawText(QPointF(page.left(), y), tr("KOORDINATEN"));
+  y += lh;
+  for (int slot = 0; slot < body::kSlotCount; ++slot) {
+    const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
+    if (!b.present || !b.valid || slot == body::kNodeDesc || (slot >= 15 && slot <= 18)) {
+      continue;
+    }
+    p.drawText(QPointF(page.left(), y),
+               QString("%1  %2  %3'/d").arg(slot == 0 ? "sp" : tag_of(slot), -4).arg(zodiac(b.el)).arg(b.tb * kRadToDeg * 60.0, 0, 'f', 1));
+    y += lh;
+    if (y > page.bottom() - lh) {
+      break;
+    }
+  }
+  y = page.top() + lh;
+  p.drawText(QPointF(page.left() + col_w, y), tr("HÄUSER"));
+  y += lh;
+  if (chart.houses.ok) {
+    for (int i = 1; i <= 12; ++i) {
+      p.drawText(QPointF(page.left() + col_w, y),
+                 QString("H%1  %2").arg(i, 2).arg(zodiac(chart.houses.cusp[static_cast<std::size_t>(i)])));
+      y += lh;
+    }
+  }
+  //RR die Halbsummenliste der GANZSEITEN-Graphik
+  y = page.top() + lh;
+  p.drawText(QPointF(page.left() + 2.0 * col_w, y), tr("HALBSUMMEN"));
+  y += lh;
+  const MidpointResult mid = scan_midpoints(chart, current_settings(), aspect_settings_);
+  static constexpr const char* kLevel[9] = {"", "360", "180", "", "90", "", "", "", "45"};
+  for (const MidpointHit& h : mid.hits) {
+    p.drawText(QPointF(page.left() + 2.0 * col_w, y),
+               QString("%1 = %2/%3  %4°").arg(tag_of(h.t), tag_of(h.u), tag_of(h.w), QString(kLevel[h.nh])));
+    y += lh;
+    if (y > page.bottom() - lh) {
+      p.drawText(QPointF(page.left() + 2.0 * col_w, y), QString::fromUtf8("…"));
+      break;
+    }
+  }
+}
+
 bool MainWindow::export_pdf_to(const QString& path) {
   const DisplayList& dl = wheel_->display_list();
   if (dl.items.empty()) {
@@ -3809,6 +3868,11 @@ bool MainWindow::export_pdf_to(const QString& path) {
     return false;
   }
   paint_fitted(p, dl, QRectF(0, 0, writer.width(), writer.height()));
+  if (last_chart_ && last_aspects_) {
+    writer.newPage();
+    paint_data_sheet(p, QRectF(writer.width() * 0.04, writer.height() * 0.04, writer.width() * 0.92,
+                               writer.height() * 0.92));
+  }
   p.end();
   return true;
 }
@@ -3842,6 +3906,12 @@ void MainWindow::print_chart() {
     return;
   }
   paint_fitted(p, dl, QRectF(printer.pageRect(QPrinter::DevicePixel)));
+  if (last_chart_ && last_aspects_) {
+    printer.newPage();
+    const QRectF page(printer.pageRect(QPrinter::DevicePixel));
+    paint_data_sheet(p, page.adjusted(page.width() * 0.04, page.height() * 0.04, -page.width() * 0.04,
+                                      -page.height() * 0.04));
+  }
   p.end();
 }
 

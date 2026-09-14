@@ -46,7 +46,7 @@ He wished for HORCOM to live on in C++. This project is that rewrite, done caref
 
 ## Status
 
-The original program (50,397 lines, 1,095 procedures) is mapped end to end:
+The original program (50,397 lines, 1,095 procedures) is mapped end to end, and `docs/coverage.md` accounts for every single procedure by name — ported, absorbed into a ported routine, or screen-era plumbing superseded by the Qt shell:
 
 - `docs/legacy/calculation-core.md` — the astronomical engine (VSOP series, Moon theory, his integrated ephemerides, parallax, houses, aspects) with the porting order
 - `docs/legacy/ui-and-graphics.md` — the full menu tree (the feature inventory), event loop and the exact chart geometry
