@@ -225,6 +225,16 @@ QCalendarWidget QToolButton#qt_calendar_prevmonth {
 QCalendarWidget QToolButton#qt_calendar_nextmonth {
   qproperty-icon: url(:/arrow-right.svg);
 }
+QCalendarWidget QSpinBox {
+  padding: 1px 18px 1px 6px;
+  min-height: 0;
+  border-radius: 3px;
+}
+QCalendarWidget QSpinBox::up-button, QCalendarWidget QSpinBox::down-button {
+  width: 14px;
+  border-top-right-radius: 3px;
+  border-bottom-right-radius: 3px;
+}
 QCalendarWidget QMenu {
   background: #141B2E;
 }

@@ -32,6 +32,7 @@
 #include <QPrintDialog>
 #include <QPrinter>
 #include <QPushButton>
+#include <QScrollBar>
 #include <QSettings>
 #include <QTableWidget>
 #include <QTimeEdit>
@@ -1724,7 +1725,9 @@ void MainWindow::orb_settings() {
   }
   weights->setHorizontalHeaderLabels(heads);
   weights->verticalHeader()->setVisible(false);
-  weights->setFixedHeight(64);
+  weights->resizeColumnsToContents();
+  weights->setFixedHeight(weights->horizontalHeader()->sizeHint().height() + weights->rowHeight(0) +
+                          2 * weights->frameWidth() + weights->horizontalScrollBar()->sizeHint().height());
   auto* wlabel = new QLabel(tr("Planeten-Gewichte in Prozent, 0 schaltet einen Punkt stumm."), &dialog);
   wlabel->setWordWrap(true);
   auto* save = new QCheckBox(tr("Als konsta.int neben den Daten speichern"), &dialog);
@@ -2249,13 +2252,15 @@ void MainWindow::histogram_view() {
   heads << tr("Zusatz");
   weights->setHorizontalHeaderLabels(heads);
   weights->verticalHeader()->setVisible(false);
-  weights->setFixedHeight(64);
   {
     const auto points = histogram_points(konsta_.pn);
     for (int i = 1; i <= 14; ++i) {
       weights->setItem(0, i - 1, new QTableWidgetItem(QString::number(points[static_cast<std::size_t>(i)])));
     }
     weights->setItem(0, 14, new QTableWidgetItem(QString::number(points[body::kChiron])));
+    weights->resizeColumnsToContents();
+    weights->setFixedHeight(weights->horizontalHeader()->sizeHint().height() + weights->rowHeight(0) +
+                            2 * weights->frameWidth() + weights->horizontalScrollBar()->sizeHint().height());
   }
   auto* save = new QCheckBox(tr("Gewichte als konsta.int speichern"), &dialog);
   auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
@@ -2372,8 +2377,10 @@ void MainWindow::wander_dialog(bool place) {
   auto* factor = new QLabel("1", &dialog);
   auto* doubler = new QPushButton("+", &dialog);
   auto* halver = new QPushButton(QString::fromUtf8("−"), &dialog);
-  doubler->setFixedWidth(32);
-  halver->setFixedWidth(32);
+  for (QPushButton* b : {doubler, halver}) {
+    b->setFixedSize(28, 28);
+    b->setStyleSheet("padding: 0;");
+  }
   auto* ivl = new QHBoxLayout();
   ivl->addWidget(factor);
   ivl->addWidget(doubler);
