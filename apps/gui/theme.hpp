@@ -280,6 +280,10 @@ QScrollBar::handle:vertical:hover {
 }
 QScrollBar::add-line, QScrollBar::sub-line {
   height: 0;
+  width: 0;
+}
+QScrollBar::add-page, QScrollBar::sub-page {
+  background: transparent;
 }
 QScrollBar:horizontal {
   background: transparent;
@@ -289,6 +293,9 @@ QScrollBar::handle:horizontal {
   background: #232D4A;
   border-radius: 5px;
   min-width: 30px;
+}
+QScrollBar::handle:horizontal:hover {
+  background: #2C3A63;
 }
 QListWidget {
   background: #10162A;
