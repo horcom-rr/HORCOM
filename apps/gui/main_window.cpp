@@ -334,17 +334,20 @@ void MainWindow::build_ui() {
   resizeDocks({body_dock, cusp_dock}, {395, 395}, Qt::Horizontal);
 
   // the menu
+  //RR EIN-AUSG. | EPHEMERIDE | HOROSKOPE | AUSWERTUNG | DIVERSES
   QMenu* file = menuBar()->addMenu(tr("&Datei"));
+  QMenu* ephem = menuBar()->addMenu(tr("&Ephemeride"));
+  QMenu* horo = menuBar()->addMenu(tr("&Horoskope"));
+  QMenu* ausw = menuBar()->addMenu(tr("&Auswertung"));
+  QMenu* divers = menuBar()->addMenu(tr("&Diverses"));
   file->addAction(tr("Datensätze öffnen…"), QKeySequence::Open, this, &MainWindow::open_records);
   file->addAction(tr("Datensatz bearbeiten…"), QKeySequence(Qt::CTRL | Qt::Key_D), this, &MainWindow::edit_record);
   file->addAction(tr("Ort suchen…"), QKeySequence(Qt::CTRL | Qt::Key_L), this, &MainWindow::open_place);
-  file->addAction(tr("Statistik…"), this, &MainWindow::open_statistics);
   file->addAction(tr("Als AAF speichern…"), QKeySequence::Save, this, &MainWindow::save_aaf);
   file->addAction(tr("Horoskop als SVG…"), this, &MainWindow::export_svg);
   //RR DRUCKER-GRAPHIK, the druck_graph_ein world over one shared painter
   file->addAction(tr("Horoskop als PDF…"), this, &MainWindow::export_pdf);
   file->addAction(tr("Drucken…"), QKeySequence::Print, this, &MainWindow::print_chart);
-  file->addAction(tr("Umrechnungen…"), this, &MainWindow::converters);
   file->addAction(tr("Dateien verketten…"), this, &MainWindow::chain_files);
   file->addAction(tr("Statistik-Datei erstellen…"), this, &MainWindow::create_statistics);
   file->addAction(tr("AAF-Datei → HORCOM-Datei…"), this, &MainWindow::aaf_to_dat);
@@ -353,37 +356,42 @@ void MainWindow::build_ui() {
   file->addSeparator();
   file->addAction(tr("Beenden"), QKeySequence::Quit, this, &QWidget::close);
   // the return charts of his solar and lunar menu
-  QMenu* horo = menuBar()->addMenu(tr("&Horoskop"));
-  horo->addAction(tr("Solar…"), this, &MainWindow::solar_chart);
-  horo->addAction(tr("Lunar…"), this, &MainWindow::lunar_chart);
-  horo->addAction(tr("Septar…"), this, &MainWindow::septar_chart);
-  horo->addAction(tr("Solar-Liste…"), this, [this]() { return_list(false); });
-  horo->addAction(tr("Lunar-Liste…"), this, [this]() { return_list(true); });
-  horo->addAction(tr("Planetar…"), this, &MainWindow::planetar_chart);
-  horo->addAction(tr("Personar…"), this, &MainWindow::personar_chart);
-  horo->addAction(tr("Progressions-Horoskop…"), this, &MainWindow::progression_chart);
-  horo->addAction(tr("Tages-Horoskop…"), this, &MainWindow::day_chart);
-  horo->addAction(tr("Transit-Liste…"), this, &MainWindow::transit_list);
-  horo->addAction(tr("Ingresse…"), this, &MainWindow::ingress_table);
+  ausw->addAction(tr("Solar…"), this, &MainWindow::solar_chart);
+  ausw->addAction(tr("Lunar…"), this, &MainWindow::lunar_chart);
+  ausw->addAction(tr("Septar…"), this, &MainWindow::septar_chart);
+  ausw->addAction(tr("Solar-Liste…"), this, [this]() { return_list(false); });
+  ausw->addAction(tr("Lunar-Liste…"), this, [this]() { return_list(true); });
+  ausw->addAction(tr("Planetar…"), this, &MainWindow::planetar_chart);
+  ausw->addAction(tr("Personar…"), this, &MainWindow::personar_chart);
+  ausw->addAction(tr("Progressions-Horoskop…"), this, &MainWindow::progression_chart);
+  ausw->addAction(tr("Tages-Horoskop…"), this, &MainWindow::day_chart);
+  ausw->addSeparator();
+  ausw->addAction(tr("Transit-Liste…"), this, &MainWindow::transit_list);
+  ephem->addAction(tr("Ingresse…"), this, &MainWindow::ingress_table);
   horo->addAction(tr("Aspektarium…"), this, &MainWindow::open_aspektarium);
   horo->addAction(tr("Halbsummen-Bäume…"), this, &MainWindow::midpoint_tree);
   horo->addAction(tr("Histogramme…"), this, &MainWindow::histogram_view);
-  horo->addAction(tr("Fixsterne…"), this, &MainWindow::fixed_star_table);
-  horo->addAction(tr("Arabische Teile…"), this, &MainWindow::arabic_table);
-  horo->addAction(tr("Grad-Liste…"), this, &MainWindow::degree_list);
-  horo->addAction(tr("Häuser-Tabelle…"), this, &MainWindow::house_table);
-  horo->addAction(tr("Aufgang/Untergang…"), this, &MainWindow::rise_set);
-  horo->addAction(tr("Finsternisse…"), this, &MainWindow::eclipse_table);
-  horo->addAction(tr("Großes Jahr…"), this, &MainWindow::great_year);
-  horo->addAction(tr("Korrektur…"), this, &MainWindow::correction);
-  horo->addAction(tr("Zeit-Wandern…"), this, &MainWindow::time_wander);
-  horo->addAction(tr("Ort-Wandern…"), this, &MainWindow::place_wander);
-  horo->addAction(tr("Rhythmenlehre (Auslösungen)…"), this, &MainWindow::rhythm_table);
-  horo->addAction(tr("Grad-Datum-Liste…"), this, &MainWindow::degree_date_list);
-  horo->addAction(tr("Dynamogramm…"), this, &MainWindow::dynamogram_view);
-  horo->addAction(tr("Linear-Graphik…"), this, &MainWindow::linear_graph);
+  ephem->addAction(tr("Statistik…"), this, &MainWindow::open_statistics);
+  ephem->addAction(tr("Grad-Liste…"), this, &MainWindow::degree_list);
+  ephem->addAction(tr("Fixsterne…"), this, &MainWindow::fixed_star_table);
+  ephem->addAction(tr("Arabische Teile…"), this, &MainWindow::arabic_table);
+  ephem->addSeparator();
+  ephem->addAction(tr("Umrechnungen…"), this, &MainWindow::converters);
+  divers->addAction(tr("Häuser-Tabelle…"), this, &MainWindow::house_table);
+  divers->addAction(tr("Aufgang/Untergang…"), this, &MainWindow::rise_set);
+  divers->addAction(tr("Finsternisse…"), this, &MainWindow::eclipse_table);
+  divers->addAction(tr("Großes Jahr…"), this, &MainWindow::great_year);
+  divers->addSeparator();
+  divers->addAction(tr("Korrektur…"), this, &MainWindow::correction);
+  divers->addAction(tr("Zeit-Wandern…"), this, &MainWindow::time_wander);
+  divers->addAction(tr("Ort-Wandern…"), this, &MainWindow::place_wander);
+  ausw->addSeparator();
+  ausw->addAction(tr("Rhythmenlehre (Auslösungen)…"), this, &MainWindow::rhythm_table);
+  ausw->addAction(tr("Grad-Datum-Liste…"), this, &MainWindow::degree_date_list);
+  ausw->addAction(tr("Dynamogramm…"), this, &MainWindow::dynamogram_view);
+  ausw->addAction(tr("Linear-Graphik…"), this, &MainWindow::linear_graph);
   // the direction tables of the original evaluation menu in one place
-  horo->addAction(QString::fromUtf8("Direktionen-Auswertung…"), this, [this]() {
+  ausw->addAction(tr("Direktionen-Auswertung…"), this, [this]() {
     if (!last_chart_) {
       return;
     }
@@ -542,7 +550,7 @@ void MainWindow::build_ui() {
   });
   horo->addAction(tr("Combin…"), this, &MainWindow::combin_chart);
   // the primary directed axes of prima with his sidereal time variation
-  directions_action_ = horo->addAction(tr("Direktionen…"));
+  directions_action_ = ausw->addAction(tr("Direktionen…"));
   directions_action_->setCheckable(true);
   connect(directions_action_, &QAction::toggled, this, [this](bool on) {
     if (!on) {
@@ -622,9 +630,9 @@ void MainWindow::build_ui() {
       banner_->set_record(record_label_.trimmed());
     }
   });
-  horo->addSeparator();
+  divers->addSeparator();
   //RR Solange UHR SICHTBAR wird HOROSKOP ALLE 15 SEK NACHGEZEICHNET !
-  clock_action_ = horo->addAction(tr("Uhr"));
+  clock_action_ = divers->addAction(tr("Uhr"));
   clock_action_->setCheckable(true);
   clock_timer_ = new QTimer(this);
   clock_timer_->setInterval(kClockRedrawMs);
@@ -655,7 +663,7 @@ void MainWindow::build_ui() {
 
   QMenu* help = menuBar()->addMenu(tr("&Hilfe"));
   //RR TEXT-DATEI LESEN, his commentary texts from the local folder
-  help->addAction(tr("Original-Kommentare…"), this, [this]() {
+  help->addAction(tr("Original-Kommentare…"), QKeySequence(Qt::Key_F1), this, [this]() {
     KommenDialog dialog(data_dir_ / "kommen", this);
     dialog.exec();
   });
@@ -1027,7 +1035,7 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
   if (!helio && chart.b[body::kSun].valid && chart.b[body::kMoon].valid) {
     const double d = norm_rad(chart.b[body::kMoon].el - chart.b[body::kSun].el) * kRadToDeg;
     const double pct = (180.0 - std::abs(d - 180.0)) / 180.0 * kPercent;
-    phase_text = tr("&nbsp;&nbsp;<span style='color:#D4A94A'>MONDPHASE</span>&nbsp; %1° (%2%)")
+    phase_text = tr("<br><span style='color:#D4A94A'>MONDPHASE</span>&nbsp; %1° (%2%)")
                      .arg(d, 0, 'f', 0)
                      .arg(pct, 0, 'f', 0);
   }

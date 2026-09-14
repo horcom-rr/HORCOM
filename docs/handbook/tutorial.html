@@ -20,7 +20,11 @@
 <h2>Getting started</h2>
 <p>
 Download the newest release from the GitHub releases page, unpack it
-anywhere and start <code>horcom_gui.exe</code>. The <code>data</code> folder must stay
+anywhere and start <code>horcom_gui.exe</code>. The menu bar keeps the
+five columns of the original main menu, Datei for records and files,
+Ephemeride for the sky tables and statistics, Horoskope for the chart
+views, Auswertung for returns and directions, Diverses for the
+remaining tools. The <code>data</code> folder must stay
 beside the program, it carries the planetary tables, the ephemeris
 files and the place and zone catalogues. The program speaks German on
 a German Windows and English everywhere else, <code>--lang de</code> or
@@ -91,6 +95,7 @@ the present moment at the panel's place.
 
 <h2>Returns</h2>
 <p>
+The Auswertung menu carries the whole return family.
 <b>Solar</b> finds the moment the transiting sun returns exactly onto its
 radix degree in a chosen year and draws that chart, <b>Lunar</b> does the
 same with the moon in a chosen month or, by number, counts the n-th
@@ -142,18 +147,20 @@ the Gruppenschicksals-Grade marked and own degrees definable.
 
 <h2>Sky tables</h2>
 <p>
-<b>Fixsterne</b> lists his sixty two stars with their aspects to the
-chart, <b>Arabische Teile</b> the thirty seven sensitive points with the
-day and night formulas, <b>Aufgang/Untergang</b> the rising, meridian and
-setting clocks, <b>Finsternisse</b> the new and full moons with the
-eclipse letters and, on demand, their aspects to the valid record,
-<b>Histogramme</b> the element and quality columns with his point
-weights, and <b>Großes Jahr</b> the precession driven age point.
+Under Ephemeride, <b>Fixsterne</b> lists his sixty two stars with their
+aspects to the chart, <b>Arabische Teile</b> the thirty seven sensitive
+points with the day and night formulas, <b>Grad-Liste</b> the sorted
+degrees and <b>Ingresse</b> the sign entries. Under Diverses,
+<b>Aufgang/Untergang</b> tables the rising, meridian and setting clocks,
+<b>Finsternisse</b> the new and full moons with the eclipse letters and,
+on demand, their aspects to the valid record, and <b>Großes Jahr</b> the
+precession driven age point. <b>Histogramme</b> in the Horoskope menu
+counts the element and quality columns with his point weights.
 </p>
 
 <h2>The Aspektarium</h2>
 <p>
-<b>Aspektarium</b> in the Horoskop menu opens his triangular aspect
+<b>Aspektarium</b> in the Horoskope menu opens his triangular aspect
 matrix, exact separations above the diagonal, the named aspects below
 it, the hit count of every body on the diagonal, and the divisor
 table with angle and orb beside it. The Maximaler Teiler box rescans
@@ -170,7 +177,7 @@ the maximal divisor, the equal probability mode and the planet
 weights, and places the Fixpunkt, a chosen ecliptic degree that rides
 the chart as the point <code>sp</code>. A checkbox writes everything as
 <code>konsta.int</code> beside the data so the next start keeps it.
-<b>Korrektur</b> in the Horoskop menu rectifies the birth time, pick
+<b>Korrektur</b> in the Diverses menu rectifies the birth time, pick
 sidereal time, MC, AC, an intermediate cusp, sun or moon, give the
 target value, and the panel clock shifts until the chosen quantity
 reaches it. The Direktionen dialog collects trial shifts in a sum
@@ -185,7 +192,7 @@ aberration, or true.
 
 <h2>Statistics</h2>
 <p>
-<b>Statistik</b> in the Datei menu loads one of his STATIST7 datasets,
+<b>Statistik</b> in the Ephemeride menu loads one of his STATIST7 datasets,
 lists the charts and shows the sign distribution of any object over
 the whole set. Below that the search conditions of his stat_ausw
 world wait, pick an object, a body, a ruler, a midpoint, an aspect, a
