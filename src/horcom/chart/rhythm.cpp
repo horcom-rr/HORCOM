@@ -307,7 +307,7 @@ std::vector<CustomDegree> read_degrees(const std::filesystem::path& file) {
   }
   std::string line;
   while (std::getline(in, line)) {
-    //RR INPUT gr$,p1$,p2$, Kommata trennen die drei Werte
+    // his INPUT gr$,p1$,p2$ rows, commas separate the three values
     const std::size_t c1 = line.find(',');
     const std::size_t c2 = c1 == std::string::npos ? std::string::npos : line.find(',', c1 + 1);
     if (c2 == std::string::npos) {
@@ -344,7 +344,7 @@ std::vector<DegreeDate> degree_dates(const Chart& chart, const RhythmOptions& op
   }
   std::array<double, 14> fz = chart.houses.cusp;
   if (mundane) {
-    //RR im Mundan-Horoskop je 30 Grad auf dem Äquator
+    //RR im Mundan-Horoskop ... äquale Häuser von je 30 Grad auf dem ÄQUATOR
     for (int i = 1; i <= 12; ++i) {
       fz[static_cast<std::size_t>(i)] = (i - 1) * kPi / 6.0;
     }

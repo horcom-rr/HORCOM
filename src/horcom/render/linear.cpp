@@ -112,7 +112,7 @@ DisplayList build_linear_graph(const Chart& radix, const LinearOptions& opt, con
   switch (opt.kind) {
     case LinearKind::kTransits: title = "TRANSITE"; break;
     case LinearKind::kSecondary: title = "SEKUND\xC3\x84R-DIREKTION"; break;
-    //RR di$ der Bogenwahl
+    // the di$ titles of his arc choice
     case LinearKind::kSunArc: title = "SONNEN-BOGEN-DIR."; break;
     case LinearKind::kMoonArc: title = "MOND-BOGEN-DIR."; break;
   }
@@ -166,7 +166,7 @@ DisplayList build_linear_graph(const Chart& radix, const LinearOptions& opt, con
     factors.push_back(slot);
     const double y = to_y(b.el);
     line(kLineLeft, y, kLineRight, y, line_color(slot));
-    //RR das Symbol nicht beim absteigenden Knoten
+    // no glyph on the descending node, like his skip of slot twelve
     if (slot != body::kNodeDesc) {
       glyph(kGlyphColLeft, y - 5, 9, body_glyph(slot), line_color(slot));
       glyph(kGlyphColRight, y - 5, 9, body_glyph(slot), line_color(slot));
@@ -174,7 +174,7 @@ DisplayList build_linear_graph(const Chart& radix, const LinearOptions& opt, con
     }
   }
   if (opt.with_houses && radix.houses.ok) {
-    //RR die Zwischenhäuser H2 H3 H5 H6 mit ihren Gegenspitzen
+    // the intermediate cusps H2 H3 H5 H6 with their opposite cusps
     for (int c : {2, 3, 5, 6, 8, 9, 11, 12}) {
       const double y = to_y(radix.houses.cusp[static_cast<std::size_t>(c)]);
       line(kLineLeft, y, kLineRight, y, kDim);

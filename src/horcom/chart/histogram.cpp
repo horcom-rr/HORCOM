@@ -70,7 +70,7 @@ std::array<int, body::kSlotCount> histogram_points(const std::array<int, 16>& pn
   for (int slot = 1; slot <= 14; ++slot) {
     out[static_cast<std::size_t>(slot)] = row[static_cast<std::size_t>(slot)];
   }
-  //RR pn(15) gilt für alle Zusatz-Planeten
+  // his entry 15 weighs every extra body at once
   for (int slot = 19; slot < body::kSlotCount; ++slot) {
     out[static_cast<std::size_t>(slot)] = row[15];
   }
@@ -94,7 +94,7 @@ Histogram chart_histogram(const Chart& chart, const ChartSettings& s, const Hist
     for (int u = 0; u < 12; ++u) {
       double w1 = u * p;
       double w2 = w1 + p;
-      //RR die kk-Kanten am Nullpunkt, exakt Null zählt nie
+      // his kk edges at the zero point, an exact zero never counts
       if (u == 0) {
         w1 += kEps;
       }
@@ -113,7 +113,7 @@ Histogram chart_histogram(const Chart& chart, const ChartSettings& s, const Hist
     }
   }
 
-  //RR nur bei den Quadranten-Systemen, sein haw-Riegel
+  // house columns only below his haw bar, the axis only modes stay out
   if (!s.heliocentric && chart.houses.ok && s.houses < HouseSystem::kAcMcOnly) {
     out.houses_counted = true;
     std::array<double, 14> fz = chart.houses.cusp;

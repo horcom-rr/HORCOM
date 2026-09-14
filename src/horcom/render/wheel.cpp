@@ -277,6 +277,10 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
     if (!b.present || !b.valid) {
       continue;
     }
+    //RR EINZELNE PLANETEN auswählen, sodaß NUR DIESE sichtbar sind
+    if (opt.emphasis[static_cast<std::size_t>(slot)] < 0) {
+      continue;
+    }
     slots.push_back(slot);
     pl[static_cast<std::size_t>(slot)] = b.el;
     wl[static_cast<std::size_t>(slot)] = wheel_angle(b.el, fza);
@@ -300,6 +304,10 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
     p.text = (opt.heliocentric && slot == body::kMoon) ? "\xE2\x8A\x95" : kBodyGlyph[si];
     if (chart.b[si].tb < 0.0 && slot >= 3 && slot <= 10) {
       p.text += " R";
+    }
+    //RR einzelne Planeten ROT markieren
+    if (opt.emphasis[si] > 0) {
+      p.color = 0xFF0000;
     }
     add(p);
     if (opt.degree_numbers) {

@@ -96,6 +96,9 @@ struct WheelOptions {
                                         false, false, false, true, false, false, false, false};
   /// draw the blue dashed node axis like the original Mondknotenlinie
   bool node_axis = true;
+  /// the right mouse selection of the original chart screen, per slot,
+  /// 0 draws normally, 1 marks the glyph red, -1 hides the body
+  std::array<int, body::kSlotCount> emphasis{};
   /// print the degree within sign under each glyph, the original pziff
   bool degree_numbers = true;
 };

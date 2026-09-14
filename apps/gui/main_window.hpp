@@ -105,6 +105,7 @@ class MainWindow : public QMainWindow {
   void dynamogram_view();
   void linear_graph();
   void midpoint_tree();
+  void planet_selection();
   void histogram_view();
   void correction();
   void time_wander();
@@ -151,6 +152,13 @@ class MainWindow : public QMainWindow {
   AspectSettings aspect_settings_;
   /// the user defined fixed point in radians, negative when off
   double fixpunkt_ = -1.0;
+  /// the planet selection of the wheel, 0 normal, 1 red, -1 hidden
+  std::array<int, body::kSlotCount> emphasis_{};
+  /// mark the birth ruler red like his inverse highlight
+  bool ruler_red_ = false;
+  /// which divisors draw chords, edited in the Planeten-Auswahl
+  std::array<bool, 17> chords_{};
+  bool chords_set_ = false;
   WheelWidget* wheel_ = nullptr;
   Banner* banner_ = nullptr;
   QDateEdit* date_ = nullptr;

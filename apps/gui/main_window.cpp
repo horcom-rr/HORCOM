@@ -303,8 +303,8 @@ void MainWindow::build_ui() {
   // the result docks
   auto* body_dock = new QDockWidget(tr("Koordinaten"), this);
   bodies_ = new QTableWidget(0, 7, body_dock);
-  //RR Spalte A trägt das Vorzeichen der Beschleunigung, ENTF die
-  //RR gegenseitige Entfernung in AE
+  //RR Spalte A ( = Acceleratio ) enthält das Vorzeichen der Beschleunigung
+  // and ENTF carries the mutual distance in AU
   bodies_->setHorizontalHeaderLabels({tr("Länge"), tr("Breite"), tr("Deklin."), tr("Geschw."), "A", tr("Entf."), ""});
   bodies_->horizontalHeader()->setStretchLastSection(true);
   bodies_->verticalHeader()->setDefaultSectionSize(18);
@@ -645,6 +645,8 @@ void MainWindow::build_ui() {
   view->addAction(tr("Schrift größer"), QKeySequence::ZoomIn, this, [set_scale, scale_now]() { set_scale(scale_now() + theme::kTextScaleStep); });
   view->addAction(tr("Schrift kleiner"), QKeySequence::ZoomOut, this, [set_scale, scale_now]() { set_scale(scale_now() - theme::kTextScaleStep); });
   view->addAction(tr("Normale Schrift"), QKeySequence(Qt::CTRL | Qt::Key_0), this, [set_scale]() { set_scale(theme::kTextScaleNormal); });
+  view->addSeparator();
+  view->addAction(tr("Planeten-Auswahl…"), this, &MainWindow::planet_selection);
 
   QMenu* help = menuBar()->addMenu(tr("&Hilfe"));
   //RR TEXT-DATEI LESEN, his commentary texts from the local folder
@@ -750,6 +752,17 @@ void MainWindow::recompute() {
 
   // the chart data block for the left margin of the paper, like bes11
   WheelOptions wopt;
+  wopt.emphasis = emphasis_;
+  if (chords_set_) {
+    wopt.chord_divisor = chords_;
+  }
+  //RR der GEBURTSHERRSCHER wird hervorgehoben
+  if (ruler_red_ && !current_settings().heliocentric && last_chart_ && last_chart_->houses.ok) {
+    const int kp = sign_ruler(last_chart_->houses.cusp[1], false);
+    if (kp > 0 && kp < body::kSlotCount && wopt.emphasis[static_cast<std::size_t>(kp)] == 0) {
+      wopt.emphasis[static_cast<std::size_t>(kp)] = 1;
+    }
+  }
   {
     QString name = clock ? QStringLiteral("UHR")
                          : QString("%1 %2")
@@ -971,7 +984,7 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
       bodies_->setItem(row, 1, new QTableWidgetItem(degs(b.eb)));
       bodies_->setItem(row, 2, new QTableWidgetItem(degs(b.de)));
       bodies_->setItem(row, 3, new QTableWidgetItem(degs(b.tb)));
-      //RR Spalte A, das Vorzeichen der Beschleunigung am Umkehrpunkt
+      // the sign of the acceleration, direct or retrograde at a station
       bodies_->setItem(row, 4, new QTableWidgetItem(b.ttb < 0.0 ? QString::fromUtf8("−") : "+"));
       if (b.dr > 0.0) {
         bodies_->setItem(row, 5, new QTableWidgetItem(QString::number(b.dr, 'f', 3)));
@@ -988,8 +1001,8 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
     cusps_->setItem(i - 1, 0,
                     new QTableWidgetItem(helio ? QString() : zodiac(chart.houses.cusp[static_cast<std::size_t>(i)])));
   }
-  //RR die MONDPHASE als Längendifferenz MOND-SONNE mit der %-Angabe,
-  //RR Vollmond 100, Neumond 0
+  //RR die MONDPHASE ... ist die ekliptikale Längendifferenz MOND-SONNE
+  // with his percent figure, full moon one hundred, new moon zero
   QString phase_text;
   if (!helio && chart.b[body::kSun].valid && chart.b[body::kMoon].valid) {
     const double d = norm_rad(chart.b[body::kMoon].el - chart.b[body::kSun].el) * kRadToDeg;
@@ -1335,7 +1348,7 @@ void MainWindow::correction() {
   what->addItem("AC", 3);
   what->addItem(tr("Sonne"), 4);
   what->addItem(tr("Mond"), 5);
-  //RR mit ZWISCHENHÄUSERN korrigieren
+  //RR mit ZWISCHENHÄUSERN ... korrigieren
   what->addItem(tr("Zwischenhaus"), 6);
   auto* cusp_nr = new QSpinBox(&dialog);
   cusp_nr->setRange(2, 12);
@@ -1562,6 +1575,14 @@ void MainWindow::orb_settings() {
   fix_deg->setRange(0.0, 360.0);
   fix_deg->setDecimals(4);
   fix_deg->setValue(fixpunkt_ >= 0.0 ? fixpunkt_ * kRadToDeg : 0.0);
+  //RR bei den LÄNGEN kann zwischen WAHREN und APPARENTEN Werten gewählt
+  //RR werden, App.1 nur Licht-Laufzeit, App.2 mit jährlicher Aberration
+  auto* appa = new QComboBox(&dialog);
+  appa->addItem(tr("Apparent 1 (Licht-Laufzeit)"), 1);
+  appa->addItem(tr("Apparent 2 (mit Aberration)"), 2);
+  appa->addItem(tr("Wahre (geometrische)"), 3);
+  appa->setCurrentIndex(std::clamp(konsta_.appa, 1, 3) - 1);
+  form->addRow(tr("Längen-Modus"), appa);
   form->addRow(tr("Orbis-Faktor"), orb);
   form->addRow(tr("Maximaler Teiler"), divisors);
   form->addRow(equal);
@@ -1607,6 +1628,8 @@ void MainWindow::orb_settings() {
     }
   }
   fixpunkt_ = fix_on->isChecked() ? fix_deg->value() * kDegToRad : -1.0;
+  konsta_.appa = appa->currentData().toInt();
+  konsta_.appa_name = konsta_.appa == 1 ? "App.1" : (konsta_.appa == 2 ? "App.2" : "Wahre");
   if (save->isChecked()) {
     konsta_.orb = aspect_settings_.orb;
     konsta_.nasp = aspect_settings_.divisors;
@@ -1820,6 +1843,92 @@ void MainWindow::rhythm_table() {
   v->addWidget(buttons);
   dialog.resize(680, 640);
   dialog.exec();
+}
+
+// ported from the right mouse selection of the chart screen, single
+// planets red or alone, the ruler highlight and the aspect line choice
+void MainWindow::planet_selection() {
+  QDialog dialog(this);
+  dialog.setWindowTitle(tr("Planeten-Auswahl"));
+  auto* v = new QVBoxLayout(&dialog);
+  auto* table = new QTableWidget(0, 3, &dialog);
+  table->setHorizontalHeaderLabels({tr("Punkt"), tr("Zeigen"), tr("Rot")});
+  table->horizontalHeader()->setStretchLastSection(true);
+  table->verticalHeader()->setVisible(false);
+  table->verticalHeader()->setDefaultSectionSize(20);
+  for (int slot = 0; slot < body::kSlotCount; ++slot) {
+    if (slot == body::kAscendant || slot == body::kMc || (slot >= 15 && slot <= 18)) {
+      continue;
+    }
+    if (!last_chart_ || !last_chart_->b[static_cast<std::size_t>(slot)].present) {
+      continue;
+    }
+    const int row = table->rowCount();
+    table->insertRow(row);
+    auto* name = new QTableWidgetItem(QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
+                                                        static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size())));
+    name->setData(Qt::UserRole, slot);
+    name->setFlags(Qt::ItemIsEnabled);
+    table->setItem(row, 0, name);
+    auto* shown = new QTableWidgetItem();
+    shown->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable);
+    shown->setCheckState(emphasis_[static_cast<std::size_t>(slot)] < 0 ? Qt::Unchecked : Qt::Checked);
+    table->setItem(row, 1, shown);
+    auto* red = new QTableWidgetItem();
+    red->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable);
+    red->setCheckState(emphasis_[static_cast<std::size_t>(slot)] > 0 ? Qt::Checked : Qt::Unchecked);
+    table->setItem(row, 2, red);
+  }
+  auto* ruler = new QCheckBox(tr("Geburtsherrscher rot hervorheben"), &dialog);
+  ruler->setChecked(ruler_red_);
+  //RR die ASPEKT-LINIEN bis zur 12. Teilung einzeln vorgeben
+  auto* chords_box = new QHBoxLayout();
+  chords_box->addWidget(new QLabel(tr("Aspekt-Linien Teiler"), &dialog));
+  std::array<QCheckBox*, 17> chord_checks{};
+  WheelOptions defaults;
+  for (int n = 1; n <= 12; ++n) {
+    auto* c = new QCheckBox(QString::number(n), &dialog);
+    c->setChecked(chords_set_ ? chords_[static_cast<std::size_t>(n)] : defaults.chord_divisor[static_cast<std::size_t>(n)]);
+    chord_checks[static_cast<std::size_t>(n)] = c;
+    chords_box->addWidget(c);
+  }
+  chords_box->addStretch(1);
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+  auto* reset = buttons->addButton(tr("Zurücksetzen"), QDialogButtonBox::ResetRole);
+  connect(reset, &QPushButton::clicked, &dialog, [this, &dialog]() {
+    emphasis_.fill(0);
+    ruler_red_ = false;
+    chords_set_ = false;
+    dialog.reject();
+    recompute();
+  });
+  connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+  connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+  v->addWidget(table, 1);
+  v->addWidget(ruler);
+  v->addLayout(chords_box);
+  v->addWidget(buttons);
+  dialog.resize(420, 620);
+  if (dialog.exec() != QDialog::Accepted) {
+    return;
+  }
+  for (int row = 0; row < table->rowCount(); ++row) {
+    const int slot = table->item(row, 0)->data(Qt::UserRole).toInt();
+    int e = 0;
+    if (table->item(row, 1)->checkState() == Qt::Unchecked) {
+      e = -1;
+    } else if (table->item(row, 2)->checkState() == Qt::Checked) {
+      e = 1;
+    }
+    emphasis_[static_cast<std::size_t>(slot)] = e;
+  }
+  ruler_red_ = ruler->isChecked();
+  chords_set_ = true;
+  chords_ = defaults.chord_divisor;
+  for (int n = 1; n <= 12; ++n) {
+    chords_[static_cast<std::size_t>(n)] = chord_checks[static_cast<std::size_t>(n)]->isChecked();
+  }
+  recompute();
 }
 
 // ported from the GRAD-DATUM-LISTE of a17_3 with the published
@@ -2219,7 +2328,7 @@ void MainWindow::linear_graph() {
   kind->addItem(tr("Mondbogen-Direktion"), 3);
   kind->addItem(tr("Transite"), 0);
   auto* base = new QComboBox(&dialog);
-  //RR jeder Winkel durch ganzzahlige Teilung von 360, nicht unter 15 Grad
+  //RR jeder Winkel der sich durch ganzzahlige Teilung von 360 Grad ergibt
   for (double b : {360.0, 180.0, 120.0, 90.0, 60.0, 45.0, 30.0, 15.0}) {
     base->addItem(QString::number(b) + QString::fromUtf8("°"), b);
   }
@@ -2464,12 +2573,12 @@ void MainWindow::eclipse_table() {
   //RR ASPEKTE mit GÜLTIGEM DATENSATZ UNTERSUCHEN ?
   auto* with_aspects = new QCheckBox(tr("Aspekte mit gültigem Datensatz"), &dialog);
   auto* base = new QComboBox(&dialog);
-  //RR GRUND-ASPEKT WÄHLEN, der maximale Teiler folgt daraus
+  //RR GRUND-ASPEKT WÄHLEN! the maximal divisor follows from it
   for (int b : {30, 45, 60, 90, 180, 360}) {
     base->addItem(QString::number(b) + QString::fromUtf8("°"), b);
   }
   auto* orbf = new QComboBox(&dialog);
-  //RR ORBIS-FAKTOR 0.125 bis 1.0
+  //RR ORBIS-FAKTOR ? his four steps
   for (double f : {0.125, 0.25, 0.5, 1.0}) {
     orbf->addItem(QString::number(f), f);
   }
@@ -2508,7 +2617,7 @@ void MainWindow::eclipse_table() {
     QString out;
     for (int slot = 1; slot < body::kSlotCount; ++slot) {
       const BodyState& b = radix.b[static_cast<std::size_t>(slot)];
-      //RR nie beim absteigenden Knoten, nie bei Null-Positionen
+      // his skips, never the descending node, never a zero position
       if (!b.present || !b.valid || slot == body::kNodeDesc || b.el == 0.0) {
         continue;
       }
