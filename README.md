@@ -88,7 +88,7 @@ Windows may warn about an unknown publisher when starting a downloaded `horcom_g
 
 ## License
 
-GPL-3.0-or-later, see `LICENSE`. The rewrite stays open, every derivative stays open, and Robert Rettig's name stays attached to his work. Maintained by Dominik Schwimmbeck.
+GPL-3.0-or-later, see `LICENSE`. The rewrite stays open, every derivative stays open, and Robert Rettig's name stays attached to his work. Rewritten in C++ and maintained by Dominik Schwimmbeck.
 
 ---
 

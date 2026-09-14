@@ -2948,7 +2948,8 @@ void MainWindow::about() {
                      tr("<b>horcom</b><br>Die C++ Neufassung von HORCOM,<br>"
                         "geschrieben von Robert Rettig, 1989 bis 2010.<br><br>"
                         "Im Andenken an Robert Rettig, der all dies zuerst gebaut hat.<br><br>"
-                        "GPL-3.0-or-later · betreut von Dominik Schwimmbeck"));
+                        "In C++ neu geschrieben und betreut von Dominik Schwimmbeck.<br>"
+                        "GPL-3.0-or-later"));
 }
 
 }  // namespace horcom
