@@ -29,6 +29,7 @@ add_library(horcom STATIC
   horcom/chart/symbolic.cpp
   horcom/chart/aspects.cpp
   horcom/chart/histogram.cpp
+  horcom/chart/planet_points.cpp
   horcom/render/wheel.cpp
   horcom/render/linear.cpp
   horcom/render/svg.cpp

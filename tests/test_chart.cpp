@@ -6,6 +6,8 @@
 
 #include "doctest.h"
 #include "horcom/chart/chart.hpp"
+#include "horcom/ephem/elements.hpp"
+#include "horcom/chart/planet_points.hpp"
 #include "horcom/chart/stars.hpp"
 #include "horcom/chart/composite.hpp"
 #include "horcom/chart/directions.hpp"
@@ -364,4 +366,55 @@ TEST_CASE("the fixed stars land on their catalogue places") {
   // and Aldebaran near 9 degrees 47 Gemini
   CHECK(regulus == doctest::Approx(149.8).epsilon(0.005));
   CHECK(aldebaran == doctest::Approx(69.8).epsilon(0.005));
+}
+
+TEST_CASE("the mean planetary nodes and apsides fill their columns") {
+  ChartInput in;
+  in.date_ut = {1, 1, 2000, 12, 0.0};
+  in.lon_deg_east = 11.3244;
+  in.lat_deg = 48.1742;
+  const Chart c = compute_chart(in, {}, vsop(), eph());
+  REQUIRE(c.ok);
+  ChartSettings s;
+
+  // the sun row, Landscheidt's solar equator node and the perigee
+  const PlanetPoints sun = planet_points(c, body::kSun, s);
+  REQUIRE(sun.ok);
+  CHECK(sun.node * kRadToDeg == doctest::Approx(73.6667 + 150.0 * 0.01396).epsilon(0.001));
+  CHECK(sun.perihelion * kRadToDeg == doctest::Approx(282.94).epsilon(0.001));
+  CHECK(norm_rad(sun.aphelion - sun.perihelion) == doctest::Approx(kPi));
+
+  // the moon row rides the mean lunar points
+  const PlanetPoints moon = planet_points(c, body::kMoon, s);
+  REQUIRE(moon.ok);
+  CHECK(moon.node == doctest::Approx(norm_rad(c.lunar.mean_node)));
+  CHECK(moon.aphelion == doctest::Approx(norm_rad(c.lunar.mean_apogee)));
+
+  // heliocentric mode hands out the element directions, Mercury's node
+  // near 48.33 degrees, Pluto's mean elements land on the known values
+  s.heliocentric = true;
+  const PlanetPoints me = planet_points(c, body::kMercury, s);
+  REQUIRE(me.ok);
+  CHECK(me.node * kRadToDeg == doctest::Approx(48.33).epsilon(0.001));
+  CHECK(me.perihelion * kRadToDeg == doctest::Approx(77.46).epsilon(0.001));
+  const PlanetPoints pl = planet_points(c, body::kPluto, s);
+  REQUIRE(pl.ok);
+  CHECK(pl.node * kRadToDeg == doctest::Approx(110.30).epsilon(0.001));
+  CHECK(pl.perihelion * kRadToDeg == doctest::Approx(224.07).epsilon(0.01));
+
+  // geocentric the node is the space point of the orbit crossing, the
+  // projection must match the triangle formula exactly
+  s.heliocentric = false;
+  const Orbit orb = mean_elements(body::kMercury, c.ta);
+  const double arg = orb.p - orb.o;
+  const double rn = orb.a * (1.0 - orb.e * orb.e) / (1.0 + orb.e * std::cos(-arg));
+  const BodyState& earth = c.b[body::kSun];
+  const double y = rn * std::sin(orb.o) - earth.r * std::sin(earth.hel);
+  const double x = rn * std::cos(orb.o) - earth.r * std::cos(earth.hel);
+  const double want = norm_rad(atn(y, x + kEps) + c.smo.dpsi);
+  const PlanetPoints geo = planet_points(c, body::kMercury, s);
+  CHECK(geo.node == doctest::Approx(want).epsilon(1.0e-12));
+  // the descending node is not the antipode of the ascending one, a
+  // nearby space point can stand on the same side of the Earth
+  CHECK(std::abs(norm_rad(geo.node_south - geo.node) - kPi) < kPi);
 }

@@ -52,6 +52,7 @@
 #include "horcom/chart/mundane.hpp"
 #include "horcom/chart/arabic.hpp"
 #include "horcom/chart/progressions.hpp"
+#include "horcom/chart/planet_points.hpp"
 #include "horcom/chart/rhythm.hpp"
 #include "horcom/chart/riseset.hpp"
 #include "horcom/chart/stars.hpp"
@@ -302,10 +303,12 @@ void MainWindow::build_ui() {
 
   // the result docks
   auto* body_dock = new QDockWidget(tr("Koordinaten"), this);
-  bodies_ = new QTableWidget(0, 7, body_dock);
+  bodies_ = new QTableWidget(0, 11, body_dock);
   //RR Spalte A ( = Acceleratio ) enthält das Vorzeichen der Beschleunigung
-  // and ENTF carries the mutual distance in AU
-  bodies_->setHorizontalHeaderLabels({tr("Länge"), tr("Breite"), tr("Deklin."), tr("Geschw."), "A", tr("Entf."), ""});
+  // and ENTF carries the mutual distance in AU, then the mean node and
+  // apsis points after Landscheidt
+  bodies_->setHorizontalHeaderLabels({tr("Länge"), tr("Breite"), tr("Deklin."), tr("Geschw."), "A", tr("Entf."),
+                                      tr("Kn.ND"), tr("Kn.SD"), tr("Perihel"), tr("Aphel"), ""});
   bodies_->horizontalHeader()->setStretchLastSection(true);
   bodies_->verticalHeader()->setDefaultSectionSize(18);
   bodies_->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -991,9 +994,17 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
       if (b.dr > 0.0) {
         bodies_->setItem(row, 5, new QTableWidgetItem(QString::number(b.dr, 'f', 3)));
       }
+      //RR die mittleren Planeten-KNOTEN und die PLANETEN-APSIDEN
+      const PlanetPoints pts = planet_points(chart, slot, current_settings());
+      if (pts.ok) {
+        bodies_->setItem(row, 6, new QTableWidgetItem(zodiac(pts.node)));
+        bodies_->setItem(row, 7, new QTableWidgetItem(zodiac(pts.node_south)));
+        bodies_->setItem(row, 8, new QTableWidgetItem(zodiac(pts.perihelion)));
+        bodies_->setItem(row, 9, new QTableWidgetItem(zodiac(pts.aphelion)));
+      }
       auto* retro = new QTableWidgetItem(b.tb < 0.0 ? "R" : "");
       retro->setForeground(QColor(0xE8, 0x5D, 0x4E));
-      bodies_->setItem(row, 6, retro);
+      bodies_->setItem(row, 10, retro);
     }
   }
   bodies_->setVerticalHeaderLabels(row_names);
