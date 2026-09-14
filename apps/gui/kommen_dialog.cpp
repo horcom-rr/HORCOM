@@ -28,6 +28,10 @@ KommenDialog::KommenDialog(const std::filesystem::path& dir, QWidget* parent) : 
   split->addWidget(list_);
   split->addWidget(text_, 1);
   v->addLayout(split, 1);
+  // his writing stays untranslated, the note says so in the English shell
+  auto* note = new QLabel(tr("Die Original-Texte von Robert Rettig, in seinem deutschen Wortlaut."), this);
+  note->setWordWrap(true);
+  v->addWidget(note);
   auto* bottom = new QHBoxLayout();
   find_ = new QLineEdit(this);
   find_->setPlaceholderText(tr("Suchbegriff"));
