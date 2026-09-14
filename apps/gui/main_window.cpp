@@ -327,7 +327,9 @@ void MainWindow::build_ui() {
   aspects_label_ = new QLabel(cusp_host);
   aspects_label_->setWordWrap(true);
   aspects_label_->setObjectName("aspectsLine");
-  cusp_layout->setContentsMargins(0, 6, 0, 0);
+  // the same breath below the aspects line as above it, the box should
+  // not sit cut off on the window edge
+  cusp_layout->setContentsMargins(0, 6, 0, 6);
   cusp_layout->addWidget(cusps_, 1);
   cusp_layout->addWidget(aspects_label_);
   cusp_dock->setWidget(cusp_host);
