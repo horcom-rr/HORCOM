@@ -2200,12 +2200,31 @@ void MainWindow::eclipse_table() {
   top->addWidget(new QLabel(tr("Such-Datum"), this));
   top->addWidget(when);
   top->addWidget(run, 1);
-  auto* table = new QTableWidget(0, 4, &dialog);
-  table->setHorizontalHeaderLabels({tr("Neumond (UT)"), tr("Sonnenfinsternis"), tr("Vollmond (UT)"), tr("Mondfinsternis")});
+  auto* table = new QTableWidget(0, 6, &dialog);
+  table->setHorizontalHeaderLabels({tr("Neumond (UT)"), tr("Sonnenfinsternis"), tr("Aspekte SO"), tr("Vollmond (UT)"),
+                                    tr("Mondfinsternis"), tr("Aspekte MO")});
   table->horizontalHeader()->setStretchLastSection(true);
   table->verticalHeader()->setVisible(false);
   table->verticalHeader()->setDefaultSectionSize(20);
   table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  //RR ASPEKTE mit GÜLTIGEM DATENSATZ UNTERSUCHEN ?
+  auto* with_aspects = new QCheckBox(tr("Aspekte mit gültigem Datensatz"), &dialog);
+  auto* base = new QComboBox(&dialog);
+  //RR GRUND-ASPEKT WÄHLEN, der maximale Teiler folgt daraus
+  for (int b : {30, 45, 60, 90, 180, 360}) {
+    base->addItem(QString::number(b) + QString::fromUtf8("°"), b);
+  }
+  auto* orbf = new QComboBox(&dialog);
+  //RR ORBIS-FAKTOR 0.125 bis 1.0
+  for (double f : {0.125, 0.25, 0.5, 1.0}) {
+    orbf->addItem(QString::number(f), f);
+  }
+  orbf->setCurrentIndex(2);
+  top->addWidget(with_aspects);
+  top->addWidget(new QLabel(tr("Grund-Aspekt"), &dialog));
+  top->addWidget(base);
+  top->addWidget(new QLabel(tr("Orbis-Faktor"), &dialog));
+  top->addWidget(orbf);
   //RR die Zeichen-Erklärung seines Schirms
   auto* legend = new QLabel(tr("ZT = zentral, EX = exzentrisch, TOT = total, RF = ringförmig, N/S = nördlich/südlich,\n"
                                "KERNSCH = Kernschatten, HALBSCH = Halbschatten. Zeiten in UT."),
@@ -2219,12 +2238,76 @@ void MainWindow::eclipse_table() {
     }
     return QString::asprintf("%02d.%02d.%04d %02d:%02d", d.day, d.month, d.year, seconds / 3600, (seconds / 60) % 60);
   };
-  const auto fill = [this, when, table, stamp]() {
+  // ported from suchas, the syzygy light against every radix factor
+  const auto syzygy_aspects = [this](double jd_ut, bool full, int base_deg, double orb_factor) {
+    if (!last_chart_) {
+      return QString();
+    }
+    const Chart& radix = *last_chart_;
+    const int light = full ? body::kMoon : body::kSun;
+    const BodyLongitude bl = body_longitude(jd_ut, light, make_context());
+    if (!bl.valid) {
+      return QString();
+    }
+    const int d1 = static_cast<int>(1.0e-5 + 360.0 / base_deg);
+    const double o1 = org(aspect_settings_, light, 1);
+    QString out;
+    for (int slot = 1; slot < body::kSlotCount; ++slot) {
+      const BodyState& b = radix.b[static_cast<std::size_t>(slot)];
+      //RR nie beim absteigenden Knoten, nie bei Null-Positionen
+      if (!b.present || !b.valid || slot == body::kNodeDesc || b.el == 0.0) {
+        continue;
+      }
+      const double o2 = org(aspect_settings_, slot, 1);
+      const double w3 = norm_rad(bl.el - b.el);
+      bool taken = false;
+      for (int w = 1; w <= d1 && !taken; ++w) {
+        const double pn = kTwoPi / w;
+        const double dds = orbis_discr2(o1, o2, orb_factor * pn / 30.0);
+        if (dds <= 0.0) {
+          break;
+        }
+        if (w == 1) {
+          if (w3 > 0.0 && (w3 < dds || w3 > kTwoPi - dds)) {
+            taken = true;
+            if (!out.isEmpty()) {
+              out += "  ";
+            }
+            out += QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
+                                     static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size())) +
+                   QString::fromUtf8(" 0°");
+          }
+          continue;
+        }
+        for (int m = 1; m < w && !taken; ++m) {
+          double w1 = norm_rad(m * pn - dds);
+          double w2 = norm_rad(m * pn + dds);
+          double v3 = w3;
+          vergl2(w1, w2, v3);
+          if (w1 < v3 && v3 < w2) {
+            taken = true;
+            if (!out.isEmpty()) {
+              out += "  ";
+            }
+            out += QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
+                                     static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size())) +
+                   QString::asprintf(" %.0f\xC2\xB0", m * pn * kRadToDeg);
+          }
+        }
+      }
+    }
+    return out;
+  };
+  const auto fill = [this, when, table, stamp, with_aspects, base, orbf, syzygy_aspects]() {
     const QDate d = when->date();
     const double jd = julian_day({d.day(), d.month(), d.year(), 0, 0.0}, current_settings().calendar);
     //RR 27 Zeilen wie sein Schirm
     const std::vector<Lunation> nm = lunations(jd, 27, false);
     const std::vector<Lunation> fm = lunations(jd, 27, true);
+    const bool asp = with_aspects->isChecked() && last_chart_;
+    if (asp) {
+      QApplication::setOverrideCursor(Qt::WaitCursor);
+    }
     table->setRowCount(0);
     for (std::size_t i = 0; i < nm.size(); ++i) {
       const int row = table->rowCount();
@@ -2237,17 +2320,31 @@ void MainWindow::eclipse_table() {
       }
       table->setItem(row, 0, ndate);
       table->setItem(row, 1, nkind);
+      if (asp) {
+        table->setItem(row, 2, new QTableWidgetItem(syzygy_aspects(nm[i].jd_ut, false, base->currentData().toInt(),
+                                                                   orbf->currentData().toDouble())));
+      }
       auto* fdate = new QTableWidgetItem(stamp(fm[i].jd_ut));
       auto* fkind = new QTableWidgetItem(QString::fromUtf8(fm[i].kind.c_str()));
       if (fm[i].eclipse) {
         fdate->setForeground(QColor(0xE8, 0x5D, 0x4E));
         fkind->setForeground(QColor(0xE8, 0x5D, 0x4E));
       }
-      table->setItem(row, 2, fdate);
-      table->setItem(row, 3, fkind);
+      table->setItem(row, 3, fdate);
+      table->setItem(row, 4, fkind);
+      if (asp) {
+        table->setItem(row, 5, new QTableWidgetItem(syzygy_aspects(fm[i].jd_ut, true, base->currentData().toInt(),
+                                                                   orbf->currentData().toDouble())));
+      }
+    }
+    if (asp) {
+      QApplication::restoreOverrideCursor();
     }
     table->resizeColumnsToContents();
   };
+  connect(with_aspects, &QCheckBox::toggled, &dialog, fill);
+  connect(base, &QComboBox::currentIndexChanged, &dialog, fill);
+  connect(orbf, &QComboBox::currentIndexChanged, &dialog, fill);
   connect(run, &QPushButton::clicked, &dialog, fill);
   fill();
   auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
