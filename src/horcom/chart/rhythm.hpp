@@ -60,6 +60,10 @@ struct RhythmOptions {
   bool sextile = false;
   /// true also triggers the Black Moon's opposite point
   bool apogee_opposite = false;
+  //RR SONDERPUNKT ( FIXPUNKT ) der Rhythmenlehre, sein rotes F, a
+  //RR degree in radians, negative when off, independent of the
+  //RR general fixed point
+  double special = -1.0;
 };
 
 /// Runs the trigger walk over a chart.
@@ -95,6 +99,16 @@ struct DegreeDate {
   bool custom = false;
   bool mirror = false;
 };
+
+/// The degree the walk stands on at a given age, the inverse of the
+/// degree date list. The date defined Sonderpunkt of a17sonderpkt
+/// rides on it.
+///
+/// @param chart the radix with its houses
+/// @param opt   phase length and direction
+/// @param years the age, in years even when the options count months
+/// @return the ecliptic degree in radians, negative without houses
+[[nodiscard]] double degree_at_age(const Chart& chart, const RhythmOptions& opt, double years);
 
 /// Reads self defined degrees, his GRADE.INT lines of degree and two
 /// planet slots separated by commas.

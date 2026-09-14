@@ -784,8 +784,15 @@ void MainWindow::recompute() {
     if (sec >= kSecondsPerDay) {
       sec = kSecondsPerDay - 1;
     }
+    //RR day_w$, der WOCHENTAG im HOROSKOP-Formular
+    static constexpr const char* kWeekday[7] = {"Sonntag",    "Montag",  "Dienstag", "Mittwoch",
+                                                "Donnerstag", "Freitag", "Samstag"};
+    const int wd = static_cast<int>(std::fmod(chart.jd_ut + 1.5, 7.0));
     wopt.info_lines.push_back(
         QString::asprintf("%02d.%02d.%04d", dd.day, dd.month, dd.year).toStdString());
+    if (wd >= 0 && wd < 7) {
+      wopt.info_lines.push_back(kWeekday[wd]);
+    }
     wopt.info_lines.push_back(
         QString::asprintf("%02d:%02d:%02d UT", sec / 3600, (sec / 60) % 60, sec % 60).toStdString());
     wopt.info_lines.push_back(QString::fromUtf8("L %1°  B %2°")
@@ -1864,12 +1871,27 @@ void MainWindow::rhythm_table() {
   direction->addItem(tr("Links"), 1);
   direction->addItem(tr("Rechts"), 0);
   auto* sextile = new QCheckBox(tr("Sextil"), &dialog);
+  //RR SONDERPUNKT ( FIXPUNKT ) WÄHLEN, als Grad oder INDIREKT über DATUM
+  auto* sp_mode = new QComboBox(&dialog);
+  sp_mode->addItem(tr("Kein Sonderpunkt"), 0);
+  sp_mode->addItem(tr("Sonderpunkt Grad"), 1);
+  sp_mode->addItem(tr("Sonderpunkt Datum"), 2);
+  auto* sp_deg = new QDoubleSpinBox(&dialog);
+  sp_deg->setRange(0.0, 360.0);
+  sp_deg->setDecimals(2);
+  sp_deg->setSuffix(QString::fromUtf8("°"));
+  auto* sp_date = new QDateEdit(QDate::currentDate(), &dialog);
+  sp_date->setCalendarPopup(true);
+  sp_date->setDisplayFormat("dd.MM.yyyy");
   auto* run = new QPushButton(tr("Rechnen"), &dialog);
   top->addWidget(phase);
   top->addWidget(unit);
   top->addWidget(begin);
   top->addWidget(direction);
   top->addWidget(sextile);
+  top->addWidget(sp_mode);
+  top->addWidget(sp_deg);
+  top->addWidget(sp_date);
   top->addWidget(run, 1);
   auto* table = new QTableWidget(0, 6, &dialog);
   table->setHorizontalHeaderLabels({tr("Phase"), tr("Haus"), tr("Alter"), tr("Punkt"), tr("Art"), tr("Quelle")});
@@ -1881,7 +1903,8 @@ void MainWindow::rhythm_table() {
   const Chart chart = *last_chart_;
   const ChartSettings cs = current_settings();
   const AspectSettings base = aspect_settings_;
-  const auto fill = [this, table, count, chart, cs, base, phase, unit, begin, direction, sextile]() {
+  const auto fill = [this, table, count, chart, cs, base, phase, unit, begin, direction, sextile, sp_mode, sp_deg,
+                     sp_date]() {
     RhythmOptions opt;
     opt.phase_years = phase->value();
     opt.months = unit->currentData().toInt() == 1;
@@ -1889,6 +1912,15 @@ void MainWindow::rhythm_table() {
     opt.leftward = direction->currentData().toInt() == 1;
     opt.sextile = sextile->isChecked();
     opt.apogee_opposite = true_apogee_ != nullptr && extras_ != nullptr && extras_->isChecked();
+    if (sp_mode->currentData().toInt() == 1) {
+      opt.special = sp_deg->value() * kDegToRad;
+    } else if (sp_mode->currentData().toInt() == 2) {
+      //RR INDIREKT über DATUM, das Alter des Datums auf den Grad gelegt
+      const QDate d = sp_date->date();
+      const double jd = julian_day({d.day(), d.month(), d.year(), 12, 0.0}, cs.calendar);
+      const double years = (jd - chart.jd_ut) / chart.ta.tropical_year_days;
+      opt.special = degree_at_age(chart, opt, years);
+    }
     AspectSettings a = base;
     //RR nasp bei der Rhythmenlehre 4, mit Sextil 6
     a.divisors = opt.sextile ? 6 : 4;
@@ -1902,8 +1934,15 @@ void MainWindow::rhythm_table() {
       table->setItem(row, 0, new QTableWidgetItem(QString::number(t.phase)));
       table->setItem(row, 1, new QTableWidgetItem(QString("H%1").arg(t.house)));
       table->setItem(row, 2, new QTableWidgetItem(QString::asprintf("%8.3f", t.value)));
-      table->setItem(row, 3, new QTableWidgetItem(QString::fromUtf8(body::kTag[static_cast<std::size_t>(t.slot)].data(),
-                                                                    static_cast<int>(body::kTag[static_cast<std::size_t>(t.slot)].size()))));
+      //RR der Sonderpunkt als rotes F
+      auto* point = new QTableWidgetItem(
+          t.slot == 0 ? QStringLiteral("F")
+                      : QString::fromUtf8(body::kTag[static_cast<std::size_t>(t.slot)].data(),
+                                          static_cast<int>(body::kTag[static_cast<std::size_t>(t.slot)].size())));
+      if (t.slot == 0) {
+        point->setForeground(QColor(0xE8, 0x5D, 0x4E));
+      }
+      table->setItem(row, 3, point);
       QString art = kKind[static_cast<int>(t.kind)];
       if (t.kind == RhythmKind::kAspect) {
         art += QString::asprintf(" %g°", t.angle_deg);
@@ -3436,14 +3475,62 @@ std::optional<AafRecord> MainWindow::choose_record(const QString& title) {
                       .arg(r.year)
                       .arg(QString::fromStdString(r.place)));
   }
+  //RR das LÖSCHEN nicht mehr benötigter Datensätze
+  list->setSelectionMode(QAbstractItemView::ExtendedSelection);
   auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+  auto* erase = buttons->addButton(tr("Löschen"), QDialogButtonBox::ActionRole);
+  connect(erase, &QPushButton::clicked, &dialog, [this, &records, list, path]() {
+    QList<QListWidgetItem*> sel = list->selectedItems();
+    if (sel.isEmpty()) {
+      return;
+    }
+    if (QMessageBox::question(this, "HORCOM", tr("%1 Datensätze aus der Datei löschen?").arg(sel.size())) !=
+        QMessageBox::Yes) {
+      return;
+    }
+    std::vector<int> rows;
+    for (QListWidgetItem* item : sel) {
+      rows.push_back(list->row(item));
+    }
+    std::sort(rows.begin(), rows.end(), std::greater<int>());
+    for (int r : rows) {
+      records.erase(records.begin() + r);
+      delete list->takeItem(r);
+    }
+    bool ok = false;
+    if (path.endsWith(".aaf", Qt::CaseInsensitive)) {
+      ok = write_aaf(std::filesystem::path(path.toStdWString()), records);
+    } else {
+      std::vector<ChartRecord> out;
+      for (const AafRecord& a : records) {
+        const ChartInput in = record_input(a);
+        ChartRecord c;
+        c.day = in.date_ut.day;
+        c.month = in.date_ut.month;
+        c.year = in.date_ut.year;
+        c.hour = in.date_ut.hour;
+        c.minute = in.date_ut.minute;
+        c.lon = in.lon_deg_east;
+        c.lat = in.lat_deg;
+        c.name = a.surname.empty() ? a.given : a.surname + " " + a.given;
+        c.place = a.place;
+        // the remark came through unchanged, the calendar flag included
+        c.remark = a.comment;
+        out.push_back(std::move(c));
+      }
+      ok = write_chart_file(std::filesystem::path(path.toStdWString()), out);
+    }
+    if (!ok) {
+      QMessageBox::warning(this, "HORCOM", tr("Die Datei ließ sich nicht schreiben."));
+    }
+  });
   connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
   connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
   connect(list, &QListWidget::itemDoubleClicked, &dialog, &QDialog::accept);
   v->addWidget(list, 1);
   v->addWidget(buttons);
   dialog.resize(560, 420);
-  if (dialog.exec() == QDialog::Accepted && list->currentRow() >= 0) {
+  if (dialog.exec() == QDialog::Accepted && list->currentRow() >= 0 && !records.empty()) {
     return records[static_cast<std::size_t>(list->currentRow())];
   }
   return std::nullopt;

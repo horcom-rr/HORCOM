@@ -214,3 +214,31 @@ TEST_CASE("self defined degrees round trip and mirror") {
   CHECK(rows[720 - 35].mirror);
   std::filesystem::remove(dir);
 }
+
+TEST_CASE("the Sonderpunkt rides the walk and the age inverse lands back") {
+  Chart c;
+  c.ok = true;
+  c.houses.ok = true;
+  // houses off the zero point, his open windows never trigger at 0 Aries
+  for (int i = 1; i <= 13; ++i) {
+    c.houses.cusp[static_cast<std::size_t>(i)] = norm_rad((5.0 + (i - 1) * 30.0) * kDegToRad);
+  }
+  RhythmOptions opt;
+  opt.phase_years = 7.0;
+  //RR SONDERPUNKT als EKLIPTIK-GRAD
+  opt.special = 20.0 * kDegToRad;
+  const auto rows = rhythm_triggers(c, {}, {}, opt);
+  bool found = false;
+  for (const RhythmTrigger& t : rows) {
+    if (t.slot == 0 && t.kind == RhythmKind::kDirect) {
+      found = true;
+      CHECK(t.value == doctest::Approx(3.5).epsilon(0.01));
+    }
+  }
+  CHECK(found);
+  // the date defined point inverts the walk, mid house one is age 3.5
+  CHECK(degree_at_age(c, opt, 3.5) == doctest::Approx(20.0 * kDegToRad).epsilon(0.001));
+  CHECK(degree_at_age(c, opt, 10.5) == doctest::Approx(50.0 * kDegToRad).epsilon(0.001));
+  opt.leftward = false;
+  CHECK(degree_at_age(c, opt, 3.5) == doctest::Approx(norm_rad(350.0 * kDegToRad)).epsilon(0.001));
+}

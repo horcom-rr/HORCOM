@@ -10,6 +10,7 @@
 #include "horcom/chart/transit_search.hpp"
 
 class QComboBox;
+class QDoubleSpinBox;
 class QDateEdit;
 class QLabel;
 class QTableWidget;
@@ -47,6 +48,8 @@ class TransitListDialog : public QDialog {
   QDateEdit* from_ = nullptr;
   QDateEdit* to_ = nullptr;
   QComboBox* angle_ = nullptr;
+  QDoubleSpinBox* ev_lon_ = nullptr;
+  QDoubleSpinBox* ev_lat_ = nullptr;
   QTableWidget* table_ = nullptr;
   QLabel* count_ = nullptr;
 };

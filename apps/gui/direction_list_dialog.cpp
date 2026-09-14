@@ -4,6 +4,8 @@
 
 #include "direction_list_dialog.hpp"
 
+#include <cmath>
+
 #include <QApplication>
 #include <QComboBox>
 #include <QDateEdit>
@@ -21,6 +23,18 @@
 #include "horcom/time/calendar.hpp"
 
 namespace horcom {
+
+// the 25.07.03 change, hard aspects red and harmonic ones green
+inline void color_aspect_item(QTableWidgetItem* item, double angle_deg) {
+  const double a = std::fmod(std::abs(angle_deg), 360.0);
+  const auto near = [a](double w) { return std::abs(a - w) < 0.5; };
+  if (near(0.0) || near(90.0) || near(180.0) || near(270.0) || near(360.0)) {
+    item->setForeground(QColor(0xE8, 0x5D, 0x4E));
+  } else if (near(60.0) || near(120.0) || near(240.0) || near(300.0)) {
+    item->setForeground(QColor(0x3F, 0xB6, 0x50));
+  }
+}
+
 
 namespace {
 
@@ -152,7 +166,9 @@ void DirectionListDialog::run_scan() {
       const CalendarDate d = calendar_date(jd, ctx_.settings.calendar);
       table_->setItem(row, 1, new QTableWidgetItem(QString::asprintf("%02d.%02d.%04d", d.day, d.month, d.year)));
       table_->setItem(row, 2, new QTableWidgetItem(slot_tag(h.directed, range.extras)));
-      table_->setItem(row, 3, new QTableWidgetItem(QString::asprintf("%g°", h.multiple * range.base_angle_deg)));
+      auto* angle_item = new QTableWidgetItem(QString::asprintf("%g°", h.multiple * range.base_angle_deg));
+      color_aspect_item(angle_item, h.multiple * range.base_angle_deg);
+      table_->setItem(row, 3, angle_item);
       table_->setItem(row, 4, new QTableWidgetItem(slot_tag(h.target, range.extras)));
       //RR D / K
       table_->setItem(row, 5, new QTableWidgetItem(h.converse ? "K" : "D"));
@@ -182,7 +198,9 @@ void DirectionListDialog::run_scan() {
         moving += " R";
       }
       table_->setItem(row, 2, new QTableWidgetItem(moving));
-      table_->setItem(row, 3, new QTableWidgetItem(QString::asprintf("%g°", e.event.angle_deg)));
+      auto* ev_angle = new QTableWidgetItem(QString::asprintf("%g°", e.event.angle_deg));
+      color_aspect_item(ev_angle, e.event.angle_deg);
+      table_->setItem(row, 3, ev_angle);
       table_->setItem(row, 4, new QTableWidgetItem(slot_tag(e.event.radix, DirectionExtras::kNone)));
       table_->setItem(row, 5, new QTableWidgetItem("D"));
     }

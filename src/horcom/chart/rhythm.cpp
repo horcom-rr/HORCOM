@@ -29,6 +29,9 @@ struct Walk {
   int house = 0;
 
   [[nodiscard]] double position(int slot) const {
+    if (slot == 0) {
+      return opt.special;
+    }
     if (slot == body::kAscendant) {
       //RR AC und MC hauchdünn ins Haus gelegt
       return chart.houses.cusp[1] + (opt.leftward ? kEps : -kEps);
@@ -40,6 +43,10 @@ struct Walk {
   }
 
   [[nodiscard]] bool usable(int slot) const {
+    if (slot == 0) {
+      //RR der Sonderpunkt, nur direkte Auslösungen wie die Kardinalpunkte
+      return opt.special >= 0.0;
+    }
     if (slot == body::kAscendant || slot == body::kMc) {
       return chart.houses.ok;
     }
@@ -218,7 +225,7 @@ std::vector<RhythmTrigger> rhythm_triggers(const Chart& chart, const AspectResul
     // every body standing in the phase's house, the direct triggers
     double w1 = cusp(l);
     double w2 = cusp(l + 1);
-    for (int pl = 1; pl < body::kSlotCount; ++pl) {
+    for (int pl = 0; pl < body::kSlotCount; ++pl) {
       if (pl >= 15 && pl <= 18) {
         continue;
       }
@@ -402,6 +409,30 @@ std::vector<DegreeDate> degree_dates(const Chart& chart, const RhythmOptions& op
     out.push_back(row);
   }
   return out;
+}
+
+// the inverse of the degree date walk, ported from the date defined
+// Sonderpunkt of a17sonderpkt
+double degree_at_age(const Chart& chart, const RhythmOptions& opt, double years) {
+  if (!chart.houses.ok || opt.phase_years == 0.0) {
+    return -1.0;
+  }
+  const double vp = opt.phase_years;
+  double step = years / vp;
+  step -= 12.0 * std::floor(step / 12.0);
+  int a = static_cast<int>(std::floor(step)) + 1;
+  const double frac = step - (a - 1);
+  if (!opt.leftward) {
+    a = 12 - (a - 1);
+  }
+  const double w1 = chart.houses.cusp[static_cast<std::size_t>(a)];
+  double w2 = chart.houses.cusp[a == 12 ? 1 : static_cast<std::size_t>(a) + 1];
+  while (w2 <= w1) {
+    w2 += kTwoPi;
+  }
+  const double span = w2 - w1;
+  const double deg = opt.leftward ? w1 + frac * span : w2 - frac * span;
+  return norm_rad(deg);
 }
 
 }  // namespace horcom

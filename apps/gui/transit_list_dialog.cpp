@@ -4,8 +4,11 @@
 
 #include "transit_list_dialog.hpp"
 
+#include <cmath>
+
 #include <QApplication>
 #include <QComboBox>
+#include <QDoubleSpinBox>
 #include <QDateEdit>
 #include <QDialogButtonBox>
 #include <QHBoxLayout>
@@ -18,6 +21,18 @@
 #include "horcom/core/constants.hpp"
 
 namespace horcom {
+
+// the 25.07.03 change, hard aspects red and harmonic ones green
+inline void color_aspect_item(QTableWidgetItem* item, double angle_deg) {
+  const double a = std::fmod(std::abs(angle_deg), 360.0);
+  const auto near = [a](double w) { return std::abs(a - w) < 0.5; };
+  if (near(0.0) || near(90.0) || near(180.0) || near(270.0) || near(360.0)) {
+    item->setForeground(QColor(0xE8, 0x5D, 0x4E));
+  } else if (near(60.0) || near(120.0) || near(240.0) || near(300.0)) {
+    item->setForeground(QColor(0x3F, 0xB6, 0x50));
+  }
+}
+
 
 namespace {
 
@@ -53,6 +68,16 @@ TransitListDialog::TransitListDialog(Chart radix, SearchContext ctx, QWidget* pa
   for (const int a : {30, 45, 60, 90, 180}) {
     angle_->addItem(QString("%1°").arg(a), a);
   }
+  //RR ereig_ort, der EREIGNIS-ORT der laufenden Positionen, bei
+  //RR Rechnung mit Parallaxe verschieden vom Geburtsort
+  ev_lon_ = new QDoubleSpinBox(this);
+  ev_lon_->setRange(-180.0, 180.0);
+  ev_lon_->setDecimals(4);
+  ev_lon_->setValue(ctx_.base.lon_deg_east);
+  ev_lat_ = new QDoubleSpinBox(this);
+  ev_lat_->setRange(-89.9, 89.9);
+  ev_lat_->setDecimals(4);
+  ev_lat_->setValue(ctx_.base.lat_deg);
   auto* run = new QPushButton(tr("Rechnen"), this);
   top->addWidget(new QLabel(tr("Von"), this));
   top->addWidget(from_);
@@ -60,6 +85,9 @@ TransitListDialog::TransitListDialog(Chart radix, SearchContext ctx, QWidget* pa
   top->addWidget(to_);
   top->addWidget(new QLabel(tr("Winkel"), this));
   top->addWidget(angle_);
+  top->addWidget(new QLabel(tr("Ereignis-Ort L/B"), this));
+  top->addWidget(ev_lon_);
+  top->addWidget(ev_lat_);
   top->addWidget(run, 1);
   table_ = new QTableWidget(0, 5, this);
   table_->setHorizontalHeaderLabels({tr("Datum"), tr("Zeit (UT)"), tr("Transit"), tr("Winkel"), tr("Radix")});
@@ -95,6 +123,8 @@ void TransitListDialog::run_scan() {
   scan.jd_from_ut = julian_day({f.day(), f.month(), f.year(), 0, 0.0}, ctx_.settings.calendar);
   scan.jd_to_ut = julian_day({t.day(), t.month(), t.year(), 24, 0.0}, ctx_.settings.calendar);
   scan.base_angle_deg = angle_->currentData().toDouble();
+  ctx_.base.lon_deg_east = ev_lon_->value();
+  ctx_.base.lat_deg = ev_lat_->value();
   QApplication::setOverrideCursor(Qt::WaitCursor);
   events_ = scan_transits(radix_, scan, ctx_);
   QApplication::restoreOverrideCursor();
@@ -119,7 +149,9 @@ void TransitListDialog::run_scan() {
       //RR stationär
       angle += " S";
     }
-    table_->setItem(row, 3, new QTableWidgetItem(angle));
+    auto* angle_item = new QTableWidgetItem(angle);
+    color_aspect_item(angle_item, e.angle_deg);
+    table_->setItem(row, 3, angle_item);
     table_->setItem(row, 4, new QTableWidgetItem(slot_tag(e.radix)));
   }
   count_->setText(tr("%1 Ereignisse").arg(events_.size()));
