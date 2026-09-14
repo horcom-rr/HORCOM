@@ -73,7 +73,10 @@ record mask with name, place and country, and <b>Als AAF speichern</b>
 (Ctrl+S) writes the current chart back into an AAF collection, so
 your records travel between HORCOM and every program that reads AAF.
 <b>Dateien verketten</b> merges any mix of DAT and AAF collections into
-one AAF chain file.
+one AAF chain file, <b>AAF-Datei → HORCOM-Datei</b> converts an exchange
+file into his fixed record layout, <b>Datei trimmen/minimieren</b> tidies
+a collection, and <b>Statistik-Datei erstellen</b> computes a whole
+collection into a research dataset.
 </p>
 
 <h2>The running sky</h2>
@@ -90,8 +93,12 @@ the present moment at the panel's place.
 <p>
 <b>Solar</b> finds the moment the transiting sun returns exactly onto its
 radix degree in a chosen year and draws that chart, <b>Lunar</b> does the
-same with the moon in a chosen month. Both use his backward search,
-the same machinery his plant routine drove.
+same with the moon in a chosen month or, by number, counts the n-th
+lunar from birth for the Troinsky tertiaries. Both use his backward
+search, the same machinery his plant routine drove. <b>Solar-Liste</b>
+and <b>Lunar-Liste</b> table up to 84 return dates at once, and an
+ambiguous <b>Planetar</b> offers all its retrograde crossings to choose
+from.
 </p>
 
 <h2>Two people</h2>
@@ -126,7 +133,11 @@ and the Kühr primaries, and dated events for the secondary, sun arc
 and moon arc directions. <b>Rhythmenlehre</b> walks the seven year phases
 of the Döbereiner school and tables every trigger, and the
 <b>Dynamogramm</b> draws the summed intensity curves after Krafft-Goerner
-over five years of life.
+over five years of life. The <b>Linear-Graphik</b> spreads directions or
+transits as curves over a time axis in the manner of the Ebertin life
+diagram, every crossing with a radix line a direction becoming exact,
+and the <b>Grad-Datum-Liste</b> maps every half degree onto its age with
+the Gruppenschicksals-Grade marked and own degrees definable.
 </p>
 
 <h2>Sky tables</h2>
@@ -135,7 +146,9 @@ over five years of life.
 chart, <b>Arabische Teile</b> the thirty seven sensitive points with the
 day and night formulas, <b>Aufgang/Untergang</b> the rising, meridian and
 setting clocks, <b>Finsternisse</b> the new and full moons with the
-eclipse letters, and <b>Großes Jahr</b> the precession driven age point.
+eclipse letters and, on demand, their aspects to the valid record,
+<b>Histogramme</b> the element and quality columns with his point
+weights, and <b>Großes Jahr</b> the precession driven age point.
 </p>
 
 <h2>The Aspektarium</h2>
@@ -158,8 +171,16 @@ weights, and places the Fixpunkt, a chosen ecliptic degree that rides
 the chart as the point <code>sp</code>. A checkbox writes everything as
 <code>konsta.int</code> beside the data so the next start keeps it.
 <b>Korrektur</b> in the Horoskop menu rectifies the birth time, pick
-sidereal time, MC, AC, sun or moon, give the target value, and the
-panel clock shifts until the chosen quantity reaches it.
+sidereal time, MC, AC, an intermediate cusp, sun or moon, give the
+target value, and the panel clock shifts until the chosen quantity
+reaches it. The Direktionen dialog collects trial shifts in a sum
+memory and applies their mean to the radix on demand. <b>Zeit-Wandern</b>
+and <b>Ort-Wandern</b> step the chart through time or place with the
+Schiemenz counters summing along, and <b>Planeten-Auswahl</b> in the
+Ansicht menu shows single planets alone or red, highlights the birth
+ruler and picks the drawn aspect lines per divisor. The Vorgaben
+dialog also chooses the length mode, apparent with light time, with
+aberration, or true.
 </p>
 
 <h2>Statistics</h2>
