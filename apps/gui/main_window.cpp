@@ -2367,6 +2367,7 @@ void MainWindow::wander_dialog(bool place) {
   }
   //RR Richtung, V = Vorwärts, R = Rückwärts
   auto* back = new QCheckBox(tr("Rückwärts"), &dialog);
+  form->addRow(tr("Richtung"), back);
   //RR Intervall, + = Verdoppelung, - = Halbierung
   auto* factor = new QLabel("1", &dialog);
   auto* doubler = new QPushButton("+", &dialog);
