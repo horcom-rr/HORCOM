@@ -112,6 +112,8 @@ class MainWindow : public QMainWindow {
   void place_wander();
   void chain_files();
   void create_statistics();
+  void aaf_to_dat();
+  void tidy_file();
   void orb_settings();
   void converters();
   void planetar_chart();

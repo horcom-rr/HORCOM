@@ -152,4 +152,43 @@ bool write_chart_file(const std::filesystem::path& path, const std::vector<Chart
   return static_cast<bool>(f);
 }
 
+// ported from Datei TRIMMEN
+void trim_records(std::vector<ChartRecord>& records) {
+  std::vector<ChartRecord> kept;
+  kept.reserve(records.size());
+  for (ChartRecord& r : records) {
+    const std::size_t first = r.name.find_first_not_of(' ');
+    if (first == std::string::npos) {
+      //RR Leer-Datensätze beseitigen
+      continue;
+    }
+    if (first > 0) {
+      r.name.erase(0, first);
+    }
+    kept.push_back(std::move(r));
+  }
+  records = std::move(kept);
+}
+
+// ported from Datei MINIMIEREN
+void minimize_records(std::vector<ChartRecord>& records) {
+  std::vector<ChartRecord> kept;
+  kept.reserve(records.size());
+  for (ChartRecord& r : records) {
+    bool duplicate = false;
+    for (const ChartRecord& k : kept) {
+      //RR mehrfach vorhandene Datensätze mit gleichem Namen und gleicher Geburtszeit
+      if (k.name == r.name && k.day == r.day && k.month == r.month && k.year == r.year && k.hour == r.hour &&
+          k.minute == r.minute) {
+        duplicate = true;
+        break;
+      }
+    }
+    if (!duplicate) {
+      kept.push_back(std::move(r));
+    }
+  }
+  records = std::move(kept);
+}
+
 }  // namespace horcom

@@ -344,6 +344,8 @@ void MainWindow::build_ui() {
   file->addAction(tr("Umrechnungen…"), this, &MainWindow::converters);
   file->addAction(tr("Dateien verketten…"), this, &MainWindow::chain_files);
   file->addAction(tr("Statistik-Datei erstellen…"), this, &MainWindow::create_statistics);
+  file->addAction(tr("AAF-Datei → HORCOM-Datei…"), this, &MainWindow::aaf_to_dat);
+  file->addAction(tr("Datei trimmen/minimieren…"), this, &MainWindow::tidy_file);
   file->addAction(tr("Vorgaben (Orbes, Fixpunkt)…"), this, &MainWindow::orb_settings);
   file->addSeparator();
   file->addAction(tr("Beenden"), QKeySequence::Quit, this, &QWidget::close);
@@ -1471,6 +1473,77 @@ void MainWindow::chain_files() {
     return;
   }
   QMessageBox::information(this, "HORCOM", tr("%1 Datensätze verkettet.").arg(all.size()));
+}
+
+// ported from AAF-DATEI <> HORCOM-DATEI, the exchange records pressed
+// into the fixed 128 byte layout
+void MainWindow::aaf_to_dat() {
+  const QString src = QFileDialog::getOpenFileName(this, tr("AAF-Datei wählen"), QString(), tr("AAF (*.aaf *.AAF)"));
+  if (src.isEmpty()) {
+    return;
+  }
+  const auto records = read_aaf(std::filesystem::path(src.toStdWString()));
+  if (!records || records->empty()) {
+    QMessageBox::warning(this, "HORCOM", tr("Die Datei enthält keine lesbaren Datensätze."));
+    return;
+  }
+  const QString target = QFileDialog::getSaveFileName(this, tr("HORCOM-Datei"),
+                                                      QFileInfo(src).completeBaseName() + ".dat",
+                                                      tr("HORCOM Daten (*.dat *.DAT)"));
+  if (target.isEmpty()) {
+    return;
+  }
+  std::vector<ChartRecord> out;
+  for (const AafRecord& r : *records) {
+    const ChartInput in = record_input(r);
+    ChartRecord c;
+    c.day = in.date_ut.day;
+    c.month = in.date_ut.month;
+    c.year = in.date_ut.year;
+    c.hour = in.date_ut.hour;
+    c.minute = in.date_ut.minute;
+    c.lon = in.lon_deg_east;
+    c.lat = in.lat_deg;
+    c.name = r.surname.empty() ? r.given : r.surname + " " + r.given;
+    c.place = r.place;
+    //RR die Zeichenfolge "(JULIAN.)" wird unter BEMERKG. gespeichert
+    c.remark = r.calendar == Calendar::kJulian ? "(JULIAN.) " + r.comment : r.comment;
+    out.push_back(std::move(c));
+  }
+  if (!write_chart_file(std::filesystem::path(target.toStdWString()), out)) {
+    QMessageBox::warning(this, "HORCOM", tr("Die HORCOM-Datei ließ sich nicht schreiben."));
+    return;
+  }
+  QMessageBox::information(this, "HORCOM", tr("%1 Datensätze umgewandelt.").arg(out.size()));
+}
+
+// ported from Datei TRIMMEN and Datei MINIMIEREN
+void MainWindow::tidy_file() {
+  const QString src = QFileDialog::getOpenFileName(this, tr("Daten-Datei wählen"), QString(), tr("HORCOM Daten (*.dat *.DAT)"));
+  if (src.isEmpty()) {
+    return;
+  }
+  const std::filesystem::path p(src.toStdWString());
+  auto records = read_chart_file(p);
+  if (!records) {
+    QMessageBox::warning(this, "HORCOM", tr("Die Datei ließ sich nicht lesen."));
+    return;
+  }
+  const std::size_t before = records->size();
+  trim_records(*records);
+  minimize_records(*records);
+  if (records->size() == before) {
+    QMessageBox::information(this, "HORCOM", tr("Nichts zu bereinigen, %1 Datensätze.").arg(before));
+    return;
+  }
+  if (QMessageBox::question(this, "HORCOM",
+                            tr("%1 von %2 Datensätzen bleiben. Datei überschreiben?").arg(records->size()).arg(before)) !=
+      QMessageBox::Yes) {
+    return;
+  }
+  if (!write_chart_file(p, *records)) {
+    QMessageBox::warning(this, "HORCOM", tr("Die Datei ließ sich nicht schreiben."));
+  }
 }
 
 // ported from AUSWERTEFÄHIGE DATEI ERSTELLEN, every record of a
@@ -2834,6 +2907,50 @@ void MainWindow::converters() {
   };
   connect(deg_in, &QDoubleSpinBox::valueChanged, &dialog, deg_update);
   deg_update();
+  //RR AR-DE aus EL-EB und EL-EB aus AR-DE, das wahre Äquinoktium
+  const double ekls = last_chart_ ? last_chart_->smo.ekls : 0.409092804;
+  auto* el_in = new QDoubleSpinBox(&dialog);
+  el_in->setRange(0.0, 360.0);
+  el_in->setDecimals(4);
+  auto* eb_in = new QDoubleSpinBox(&dialog);
+  eb_in->setRange(-90.0, 90.0);
+  eb_in->setDecimals(4);
+  auto* eq_out = new QLabel(&dialog);
+  auto* ecl_row = new QHBoxLayout();
+  ecl_row->addWidget(el_in);
+  ecl_row->addWidget(eb_in);
+  form->addRow(tr("Ekl. Länge / Breite"), ecl_row);
+  form->addRow(tr("ergibt AR / DE"), eq_out);
+  const auto eq_update = [el_in, eb_in, eq_out, ekls]() {
+    const Equatorial eq = ecliptic_to_equatorial(el_in->value() * kDegToRad, eb_in->value() * kDegToRad, ekls);
+    eq_out->setText(QString::fromUtf8("AR %1°   DE %2°")
+                        .arg(norm_rad(eq.ra) * kRadToDeg, 0, 'f', 4)
+                        .arg(eq.dec * kRadToDeg, 0, 'f', 4));
+  };
+  connect(el_in, &QDoubleSpinBox::valueChanged, &dialog, eq_update);
+  connect(eb_in, &QDoubleSpinBox::valueChanged, &dialog, eq_update);
+  eq_update();
+  auto* ar_in = new QDoubleSpinBox(&dialog);
+  ar_in->setRange(0.0, 360.0);
+  ar_in->setDecimals(4);
+  auto* de_in = new QDoubleSpinBox(&dialog);
+  de_in->setRange(-90.0, 90.0);
+  de_in->setDecimals(4);
+  auto* ecl_out = new QLabel(&dialog);
+  auto* eq_row = new QHBoxLayout();
+  eq_row->addWidget(ar_in);
+  eq_row->addWidget(de_in);
+  form->addRow(tr("AR / Deklination"), eq_row);
+  form->addRow(tr("ergibt Länge / Breite"), ecl_out);
+  const auto ecl_update = [ar_in, de_in, ecl_out, ekls]() {
+    const Ecliptic ec = equatorial_to_ecliptic(ar_in->value() * kDegToRad, de_in->value() * kDegToRad, ekls);
+    ecl_out->setText(QString::fromUtf8("Länge %1°   Breite %2°")
+                         .arg(norm_rad(ec.lon) * kRadToDeg, 0, 'f', 4)
+                         .arg(ec.lat * kRadToDeg, 0, 'f', 4));
+  };
+  connect(ar_in, &QDoubleSpinBox::valueChanged, &dialog, ecl_update);
+  connect(de_in, &QDoubleSpinBox::valueChanged, &dialog, ecl_update);
+  ecl_update();
   auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
   connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
   v->addLayout(form);

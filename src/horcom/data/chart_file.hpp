@@ -73,4 +73,16 @@ struct ChartRecord {
 /// @return true on success
 bool write_chart_file(const std::filesystem::path& path, const std::vector<ChartRecord>& records);
 
+/// The Datei TRIMMEN pass, empty records fall out and leading blanks
+/// leave the names.
+///
+/// @param records edited in place
+void trim_records(std::vector<ChartRecord>& records);
+
+/// The Datei MINIMIEREN pass, records sharing name and birth clock
+/// collapse onto their first copy.
+///
+/// @param records edited in place, order kept
+void minimize_records(std::vector<ChartRecord>& records);
+
 }  // namespace horcom

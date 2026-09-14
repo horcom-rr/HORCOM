@@ -324,3 +324,28 @@ TEST_CASE("the kommen reader keeps the lese_text rules") {
   std::filesystem::remove(md);
   std::filesystem::remove(path);
 }
+
+TEST_CASE("trimming drops empty records and leading blanks") {
+  std::vector<ChartRecord> r(3);
+  r[0].name = "  Muster Hans";
+  r[1].name = "   ";
+  r[2].name = "Beispiel Eva";
+  trim_records(r);
+  REQUIRE(r.size() == 2);
+  CHECK(r[0].name == "Muster Hans");
+  CHECK(r[1].name == "Beispiel Eva");
+}
+
+TEST_CASE("minimizing collapses same name and birth clock") {
+  std::vector<ChartRecord> r(3);
+  r[0].name = "Muster Hans";
+  r[0].day = 13;
+  r[0].hour = 3.0;
+  r[1] = r[0];
+  r[1].place = "Anderswo";
+  r[2] = r[0];
+  r[2].day = 14;
+  minimize_records(r);
+  REQUIRE(r.size() == 2);
+  CHECK(r[1].day == 14);
+}
