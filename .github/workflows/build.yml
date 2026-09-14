@@ -44,6 +44,8 @@ jobs:
           Copy-Item README.md dist/
           & "$env:QT_ROOT_DIR/bin/windeployqt.exe" --release dist/horcom_gui.exe
           Compress-Archive -Path dist/* -DestinationPath horcom-windows-x64.zip
+          $hash = (Get-FileHash horcom-windows-x64.zip -Algorithm SHA256).Hash.ToLower()
+          "$hash  horcom-windows-x64.zip" | Out-File -Encoding ascii SHA256SUMS.txt
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -57,6 +59,8 @@ jobs:
         with:
           tag_name: v0.${{ github.run_number }}
           name: v0.${{ github.run_number }}
-          body: Windows build of this push. Unzip and start horcom_gui.exe. Versions stay 0.x until the port of the original is complete.
+          body: Windows build of this push. Unzip and start horcom_gui.exe, SHA256SUMS.txt verifies the download. Versions stay 0.x until the port of the original is complete.
           make_latest: true
-          files: horcom-windows-x64.zip
+          files: |
+            horcom-windows-x64.zip
+            SHA256SUMS.txt

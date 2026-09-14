@@ -82,6 +82,10 @@ ctest --test-dir build -C Release
 
 The programs expect the `data` folder next to the executable or above it. The project lives at [github.com/horcom-rr/HORCOM](https://github.com/horcom-rr/HORCOM). Every push builds and tests there and publishes a fresh [Windows release](https://github.com/horcom-rr/HORCOM/releases/latest), versioned 0.x until the port of the original is complete, so a ready build is always one download away.
 
+## A note on the Windows SmartScreen warning
+
+Windows may warn about an unknown publisher when starting a downloaded `horcom_gui.exe`. That is expected for a young open source program without a paid code signing certificate, not a finding about the software. Click **More info**, then **Run anyway**. Every release ships a `SHA256SUMS.txt`, so a download can be verified against the hash published by the build pipeline, `Get-FileHash horcom-windows-x64.zip` in PowerShell prints the value to compare. The releases will be signed once the project has grown into it.
+
 ## License
 
 GPL-3.0-or-later, see `LICENSE`. The rewrite stays open, every derivative stays open, and Robert Rettig's name stays attached to his work. Maintained by Dominik Schwimmbeck.
