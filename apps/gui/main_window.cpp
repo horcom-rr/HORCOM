@@ -4,6 +4,7 @@
 
 #include "main_window.hpp"
 
+#include <QActionGroup>
 #include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
@@ -660,6 +661,27 @@ void MainWindow::build_ui() {
   view->addAction(tr("Normale Schrift"), QKeySequence(Qt::CTRL | Qt::Key_0), this, [set_scale]() { set_scale(theme::kTextScaleNormal); });
   view->addSeparator();
   view->addAction(tr("Planeten-Auswahl…"), this, &MainWindow::planet_selection);
+  view->addSeparator();
+  // the language survives in the settings and applies on the next start
+  QMenu* language = view->addMenu(tr("Sprache / Language"));
+  auto* lang_group = new QActionGroup(language);
+  const QString current = QSettings().value("language").toString();
+  const auto add_lang = [this, language, lang_group, current](const QString& label, const QString& code) {
+    QAction* a = language->addAction(label);
+    a->setCheckable(true);
+    a->setActionGroup(lang_group);
+    a->setChecked(current == code);
+    connect(a, &QAction::triggered, this, [this, code]() {
+      QSettings().setValue("language", code);
+      QMessageBox::information(this, "HORCOM",
+                               tr("Die Sprache gilt ab dem nächsten Start.\n"
+                                  "The language applies from the next start."));
+    });
+    return a;
+  };
+  add_lang(tr("Automatisch (Systemsprache)"), QString());
+  add_lang("Deutsch", "de");
+  add_lang("English", "en");
 
   QMenu* help = menuBar()->addMenu(tr("&Hilfe"));
   //RR TEXT-DATEI LESEN, his commentary texts from the local folder
@@ -793,13 +815,15 @@ void MainWindow::recompute() {
       sec = kSecondsPerDay - 1;
     }
     //RR day_w$, der WOCHENTAG im HOROSKOP-Formular
-    static constexpr const char* kWeekday[7] = {"Sonntag",    "Montag",  "Dienstag", "Mittwoch",
-                                                "Donnerstag", "Freitag", "Samstag"};
+    static constexpr const char* kWeekday[7] = {QT_TR_NOOP("Sonntag"),    QT_TR_NOOP("Montag"),
+                                                QT_TR_NOOP("Dienstag"),   QT_TR_NOOP("Mittwoch"),
+                                                QT_TR_NOOP("Donnerstag"), QT_TR_NOOP("Freitag"),
+                                                QT_TR_NOOP("Samstag")};
     const int wd = static_cast<int>(std::fmod(chart.jd_ut + 1.5, 7.0));
     wopt.info_lines.push_back(
         QString::asprintf("%02d.%02d.%04d", dd.day, dd.month, dd.year).toStdString());
     if (wd >= 0 && wd < 7) {
-      wopt.info_lines.push_back(kWeekday[wd]);
+      wopt.info_lines.push_back(tr(kWeekday[wd]).toStdString());
     }
     wopt.info_lines.push_back(
         QString::asprintf("%02d:%02d:%02d UT", sec / 3600, (sec / 60) % 60, sec % 60).toStdString());

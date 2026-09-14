@@ -51,11 +51,15 @@ int main(int argc, char** argv) {
   const QStringList args = QApplication::arguments();
 
   // German is the native language of the program, every other locale
-  // reads the English translation, --lang de|en overrides for checks
+  // reads the English translation. The Sprache choice of the Ansicht
+  // menu persists in the settings, --lang de|en overrides for checks
   QString lang;
   const int lang_arg = args.indexOf("--lang");
   if (lang_arg >= 0 && lang_arg + 1 < args.size()) {
     lang = args[lang_arg + 1];
+  }
+  if (lang.isEmpty()) {
+    lang = QSettings().value("language").toString();
   }
   const bool german = lang.isEmpty() ? QLocale::system().language() == QLocale::German : lang == "de";
   QTranslator translator;
