@@ -1,6 +1,6 @@
 # Erläuterung AAF-Ein-Ausgabe
 
-*Robert Rettig, aus der Original-Dokumentation von HORCOM (Ordner KOMMEN7P), unverändert bis auf die Formatierung.*
+*Robert Rettig, aus der Original-Dokumentation von HORCOM (Ordner KOMMEN7P). Wortlaut unverändert, weggelassen sind technische Abschnitte zur Installation, Tastatur- und Druckersteuerung der historischen Programmfassung.*
 
 ************************************************************************ KOMMENTAR betreffend AAF = Astrologisches Austausch - Format.
 
@@ -110,26 +110,6 @@ Also KEINE SONSTIGEN TXT- oder HTM-Dateien hineinbringen!!
 ********************************************************************* ACHTUNG ! NUR REINES TXT-Format verwenden und nicht etwa RTF-Format ( = Rich Text Format ) oder gar WORD-Format.Das funktioniert nicht,da hierbei Formatierungs-Code mitgespeichert wird !!
 
 *********************************************************************
-
-Wenn Sie HORCOM7P erstmalig auf Ihrem Computer starten,werden Sie gefragt, wo Sie den Ordner,namens \AAFDATEN für die AAF-Dateien anlegen wollen. HORCOM7P sieht dafür 2 Möglichkeiten vor :
-
-```text
-  1.In dem Grundverzeichnis,das auch den Ordner \WINDOWS enthält.
-```
-
-```text
-  2.Im Ordner HORCOM.
-```
-
-Falls Sie nur mit HORCOM Astrologie betreiben,ist die zweite Möglichkeit zu empfehlen,damit Sie immer wissen,wo sich die AAF-Dateien befinden.
-
-Achtung ! HORCOM7P merkt sich den Pfad für die AAF-Dateien nur dann,wenn Sie beim ERSTEN Start die Festlegung treffen und HORCOM7P den Ordner entsprechend plaziert ! Also bitte diese Festlegung DORT treffen und nicht mit dem Explorer hinterher den Ordner \AAFDATEN verschieben und auf KEINEN FALL diesen nachträglich umbenennen !! Dies ist ein weiterer Grund den Ordner \AAFDATEN im Ordner \HORCOM zu plazieren und dort zu belassen.
-
-Eine AAF-Datei,die Sie irgendwo erhalten,kopieren Sie immer in diesen Ordner ....\AAFDATEN.
-
-Fallls diese Datei statt .AAF die Endung .TXT hat,wird die "richtige" Endung automatisch von HORCOM generiert.Es MUß sich aber in jedem Fall um eine echte AAF-Datei handeln,zu erkennen an den Zeilen-Anfängen: #A93: ,#B93: usw.
-
-*******************************************************************
 
 Aus dem AAF-Format werden nur die drei ersten Gruppen in HORCOM verwertet. Es sind dies :
 
@@ -317,9 +297,3 @@ ACHTUNG !
 Falls Sie einen HORCOM-Datensatz löschen,wird auch ein zugehöriger AAF-Datensatz mit gelöscht.
 
 **************************************************************************
-
-Das ZUSAMMENSETZEN oder AUFTEILEN von AAF-Dateien können Sie mit NOTEPAD oder,bei größeren Dateien,mit WORDPAD erledigen.
-
-Sie müssen dazu zwei Editierfenster geöffnet haben und wissen wie man den Zwischenspeicher ( = CLIPBOARD ) verwendet.
-
-Bitte dabei IMMER NUR das REINE TXT-Format verwenden ! Beim Speichern aber immer die Endung .AAF anstelle von .TXT verwenden !!

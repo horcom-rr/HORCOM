@@ -1,6 +1,6 @@
 # Erläuterung Horoskope
 
-*Robert Rettig, aus der Original-Dokumentation von HORCOM (Ordner KOMMEN7P), unverändert bis auf die Formatierung.*
+*Robert Rettig, aus der Original-Dokumentation von HORCOM (Ordner KOMMEN7P). Wortlaut unverändert, weggelassen sind technische Abschnitte zur Installation, Tastatur- und Druckersteuerung der historischen Programmfassung.*
 
 ## VORGABEN HOROSKOP ÄNDERN
 
@@ -27,10 +27,6 @@ Mittels der Bild-nach-oben-Taste oder "R" können die vorhergehenden Dialoge err
 ## HOROSKOP-GRAPHIK
 
 Zeichnet GEOZENTRISCHE bzw. HELIOZENTRISCHE Horoskope,je nach den vorgewählten Parametern.U.a. kann der ANFANG des Horoskops,links außen,beliebig gewählt werden.
-
-Wahlweise kann das HOROSKOP auf den BILDSCHIRM oder als DRUCKER-GRAPHIK auf den Drucker ausgegeben werden ( falls die DRUCKER-OPTION von HORCOM aktiv ist ).In diesem Fall sehen Sie am Bildschirm nichts und müssen warten bis der Drucker die Graphik ausgibt.Das dauert etwa eine Minute ( je nach Prozessor ) da das Bild erst für den Drucker umgerechnet werden muß ! Die Farb-Schraffuren des Bildschirm-Ausgabe werden von den meisten Drucker-Treibern nicht reproduziert,bzw. ignoriert.
-
-Als DRUCKER-GRAPHIK ist auch eine DINA4 - Ausgabe vorgesehen die immer auch eine HALBSUMMEN-Liste enthält.Da in HORCOM-Dateien immer nur die UT gespeichert ist wird bei dieser Version,die zur Weitergabe an Laien gedacht ist, noch die ZONENZEIT,bzw. SOMMERZEIT abgefragt sodaß bei eventuellen DATUMS-Überschneidungen auch das "bürgerliche" Datum zusätzlich angegeben werden kann.
 
 Das Horoskop-DIAGRAMM kann verschiedene AUSWERTUNGEN enthalten,nämlich : Eine Aspekt-Verteilung bis zur 16.Kreisteilung (entspr. 22.5 Grad),falls der Orbis nach HORCOM-Manier ( siehe unten ) berechnet wird,wenn nicht nur bis zur 12. Teilung.
 
@@ -299,12 +295,6 @@ Darunter werden die mit dem gleichen Orbis ermittelten HALBSUMMEN zu den ZEICHEN
 Anschliessend kann die Geburtszeit verändert werden ( ZEITWANDERN ) und dabei die Aspekte studiert werden.
 
 Dies ist z.B. für KORREKTUR der Geburtszeit sehr nützlich.
-
-Der ganze Programmteil "MULTIPLE" ist auf die Arbeit am Bildschirm abgestellt.
-
-Bildschirmdokumente sind daher einstweilen vor allem als HARDCOPY gedacht. Den letzten Bildschirm,vor Verlassen des Programms kann man auch als Drucker-Graphik ( DIN A5 ) ausgeben.
-
-Will man dabei Farben sparen,ist es zweckmäßig,unter "VORGABEN HOROSKOP ÄNDERN" die Farbwahl WEIß zu treffen !
 
 Die Arbeit mit MULTIPLEN setzt eine sehr genaue Ephemeridenrechnung voraus. Im derzeitigen HORCOM ist dies für SO,MO,ME....NE allgemein,für PLUTO und CHIRON nur zwischen 600 v.Chr. und 2200 A.D. gegeben,bei CE,PA,JN,VS zwischen 1500 A.D. und 2100 A.D.Allerdings sollte man letztere mit Vorsicht verwenden da sie aus astronomischen Gründen zwar sehr genau berechnet wurden,aber wegen der Vielzahl ( ca. 10000 ) beeinflussender Körper,die nicht in die Rechnung eingehen ( auch bei Profis nicht ),über längere Zeiten mit Abweichungen gerechnet werden muß.
 

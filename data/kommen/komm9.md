@@ -1,6 +1,6 @@
 # Erläuterung Diverses
 
-*Robert Rettig, aus der Original-Dokumentation von HORCOM (Ordner KOMMEN7P), unverändert bis auf die Formatierung.*
+*Robert Rettig, aus der Original-Dokumentation von HORCOM (Ordner KOMMEN7P). Wortlaut unverändert, weggelassen sind technische Abschnitte zur Installation, Tastatur- und Druckersteuerung der historischen Programmfassung.*
 
 ## KORREKTUR
 
@@ -135,15 +135,9 @@ Beim Aktivieren des Menü-Bildschirmes wird dann in der untersten Zeile des Kont
 
 Lässt man das UHR-Horoskop stehen wird es alle 5 Sekunden nue gezeichnet.
 
-ACHTUNG!
-
-Befand sich WINDOWS XP im RUHEZUSTAND und HORCOM wird neu gestartet stimmt die Uhrzeit nicht mehr es sei denn WINDOWS XP wird neu gestartet.
-
 Die laufende Uhr kann auch als Datensatz übernommen werden um weitere Auswertungen vornehmen zu können.Dieser Datensatz wird alle 15 Sekunden aktualisiert,im Menü jedoch erst wenn dieses jeweils benutzt wird. Der vorliegende Menüpunkt "UHR" ist,solange diese als Datensatz behandelt wird,nicht mehr zugänglich.
 
 Ergebnisse,wie SOLARE usw. werden nach 30 Sek. gelöscht,da ja die Uhr weiter läuft.
-
-Achtung ! Wenn der Computer im standby - Modus ist läuft die HORCOM-Uhr nicht weiter ! Danach HORCOM verlassen und wieder neu starten.
 
 ## AR-DE aus EL-EB  und  EL-EB aus AR-DE
 
@@ -177,8 +171,6 @@ Bei den SCHEINBAREN Werten werden für die Sonne die Zeiten immer auf den oberen
 
 In der Ausgabe-Tabelle werden für das vorgewählte Objekt,die 3 Zeitpunkte berechnet,sowie die zugehörigen Länge, Breite,AR,Deklination und Sternzeit. Die Genauigkeit ist bei WAHREN Werten für SO,ME,VE,MA auf wenige Zeitsekunden zu veranschlagen,bei den äusseren Planeten auf <1 Zeitminute. Bei Wahl der SCHEINBAREN Werte sind nur minutengenaue Werte angegeben wegen der Unwägbarkeiten der Korrekturen für die Lichtbrechung.Besonders beim Mond, mit seinem großen Interpolations-Intervall kann es hin und wieder vorkommen daß bei dem betreffenden Datum ein Feld leerbleibt.Dann müssen Sie beim vorhergehenden Datum bzw. beim nachfolgenden nachsehen.
 
-mit den Tasten Bild nach unten,der Leertaste oder der linken Maustaste kann zu späteren Daten weitergegangen werden,mit "-" bzw. "R" oder der "Bild nach oben"-Taste geht man in der Liste rückwärts.
-
 Bitte beachten !! :
 
 Am Aszendenten kann man ein Objekt beim "AUFGANG" nur dann erwarten wenn es gerade die ekliptikale Breite 0 hat.
@@ -194,8 +186,6 @@ Damit können die Zeitpunkte von SONNEN- und MONDFINSERNISSEN berechnet werden.
 Daneben werden die Zeitpunkte von NEUMOND und VOLLMOND ebenfalls aufgelistet, bei denen keine Finsternisse auftreten.
 
 Es wird geozentrisch gerechnet,d.h.die PARALLAXE bleibt ausser Betracht. Man gibt ein Datum in der Nähe des interessierenden Zeitraumes ein.Dann wird eine Liste der NEUMOND- ( LINKS ) und VOLLMOND-Zeitpunkte ( RECHTS )für je 1 bis 2 Mondumläufe vor diesem Zeitpunkt und ca. 30 Mondumläufe danach ausgegeben. Die Sonnenfinsternisse ( LINKS ) bzw. die Mondfinsternisse ( RECHTS ) sind durch Inversion kenntlich gemacht.
-
-mit den Tasten "+" ,der Leertaste oder der linken Maustaste kann zu späteren Daten weitergegangen werden,mit "-" bzw. "R" oder der rechten Maustaste geht man im Datum rückwärts.
 
 In der Ausgabeliste sind nach Datum und Zeit noch LINKS die entsprechende SONNEN-Position und RECHTS die MOND-Position eingetragen.
 
@@ -220,16 +210,6 @@ Man sollte sich mit dem Lesen der Tabellen ohne Aspekte vertraut gemacht haben,b
 Mit diesem Progr. können Sie mehrere Dateien,verschiedenen Namens,miteinander verketten.
 
 Die entstehende Datei heißt für DATEN-Dateien zunächst "\AA_MUDAT.DAT" im Ordner \HORCOM\SPEZIAL\ Sie können diese verkettete Datei auch jederzeit umbenennen und wieder löschen. Das Ganze erfordert etwas Übung.
-
-ALLGEMEINES BETREFFEND DATEI-HANDLING :
-
-Für das selbständige Datei-Handling ist es unbedingt erforderlich,das Kopieren und Umbenennen der Dateien,nach der Betriebs-Anleitung des PC zu beherrschen,also den DATEI-MANAGER von WINDOWS !
-
-DATEN-Dateien sind dabei in dem Ordner \HORCOM\SPEZIAL\ unterzubringen.Den Namen können Sie in der FILESELECT-BOX bei "AUSWAHL" selbst festlegen. Er muß immer die "EXTENSION" .DAT haben.
-
-Der Name darf max. 8 Buchstaben (ohne Umlaute) oder Ziffern haben,z.B. ..\SPEZIAL\SPORTLER.DAT für Daten von Sportlern.
-
-Für ORTS-Dateien ist der Ordner \HORCOM\SPEZ_ORT\ vorgesehen.Die Dateinamen müssen immer die "EXTENSION" .INT haben., Bei DATEN- und ORTS-Dateien kommt in HORCOM3P IMMER die FILESELECT-BOX., Wichtig : Richten Sie für diese Dateien KEINE EIGENEN "ORDNER" ein !! Die DATEI-Namen können Sie hingegen frei wählen.
 
 Im Ordner "\SPEZ_ORT" sind bereits Dateien für DEUTSCHLAND,ÖSTERREICH und die SCHWEIZ vorhanden.Sie werden freundlicherweise allen HORCOM-Usern von Herrn BRUNO MAHL kostenfrei zur Verfügung gestellt.
 
@@ -284,12 +264,6 @@ Manche Astrologen nehmen nun an,daß die Durchlaufzeit duch ein Zeichen einem "Z
 Der Anfangspunkt dieser Zählung ist höchst fragwürdig,da der "gültige" Tierkreis definitionsgemäß immer vom Frühlinspunkt aus zählt. Wer aber diese "Zeitalter" erforschen will kann mit diesem Programm arbeiten. Man gibt das vermutete Beginn-Datum dieses Zeitalters ein und erhält dann für den aktuellen Datensatz den "ZEITALTER-PUNKT" ,der sich durch die PRÄ-ZESSION rückläufig in ca. 25776 Jahren um 360 Grad verschiebt. Die Berechnung geht astronomisch nach den strengen Formeln. Als Beginn-Datum für das "WASSERMANN-ZEITALTER" könnte man z.B. die Entdekkung des Uranus wählen : 13.3.1781 oder die Erstürmung der Bastille 14.7. 1789 usw.Der vorhergehende Zeitraum des "FISCHE-ZEITALTERS" wären dann die ca. 2148 Jahre davor usw.
 
 Das Programm hält die Möglichkeit vom WIDDER- bis STEINBOCK- Zeitalter bereit,entsprechend dem Gültigkeitsbereich der Ephemeride,mit ansonsten freier Eingabemöglichkeit.
-
-## DESKTOP ( QUIT )
-
-Führt zum Desktop bzw. dem WINDOWS-PROGRAMM-MANAGER zurück,von dem aus jede Software gestartet wird.Den gleichen Effekt hat das Schließen des HORCOM-HAUPTMENÜS.
-
-Sind Sie mit einer HORCOM-Sitzung fertig,sollten Sie IMMER !! eine dieser beiden Möglichkeiten benutzen und danach auch WINDOWS ordnungsgemäß beenden. Ansonsten kann Müll auf der Festplatte zurückbleiben !!
 
 ## ERGEBNIS ALS RADIX
 

@@ -1,6 +1,6 @@
 # Erläuterung Münchner Rhythmenlehre
 
-*Robert Rettig, aus der Original-Dokumentation von HORCOM (Ordner KOMMEN7P), unverändert bis auf die Formatierung.*
+*Robert Rettig, aus der Original-Dokumentation von HORCOM (Ordner KOMMEN7P). Wortlaut unverändert, weggelassen sind technische Abschnitte zur Installation, Tastatur- und Druckersteuerung der historischen Programmfassung.*
 
 DÖBEREINER-AUSLÖSUNG :Ermittelt die Zeitpunkte der rhythmischen Auslösungen nach WOLFGANG DÖBEREINER.
 
@@ -38,10 +38,6 @@ Bei der GRAPHIK- ( = HOROSKOP ) -Darstellung ist links im Bild die Zeit-Achse ( 
 Die aktuelle Phase ist durch einen umlaufenden roten Bogen markiert. Zusätzlich zu den vorgenannten Punkten kann ein SONDER-PUNKT bestimmt werden, entweder als ZEIT-Punkt oder als bestimmter GRAD.Dieser Punkt ist durch * bzw. mit "F" gekennzeichnet,der genaue Gradwert unter dem Horoskop angegeben.
 
 WEITERSCHALTUNG von PHASE zu PHASE mit LEER-TASTE !!
-
-Wollen Sie einen Phasen-Zustand bei der Graphik ausdrucken,einfach in dieser Phase F7 drücken und in WRITE > BEARBEITEN > EINFÜGEN > DATEI > DRUCKEN eingeben.Oder die DRUCKER-OPTION von HORCOM aktivieren und in der Abfrage HARDCOPY ? mit JA antworten.
-
-Das Programm läuft während des Druckens bereits weiter.
 
 Sie können aus der SEPTAR-,SOLAR-Ebene die Auslösungen mit verschiedenen Phasen durchlaufen.Dabei handelt es sich immer um das gleiche RADIX-Horoskop Wenn Sie dies verändern wollen,müssen Sie erst wieder auf die RADIX-Ebene gehen und erneut SEPTAR bzw.SOLAR mit neuen Voraussetzungen ablaufen lassen.
 

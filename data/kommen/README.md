@@ -10,12 +10,16 @@ program shows them under Hilfe, Original-Kommentare.
 His wording is unchanged. The conversion from his DOS era text files
 only reflows the hard wrapped lines, turns his underlined captions into
 headings, keeps aligned blocks verbatim and renders his separator lines
-as rules. Two edits of substance were made, a private postal address of
-a third person was removed, and the parts behind his mid file separator
-lines are included although the original reader stopped there. Prices,
-ordering hints and website addresses inside the texts are historical,
-they describe his distribution of the original program and remain part
-of his writing.
+as rules. The editions are curated in three respects. A private postal
+address of a third person was removed. The parts behind his mid file
+separator lines are included although the original reader stopped
+there. And era bound passages about installing the historical program,
+its printer and hardcopy control, function keys, screen storage and
+crash recovery are left out, each affected file says so under its
+title, the HINWEIS5 notes consisted of such material entirely and are
+not part of the shipped set. Prices, ordering hints and website
+addresses inside the remaining texts are historical, they describe his
+distribution of the original program and remain part of his writing.
 
 The original byte exact `.TXT` files stay local beside these editions
 and are not tracked. The reading dialog prefers the markdown editions
