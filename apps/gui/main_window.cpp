@@ -561,11 +561,34 @@ void MainWindow::build_ui() {
     form->addRow(tr("Ereignis-Datum"), when);
     form->addRow(tr("Richtung"), dirbox);
     form->addRow(tr("STZ-Variation (°)"), vary);
+    //RR die Verschiebungen können in einem Summenspeicher aufsummiert werden
+    auto* accumulate = new QCheckBox(tr("Variation aufsummieren"), &dialog);
+    auto* sum_label = new QLabel(vary_count_ > 0
+                                     ? tr("Summenspeicher %1° aus %2 Variationen, Mittel %3°")
+                                           .arg(vary_sum_, 0, 'f', 3)
+                                           .arg(vary_count_)
+                                           .arg(vary_sum_ / vary_count_, 0, 'f', 3)
+                                     : tr("Summenspeicher leer."),
+                                 &dialog);
+    sum_label->setWordWrap(true);
     auto* note = new QLabel(tr("1° STZ entspricht 4 Zeitminuten."), &dialog);
     auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+    //RR der Mittelwert der Summe kann ins Radix übernommen werden
+    auto* take = buttons->addButton(tr("Mittel ins Radix übernehmen"), QDialogButtonBox::ActionRole);
+    take->setEnabled(vary_count_ > 0);
+    connect(take, &QPushButton::clicked, &dialog, [this, &dialog]() {
+      const double mean = vary_sum_ / vary_count_;
+      vary_sum_ = 0.0;
+      vary_count_ = 0;
+      const double jd = last_chart_->jd_ut + mean / kDegPerHour / kSolarToSiderealRate / 24.0;
+      dialog.reject();
+      apply_moment(jd, tr("KORRIGIERT"));
+    });
     connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
     connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
     v->addLayout(form);
+    v->addWidget(accumulate);
+    v->addWidget(sum_label);
     v->addWidget(note);
     v->addWidget(buttons);
     if (dialog.exec() != QDialog::Accepted) {
@@ -577,6 +600,10 @@ void MainWindow::build_ui() {
     dir_jd_ = julian_day({d.day(), d.month(), d.year(), 0, 0.0}, current_settings().calendar);
     dir_converse_ = dirbox->currentIndex() == 1;
     dir_vary_ = vary->value();
+    if (accumulate->isChecked() && dir_vary_ != 0.0) {
+      vary_sum_ += dir_vary_;
+      ++vary_count_;
+    }
     recompute();
   });
   // the horm 2 view, semi arc house space instead of the ecliptic
@@ -1290,10 +1317,19 @@ void MainWindow::correction() {
   what->addItem("AC", 3);
   what->addItem(tr("Sonne"), 4);
   what->addItem(tr("Mond"), 5);
+  //RR mit ZWISCHENHÄUSERN korrigieren
+  what->addItem(tr("Zwischenhaus"), 6);
+  auto* cusp_nr = new QSpinBox(&dialog);
+  cusp_nr->setRange(2, 12);
+  cusp_nr->setPrefix(tr("Haus "));
+  cusp_nr->setEnabled(false);
+  connect(what, &QComboBox::currentIndexChanged, &dialog,
+          [what, cusp_nr](int) { cusp_nr->setEnabled(what->currentData().toInt() == 6); });
   auto* target = new QDoubleSpinBox(&dialog);
   target->setRange(0.0, 360.0);
   target->setDecimals(4);
   form->addRow(tr("Korrigieren mit"), what);
+  form->addRow(QString(), cusp_nr);
   form->addRow(tr("Soll-Wert"), target);
   auto* note = new QLabel(tr("Die Uhrzeit des Panels wird so verschoben, dass die gewählte Größe den Soll-Wert erreicht. Sternzeit in Stunden, alles andere in Grad."), &dialog);
   note->setWordWrap(true);
@@ -1332,17 +1368,19 @@ void MainWindow::correction() {
     }
     jd = d0 + hd / 24.0;
     found = true;
-  } else if (mode == 3) {
-    // the ascendant needs the damped walk on the daily turn
+  } else if (mode == 3 || mode == 6) {
+    // the ascendant and the cusps need the damped walk on the daily turn
     const double pz = target->value() * kDegToRad;
+    const int h = cusp_nr->value();
     for (int i = 0; i < 200 && !found; ++i) {
       ChartInput in = ctx.base;
       in.date_ut = calendar_date(jd, ctx.settings.calendar);
       const Chart c = compute_chart(in, ctx.settings, vsop_, eph_);
-      if (!c.ok) {
+      if (!c.ok || !c.houses.ok) {
         break;
       }
-      double d = norm_rad(pz - c.houses.angles.ac);
+      const double have = mode == 3 ? c.houses.angles.ac : c.houses.cusp[static_cast<std::size_t>(h)];
+      double d = norm_rad(pz - have);
       if (d > kPi) {
         d -= kTwoPi;
       }

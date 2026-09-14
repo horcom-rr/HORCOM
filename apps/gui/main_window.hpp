@@ -185,6 +185,9 @@ class MainWindow : public QMainWindow {
   double dir_jd_ = 0.0;
   bool dir_converse_ = false;
   double dir_vary_ = 0.0;
+  /// the Summenspeicher of the primary directed axes rectification
+  double vary_sum_ = 0.0;
+  int vary_count_ = 0;
   std::optional<Chart> partner_chart_;
   ChartInput partner_input_;
   QString partner_name_;
