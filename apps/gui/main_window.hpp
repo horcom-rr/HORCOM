@@ -104,6 +104,7 @@ class MainWindow : public QMainWindow {
   void dynamogram_view();
   void linear_graph();
   void midpoint_tree();
+  void histogram_view();
   void correction();
   void time_wander();
   void place_wander();

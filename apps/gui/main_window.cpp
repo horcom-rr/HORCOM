@@ -66,6 +66,7 @@
 #include "horcom/ephem/precession.hpp"
 #include "horcom/time/delta_t.hpp"
 #include "horcom/time/sidereal.hpp"
+#include "horcom/chart/histogram.hpp"
 #include "horcom/render/linear.hpp"
 #include "horcom/render/svg.hpp"
 #include "place_dialog.hpp"
@@ -354,6 +355,7 @@ void MainWindow::build_ui() {
   horo->addAction(tr("Ingresse…"), this, &MainWindow::ingress_table);
   horo->addAction(tr("Aspektarium…"), this, &MainWindow::open_aspektarium);
   horo->addAction(tr("Halbsummen-Bäume…"), this, &MainWindow::midpoint_tree);
+  horo->addAction(tr("Histogramme…"), this, &MainWindow::histogram_view);
   horo->addAction(tr("Fixsterne…"), this, &MainWindow::fixed_star_table);
   horo->addAction(tr("Arabische Teile…"), this, &MainWindow::arabic_table);
   horo->addAction(tr("Grad-Liste…"), this, &MainWindow::degree_list);
@@ -1613,6 +1615,107 @@ void MainWindow::rhythm_table() {
   v->addWidget(count);
   v->addWidget(buttons);
   dialog.resize(680, 640);
+  dialog.exec();
+}
+
+// ported from the HISTOGRAMM der ELEMENTE und KARD-FIX-GEM columns of
+// the chart view with his punkte_pla weighting dialog
+void MainWindow::histogram_view() {
+  if (!last_chart_) {
+    return;
+  }
+  QDialog dialog(this);
+  dialog.setWindowTitle(tr("Histogramme"));
+  auto* v = new QVBoxLayout(&dialog);
+  auto* table = new QTableWidget(7, 3, &dialog);
+  table->setHorizontalHeaderLabels({tr("Klasse"), tr("Zeichen"), tr("Häuser")});
+  table->horizontalHeader()->setStretchLastSection(true);
+  table->verticalHeader()->setVisible(false);
+  table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  auto* haus1 = new QCheckBox(tr("Planeten im 1. Haus doppelt"), &dialog);
+  haus1->setChecked(true);
+  auto* herr = new QCheckBox(tr("Geburtsherrscher doppelt"), &dialog);
+  herr->setChecked(true);
+  //RR PUNKTE-WERT 0....9 EINGEBEN !
+  auto* weights = new QTableWidget(1, 15, &dialog);
+  QStringList heads;
+  for (int i = 1; i <= 14; ++i) {
+    heads << QString::fromUtf8(body::kTag[static_cast<std::size_t>(i)].data(),
+                               static_cast<int>(body::kTag[static_cast<std::size_t>(i)].size()));
+  }
+  heads << tr("Zusatz");
+  weights->setHorizontalHeaderLabels(heads);
+  weights->verticalHeader()->setVisible(false);
+  weights->setFixedHeight(64);
+  {
+    const auto points = histogram_points(konsta_.pn);
+    for (int i = 1; i <= 14; ++i) {
+      weights->setItem(0, i - 1, new QTableWidgetItem(QString::number(points[static_cast<std::size_t>(i)])));
+    }
+    weights->setItem(0, 14, new QTableWidgetItem(QString::number(points[body::kChiron])));
+  }
+  auto* save = new QCheckBox(tr("Gewichte als konsta.int speichern"), &dialog);
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+  connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+  const auto refresh = [this, table, haus1, herr, weights]() {
+    HistogramOptions opt;
+    std::array<int, 16> pn{};
+    for (int i = 1; i <= 15; ++i) {
+      bool ok = false;
+      const int w = weights->item(0, i - 1)->text().toInt(&ok);
+      pn[static_cast<std::size_t>(i)] = ok ? std::clamp(w, 0, 9) : 0;
+    }
+    opt.points = histogram_points(pn);
+    opt.double_first_house = haus1->isChecked();
+    opt.double_ruler = herr->isChecked();
+    const Histogram h = chart_histogram(*last_chart_, current_settings(), opt);
+    const int top = std::max({h.element_sign[1], h.element_sign[2], h.element_sign[3], h.element_sign[4],
+                              h.element_house[1], h.element_house[2], h.element_house[3], h.element_house[4],
+                              h.quality_sign[1], h.quality_sign[2], h.quality_sign[3], 1});
+    const auto bar = [top](int value) {
+      const int len = (value * 24 + top / 2) / top;
+      QString s = QString::number(value) + "  ";
+      for (int i = 0; i < len; ++i) {
+        s += QString::fromUtf8("█");
+      }
+      return s;
+    };
+    const char* names[7] = {"Feuer", "Erde", "Luft", "Wasser", "Kardinal", "Fix", "Gemeinschaftlich"};
+    for (int r = 0; r < 7; ++r) {
+      table->setItem(r, 0, new QTableWidgetItem(tr(names[r])));
+      const bool element = r < 4;
+      const int idx = element ? r + 1 : r - 3;
+      const int sign = element ? h.element_sign[static_cast<std::size_t>(idx)] : h.quality_sign[static_cast<std::size_t>(idx)];
+      const int house = element ? h.element_house[static_cast<std::size_t>(idx)] : h.quality_house[static_cast<std::size_t>(idx)];
+      table->setItem(r, 1, new QTableWidgetItem(bar(sign)));
+      table->setItem(r, 2, new QTableWidgetItem(h.houses_counted ? bar(house) : tr("-")));
+    }
+    table->resizeColumnsToContents();
+  };
+  connect(haus1, &QCheckBox::toggled, &dialog, refresh);
+  connect(herr, &QCheckBox::toggled, &dialog, refresh);
+  connect(weights, &QTableWidget::cellChanged, &dialog, [refresh](int, int) { refresh(); });
+  connect(save, &QCheckBox::toggled, &dialog, [this, weights](bool on) {
+    if (!on) {
+      return;
+    }
+    for (int i = 1; i <= 15; ++i) {
+      bool ok = false;
+      const int w = weights->item(0, i - 1)->text().toInt(&ok);
+      konsta_.pn[static_cast<std::size_t>(i)] = ok ? std::clamp(w, 0, 9) : 0;
+    }
+    if (!save_konsta(data_dir_ / "konsta.int", konsta_)) {
+      QMessageBox::warning(this, "HORCOM", tr("Die Vorgaben ließen sich nicht speichern."));
+    }
+  });
+  refresh();
+  v->addWidget(table, 1);
+  v->addWidget(haus1);
+  v->addWidget(herr);
+  v->addWidget(weights);
+  v->addWidget(save);
+  v->addWidget(buttons);
+  dialog.resize(560, 520);
   dialog.exec();
 }
 

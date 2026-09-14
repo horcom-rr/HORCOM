@@ -16,6 +16,7 @@ add_executable(horcom_tests
   test_transit_search.cpp
   test_arabic.cpp
   test_aspects.cpp
+  test_histogram.cpp
   test_render.cpp
   test_data.cpp
   test_aaf_konsta.cpp
