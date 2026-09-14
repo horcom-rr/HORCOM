@@ -299,3 +299,35 @@ TEST_CASE("the dynamogram sums arcs into its two curves") {
   CHECK(exist_peak > 0.0);
   CHECK(mood_peak < 5000.0);
 }
+
+TEST_CASE("a retrograde loop yields the multiple planetar moments") {
+  const SearchContext ctx = context();
+  // find a moment with Mercury retrograde after the sample birth
+  double t_retro = 0.0;
+  for (int k = 0; k < 120; ++k) {
+    const BodyLongitude b = body_longitude(2448908.5 + k, body::kMercury, ctx);
+    if (b.valid && b.tb < 0.0) {
+      t_retro = 2448908.5 + k + 5.0;
+      break;
+    }
+  }
+  REQUIRE(t_retro > 0.0);
+  // the longitude in the middle of the loop is crossed again on both
+  // sides, the forward walk must find those extra passes
+  const double target = body_longitude(t_retro, body::kMercury, ctx).el;
+  LongitudeCrossing first;
+  first.ok = true;
+  first.jd_ut = t_retro - 25.0;
+  const auto extra = planetar_multiples(first, body::kMercury, target, ctx);
+  CHECK(extra.size() >= 2);
+  double last = first.jd_ut;
+  for (const LongitudeCrossing& c : extra) {
+    CHECK(c.jd_ut > last);
+    last = c.jd_ut;
+    double d = norm_rad(body_longitude(c.jd_ut, body::kMercury, ctx).el - target);
+    if (d > kPi) {
+      d -= kTwoPi;
+    }
+    CHECK(std::abs(d) < 1.0e-4);
+  }
+}

@@ -666,4 +666,60 @@ std::vector<TransitEvent> scan_transits(const Chart& radix, const TransitScan& s
   return out;
 }
 
+// the mehrdeutigen Planetare, a forward walk over the sign changes of
+// the near side difference with a bisection on every bracket
+std::vector<LongitudeCrossing> planetar_multiples(const LongitudeCrossing& first, int slot, double target_rad, const SearchContext& ctx) {
+  std::vector<LongitudeCrossing> out;
+  if (!first.ok) {
+    return out;
+  }
+  const double period = body_period_days(slot, 365.2422);
+  const double window = std::min(420.0, std::max(60.0, period / 2.0));
+  const double step = std::clamp(period / 2000.0, 0.2, 4.0);
+  const auto diff = [&](double jd) {
+    const BodyLongitude b = body_longitude(jd, slot, ctx);
+    if (!b.valid) {
+      return 1.0e9;
+    }
+    double d = norm_rad(b.el - target_rad);
+    if (d > kPi) {
+      d -= kTwoPi;
+    }
+    return d;
+  };
+  double t = first.jd_ut + step;
+  double prev = diff(t);
+  //RR bis zu 9 Zeitpunkten, dort wird abgebrochen
+  while (t < first.jd_ut + window && out.size() < 8) {
+    const double next_t = t + step;
+    const double cur = diff(next_t);
+    if (prev < 1.0e8 && cur < 1.0e8 && ((prev < 0.0) != (cur < 0.0)) && std::abs(prev) < 1.0 && std::abs(cur) < 1.0) {
+      double a = t;
+      double b = next_t;
+      double fa = prev;
+      for (int i = 0; i < 40; ++i) {
+        const double m = 0.5 * (a + b);
+        const double fm = diff(m);
+        if ((fa < 0.0) == (fm < 0.0)) {
+          a = m;
+          fa = fm;
+        } else {
+          b = m;
+        }
+      }
+      LongitudeCrossing hit;
+      hit.ok = true;
+      hit.jd_ut = 0.5 * (a + b);
+      const BodyLongitude bl = body_longitude(hit.jd_ut, slot, ctx);
+      hit.retrograde = bl.valid && bl.tb < 0.0;
+      if (out.empty() || hit.jd_ut - out.back().jd_ut > 0.5) {
+        out.push_back(hit);
+      }
+    }
+    t = next_t;
+    prev = cur;
+  }
+  return out;
+}
+
 }  // namespace horcom

@@ -129,6 +129,7 @@ class MainWindow : public QMainWindow {
  private:
   void build_ui();
   void wander_dialog(bool place);
+  void return_list(bool lunar);
   void fill_tables(const Chart& chart, const AspectResult& aspects);
   [[nodiscard]] ChartInput current_input() const;
   [[nodiscard]] ChartSettings current_settings() const;

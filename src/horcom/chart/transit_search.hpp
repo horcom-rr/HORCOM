@@ -159,4 +159,17 @@ struct TransitScan {
 /// @return the events ordered by time
 [[nodiscard]] std::vector<TransitEvent> scan_transits(const Chart& radix, const TransitScan& scan, const SearchContext& ctx);
 
+/// The retrograde multiplicity of a planetar. An outer body can swing
+/// back over the returned point and forward again, three moments in
+/// the common case, up to nine for very eccentric orbits where the
+/// walk stops like the original. Scans forward from the first direct
+/// crossing until the body leaves the point behind.
+///
+/// @param first      the found direct return
+/// @param slot       the returning body
+/// @param target_rad the radix longitude
+/// @param ctx        observer and settings
+/// @return the extra crossings after the first, oldest first
+[[nodiscard]] std::vector<LongitudeCrossing> planetar_multiples(const LongitudeCrossing& first, int slot, double target_rad, const SearchContext& ctx);
+
 }  // namespace horcom

@@ -350,6 +350,8 @@ void MainWindow::build_ui() {
   horo->addAction(tr("Solar…"), this, &MainWindow::solar_chart);
   horo->addAction(tr("Lunar…"), this, &MainWindow::lunar_chart);
   horo->addAction(tr("Septar…"), this, &MainWindow::septar_chart);
+  horo->addAction(tr("Solar-Liste…"), this, [this]() { return_list(false); });
+  horo->addAction(tr("Lunar-Liste…"), this, [this]() { return_list(true); });
   horo->addAction(tr("Planetar…"), this, &MainWindow::planetar_chart);
   horo->addAction(tr("Personar…"), this, &MainWindow::personar_chart);
   horo->addAction(tr("Progressions-Horoskop…"), this, &MainWindow::progression_chart);
@@ -1012,6 +1014,68 @@ void MainWindow::show_solar(int year) {
 
 void MainWindow::show_clock() {
   clock_action_->setChecked(true);
+}
+
+// ported from the SOLAR and LUNAR list outputs, up to 84 return dates
+// in one table, the lunar numbers serve the Troinsky tertiaries
+void MainWindow::return_list(bool lunar) {
+  if (!last_chart_ || !last_chart_->b[body::kSun].valid) {
+    return;
+  }
+  QDialog dialog(this);
+  dialog.setWindowTitle(lunar ? tr("Lunar-Liste") : tr("Solar-Liste"));
+  auto* v = new QVBoxLayout(&dialog);
+  auto* table = new QTableWidget(0, 2, &dialog);
+  table->setHorizontalHeaderLabels({tr("Nr"), tr("Datum (UT)")});
+  table->horizontalHeader()->setStretchLastSection(true);
+  table->verticalHeader()->setVisible(false);
+  table->verticalHeader()->setDefaultSectionSize(18);
+  table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  auto* note = new QLabel(tr("Doppelklick übernimmt den Zeitpunkt ins Panel."), &dialog);
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+  connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+  const SearchContext ctx = make_context();
+  const double birth = last_chart_->jd_ut;
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  std::vector<std::pair<int, double>> rows;
+  //RR bis zu 84 Daten
+  for (int n = 1; n <= 84; ++n) {
+    LongitudeCrossing hit;
+    if (lunar) {
+      hit = planetar_return(birth, body::kMoon, last_chart_->b[body::kMoon].el, n, true, ctx);
+    } else {
+      hit = solar_return(ctx.base.date_ut, last_chart_->b[body::kSun].el, ctx.base.date_ut.year + n, ctx);
+    }
+    if (hit.ok) {
+      rows.push_back({n, hit.jd_ut});
+    }
+  }
+  QApplication::restoreOverrideCursor();
+  for (const auto& [n, jd] : rows) {
+    const CalendarDate d = calendar_date(jd, current_settings().calendar);
+    int seconds = static_cast<int>((d.hour * 60.0 + d.minute) * 60.0 + 0.5);
+    if (seconds >= kSecondsPerDay) {
+      seconds = kSecondsPerDay - 1;
+    }
+    const int row = table->rowCount();
+    table->insertRow(row);
+    table->setItem(row, 0, new QTableWidgetItem(QString::number(n)));
+    auto* item = new QTableWidgetItem(QString::asprintf("%02d.%02d.%04d %02d:%02d", d.day, d.month, d.year,
+                                                        seconds / 3600, (seconds / 60) % 60));
+    item->setData(Qt::UserRole, jd);
+    table->setItem(row, 1, item);
+  }
+  connect(table, &QTableWidget::cellDoubleClicked, &dialog, [this, table, lunar, &dialog](int row, int) {
+    const double jd = table->item(row, 1)->data(Qt::UserRole).toDouble();
+    apply_moment(jd, (lunar ? tr("LUNAR %1") : tr("SOLAR-NR %1")).arg(table->item(row, 0)->text()));
+    dialog.accept();
+  });
+  table->resizeColumnsToContents();
+  v->addWidget(table, 1);
+  v->addWidget(note);
+  v->addWidget(buttons);
+  dialog.resize(380, 640);
+  dialog.exec();
 }
 
 void MainWindow::run_solar(int year) {
@@ -2727,7 +2791,31 @@ void MainWindow::planetar_chart() {
   const double ta = body_period_days(slot, last_chart_->ta.tropical_year_days);
   const double n = (5.0 + hit.jd_ut - birth) / ta;
   const int count = hit.jd_ut >= birth ? static_cast<int>(std::trunc(n)) : static_cast<int>(std::trunc(n)) - 1;
-  apply_moment(hit.jd_ut, QString("%1.%2").arg(count).arg(bodybox->currentText()));
+  double moment = hit.jd_ut;
+  //RR bei mehrdeutigen PLANETAREN die 3 oder mehr Zeitpunkte der gleichen Nr.
+  const auto extra = planetar_multiples(hit, slot, radix, ctx);
+  if (!extra.empty()) {
+    QStringList choices;
+    const auto pretty = [this](const LongitudeCrossing& c) {
+      const CalendarDate cd = calendar_date(c.jd_ut, current_settings().calendar);
+      return QString::asprintf("%02d.%02d.%04d", cd.day, cd.month, cd.year) + (c.retrograde ? tr(" (rückläufig)") : QString());
+    };
+    choices << pretty(hit);
+    for (const LongitudeCrossing& c : extra) {
+      choices << pretty(c);
+    }
+    bool picked = false;
+    const QString sel = QInputDialog::getItem(this, tr("Mehrdeutiges Planetar"),
+                                              tr("Der Körper überläuft den Punkt mehrfach:"), choices, 0, false, &picked);
+    if (!picked) {
+      return;
+    }
+    const int idx = choices.indexOf(sel);
+    if (idx > 0) {
+      moment = extra[static_cast<std::size_t>(idx - 1)].jd_ut;
+    }
+  }
+  apply_moment(moment, QString("%1.%2").arg(count).arg(bodybox->currentText()));
 }
 
 void MainWindow::personar_chart() {
@@ -2875,11 +2963,19 @@ void MainWindow::lunar_chart() {
   auto* when = new QDateEdit(QDate::currentDate(), &dialog);
   when->setCalendarPopup(true);
   when->setDisplayFormat("dd.MM.yyyy");
+  //RR die Eingabe einer NUMMER für die TERTIÄR-Direktionen nach TROINSKY
+  auto* nr = new QSpinBox(&dialog);
+  nr->setRange(-600, 600);
+  nr->setPrefix(tr("Nummer "));
+  auto* nr_note = new QLabel(tr("Nummer 0 nimmt das Datum, sonst zählt das n-te Lunar ab Geburt."), &dialog);
+  nr_note->setWordWrap(true);
   auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
   connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
   connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
   v->addWidget(note);
   v->addWidget(when);
+  v->addWidget(nr);
+  v->addWidget(nr_note);
   v->addWidget(buttons);
   if (dialog.exec() != QDialog::Accepted) {
     return;
@@ -2890,13 +2986,22 @@ void MainWindow::lunar_chart() {
   ctx.vsop = &vsop_;
   ctx.eph = &eph_;
   const QDate d = when->date();
-  const double before = julian_day({d.day(), d.month(), d.year(), 0, 0.0}, ctx.settings.calendar);
-  const LongitudeCrossing hit = lunar_return(before, last_chart_->b[body::kMoon].el, ctx);
+  LongitudeCrossing hit;
+  QString label;
+  if (nr->value() != 0) {
+    hit = planetar_return(last_chart_->jd_ut, body::kMoon, last_chart_->b[body::kMoon].el, std::abs(nr->value()),
+                          nr->value() > 0, ctx);
+    label = QString("LUNAR NR %1").arg(nr->value());
+  } else {
+    const double before = julian_day({d.day(), d.month(), d.year(), 0, 0.0}, ctx.settings.calendar);
+    hit = lunar_return(before, last_chart_->b[body::kMoon].el, ctx);
+    label = QString("LUNAR %1").arg(d.toString("dd.MM.yyyy"));
+  }
   if (!hit.ok) {
     banner_->set_record(tr("Kein Lunar gefunden"));
     return;
   }
-  apply_moment(hit.jd_ut, QString("LUNAR %1").arg(d.toString("dd.MM.yyyy")));
+  apply_moment(hit.jd_ut, label);
 }
 
 void MainWindow::transit_list() {
