@@ -12,28 +12,30 @@ namespace horcom {
 
 namespace {
 
-// the titles of the ae entry points, erl$ plus the topic
+// the titles of the ae entry points, erl$ plus the topic, each with
+// the shipped markdown edition and his original text file name
 struct MenuRow {
   int index;
   const char* title;
+  const char* md;
   const char* file;
 };
 
 constexpr MenuRow kMenu[] = {
-    {1, "Einführender Kommentar", "KOMM1.TXT"},
-    {2, "Erläuterung Ein-Ausgabe", "KOMM2.TXT"},
-    {3, "Erläuterung Ephemeride", "KOMM3.TXT"},
-    {4, "Erläuterung Horoskope", "KOMM4.TXT"},
-    {5, "Erläuterung Solar,Septar...", "KOMM5.TXT"},
-    {6, "Erläuterung M.R.", "KOMM6.TXT"},
-    {7, "Erläuterung Direktionen", "KOMM7.TXT"},
-    {8, "Erläuterung Häuser", "KOMM8.TXT"},
-    {9, "Erläuterung Diverses", "KOMM9.TXT"},
-    {10, "Änderungsliste", "AENDLIST.TXT"},
-    {11, "Hinweise", "HINWEIS5.TXT"},
-    {12, "Kurzanleitung", "KURZANL5.TXT"},
-    {13, "Erläuterung Statistik", "KOMMSTAT.TXT"},
-    {14, "Erläuterung AAF-Ein-Ausgabe", "AAF_KOMM.TXT"},
+    {1, "Einführender Kommentar", "komm1.md", "KOMM1.TXT"},
+    {2, "Erläuterung Ein-Ausgabe", "komm2.md", "KOMM2.TXT"},
+    {3, "Erläuterung Ephemeride", "komm3.md", "KOMM3.TXT"},
+    {4, "Erläuterung Horoskope", "komm4.md", "KOMM4.TXT"},
+    {5, "Erläuterung Solar,Septar...", "komm5.md", "KOMM5.TXT"},
+    {6, "Erläuterung M.R.", "komm6.md", "KOMM6.TXT"},
+    {7, "Erläuterung Direktionen", "komm7.md", "KOMM7.TXT"},
+    {8, "Erläuterung Häuser", "komm8.md", "KOMM8.TXT"},
+    {9, "Erläuterung Diverses", "komm9.md", "KOMM9.TXT"},
+    {10, "Änderungsliste", "aendlist.md", "AENDLIST.TXT"},
+    {11, "Hinweise", "hinweis5.md", "HINWEIS5.TXT"},
+    {12, "Kurzanleitung", "kurzanl5.md", "KURZANL5.TXT"},
+    {13, "Erläuterung Statistik", "kommstat.md", "KOMMSTAT.TXT"},
+    {14, "Erläuterung AAF-Ein-Ausgabe", "aaf_komm.md", "AAF_KOMM.TXT"},
 };
 
 }  // namespace
@@ -43,6 +45,12 @@ std::vector<KommenEntry> kommen_entries(const std::filesystem::path& dir) {
   std::vector<KommenEntry> out;
   std::error_code ec;
   for (const MenuRow& row : kMenu) {
+    // the markdown edition wins, his original file still counts
+    const std::filesystem::path md = dir / row.md;
+    if (std::filesystem::exists(md, ec)) {
+      out.push_back({row.index, row.title, md});
+      continue;
+    }
     const std::filesystem::path p = dir / row.file;
     if (std::filesystem::exists(p, ec)) {
       out.push_back({row.index, row.title, p});

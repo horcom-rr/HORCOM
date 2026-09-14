@@ -312,5 +312,15 @@ TEST_CASE("the kommen reader keeps the lese_text rules") {
   REQUIRE(!entries.empty());
   CHECK(entries[0].index == 1);
   CHECK(entries[0].title == "Einf\xC3\xBChrender Kommentar");
+  // a markdown edition of the same topic wins over the original file
+  const auto md = dir / "komm1.md";
+  {
+    std::ofstream out(md);
+    out << "# Kommentar\n";
+  }
+  const auto preferred = kommen_entries(dir);
+  REQUIRE(!preferred.empty());
+  CHECK(preferred[0].path == md);
+  std::filesystem::remove(md);
   std::filesystem::remove(path);
 }

@@ -33,7 +33,7 @@ He wished for HORCOM to live on in C++. This project is that rewrite, done caref
 | `src/` | The new C++ implementation |
 | `apps/` | The `horcom` command line tool and the `horcom_gui` Qt desktop shell |
 | `tests/` | Tests, including comparisons against the original program's results |
-| `data/` | His ephemerides, term tables, place and zone catalogues |
+| `data/` | His ephemerides, term tables, place and zone catalogues, and his original commentary texts (`data/kommen/`) |
 | `docs/` | Architecture notes, the map of the original program, the rewrite plan and the handbook (`docs/handbook/index.html`) |
 | `reference/` | Verified UTF-8 copies of his original GFA BASIC listings, the factual base of the port (local only, not in git) |
 | `legacy/` | The complete original archive, programs, data and documents (local only, not in git, contains private data) |

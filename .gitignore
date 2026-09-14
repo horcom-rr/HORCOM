@@ -15,5 +15,6 @@ CMakeUserPresets.json
 # tool logs
 aqtinstall.log
 
-# Robert Rettig's commentary texts stay local, never in the repository
-data/kommen/
+# the byte exact original commentary files stay local, the repository
+# carries their markdown editions beside them
+data/kommen/*.TXT

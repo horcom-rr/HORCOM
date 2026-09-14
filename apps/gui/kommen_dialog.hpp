@@ -11,14 +11,14 @@
 
 class QLineEdit;
 class QListWidget;
-class QPlainTextEdit;
+class QTextBrowser;
 
 namespace horcom {
 
-/// The TEXT-DATEI LESEN box over Robert Rettig's commentary texts. The
-/// texts are his authored writing and load from a local folder beside
-/// the data, they never ship with the repository, a missing folder
-/// shows where to put them.
+/// The TEXT-DATEI LESEN box over Robert Rettig's commentary texts,
+/// shipped as markdown editions in the data folder and rendered as
+/// such. The picker also reads an original KOMMEN7P folder kept
+/// somewhere else, those show through the ported lese_text rules.
 class KommenDialog : public QDialog {
   Q_OBJECT
 
@@ -33,7 +33,7 @@ class KommenDialog : public QDialog {
 
   std::vector<KommenEntry> entries_;
   QListWidget* list_ = nullptr;
-  QPlainTextEdit* text_ = nullptr;
+  QTextBrowser* text_ = nullptr;
   QLineEdit* find_ = nullptr;
 };
 

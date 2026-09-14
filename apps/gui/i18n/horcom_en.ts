@@ -199,32 +199,56 @@
 <context>
     <name>horcom::KommenDialog</name>
     <message>
-        <location filename="../kommen_dialog.cpp" line="20"/>
+        <location filename="../kommen_dialog.cpp" line="21"/>
         <source>Text-Datei lesen</source>
         <translation>Read text file</translation>
     </message>
     <message>
-        <location filename="../kommen_dialog.cpp" line="37"/>
+        <location filename="../kommen_dialog.cpp" line="33"/>
         <source>Suchbegriff</source>
         <translation>Search term</translation>
     </message>
     <message>
-        <location filename="../kommen_dialog.cpp" line="39"/>
+        <location filename="../kommen_dialog.cpp" line="35"/>
         <source>Suchen</source>
         <translation>Search</translation>
     </message>
     <message>
-        <location filename="../kommen_dialog.cpp" line="43"/>
+        <location filename="../kommen_dialog.cpp" line="39"/>
         <source>Ordner wählen…</source>
         <translation>Choose folder…</translation>
     </message>
     <message>
-        <location filename="../kommen_dialog.cpp" line="51"/>
+        <location filename="../kommen_dialog.cpp" line="47"/>
         <source>KOMMEN7P-Ordner wählen</source>
         <translation>Choose KOMMEN7P folder</translation>
     </message>
     <message>
-        <location filename="../kommen_dialog.cpp" line="68"/>
+        <location filename="../kommen_dialog.cpp" line="64"/>
+        <source>Keine Kommentar-Texte gefunden.
+
+Die Original-Texte von Robert Rettig liegen normalerweise
+im Daten-Ordner des Programms. Die Dateien des Ordners
+KOMMEN7P (KOMM1.TXT bis KOMM9.TXT, KOMMSTAT.TXT,
+AAF_KOMM.TXT, dazu AENDLIST.TXT, HINWEIS5.TXT und
+KURZANL5.TXT) gehören in den Ordner:
+
+    %1
+
+Alternativ unten einen KOMMEN7P-Ordner direkt auswählen.</source>
+        <translation>No commentary texts found.
+
+Robert Rettig's original texts normally live in the
+program's data folder. The files of the KOMMEN7P
+folder (KOMM1.TXT to KOMM9.TXT, KOMMSTAT.TXT,
+AAF_KOMM.TXT, plus AENDLIST.TXT, HINWEIS5.TXT and
+KURZANL5.TXT) belong into the folder:
+
+    %1
+
+Alternatively pick a KOMMEN7P folder directly below.</translation>
+    </message>
+    <message>
         <source>Keine Kommentar-Texte gefunden.
 
 Die Original-Texte von Robert Rettig gehören nicht zum
@@ -236,9 +260,9 @@ KURZANL5.TXT) in den Ordner:
     %1
 
 oder wählt seinen KOMMEN7P-Ordner unten direkt aus.</source>
-        <translation>No commentary texts found.
+        <translation type="vanished">No commentary texts found.
 
-Robert Rettig's original texts are not part of the
+Robert Rettig&apos;s original texts are not part of the
 repository. Whoever owns them places the files of the
 KOMMEN7P folder (KOMM1.TXT to KOMM9.TXT, KOMMSTAT.TXT,
 AAF_KOMM.TXT, plus AENDLIST.TXT, HINWEIS5.TXT and
@@ -269,7 +293,8 @@ KURZANL5.TXT) into the folder:
     %1</translation>
     </message>
     <message>
-        <location filename="../kommen_dialog.cpp" line="86"/>
+        <location filename="../kommen_dialog.cpp" line="91"/>
+        <location filename="../kommen_dialog.cpp" line="100"/>
         <source>Datei fehlt !</source>
         <translation>File missing !</translation>
     </message>

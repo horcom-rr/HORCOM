@@ -11,8 +11,8 @@
 
 // The commentary texts of the KOMMEN7P folder, Robert Rettig's own
 // German essays that the original showed in its TEXT-DATEI LESEN box.
-// They are his authored writing and stay a local data folder beside
-// the program, the repository never carries them.
+// The repository carries them as markdown editions in the data folder,
+// his original text files are still read when a folder holds them.
 namespace horcom {
 
 /// One entry of the komm_les menu whose file is present.
@@ -26,8 +26,9 @@ struct KommenEntry {
 
 /// Lists the commentary files found under a folder, the komm_les table.
 /// KOMM1 to KOMM9 with their Erläuterung titles, KOMMSTAT and AAF_KOMM,
-/// and the three root texts AENDLIST, HINWEIS5 and KURZANL5 when they
-/// were dropped beside them.
+/// and the three root texts AENDLIST, HINWEIS5 and KURZANL5. For every
+/// entry a shipped markdown edition is preferred over the original
+/// text file of the same topic.
 ///
 /// @param dir the local kommen folder
 /// @return the entries in menu order, missing files skipped

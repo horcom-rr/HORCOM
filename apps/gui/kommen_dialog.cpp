@@ -4,13 +4,14 @@
 
 #include "kommen_dialog.hpp"
 
+#include <QFile>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
-#include <QPlainTextEdit>
 #include <QPushButton>
 #include <QFileDialog>
+#include <QTextBrowser>
 #include <QVBoxLayout>
 
 namespace horcom {
@@ -22,13 +23,8 @@ KommenDialog::KommenDialog(const std::filesystem::path& dir, QWidget* parent) : 
   auto* split = new QHBoxLayout();
   list_ = new QListWidget(this);
   list_->setFixedWidth(240);
-  text_ = new QPlainTextEdit(this);
-  text_->setReadOnly(true);
-  //RR FIXEDSYS, his reading box was fixed width
-  QFont mono("Cascadia Mono");
-  mono.setStyleHint(QFont::Monospace);
-  text_->setFont(mono);
-  text_->setLineWrapMode(QPlainTextEdit::NoWrap);
+  text_ = new QTextBrowser(this);
+  text_->setOpenExternalLinks(true);
   split->addWidget(list_);
   split->addWidget(text_, 1);
   v->addLayout(split, 1);
@@ -66,12 +62,12 @@ void KommenDialog::reload(const std::filesystem::path& dir) {
   if (entries_.empty()) {
     text_->setPlainText(
         tr("Keine Kommentar-Texte gefunden.\n\n"
-           "Die Original-Texte von Robert Rettig gehören nicht zum\n"
-           "Repository. Wer sie besitzt, legt die Dateien des Ordners\n"
+           "Die Original-Texte von Robert Rettig liegen normalerweise\n"
+           "im Daten-Ordner des Programms. Die Dateien des Ordners\n"
            "KOMMEN7P (KOMM1.TXT bis KOMM9.TXT, KOMMSTAT.TXT,\n"
            "AAF_KOMM.TXT, dazu AENDLIST.TXT, HINWEIS5.TXT und\n"
-           "KURZANL5.TXT) in den Ordner:\n\n    %1\n\n"
-           "oder wählt seinen KOMMEN7P-Ordner unten direkt aus.")
+           "KURZANL5.TXT) gehören in den Ordner:\n\n    %1\n\n"
+           "Alternativ unten einen KOMMEN7P-Ordner direkt auswählen.")
             .arg(QString::fromStdWString(dir.wstring())));
   } else {
     list_->setCurrentRow(0);
@@ -82,7 +78,25 @@ void KommenDialog::show_entry(int row) {
   if (row < 0 || row >= static_cast<int>(entries_.size())) {
     return;
   }
-  const auto text = read_kommen(entries_[static_cast<std::size_t>(row)].path);
+  const std::filesystem::path& path = entries_[static_cast<std::size_t>(row)].path;
+  if (path.extension() == ".md") {
+    // the shipped markdown edition of his text
+    QFile file(QString::fromStdWString(path.wstring()));
+    if (file.open(QIODevice::ReadOnly)) {
+      text_->setFont(font());
+      text_->setLineWrapMode(QTextEdit::WidgetWidth);
+      text_->setMarkdown(QString::fromUtf8(file.readAll()));
+      return;
+    }
+    text_->setPlainText(tr("Datei fehlt !"));
+    return;
+  }
+  //RR FIXEDSYS, his reading box was fixed width
+  QFont mono("Cascadia Mono");
+  mono.setStyleHint(QFont::Monospace);
+  text_->setFont(mono);
+  text_->setLineWrapMode(QTextEdit::NoWrap);
+  const auto text = read_kommen(path);
   text_->setPlainText(text ? QString::fromUtf8(text->c_str()) : tr("Datei fehlt !"));
 }
 
