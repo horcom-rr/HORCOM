@@ -15,7 +15,9 @@
 #include <QDoubleSpinBox>
 #include <QSpinBox>
 #include <QTimeEdit>
+#include <QCalendarWidget>
 #include <QComboBox>
+#include <QDateEdit>
 #include <QTranslator>
 
 #include "aspektarium_dialog.hpp"
@@ -108,11 +110,17 @@ int main(int argc, char** argv) {
     auto* t = new QTimeEdit(QTime(12, 30), &dialog);
     auto* c = new QComboBox(&dialog);
     c->addItems({"PLACIDUS", "KOCH"});
+    auto* off = new QDateEdit(QDate(2026, 9, 14), &dialog);
+    off->setCalendarPopup(true);
+    off->setEnabled(false);
+    auto* cal = new QCalendarWidget(&dialog);
     form->addRow("Breite", d);
     form->addRow("Haus", i);
     form->addRow("Zeit", t);
     form->addRow("System", c);
-    dialog.resize(320, 200);
+    form->addRow("Aus", off);
+    form->addRow(cal);
+    dialog.resize(360, 480);
     dialog.grab().save(args[shot_spin + 1]);
     return 0;
   }

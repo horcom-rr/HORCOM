@@ -174,6 +174,67 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow, QTimeEdit::down-arrow {
   width: 10px;
   height: 7px;
 }
+QComboBox:disabled, QDateEdit:disabled, QTimeEdit:disabled, QSpinBox:disabled,
+QDoubleSpinBox:disabled, QLineEdit:disabled {
+  color: #565C6E;
+  background: #0D1322;
+  border-color: #1A2238;
+}
+QCheckBox:disabled, QLabel:disabled, QPushButton:disabled {
+  color: #565C6E;
+}
+QPushButton:disabled {
+  background: #121930;
+  border-color: #1A2238;
+}
+QComboBox::down-arrow:disabled, QDateEdit::down-arrow:disabled {
+  image: url(:/arrow-down-dim.svg);
+}
+QSpinBox::up-arrow:disabled, QDoubleSpinBox::up-arrow:disabled, QTimeEdit::up-arrow:disabled {
+  image: url(:/arrow-up-dim.svg);
+}
+QSpinBox::down-arrow:disabled, QDoubleSpinBox::down-arrow:disabled, QTimeEdit::down-arrow:disabled {
+  image: url(:/arrow-down-dim.svg);
+}
+QSpinBox::up-button:disabled, QDoubleSpinBox::up-button:disabled, QTimeEdit::up-button:disabled,
+QSpinBox::down-button:disabled, QDoubleSpinBox::down-button:disabled, QTimeEdit::down-button:disabled {
+  background: #0D1322;
+  border-color: #1A2238;
+}
+QCalendarWidget QWidget#qt_calendar_navigationbar {
+  background: #141B2E;
+  border: 1px solid #232D4A;
+  border-bottom: none;
+}
+QCalendarWidget QToolButton {
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: #E9E5D9;
+}
+QCalendarWidget QToolButton:hover {
+  background: #232D4A;
+}
+QCalendarWidget QToolButton::menu-indicator {
+  image: none;
+}
+QCalendarWidget QToolButton#qt_calendar_prevmonth {
+  qproperty-icon: url(:/arrow-left.svg);
+}
+QCalendarWidget QToolButton#qt_calendar_nextmonth {
+  qproperty-icon: url(:/arrow-right.svg);
+}
+QCalendarWidget QMenu {
+  background: #141B2E;
+}
+QCalendarWidget QAbstractItemView {
+  background: #10162A;
+  alternate-background-color: #141B2E;
+  selection-background-color: #2C3A63;
+  selection-color: #E9E5D9;
+  outline: none;
+}
 QComboBox QAbstractItemView {
   background: #141B2E;
   border: 1px solid #232D4A;
