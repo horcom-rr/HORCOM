@@ -362,6 +362,8 @@ void MainWindow::build_ui() {
   horo->addAction(tr("Finsternisse…"), this, &MainWindow::eclipse_table);
   horo->addAction(tr("Großes Jahr…"), this, &MainWindow::great_year);
   horo->addAction(tr("Korrektur…"), this, &MainWindow::correction);
+  horo->addAction(tr("Zeit-Wandern…"), this, &MainWindow::time_wander);
+  horo->addAction(tr("Ort-Wandern…"), this, &MainWindow::place_wander);
   horo->addAction(tr("Rhythmenlehre (Auslösungen)…"), this, &MainWindow::rhythm_table);
   horo->addAction(tr("Dynamogramm…"), this, &MainWindow::dynamogram_view);
   horo->addAction(tr("Linear-Graphik…"), this, &MainWindow::linear_graph);
@@ -1612,6 +1614,153 @@ void MainWindow::rhythm_table() {
   v->addWidget(buttons);
   dialog.resize(680, 640);
   dialog.exec();
+}
+
+void MainWindow::time_wander() {
+  wander_dialog(false);
+}
+
+void MainWindow::place_wander() {
+  wander_dialog(true);
+}
+
+// ported from the ZEIT-WANDERN and ORT-WANDERN walks with the Schiemenz
+// aspect counter and the midpoint counter, the sums ride along like his
+// running means over the stepped charts
+void MainWindow::wander_dialog(bool place) {
+  if (!last_chart_) {
+    return;
+  }
+  QDialog dialog(this);
+  dialog.setWindowTitle(place ? tr("Ort-Wandern") : tr("Zeit-Wandern"));
+  auto* v = new QVBoxLayout(&dialog);
+  auto* form = new QFormLayout();
+  QComboBox* unit = nullptr;
+  QDoubleSpinBox* dlon = nullptr;
+  QDoubleSpinBox* dlat = nullptr;
+  if (place) {
+    dlon = new QDoubleSpinBox(&dialog);
+    dlon->setRange(-30.0, 30.0);
+    dlon->setDecimals(2);
+    dlon->setValue(1.0);
+    dlat = new QDoubleSpinBox(&dialog);
+    dlat->setRange(-30.0, 30.0);
+    dlat->setDecimals(2);
+    form->addRow(tr("Schritt Länge (Grad)"), dlon);
+    form->addRow(tr("Schritt Breite (Grad)"), dlat);
+  } else {
+    unit = new QComboBox(&dialog);
+    //RR Zeitmaß, D = 1 Tag, H = 1 Stunde, M = 1 Minute
+    unit->addItem(tr("Minute"), 1.0 / (24.0 * 60.0));
+    unit->addItem(tr("Stunde"), 1.0 / 24.0);
+    unit->addItem(tr("Tag"), 1.0);
+    unit->addItem(tr("Monat"), last_chart_->ta.tropical_year_days / 12.0);
+    unit->addItem(tr("Jahr"), last_chart_->ta.tropical_year_days);
+    unit->setCurrentIndex(2);
+    form->addRow(tr("Zeitmaß"), unit);
+  }
+  //RR Richtung, V = Vorwärts, R = Rückwärts
+  auto* back = new QCheckBox(tr("Rückwärts"), &dialog);
+  //RR Intervall, + = Verdoppelung, - = Halbierung
+  auto* factor = new QLabel("1", &dialog);
+  auto* doubler = new QPushButton("+", &dialog);
+  auto* halver = new QPushButton(QString::fromUtf8("−"), &dialog);
+  doubler->setFixedWidth(32);
+  halver->setFixedWidth(32);
+  auto* ivl = new QHBoxLayout();
+  ivl->addWidget(factor);
+  ivl->addWidget(doubler);
+  ivl->addWidget(halver);
+  ivl->addStretch(1);
+  form->addRow(tr("Intervall-Faktor"), ivl);
+  //RR Wartezeit
+  auto* wait = new QDoubleSpinBox(&dialog);
+  wait->setRange(0.2, 10.0);
+  wait->setSingleStep(0.2);
+  wait->setValue(1.0);
+  wait->setSuffix(" s");
+  form->addRow(tr("Wartezeit"), wait);
+  auto* counters = new QLabel(&dialog);
+  auto* go = new QPushButton(tr("Start / Stop"), &dialog);
+  auto* reset = new QPushButton(tr("Zähler zurücksetzen"), &dialog);
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+  connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+  v->addLayout(form);
+  v->addWidget(go);
+  v->addWidget(counters);
+  v->addWidget(reset);
+  v->addWidget(buttons);
+
+  auto* timer = new QTimer(&dialog);
+  double mul = 1.0;
+  double jd = last_chart_->jd_ut;
+  long steps = 0;
+  double sum_asp = 0.0, sum_triga = 0.0, sum_gt = 0.0, sum_mid = 0.0;
+  const auto show = [this, counters, &steps, &sum_asp, &sum_triga, &sum_gt, &sum_mid]() {
+    if (!last_chart_ || !last_aspects_) {
+      return;
+    }
+    const AspectResult& a = *last_aspects_;
+    const MidpointResult m = scan_midpoints(*last_chart_, current_settings(), aspect_settings_);
+    const int mid = m.direct + m.square + m.semi;
+    ++steps;
+    sum_asp += static_cast<double>(a.hits.size());
+    sum_triga += a.triga;
+    sum_gt += a.grand_trines;
+    sum_mid += mid;
+    counters->setText(tr("Schritt %1\nAspekte %2  (Mittel %3)\nTriga %4  Großtrigone %5\nHalbsummen %6  (Mittel %7)")
+                          .arg(steps)
+                          .arg(a.hits.size())
+                          .arg(sum_asp / steps, 0, 'f', 2)
+                          .arg(a.triga)
+                          .arg(a.grand_trines)
+                          .arg(mid)
+                          .arg(sum_mid / steps, 0, 'f', 2));
+  };
+  const auto step = [this, place, unit, dlon, dlat, back, &mul, &jd, show]() {
+    const double dir = back->isChecked() ? -1.0 : 1.0;
+    if (place) {
+      const QSignalBlocker b1(lon_);
+      const QSignalBlocker b2(lat_);
+      lon_->setValue(lon_->value() + dir * mul * dlon->value());
+      lat_->setValue(std::clamp(lat_->value() + dir * mul * dlat->value(), -89.9, 89.9));
+      recompute();
+      banner_->set_record(tr("ORT-WANDERN"));
+    } else {
+      jd += dir * mul * unit->currentData().toDouble();
+      apply_moment(jd, tr("ZEIT-WANDERN"));
+    }
+    show();
+  };
+  connect(timer, &QTimer::timeout, &dialog, step);
+  connect(go, &QPushButton::clicked, &dialog, [timer, wait]() {
+    if (timer->isActive()) {
+      timer->stop();
+    } else {
+      timer->start(static_cast<int>(wait->value() * 1000.0));
+    }
+  });
+  connect(wait, &QDoubleSpinBox::valueChanged, &dialog, [timer](double s) {
+    if (timer->isActive()) {
+      timer->setInterval(static_cast<int>(s * 1000.0));
+    }
+  });
+  connect(doubler, &QPushButton::clicked, &dialog, [&mul, factor]() {
+    mul = std::min(mul * 2.0, 64.0);
+    factor->setText(QString::number(mul));
+  });
+  connect(halver, &QPushButton::clicked, &dialog, [&mul, factor]() {
+    mul = std::max(mul / 2.0, 0.0625);
+    factor->setText(QString::number(mul));
+  });
+  connect(reset, &QPushButton::clicked, &dialog, [&steps, &sum_asp, &sum_triga, &sum_gt, &sum_mid, counters]() {
+    steps = 0;
+    sum_asp = sum_triga = sum_gt = sum_mid = 0.0;
+    counters->setText(QString());
+  });
+  counters->setText(tr("Start drückt die Wanderung an, das Ergebnis überschreibt das Panel."));
+  dialog.exec();
+  timer->stop();
 }
 
 void MainWindow::linear_graph() {

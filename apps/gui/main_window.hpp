@@ -105,6 +105,8 @@ class MainWindow : public QMainWindow {
   void linear_graph();
   void midpoint_tree();
   void correction();
+  void time_wander();
+  void place_wander();
   void chain_files();
   void orb_settings();
   void converters();
@@ -123,6 +125,7 @@ class MainWindow : public QMainWindow {
 
  private:
   void build_ui();
+  void wander_dialog(bool place);
   void fill_tables(const Chart& chart, const AspectResult& aspects);
   [[nodiscard]] ChartInput current_input() const;
   [[nodiscard]] ChartSettings current_settings() const;
