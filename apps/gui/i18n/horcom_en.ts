@@ -436,6 +436,16 @@ KURZANL5.TXT) into the folder:
         <translation>&amp;File</translation>
     </message>
     <message>
+        <location filename="../main_window.cpp" line="344"/>
+        <source>A&amp;uswertung</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../main_window.cpp" line="345"/>
+        <source>Di&amp;verses</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../main_window.cpp" line="346"/>
         <source>Datensätze öffnen…</source>
         <translation>Open records…</translation>
@@ -824,9 +834,8 @@ KURZANL5.TXT) into the folder:
         <translation>Normal text</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="688"/>
         <source>&amp;Hilfe</source>
-        <translation>&amp;Help</translation>
+        <translation type="vanished">&amp;Help</translation>
     </message>
     <message>
         <location filename="../main_window.cpp" line="690"/>
@@ -2016,14 +2025,12 @@ The age point for the chart date stands at %2 = %3°</translation>
         <translation>&amp;Charts</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="344"/>
         <source>&amp;Auswertung</source>
-        <translation>&amp;Evaluation</translation>
+        <translation type="vanished">&amp;Evaluation</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="345"/>
         <source>&amp;Diverses</source>
-        <translation>&amp;Miscellaneous</translation>
+        <translation type="vanished">&amp;Miscellaneous</translation>
     </message>
     <message>
         <location filename="../main_window.cpp" line="668"/>
@@ -2041,6 +2048,11 @@ The language applies from the next start.</translation>
         <location filename="../main_window.cpp" line="684"/>
         <source>Automatisch (Systemsprache)</source>
         <translation>Automatic (system language)</translation>
+    </message>
+    <message>
+        <location filename="../main_window.cpp" line="688"/>
+        <source>Hi&amp;lfe</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main_window.cpp" line="820"/>

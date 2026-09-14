@@ -11,6 +11,11 @@
 #include <QMessageBox>
 #include <QSettings>
 #include <QTimer>
+#include <QFormLayout>
+#include <QDoubleSpinBox>
+#include <QSpinBox>
+#include <QTimeEdit>
+#include <QComboBox>
 #include <QTranslator>
 
 #include "aspektarium_dialog.hpp"
@@ -90,6 +95,27 @@ int main(int argc, char** argv) {
 
   // --shot-place and --shot-zone capture the dialogs unshown, the same
   // hook for visual checks as --shot below
+  // --shot-spin renders the spin and combo controls for theme checks
+  const int shot_spin = args.indexOf("--shot-spin");
+  if (shot_spin >= 0 && shot_spin + 1 < args.size()) {
+    QDialog dialog;
+    auto* form = new QFormLayout(&dialog);
+    auto* d = new QDoubleSpinBox(&dialog);
+    d->setValue(48.1742);
+    d->setDecimals(4);
+    auto* i = new QSpinBox(&dialog);
+    i->setValue(7);
+    auto* t = new QTimeEdit(QTime(12, 30), &dialog);
+    auto* c = new QComboBox(&dialog);
+    c->addItems({"PLACIDUS", "KOCH"});
+    form->addRow("Breite", d);
+    form->addRow("Haus", i);
+    form->addRow("Zeit", t);
+    form->addRow("System", c);
+    dialog.resize(320, 200);
+    dialog.grab().save(args[shot_spin + 1]);
+    return 0;
+  }
   const int shot_place = args.indexOf("--shot-place");
   if (shot_place >= 0 && shot_place + 1 < args.size()) {
     horcom::PlaceDialog dialog(data / "places", data / "landnima.int");

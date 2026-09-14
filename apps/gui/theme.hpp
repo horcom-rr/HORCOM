@@ -120,7 +120,7 @@ QTableCornerButton::section {
   background: #141B2E;
   border: none;
 }
-QComboBox, QDateEdit, QTimeEdit, QDoubleSpinBox, QLineEdit {
+QComboBox, QDateEdit, QTimeEdit, QSpinBox, QDoubleSpinBox, QLineEdit {
   background: #10162A;
   border: 1px solid #232D4A;
   border-radius: 5px;
@@ -128,12 +128,51 @@ QComboBox, QDateEdit, QTimeEdit, QDoubleSpinBox, QLineEdit {
   min-height: 20px;
   selection-background-color: #2C3A63;
 }
-QComboBox:focus, QDateEdit:focus, QTimeEdit:focus, QDoubleSpinBox:focus, QLineEdit:focus {
+QComboBox:focus, QDateEdit:focus, QTimeEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QLineEdit:focus {
   border-color: #8F7433;
 }
 QComboBox::drop-down, QDateEdit::drop-down {
   border: none;
   width: 22px;
+}
+QComboBox::down-arrow, QDateEdit::down-arrow {
+  image: url(:/arrow-down.svg);
+  width: 10px;
+  height: 7px;
+}
+QSpinBox, QDoubleSpinBox, QTimeEdit {
+  padding-right: 22px;
+}
+QSpinBox::up-button, QDoubleSpinBox::up-button, QTimeEdit::up-button {
+  subcontrol-origin: border;
+  subcontrol-position: top right;
+  width: 18px;
+  border-left: 1px solid #232D4A;
+  border-bottom: 1px solid #232D4A;
+  border-top-right-radius: 5px;
+  background: #141B2E;
+}
+QSpinBox::down-button, QDoubleSpinBox::down-button, QTimeEdit::down-button {
+  subcontrol-origin: border;
+  subcontrol-position: bottom right;
+  width: 18px;
+  border-left: 1px solid #232D4A;
+  border-bottom-right-radius: 5px;
+  background: #141B2E;
+}
+QSpinBox::up-button:hover, QDoubleSpinBox::up-button:hover, QTimeEdit::up-button:hover,
+QSpinBox::down-button:hover, QDoubleSpinBox::down-button:hover, QTimeEdit::down-button:hover {
+  background: #1B2440;
+}
+QSpinBox::up-arrow, QDoubleSpinBox::up-arrow, QTimeEdit::up-arrow {
+  image: url(:/arrow-up.svg);
+  width: 10px;
+  height: 7px;
+}
+QSpinBox::down-arrow, QDoubleSpinBox::down-arrow, QTimeEdit::down-arrow {
+  image: url(:/arrow-down.svg);
+  width: 10px;
+  height: 7px;
 }
 QComboBox QAbstractItemView {
   background: #141B2E;

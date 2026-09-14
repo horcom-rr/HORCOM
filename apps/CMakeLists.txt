@@ -61,7 +61,7 @@ if(Qt6_FOUND)
   qt_add_resources(horcom_gui "identity"
     PREFIX "/"
     BASE ${CMAKE_SOURCE_DIR}/assets
-    FILES ${CMAKE_SOURCE_DIR}/assets/logo.svg
+    FILES ${CMAKE_SOURCE_DIR}/assets/logo.svg ${CMAKE_SOURCE_DIR}/assets/arrow-up.svg ${CMAKE_SOURCE_DIR}/assets/arrow-down.svg
   )
   target_link_libraries(horcom_gui PRIVATE horcom Qt6::Widgets Qt6::Svg Qt6::PrintSupport)
   set_target_properties(horcom_gui PROPERTIES WIN32_EXECUTABLE ON)

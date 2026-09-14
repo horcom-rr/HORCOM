@@ -341,8 +341,8 @@ void MainWindow::build_ui() {
   QMenu* file = menuBar()->addMenu(tr("&Datei"));
   QMenu* ephem = menuBar()->addMenu(tr("&Ephemeride"));
   QMenu* horo = menuBar()->addMenu(tr("&Horoskope"));
-  QMenu* ausw = menuBar()->addMenu(tr("&Auswertung"));
-  QMenu* divers = menuBar()->addMenu(tr("&Diverses"));
+  QMenu* ausw = menuBar()->addMenu(tr("A&uswertung"));
+  QMenu* divers = menuBar()->addMenu(tr("Di&verses"));
   file->addAction(tr("Datensätze öffnen…"), QKeySequence::Open, this, &MainWindow::open_records);
   file->addAction(tr("Datensatz bearbeiten…"), QKeySequence(Qt::CTRL | Qt::Key_D), this, &MainWindow::edit_record);
   file->addAction(tr("Ort suchen…"), QKeySequence(Qt::CTRL | Qt::Key_L), this, &MainWindow::open_place);
@@ -685,7 +685,7 @@ void MainWindow::build_ui() {
   add_lang("Deutsch", "de");
   add_lang("English", "en");
 
-  QMenu* help = menuBar()->addMenu(tr("&Hilfe"));
+  QMenu* help = menuBar()->addMenu(tr("Hi&lfe"));
   //RR TEXT-DATEI LESEN, his commentary texts from the local folder
   help->addAction(tr("Original-Kommentare…"), QKeySequence(Qt::Key_F1), this, [this]() {
     KommenDialog dialog(data_dir_ / "kommen", this);
