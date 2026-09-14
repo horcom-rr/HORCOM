@@ -109,6 +109,7 @@ class MainWindow : public QMainWindow {
   void time_wander();
   void place_wander();
   void chain_files();
+  void create_statistics();
   void orb_settings();
   void converters();
   void planetar_chart();

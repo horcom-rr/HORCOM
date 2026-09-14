@@ -4,6 +4,7 @@
 
 #include "statist_dialog.hpp"
 
+#include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDialogButtonBox>
@@ -19,6 +20,7 @@
 #include <QVBoxLayout>
 #include <set>
 
+#include "horcom/chart/aspects.hpp"
 #include "horcom/chart/bodies.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
@@ -156,11 +158,14 @@ StatistDialog::StatistDialog(const AspectSettings& aspects, QWidget* parent) : Q
   und_->setEnabled(false);
   apply_ = new QPushButton(tr("Bedingung anwenden"), this);
   auto* reset = new QPushButton(tr("Zurücksetzen"), this);
+  //RR der Zähler kann wahlweise auch automatisch die gesamte Datei durchzählen
+  auto* count_all = new QPushButton(tr("Datei durchzählen"), this);
   eval_count_ = new QLabel(this);
   auto* actions = new QHBoxLayout();
   actions->addWidget(und_);
   actions->addWidget(apply_);
   actions->addWidget(reset);
+  actions->addWidget(count_all);
   actions->addWidget(eval_count_, 1);
   eval_dist_ = new QLabel(this);
   eval_dist_->setObjectName("aspectsLine");
@@ -183,6 +188,7 @@ StatistDialog::StatistDialog(const AspectSettings& aspects, QWidget* parent) : Q
   connect(window_, &QComboBox::currentIndexChanged, this, [this](int) { update_eval_fields(); });
   connect(apply_, &QPushButton::clicked, this, &StatistDialog::apply_condition);
   connect(reset, &QPushButton::clicked, this, &StatistDialog::reset_conditions);
+  connect(count_all, &QPushButton::clicked, this, &StatistDialog::count_file);
   update_eval_fields();
   resize(760, 720);
 }
@@ -396,6 +402,54 @@ void StatistDialog::accept_row(int row) {
   const auto idx = table_->item(row, 0)->data(Qt::UserRole).toULongLong();
   chosen_ = set_.records[static_cast<std::size_t>(idx)];
   accept();
+}
+
+// ported from the dataset walk of the Schiemenz counters, every stored
+// chart rebuilt from its packed angles and run through the scanners
+void StatistDialog::count_file() {
+  if (set_.records.empty()) {
+    return;
+  }
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  long long asp = 0, triga = 0, gt = 0, mid = 0;
+  ChartSettings s;
+  s.enable_standard_extras();
+  for (const StatRecord& r : set_.records) {
+    Chart c;
+    c.ok = true;
+    for (int slot = 0; slot < body::kSlotCount; ++slot) {
+      const double el = r.el[static_cast<std::size_t>(slot)];
+      if (el != 0.0) {
+        BodyState& b = c.b[static_cast<std::size_t>(slot)];
+        b.present = true;
+        b.valid = true;
+        b.el = el;
+      }
+    }
+    if (!r.heliocentric()) {
+      const std::array<double, 14> fz = stat_houses(r);
+      c.houses.ok = true;
+      c.houses.cusp = fz;
+      c.b[body::kAscendant] = {true, true, r.ac};
+      c.b[body::kMc] = {true, true, r.mc};
+    }
+    const AspectResult a = scan_aspects(c, s, aspects_);
+    const MidpointResult m = scan_midpoints(c, s, aspects_);
+    asp += static_cast<long long>(a.hits.size());
+    triga += a.triga;
+    gt += a.grand_trines;
+    mid += m.direct + m.square + m.semi;
+  }
+  QApplication::restoreOverrideCursor();
+  const double n = static_cast<double>(set_.records.size());
+  eval_dist_->setText(tr("Datei durchgezählt, %1 Datensätze. Aspekte %2 (Mittel %3), Triga %4, Großtrigone %5, Halbsummen %6 (Mittel %7).")
+                          .arg(set_.records.size())
+                          .arg(asp)
+                          .arg(asp / n, 0, 'f', 2)
+                          .arg(triga)
+                          .arg(gt)
+                          .arg(mid)
+                          .arg(mid / n, 0, 'f', 2));
 }
 
 }  // namespace horcom

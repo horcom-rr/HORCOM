@@ -53,6 +53,7 @@ class StatistDialog : public QDialog {
   void update_eval_fields();
   void apply_condition();
   void reset_conditions();
+  void count_file();
 
   StatSet set_;
   std::optional<StatRecord> chosen_;

@@ -15,6 +15,7 @@
 #include <QDoubleSpinBox>
 #include <QFile>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QFormLayout>
 #include <QHBoxLayout>
 #include <QHeaderView>
@@ -67,6 +68,7 @@
 #include "horcom/time/delta_t.hpp"
 #include "horcom/time/sidereal.hpp"
 #include "horcom/chart/histogram.hpp"
+#include "horcom/data/statist.hpp"
 #include "horcom/render/linear.hpp"
 #include "horcom/render/svg.hpp"
 #include "place_dialog.hpp"
@@ -339,6 +341,7 @@ void MainWindow::build_ui() {
   file->addAction(tr("Drucken…"), QKeySequence::Print, this, &MainWindow::print_chart);
   file->addAction(tr("Umrechnungen…"), this, &MainWindow::converters);
   file->addAction(tr("Dateien verketten…"), this, &MainWindow::chain_files);
+  file->addAction(tr("Statistik-Datei erstellen…"), this, &MainWindow::create_statistics);
   file->addAction(tr("Vorgaben (Orbes, Fixpunkt)…"), this, &MainWindow::orb_settings);
   file->addSeparator();
   file->addAction(tr("Beenden"), QKeySequence::Quit, this, &QWidget::close);
@@ -1334,6 +1337,86 @@ void MainWindow::chain_files() {
     return;
   }
   QMessageBox::information(this, "HORCOM", tr("%1 Datensätze verkettet.").arg(all.size()));
+}
+
+// ported from AUSWERTEFÄHIGE DATEI ERSTELLEN, every record of a
+// collection computed and packed into the STATIST7 store
+void MainWindow::create_statistics() {
+  const QString src = QFileDialog::getOpenFileName(
+      this, tr("Daten-Datei für die Statistik wählen"), QString(),
+      tr("HORCOM Daten (*.DAT *.dat *.AAF *.aaf)"));
+  if (src.isEmpty()) {
+    return;
+  }
+  std::vector<AafRecord> all;
+  const std::filesystem::path p(src.toStdWString());
+  if (src.endsWith(".dat", Qt::CaseInsensitive)) {
+    if (const auto records = read_chart_file(p)) {
+      for (const ChartRecord& r : *records) {
+        all.push_back(aaf_from_chart_record(r));
+      }
+    }
+  } else if (const auto records = read_aaf(p)) {
+    all = *records;
+  }
+  if (all.empty()) {
+    QMessageBox::warning(this, "HORCOM", tr("Die Datei enthält keine lesbaren Datensätze."));
+    return;
+  }
+  QString base = QFileInfo(src).completeBaseName() + ".sta";
+  const QString target = QFileDialog::getSaveFileName(this, tr("Statistik-Datei"), base, tr("Statistik (*.sta *.STA)"));
+  if (target.isEmpty()) {
+    return;
+  }
+  const ChartSettings s = current_settings();
+  StatSet set;
+  set.params.haw = static_cast<int>(s.houses);
+  set.params.haus = houses_->currentText().toStdString();
+  set.params.appa = static_cast<int>(s.apparent);
+  set.params.apogw = s.true_apogee;
+  set.params.moknw = s.true_node;
+  set.params.par = s.topocentric_parallax ? 1.0 : 0.0;
+  set.params.nk = s.nk;
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  for (const AafRecord& r : all) {
+    const ChartInput in = record_input(r);
+    const Chart c = compute_chart(in, s, vsop_, eph_);
+    if (!c.ok) {
+      continue;
+    }
+    StatRecord rec;
+    rec.name = r.surname.empty() ? r.given : r.surname + " " + r.given;
+    rec.place = r.place;
+    rec.day = in.date_ut.day;
+    rec.month = in.date_ut.month;
+    rec.year = in.date_ut.year;
+    rec.hour = static_cast<int>(in.date_ut.hour);
+    rec.minute = in.date_ut.minute;
+    rec.lon = in.lon_deg_east;
+    rec.lat = in.lat_deg;
+    for (int slot = 0; slot < body::kSlotCount; ++slot) {
+      const BodyState& b = c.b[static_cast<std::size_t>(slot)];
+      if (b.present && b.valid) {
+        rec.el[static_cast<std::size_t>(slot)] = b.el;
+      }
+    }
+    if (c.houses.ok) {
+      rec.ac = c.houses.cusp[1];
+      rec.mc = c.houses.cusp[10];
+      rec.h2 = c.houses.cusp[2];
+      rec.h3 = c.houses.cusp[3];
+      rec.h5 = c.houses.cusp[5];
+      rec.h6 = c.houses.cusp[6];
+    }
+    set.records.push_back(std::move(rec));
+  }
+  QApplication::restoreOverrideCursor();
+  if (set.records.empty() || !save_statistics(std::filesystem::path(target.toStdWString()), set)) {
+    QMessageBox::warning(this, "HORCOM", tr("Die Statistik-Datei ließ sich nicht schreiben."));
+    return;
+  }
+  QMessageBox::information(this, "HORCOM",
+                           tr("%1 von %2 Datensätzen berechnet und gespeichert.").arg(set.records.size()).arg(all.size()));
 }
 
 void MainWindow::orb_settings() {
