@@ -6,6 +6,8 @@
 
 #include "doctest.h"
 #include "horcom/chart/bodies.hpp"
+#include <filesystem>
+
 #include "horcom/chart/rhythm.hpp"
 #include "horcom/chart/symbolic.hpp"
 #include "horcom/core/angle.hpp"
@@ -163,4 +165,52 @@ TEST_CASE("the rhythm walk triggers houses, rulers and chains") {
     }
   }
   CHECK(scaled);
+}
+
+TEST_CASE("the degree date list walks every half degree onto its age") {
+  Chart c;
+  c.ok = true;
+  c.houses.ok = true;
+  // equal houses of thirty degrees from zero Aries for a clear pin
+  for (int i = 1; i <= 13; ++i) {
+    c.houses.cusp[static_cast<std::size_t>(i)] = norm_rad((i - 1) * 30.0 * kDegToRad);
+  }
+  RhythmOptions opt;
+  opt.phase_years = 7.0;
+  const auto rows = degree_dates(c, opt, {}, false, 48.0);
+  REQUIRE(rows.size() == 720);
+  // fifteen degrees lies mid house one, age three and a half
+  CHECK(rows[30].degree == doctest::Approx(15.0));
+  CHECK(rows[30].house == 1);
+  CHECK(rows[30].value == doctest::Approx(3.5).epsilon(0.01));
+  // the published group destiny degree 4.5 carries its pair
+  CHECK(rows[9].p == 5);
+  CHECK(rows[9].q == 9);
+  // rightward the same degree ages from the other end
+  opt.leftward = false;
+  const auto back = degree_dates(c, opt, {}, false, 48.0);
+  CHECK(back[30].value == doctest::Approx(12.0 * 7.0 - 3.5).epsilon(0.01));
+}
+
+TEST_CASE("self defined degrees round trip and mirror") {
+  const auto dir = std::filesystem::temp_directory_path() / "grade.int";
+  std::vector<CustomDegree> own = {{17.5, 5, 7}};
+  REQUIRE(write_degrees(dir, own));
+  const auto in = read_degrees(dir);
+  REQUIRE(in.size() == 1);
+  CHECK(in[0].degree == doctest::Approx(17.5));
+  CHECK(in[0].p == 5);
+  Chart c;
+  c.ok = true;
+  c.houses.ok = true;
+  for (int i = 1; i <= 13; ++i) {
+    c.houses.cusp[static_cast<std::size_t>(i)] = norm_rad((i - 1) * 30.0 * kDegToRad);
+  }
+  const auto rows = degree_dates(c, {}, in, false, 48.0);
+  CHECK(rows[35].custom);
+  CHECK(rows[35].p == 5);
+  //RR der Spiegelpunkt an 0 Widder-Waage
+  CHECK(rows[720 - 35].custom);
+  CHECK(rows[720 - 35].mirror);
+  std::filesystem::remove(dir);
 }

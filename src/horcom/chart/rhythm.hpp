@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <filesystem>
 #include <vector>
 
 #include "horcom/chart/aspects.hpp"
@@ -71,5 +72,52 @@ struct RhythmOptions {
 /// @param opt     phase length, unit, start, direction and switches
 /// @return the triggers in walk order
 [[nodiscard]] std::vector<RhythmTrigger> rhythm_triggers(const Chart& chart, const AspectResult& aspects, const AspectSettings& a, const RhythmOptions& opt);
+
+/// A self defined degree for the GRAD-DATUM-LISTE, his GRADE.INT rows.
+struct CustomDegree {
+  /// the ecliptic degree, half degree steps
+  double degree = 0.0;
+  /// the two planet slots of the characteristic
+  int p = 0;
+  int q = 0;
+};
+
+/// One row of the GRAD-DATUM-LISTE.
+struct DegreeDate {
+  double degree = 0.0;
+  /// life years at the crossing, months in the month unit
+  double value = 0.0;
+  int house = 0;
+  /// the planet pair of a Gruppenschicksals-Grad, zero without one
+  int p = 0;
+  int q = 0;
+  /// a self defined degree, its 0 Aries-Libra mirror rides along
+  bool custom = false;
+  bool mirror = false;
+};
+
+/// Reads self defined degrees, his GRADE.INT lines of degree and two
+/// planet slots separated by commas.
+///
+/// @param file the file beside the data
+/// @return the rows, empty when the file is absent
+[[nodiscard]] std::vector<CustomDegree> read_degrees(const std::filesystem::path& file);
+
+/// Writes the self defined degrees back in the GRADE.INT shape.
+bool write_degrees(const std::filesystem::path& file, const std::vector<CustomDegree>& rows);
+
+/// The GRAD-DATUM-LISTE, every half ecliptic degree with the age the
+/// rhythm walk crosses it, the published Gruppenschicksals-Grade of
+/// W. Döbereiner marked with their planet pairs. Ported from HORCOM
+/// a17_3 and a171.
+///
+/// @param chart   the radix with its houses
+/// @param opt     phase length, unit and direction
+/// @param own     self defined degrees, mirrored across 0 Aries-Libra
+/// @param mundane project each degree along its semi arc first, the
+///                dates then follow the equatorial geometry
+/// @param lat_deg the observer's latitude, the projection needs it
+/// @return 720 rows in degree order
+[[nodiscard]] std::vector<DegreeDate> degree_dates(const Chart& chart, const RhythmOptions& opt, const std::vector<CustomDegree>& own, bool mundane, double lat_deg);
 
 }  // namespace horcom

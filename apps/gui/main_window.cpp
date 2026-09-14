@@ -370,6 +370,7 @@ void MainWindow::build_ui() {
   horo->addAction(tr("Zeit-Wandern…"), this, &MainWindow::time_wander);
   horo->addAction(tr("Ort-Wandern…"), this, &MainWindow::place_wander);
   horo->addAction(tr("Rhythmenlehre (Auslösungen)…"), this, &MainWindow::rhythm_table);
+  horo->addAction(tr("Grad-Datum-Liste…"), this, &MainWindow::degree_date_list);
   horo->addAction(tr("Dynamogramm…"), this, &MainWindow::dynamogram_view);
   horo->addAction(tr("Linear-Graphik…"), this, &MainWindow::linear_graph);
   // the direction tables of the original evaluation menu in one place
@@ -1698,6 +1699,139 @@ void MainWindow::rhythm_table() {
   v->addWidget(count);
   v->addWidget(buttons);
   dialog.resize(680, 640);
+  dialog.exec();
+}
+
+// ported from the GRAD-DATUM-LISTE of a17_3 with the published
+// Gruppenschicksals-Grade and the self defined degrees of GRADE.INT
+void MainWindow::degree_date_list() {
+  if (!last_chart_ || !last_chart_->houses.ok) {
+    return;
+  }
+  QDialog dialog(this);
+  dialog.setWindowTitle(tr("Grad-Datum-Liste"));
+  auto* v = new QVBoxLayout(&dialog);
+  auto* top = new QHBoxLayout();
+  auto* phase = new QDoubleSpinBox(&dialog);
+  phase->setRange(-30.0, 30.0);
+  phase->setDecimals(1);
+  phase->setValue(7.0);
+  phase->setPrefix(tr("Phase "));
+  phase->setSuffix(tr(" J."));
+  auto* unit = new QComboBox(&dialog);
+  unit->addItem(tr("Jahre"), 0);
+  unit->addItem(tr("Monate"), 1);
+  auto* dir = new QComboBox(&dialog);
+  //RR RECHTS = Uhrzeigersinn
+  dir->addItem(tr("Links"), 1);
+  dir->addItem(tr("Rechts"), 0);
+  auto* mundan = new QCheckBox(tr("Mundan"), &dialog);
+  auto* only_marked = new QCheckBox(tr("Nur markierte Grade"), &dialog);
+  top->addWidget(phase);
+  top->addWidget(unit);
+  top->addWidget(dir);
+  top->addWidget(mundan);
+  top->addWidget(only_marked);
+  top->addStretch(1);
+  auto* table = new QTableWidget(0, 4, &dialog);
+  table->setHorizontalHeaderLabels({tr("Grad"), tr("Haus"), tr("Alter"), tr("Charakteristik")});
+  table->horizontalHeader()->setStretchLastSection(true);
+  table->verticalHeader()->setVisible(false);
+  table->verticalHeader()->setDefaultSectionSize(18);
+  table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  //RR GRADE für GRAD-DATUM-LISTE NEU DEFINIEREN
+  auto* bottom = new QHBoxLayout();
+  auto* new_deg = new QDoubleSpinBox(&dialog);
+  new_deg->setRange(0.0, 359.5);
+  new_deg->setDecimals(1);
+  new_deg->setSingleStep(0.5);
+  new_deg->setSuffix(QString::fromUtf8("°"));
+  auto* pa = new QComboBox(&dialog);
+  auto* pb = new QComboBox(&dialog);
+  for (int slot = 1; slot <= 10; ++slot) {
+    const QString tag = QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
+                                          static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size()));
+    pa->addItem(tag, slot);
+    pb->addItem(tag, slot);
+  }
+  auto* add = new QPushButton(tr("Grad definieren"), &dialog);
+  auto* clear = new QPushButton(tr("Eigene Grade löschen"), &dialog);
+  bottom->addWidget(new_deg);
+  bottom->addWidget(pa);
+  bottom->addWidget(pb);
+  bottom->addWidget(add);
+  bottom->addWidget(clear);
+  bottom->addStretch(1);
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+  connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+  const std::filesystem::path grade_file = data_dir_ / "grade.int";
+  const auto tag_of = [](int slot) {
+    return QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
+                             static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size()));
+  };
+  const auto refresh = [this, table, phase, unit, dir, mundan, only_marked, grade_file, tag_of]() {
+    RhythmOptions opt;
+    opt.phase_years = phase->value();
+    opt.months = unit->currentData().toInt() == 1;
+    opt.leftward = dir->currentData().toInt() == 1;
+    const auto own = read_degrees(grade_file);
+    const auto rows = degree_dates(*last_chart_, opt, own, mundan->isChecked(), lat_->value());
+    table->setRowCount(0);
+    for (const DegreeDate& r : rows) {
+      const bool marked = r.p > 0 || r.custom;
+      if (only_marked->isChecked() && !marked) {
+        continue;
+      }
+      const int row = table->rowCount();
+      table->insertRow(row);
+      table->setItem(row, 0, new QTableWidgetItem(zodiac(r.degree * kDegToRad)));
+      table->setItem(row, 1, new QTableWidgetItem(QString::number(r.house)));
+      table->setItem(row, 2, new QTableWidgetItem(QString::number(r.value, 'f', 2)));
+      QString ch;
+      if (r.p > 0) {
+        ch = tag_of(r.p) + "-" + tag_of(r.q);
+        if (r.mirror) {
+          ch += tr(" (Spiegel)");
+        }
+      }
+      auto* item = new QTableWidgetItem(ch);
+      if (r.custom) {
+        //RR eigene Grade in Rot
+        item->setForeground(QColor(0xE8, 0x5D, 0x4E));
+      }
+      table->setItem(row, 3, item);
+      //RR die Kardinalpunkte rot markiert
+      if (r.degree == 0.0 || r.degree == 90.0 || r.degree == 180.0 || r.degree == 270.0) {
+        table->item(row, 0)->setForeground(QColor(0xE8, 0x5D, 0x4E));
+      }
+    }
+    table->resizeColumnsToContents();
+  };
+  connect(phase, &QDoubleSpinBox::valueChanged, &dialog, refresh);
+  connect(unit, &QComboBox::currentIndexChanged, &dialog, refresh);
+  connect(dir, &QComboBox::currentIndexChanged, &dialog, refresh);
+  connect(mundan, &QCheckBox::toggled, &dialog, refresh);
+  connect(only_marked, &QCheckBox::toggled, &dialog, refresh);
+  connect(add, &QPushButton::clicked, &dialog, [this, new_deg, pa, pb, grade_file, refresh]() {
+    auto own = read_degrees(grade_file);
+    own.push_back({new_deg->value(), pa->currentData().toInt(), pb->currentData().toInt()});
+    if (!write_degrees(grade_file, own)) {
+      QMessageBox::warning(this, "HORCOM", tr("Die Grade ließen sich nicht speichern."));
+    }
+    refresh();
+  });
+  connect(clear, &QPushButton::clicked, &dialog, [this, grade_file, refresh]() {
+    std::error_code ec;
+    std::filesystem::remove(grade_file, ec);
+    refresh();
+  });
+  only_marked->setChecked(true);
+  refresh();
+  v->addLayout(top);
+  v->addWidget(table, 1);
+  v->addLayout(bottom);
+  v->addWidget(buttons);
+  dialog.resize(640, 680);
   dialog.exec();
 }
 

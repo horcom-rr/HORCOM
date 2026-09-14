@@ -101,6 +101,7 @@ class MainWindow : public QMainWindow {
   void rise_set();
   void eclipse_table();
   void rhythm_table();
+  void degree_date_list();
   void dynamogram_view();
   void linear_graph();
   void midpoint_tree();
