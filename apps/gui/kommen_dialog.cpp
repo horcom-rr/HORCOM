@@ -96,8 +96,9 @@ void KommenDialog::show_entry(int row) {
     return;
   }
   //RR FIXEDSYS, his reading box was fixed width
-  QFont mono("Cascadia Mono");
+  QFont mono("Courier New");
   mono.setStyleHint(QFont::Monospace);
+  mono.setBold(true);
   text_->setFont(mono);
   text_->setLineWrapMode(QTextEdit::NoWrap);
   const auto text = read_kommen(path);

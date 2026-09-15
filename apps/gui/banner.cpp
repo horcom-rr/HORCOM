@@ -69,20 +69,21 @@ void Banner::paintEvent(QPaintEvent* /*event*/) {
   // the logo and the name
   const QPixmap logo = QIcon(":/logo.svg").pixmap(40, 40);
   p.drawPixmap(14, (height() - 40) / 2, logo);
-  QFont title("Cascadia Mono");
+  QFont title("Courier New");
   title.setStyleHint(QFont::Monospace);
   title.setPixelSize(20);
   title.setBold(true);
   title.setLetterSpacing(QFont::AbsoluteSpacing, 7.0);
   p.setFont(title);
-  p.setPen(QColor(0xC9, 0xB1, 0x83));
+  p.setPen(QColor(0xFF, 0xFF, 0x00));
   p.drawText(QRect(66, 0, 260, height()), Qt::AlignVCenter | Qt::AlignLeft, "HORCOM");
 
   // the record, spoken on the green of his main menu panel
   if (!record_.isEmpty()) {
-    QFont rec("Cascadia Mono");
+    QFont rec("Courier New");
     rec.setStyleHint(QFont::Monospace);
     rec.setPixelSize(12);
+    rec.setBold(true);
     p.setFont(rec);
     const QFontMetrics fm(rec);
     const int w = fm.horizontalAdvance(record_) + 24;
@@ -96,9 +97,10 @@ void Banner::paintEvent(QPaintEvent* /*event*/) {
   }
 
   // the epoch data on the right
-  QFont mono("Cascadia Mono");
+  QFont mono("Courier New");
   mono.setStyleHint(QFont::Monospace);
   mono.setPixelSize(12);
+  mono.setBold(true);
   p.setFont(mono);
   p.setPen(QColor(0xE9, 0xE5, 0xD9));
   p.drawText(QRect(0, 0, width() - 16, height()), Qt::AlignVCenter | Qt::AlignRight, info_);
