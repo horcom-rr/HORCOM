@@ -54,9 +54,9 @@ void Banner::paintEvent(QPaintEvent* /*event*/) {
 
   // the night sky
   QLinearGradient sky(0, 0, 0, height());
-  sky.setColorAt(0.0, QColor(0x06, 0x0A, 0x16));
-  sky.setColorAt(0.7, QColor(0x10, 0x18, 0x30));
-  sky.setColorAt(1.0, QColor(0x0A, 0x0F, 0x1E));
+  sky.setColorAt(0.0, QColor(0x0B, 0x11, 0x23));
+  sky.setColorAt(0.7, QColor(0x15, 0x1E, 0x3A));
+  sky.setColorAt(1.0, QColor(0x10, 0x17, 0x2B));
   p.fillRect(rect(), sky);
   for (const Star& s : kStars) {
     QColor c = s.warm == 1 ? QColor(0xFF, 0xE9, 0xB0) : s.warm == 2 ? QColor(0xCF, 0xE4, 0xFF) : QColor(0xFF, 0xFF, 0xFF);
