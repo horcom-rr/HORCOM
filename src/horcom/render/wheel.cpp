@@ -317,18 +317,21 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
       add({Primitive::Kind::kLine, in1.x, in1.y, in2.x, in2.y});
     }
     // the paper cutouts, his putbm sprites erased the lines beneath
-    // with their white background
+    // with their white background. The inverted patch pushes its
+    // number and R marker a little further out.
     const Pt g = at(wl[si], kGlyphRing + dc[si]);
+    const bool inv =
+        slot == body::kNodeAsc || slot == body::kNodeDesc || slot == opt.ruler_slot;
     add({Primitive::Kind::kDot, g.x, g.y, 0, 0, kGlyphSize * 0.60, 0, 0, 0, 0, kPaper});
     if (chart.b[si].tb < 0.0 && slot >= 3 && slot <= 10) {
-      add({Primitive::Kind::kDot, g.x + kGlyphSize * 0.85, g.y - kGlyphSize * 0.3, 0, 0,
-           kNumberSize * 0.6, 0, 0, 0, 0, kPaper});
+      add({Primitive::Kind::kDot, g.x + kGlyphSize * (inv ? 1.05 : 0.85), g.y - kGlyphSize * 0.3,
+           0, 0, kNumberSize * 0.6, 0, 0, 0, 0, kPaper});
     }
     if (opt.degree_numbers) {
       // planziff hangs the number below the glyph on screen, one glyph
       // height under its centre, never into the radial stack
-      add({Primitive::Kind::kDot, g.x, g.y + kGlyphSize, 0, 0, kNumberSize * 0.75, 0, 0, 0, 0,
-           kPaper});
+      add({Primitive::Kind::kDot, g.x, g.y + kGlyphSize + (inv ? 2.5 : 1.0), 0, 0,
+           kNumberSize * 0.75, 0, 0, 0, 0, kPaper});
     }
   }
   for (int slot : slots) {
@@ -370,11 +373,13 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
   for (int slot : slots) {
     const auto si = static_cast<std::size_t>(slot);
     const Pt g = at(wl[si], kGlyphRing + dc[si]);
+    const bool inv =
+        slot == body::kNodeAsc || slot == body::kNodeDesc || slot == opt.ruler_slot;
     // the red R of his retrograde marker beside the glyph
     if (chart.b[si].tb < 0.0 && slot >= 3 && slot <= 10) {
       Primitive r;
       r.kind = Primitive::Kind::kText;
-      r.x1 = g.x + kGlyphSize * 0.85;
+      r.x1 = g.x + kGlyphSize * (inv ? 1.05 : 0.85);
       r.y1 = g.y - kGlyphSize * 0.3;
       r.size = kNumberSize;
       r.color = 0xFF0000;
@@ -385,7 +390,7 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
       Primitive num;
       num.kind = Primitive::Kind::kText;
       num.x1 = g.x;
-      num.y1 = g.y + kGlyphSize;
+      num.y1 = g.y + kGlyphSize + (inv ? 2.5 : 1.0);
       num.size = kNumberSize;
       //RR CINT, planziff1 rounds the degree in sign to the nearest
       const double q = norm_deg(pl[si] * kRadToDeg);
@@ -530,7 +535,7 @@ static void draw_outer_bodies(DisplayList& dl, const Chart& chart, double fza, d
            kNumberSize * 0.6, 0, 0, 0, 0, kPaper});
     }
     if (opt.degree_numbers) {
-      add({Primitive::Kind::kDot, g.x, g.y + kGlyphSize, 0, 0, kNumberSize * 0.75, 0, 0, 0, 0,
+      add({Primitive::Kind::kDot, g.x, g.y + kGlyphSize + 1.0, 0, 0, kNumberSize * 0.75, 0, 0, 0, 0,
            kPaper});
     }
   }
@@ -562,7 +567,7 @@ static void draw_outer_bodies(DisplayList& dl, const Chart& chart, double fza, d
       Primitive num;
       num.kind = Primitive::Kind::kText;
       num.x1 = g.x;
-      num.y1 = g.y + kGlyphSize;
+      num.y1 = g.y + kGlyphSize + 1.0;
       num.size = kNumberSize;
       //RR CINT, planziff1 rounds the degree in sign to the nearest
       const double q = norm_deg(pl[si] * kRadToDeg);
