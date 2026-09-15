@@ -219,6 +219,16 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
   for (int j = 1; j <= signs; ++j) {
     const double w = wheel_angle((j - 0.5) * span, fza);
     const Pt p = at(w, kSignGlyphRing);
+    // zeichp_dspl stamps the sign sprite SRCCOPY, the white sprite
+    // ground rides along as a small box on the coloured band
+    Primitive box;
+    box.kind = Primitive::Kind::kRect;
+    box.x1 = p.x;
+    box.y1 = p.y;
+    box.r1 = kGlyphSize * 0.55;
+    box.r2 = kGlyphSize * 0.55;
+    box.fill = 0xFFFFFF;
+    add(box);
     Primitive g;
     g.kind = Primitive::Kind::kGlyph;
     g.x1 = p.x;
@@ -269,12 +279,16 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
       // his layout numbers only AC and MC, DC and IC mirror them and
       // carry the bare tag, rounded to the nearest like planziff1
       t.text = kAxisLabelText[a];
-      if (a == 0 || a == 3) {
-        const double q = norm_deg(cusp * kRadToDeg);
-        t.text += " " +
-                  std::to_string(static_cast<int>(std::lround(q - 30.0 * std::floor(q / 30.0))));
-      }
       add(t);
+      if (a == 0 || a == 3) {
+        // habes stacks the degree centered below the tag
+        const double q = norm_deg(cusp * kRadToDeg);
+        Primitive n = t;
+        n.size = kNumberSize;
+        n.y1 += (kAxisTextSize + kNumberSize) * 0.5 + 1.0;
+        n.text = std::to_string(static_cast<int>(std::lround(q - 30.0 * std::floor(q / 30.0))));
+        add(n);
+      }
     }
   }
   if (houses_drawn) {

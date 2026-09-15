@@ -36,7 +36,9 @@ using Rgb = unsigned;
 
 /// One drawing primitive on the virtual 640 by 480 canvas.
 struct Primitive {
-  enum class Kind { kCircle, kLine, kSector, kGlyph, kText, kDot };
+  /// kRect fills an axis aligned box, x1 y1 the centre, r1 and r2 the
+  /// half extents, the white sprite ground of his SRCCOPY stamps
+  enum class Kind { kCircle, kLine, kSector, kGlyph, kText, kDot, kRect };
   enum class Style { kSolid, kDashed, kDotted, kDashDot };
   /// what the item anchors to, the wheel itself, the corner notes of
   /// the screen sheet, or the credit line

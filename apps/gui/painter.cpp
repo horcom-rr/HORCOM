@@ -178,6 +178,12 @@ void paint_display_list(QPainter& p, const DisplayList& dl) {
         p.drawEllipse(QPointF(item.x1, item.y1), item.r1, item.r1);
         break;
       }
+      case Primitive::Kind::kRect: {
+        p.setPen(Qt::NoPen);
+        p.setBrush(rgb(item.fill));
+        p.drawRect(QRectF(item.x1 - item.r1, item.y1 - item.r2, 2.0 * item.r1, 2.0 * item.r2));
+        break;
+      }
     }
   }
 }

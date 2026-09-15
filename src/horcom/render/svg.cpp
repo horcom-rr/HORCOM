@@ -102,6 +102,10 @@ std::string to_svg(const DisplayList& dl) {
         s << "<circle cx=\"" << num(p.x1) << "\" cy=\"" << num(p.y1) << "\" r=\"" << num(p.r1) << "\" fill=\""
           << hex(p.color) << "\"/>\n";
         break;
+      case Primitive::Kind::kRect:
+        s << "<rect x=\"" << num(p.x1 - p.r1) << "\" y=\"" << num(p.y1 - p.r2) << "\" width=\"" << num(2.0 * p.r1)
+          << "\" height=\"" << num(2.0 * p.r2) << "\" fill=\"" << hex(p.fill) << "\"/>\n";
+        break;
     }
   }
   s << "</svg>\n";

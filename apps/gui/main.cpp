@@ -251,6 +251,9 @@ int main(int argc, char** argv) {
         if (f.size() > 10) {
           rec.surname = f[10].toStdString();
         }
+        if (f.size() > 11) {
+          rec.place = f[11].toStdString();
+        }
         window.preset_chart(rec, true, true);
       }
     }
