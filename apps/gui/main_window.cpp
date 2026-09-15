@@ -1043,6 +1043,9 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
       for (int c = 0; c < 10; ++c) {
         want += bodies_->columnWidth(c);
       }
+      // on wide windows the wheel keeps the surplus, the panel stays
+      // near a third and the remaining columns scroll
+      want = std::min(want, std::max(460, width() * 36 / 100));
       resizeDocks({body_dock_}, {want}, Qt::Horizontal);
     });
   }
