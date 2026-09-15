@@ -76,11 +76,6 @@ struct Pt {
   double y;
 };
 
-// the polar mapping of horg10, plein1 and aspz0
-Pt at(double w, double r, double km) {
-  return {kCx + km * r * std::cos(-w), kCy + km * r * std::sin(-w)};
-}
-
 double wheel_angle(double lambda, double fza) {
   return norm_rad(lambda + kPi - fza);
 }

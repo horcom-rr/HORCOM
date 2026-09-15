@@ -161,6 +161,63 @@ TEST_CASE("every glyph stays inside the canvas") {
   }
 }
 
+TEST_CASE("sign boxes, inverted rulers and stacked axis numbers") {
+  const Chart c = sample_chart();
+  REQUIRE(c.ok);
+  const AspectResult a = scan_aspects(c, {}, {});
+  WheelOptions opt;
+  opt.ruler_slot = body::kMars;
+  opt.ruler_slot2 = body::kVenus;
+  const DisplayList dl = build_wheel(c, {}, a, opt);
+  int boxes = 0;
+  int patches = 0;
+  int white_glyphs = 0;
+  for (const Primitive& p : dl.items) {
+    if (p.kind == Primitive::Kind::kRect && p.fill == 0xFFFFFF) {
+      ++boxes;
+    }
+    if (p.kind == Primitive::Kind::kDot && p.color == 0x000000) {
+      ++patches;
+    }
+    if (p.kind == Primitive::Kind::kGlyph && p.color == 0xFFFFFF) {
+      ++white_glyphs;
+    }
+  }
+  // every sign sprite keeps its white SRCCOPY ground
+  CHECK(boxes == 12);
+  // both rulers and the true node pair wear the dark patch
+  CHECK(patches == 4);
+  CHECK(white_glyphs == 4);
+  // the SVG backend knows the box
+  CHECK(to_svg(dl).find("<rect") != std::string::npos);
+  // MC carries its degree stacked below the tag like habes
+  bool stacked = false;
+  for (const Primitive& t : dl.items) {
+    if (t.kind != Primitive::Kind::kText || t.text != "MC") {
+      continue;
+    }
+    for (const Primitive& n : dl.items) {
+      if (n.kind == Primitive::Kind::kText && n.x1 == t.x1 && n.y1 > t.y1 &&
+          n.y1 - t.y1 < 14.0 && !n.text.empty() &&
+          n.text.find_first_not_of("0123456789") == std::string::npos) {
+        stacked = true;
+      }
+    }
+  }
+  CHECK(stacked);
+  // mean nodes draw plain, only the rulers stay inverted
+  WheelOptions mean = opt;
+  mean.invert_nodes = false;
+  const DisplayList dm = build_wheel(c, {}, a, mean);
+  patches = 0;
+  for (const Primitive& p : dm.items) {
+    if (p.kind == Primitive::Kind::kDot && p.color == 0x000000) {
+      ++patches;
+    }
+  }
+  CHECK(patches == 2);
+}
+
 TEST_CASE("crowded bodies separate on the glyph ring") {
   // a stellium chart, 1962-02-05 packed seven bodies into Aquarius
   ChartInput in;
