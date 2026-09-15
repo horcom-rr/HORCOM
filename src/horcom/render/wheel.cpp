@@ -609,19 +609,28 @@ DisplayList build_double_wheel(const Chart& inner, const Chart& outer, const Cha
   return dl;
 }
 
-DisplayList centered_sheet(const DisplayList& dl) {
+DisplayList centered_sheet(const DisplayList& dl, double width) {
   DisplayList out = dl;
-  // the wheel centre of the classic sheet moves to the middle of the
-  // full width sheet, the corner notes and the credit stay on the
-  // margins. The wheel itself grows a little, the sheet has no data
-  // column to leave room for, while the symbols keep their size.
-  const double cx = kScreenSheetWidth / 2.0;
+  // the wheel centre of the classic sheet moves to the middle of a
+  // sheet whose width follows the view, so the paper meets the panels
+  // without a dark gap. The wheel itself grows a little, the sheet has
+  // no data column to leave room for, while the symbols keep their
+  // size. The corner notes follow the sheet edges.
+  const double cx = width / 2.0;
   const double cy = kCanvasHeight / 2.0;
   const double dx = cx - kCx;
   const double dy = cy - kCy;
   const double f = 1.055;
-  out.width = kScreenSheetWidth;
+  out.width = width;
   for (Primitive& p : out.items) {
+    if (p.anchor == Primitive::Anchor::kCorner && p.kind == Primitive::Kind::kText) {
+      if (p.align_right) {
+        p.x1 = width - 8.0;
+      } else if (!p.align_left) {
+        p.x1 = cx;
+      }
+      continue;
+    }
     if (p.anchor != Primitive::Anchor::kSheet) {
       continue;
     }

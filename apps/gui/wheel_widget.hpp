@@ -36,7 +36,8 @@ class WheelWidget : public QWidget {
 
  private:
   DisplayList classic_;
-  DisplayList dl_;  // the centred screen view of classic_
+  DisplayList dl_;       // the centred screen view of classic_
+  double sheet_w_ = 0.0;  // the sheet width dl_ was built for
   double zoom_ = 1.0;
   QPointF pan_;
   QPointF drag_start_;

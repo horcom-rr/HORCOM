@@ -3,6 +3,7 @@
 // Copyright (c) 2026 Dominik Schwimmbeck
 
 #include <QApplication>
+#include <QFontDatabase>
 #include <QCoreApplication>
 #include <QDate>
 #include <QDir>
@@ -50,6 +51,8 @@ std::filesystem::path find_data_dir() {
 
 int main(int argc, char** argv) {
   QApplication app(argc, argv);
+  // the vector remake of his SYSTEM_FIXED_FONT for the chart sheet
+  QFontDatabase::addApplicationFont(QStringLiteral(":/fonts/FSEX302.ttf"));
   QApplication::setApplicationName("horcom");
   QApplication::setOrganizationName("horcom");
   // the remembered text scale of the Ansicht menu

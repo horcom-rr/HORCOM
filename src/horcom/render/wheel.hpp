@@ -157,8 +157,10 @@ struct WheelOptions {
 /// export shape.
 ///
 /// @param dl a display list in classic sheet coordinates
-/// @return the same drawing on a 480 by 480 sheet, wheel centred
-[[nodiscard]] DisplayList centered_sheet(const DisplayList& dl);
+/// @param width the sheet width, the view passes its own aspect so no
+/// dark gap stays between the panels and the paper
+/// @return the same drawing on the wheel centred sheet
+[[nodiscard]] DisplayList centered_sheet(const DisplayList& dl, double width = kScreenSheetWidth);
 
 /// The corner texts of the classic sheet, assembled by the caller so
 /// the drawing layer stays free of locale and record handling.

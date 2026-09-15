@@ -70,6 +70,12 @@ if(Qt6_FOUND)
     BASE ${CMAKE_SOURCE_DIR}/assets/symb
     FILES ${HORCOM_SYMB}
   )
+  # the vector remake of his SYSTEM_FIXED_FONT, keeps its own license
+  qt_add_resources(horcom_gui "fonts"
+    PREFIX "/fonts"
+    BASE ${CMAKE_SOURCE_DIR}/assets/fonts
+    FILES ${CMAKE_SOURCE_DIR}/assets/fonts/FSEX302.ttf
+  )
   target_link_libraries(horcom_gui PRIVATE horcom Qt6::Widgets Qt6::Svg Qt6::PrintSupport)
   set_target_properties(horcom_gui PROPERTIES WIN32_EXECUTABLE ON)
   horcom_stamp(horcom_gui "HORCOM desktop shell" horcom_gui horcom_gui.exe)
