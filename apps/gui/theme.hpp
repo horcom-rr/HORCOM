@@ -33,6 +33,8 @@ QMainWindow, QDialog {
 }
 QWidget {
   color: #E9E5D9;
+  font-family: "Courier New", monospace;
+  font-weight: bold;
   font-size: @14px@;
 }
 QLabel {
@@ -80,13 +82,13 @@ QLabel#aspectsLine {
   border: 1px solid #2C3759;
   border-radius: 5px;
   padding: 6px 10px;
-  font-family: "Cascadia Mono", Consolas, monospace;
+  font-family: "Courier New", monospace;
   font-size: @13px@;
 }
 QDockWidget {
   color: #D4A94A;
   background: #10172B;
-  font-family: "Cascadia Mono", Consolas, monospace;
+  font-family: "Courier New", monospace;
   font-size: @12px@;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -101,7 +103,7 @@ QTableWidget {
   alternate-background-color: #182138;
   gridline-color: #222C4E;
   border: 1px solid #2C3759;
-  font-family: "Cascadia Mono", Consolas, monospace;
+  font-family: "Courier New", monospace;
   font-size: @13px@;
   selection-background-color: #33406B;
   selection-color: #E9E5D9;
@@ -119,7 +121,7 @@ QHeaderView::section {
   border-bottom: 1px solid #2C3759;
   border-right: 1px solid #222C4E;
   padding: 4px 8px;
-  font-family: "Cascadia Mono", Consolas, monospace;
+  font-family: "Courier New", monospace;
   font-size: @11px@;
   letter-spacing: 1px;
 }
@@ -307,7 +309,7 @@ QScrollBar::handle:horizontal:hover {
 QListWidget {
   background: #151C33;
   border: 1px solid #2C3759;
-  font-family: "Cascadia Mono", Consolas, monospace;
+  font-family: "Courier New", monospace;
 }
 QToolTip {
   background: #182138;
