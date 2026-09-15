@@ -223,6 +223,39 @@ int main(int argc, char** argv) {
 
   horcom::MainWindow window(std::move(vsop), std::move(eph), data);
 
+  // --chart "DD.MM.YYYY,HH:MM:SS,E,11,35,0,N,48,8,0,NAME" presets the
+  // panel with parallax and true node on, the batch comparison hook
+  const int chart_arg = args.indexOf("--chart");
+  if (chart_arg >= 0 && chart_arg + 1 < args.size()) {
+    const QStringList f = args[chart_arg + 1].split(',');
+    if (f.size() >= 10) {
+      horcom::AafRecord rec;
+      const QStringList d = f[0].split('.');
+      const QStringList t = f[1].split(':');
+      if (d.size() == 3 && t.size() >= 2) {
+        rec.day = d[0].toInt();
+        rec.month = d[1].toInt();
+        rec.year = d[2].toInt();
+        rec.hour = t[0].toInt();
+        rec.minute = t[1].toInt();
+        rec.second = t.size() > 2 ? t[2].toInt() : 0;
+        rec.zone = "00hE00:00";
+        rec.lon_ew = f[2].isEmpty() ? 'E' : f[2].at(0).toLatin1();
+        rec.lon_deg = f[3].toInt();
+        rec.lon_min = f[4].toInt();
+        rec.lon_sec = f[5].toInt();
+        rec.lat_ns = f[6].isEmpty() ? 'N' : f[6].at(0).toLatin1();
+        rec.lat_deg = f[7].toInt();
+        rec.lat_min = f[8].toInt();
+        rec.lat_sec = f[9].toInt();
+        if (f.size() > 10) {
+          rec.surname = f[10].toStdString();
+        }
+        window.preset_chart(rec, true, true);
+      }
+    }
+  }
+
   // --shot FILE saves a capture of the window and quits, the hook for
   // visual checks without touching the desktop, --shot-transit FILE does
   // the same with the transit view switched on

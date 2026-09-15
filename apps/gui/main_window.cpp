@@ -3668,6 +3668,12 @@ void MainWindow::show_directions(double jd_event_ut, bool converse) {
   recompute();
 }
 
+void MainWindow::preset_chart(const AafRecord& r, bool parallax, bool true_node) {
+  parallax_->setChecked(parallax);
+  true_node_->setChecked(true_node);
+  apply_record(r);
+}
+
 void MainWindow::apply_record(const AafRecord& r) {
   if (r.year < 1) {
     QMessageBox::information(this, "HORCOM",

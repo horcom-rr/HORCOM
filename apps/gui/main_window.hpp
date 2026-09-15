@@ -52,6 +52,10 @@ class MainWindow : public QMainWindow {
   /// Switches the running clock chart on, the original UHR.
   void show_clock();
 
+  /// Presets the input panel and switches for a scripted capture,
+  /// the --chart flag of the capture hook.
+  void preset_chart(const AafRecord& r, bool parallax, bool true_node);
+
   /// Opens the comparison view over the given partner record, the
   /// capture hook's path into the Vergleich toggle.
   void show_compare(const AafRecord& partner);
