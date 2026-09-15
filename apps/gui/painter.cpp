@@ -123,7 +123,8 @@ void paint_display_list(QPainter& p, const DisplayList& dl) {
         path.arcTo(outer, a1, sweep);
         path.arcTo(inner, a1 + sweep, -sweep);
         path.closeSubpath();
-        p.setPen(QPen(rgb(item.color), 0.4));
+        // fill only, the sign borders and ring circles draw the edges
+        p.setPen(Qt::NoPen);
         p.setBrush(rgb(item.fill));
         p.drawPath(path);
         break;

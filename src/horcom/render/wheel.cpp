@@ -210,7 +210,9 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
     const double w = wheel_angle(j * span, fza);
     const Pt a = at(w, kSignInner - 1.0);
     const Pt b = at(w, kSignOuter + 1.0);
-    add({Primitive::Kind::kLine, a.x, a.y, b.x, b.y});
+    Primitive sl{Primitive::Kind::kLine, a.x, a.y, b.x, b.y};
+    sl.width = kThinLine;
+    add(sl);
   }
   // sign glyphs centred in their sign like zein1, the dial shows the
   // three qualities as their first signs
