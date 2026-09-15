@@ -266,11 +266,14 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
       t.x1 = pl.x;
       t.y1 = pl.y;
       t.size = kAxisTextSize;
-      // his layout carries the degree in sign beside the label, rounded
-      // to the nearest like planziff1
-      const double q = norm_deg(cusp * kRadToDeg);
-      t.text = std::string(kAxisLabelText[a]) + " " +
-               std::to_string(static_cast<int>(std::lround(q - 30.0 * std::floor(q / 30.0))));
+      // his layout numbers only AC and MC, DC and IC mirror them and
+      // carry the bare tag, rounded to the nearest like planziff1
+      t.text = kAxisLabelText[a];
+      if (a == 0 || a == 3) {
+        const double q = norm_deg(cusp * kRadToDeg);
+        t.text += " " +
+                  std::to_string(static_cast<int>(std::lround(q - 30.0 * std::floor(q / 30.0))));
+      }
       add(t);
     }
   }
@@ -777,6 +780,15 @@ void add_classic_text(DisplayList& dl, const Chart& chart, const ChartSettings& 
   text(x0, y, txt.mirror_label.empty() ? "Spiegelung:" : txt.mirror_label);
 
   add_corner_text(dl, txt, 205.0, 383.0, kCanvasWidth - 8.0);
+  // the DC axis label sits close to the sheet edge on the classic
+  // layout, pin overflowing centred labels inside the paper
+  for (Primitive& p : dl.items) {
+    if (p.anchor == Primitive::Anchor::kSheet && p.kind == Primitive::Kind::kText &&
+        !p.align_left && !p.align_right && p.x1 > kCanvasWidth - 24.0) {
+      p.align_right = true;
+      p.x1 = kCanvasWidth - 2.0;
+    }
+  }
 }
 
 void add_corner_text(DisplayList& dl, const ClassicSheetText& txt, double left_x, double center_x, double right_x) {
