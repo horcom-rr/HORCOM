@@ -325,8 +325,10 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
            kNumberSize * 0.6, 0, 0, 0, 0, kPaper});
     }
     if (opt.degree_numbers) {
-      const Pt n = at(wl[si], kGlyphRing + dc[si] - kGlyphSize);
-      add({Primitive::Kind::kDot, n.x, n.y, 0, 0, kNumberSize * 0.75, 0, 0, 0, 0, kPaper});
+      // planziff hangs the number below the glyph on screen, one glyph
+      // height under its centre, never into the radial stack
+      add({Primitive::Kind::kDot, g.x, g.y + kGlyphSize, 0, 0, kNumberSize * 0.75, 0, 0, 0, 0,
+           kPaper});
     }
   }
   for (int slot : slots) {
@@ -371,11 +373,10 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
       add(r);
     }
     if (opt.degree_numbers) {
-      const Pt n = at(wl[si], kGlyphRing + dc[si] - kGlyphSize);
       Primitive num;
       num.kind = Primitive::Kind::kText;
-      num.x1 = n.x;
-      num.y1 = n.y;
+      num.x1 = g.x;
+      num.y1 = g.y + kGlyphSize;
       num.size = kNumberSize;
       //RR CINT, planziff1 rounds the degree in sign to the nearest
       const double q = norm_deg(pl[si] * kRadToDeg);
@@ -532,15 +533,16 @@ static void draw_outer_bodies(DisplayList& dl, const Chart& chart, double fza, d
       add(r);
     }
     if (opt.degree_numbers) {
-      const Pt n = at(wl[si], glyph_ring + dc[si] - kGlyphSize);
-      add({Primitive::Kind::kDot, n.x, n.y, 0, 0, kNumberSize * 0.75, 0, 0, 0, 0, kPaper});
+      add({Primitive::Kind::kDot, g.x, g.y + kGlyphSize, 0, 0, kNumberSize * 0.75, 0, 0, 0, 0,
+           kPaper});
       Primitive num;
       num.kind = Primitive::Kind::kText;
-      num.x1 = n.x;
-      num.y1 = n.y;
+      num.x1 = g.x;
+      num.y1 = g.y + kGlyphSize;
       num.size = kNumberSize;
-      const int deg = static_cast<int>(norm_deg(pl[si] * kRadToDeg)) % 30;
-      num.text = std::to_string(deg);
+      //RR CINT, planziff1 rounds the degree in sign to the nearest
+      const double q = norm_deg(pl[si] * kRadToDeg);
+      num.text = std::to_string(static_cast<int>(std::lround(q - 30.0 * std::floor(q / 30.0))));
       add(num);
     }
   }
