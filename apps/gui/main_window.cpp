@@ -309,7 +309,8 @@ void MainWindow::build_ui() {
   //RR Spalte A ( = Acceleratio ) enthält das Vorzeichen der Beschleunigung
   // and ENTF carries the mutual distance in AU, then the mean node and
   // apsis points after Landscheidt
-  bodies_->setHorizontalHeaderLabels({tr("Länge"), tr("Breite"), tr("Deklin."), tr("Geschw."), "A", tr("Entf."),
+  //RR Vel.', the arc minutes per day of his coordinate screen
+  bodies_->setHorizontalHeaderLabels({tr("Länge"), tr("Breite"), tr("Deklin."), "Vel.'", "A", tr("Entf."),
                                       tr("Kn.ND"), tr("Kn.SD"), tr("Perihel"), tr("Aphel"), ""});
   bodies_->horizontalHeader()->setStretchLastSection(true);
   bodies_->verticalHeader()->setDefaultSectionSize(18);
@@ -997,7 +998,8 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
     if (!angle_slot) {
       bodies_->setItem(row, 1, new QTableWidgetItem(degs(b.eb)));
       bodies_->setItem(row, 2, new QTableWidgetItem(degs(b.de)));
-      bodies_->setItem(row, 3, new QTableWidgetItem(degs(b.tb)));
+      //RR Vel.', his velocity column counts arc minutes per day
+      bodies_->setItem(row, 3, new QTableWidgetItem(QString::number(b.tb * kRadToDeg * 60.0, 'f', 1)));
       // the sign of the acceleration, direct or retrograde at a station
       bodies_->setItem(row, 4, new QTableWidgetItem(b.ttb < 0.0 ? QString::fromUtf8("−") : "+"));
       if (b.dr > 0.0) {

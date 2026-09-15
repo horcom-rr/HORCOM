@@ -143,7 +143,8 @@ int main(int argc, char** argv) {
               chart.jd_ut, chart.delt_minutes, chart.armc_deg,
               std::string(chart.houses.name).c_str(),
               s.topocentric_parallax ? "  MitParall." : "");
-  std::printf("%-4s %-14s %-10s %-10s %-10s\n", "", "LAENGE", "BREITE", "DEKLIN.", "GESCHW.");
+  //RR Vel.', arc minutes per day like his coordinate screen
+  std::printf("%-4s %-14s %-10s %-10s %-10s\n", "", "LAENGE", "BREITE", "DEKLIN.", "VEL.'");
   for (int slot = 0; slot < body::kSlotCount; ++slot) {
     const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
     if (!b.present) {
@@ -155,10 +156,13 @@ int main(int argc, char** argv) {
       continue;
     }
     const bool angle_slot = slot == body::kAscendant || slot == body::kMc;
+    char vel[16] = "";
+    if (!angle_slot) {
+      std::snprintf(vel, sizeof(vel), "%+8.1f", b.tb * kRadToDeg * 60.0);
+    }
     std::printf("%-4s %-14s %-10s %-10s %-10s%s\n", tag.c_str(), format_zodiac(b.el).c_str(),
                 angle_slot ? "" : format_deg(b.eb).c_str(),
-                angle_slot ? "" : format_deg(b.de).c_str(),
-                angle_slot ? "" : format_deg(b.tb).c_str(),
+                angle_slot ? "" : format_deg(b.de).c_str(), vel,
                 (!angle_slot && b.tb < 0.0) ? "  R" : "");
   }
   if (!(s.houses == HouseSystem::kAcMcOnly || s.houses == HouseSystem::kNone)) {
