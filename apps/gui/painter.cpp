@@ -63,7 +63,7 @@ void paint_display_list(QPainter& p, const DisplayList& dl) {
         path.arcTo(inner, a1 + sweep, -sweep);
         path.closeSubpath();
         p.setPen(QPen(rgb(item.color), 0.4));
-        p.setBrush(rgb(item.fill, 110));
+        p.setBrush(rgb(item.fill));
         p.drawPath(path);
         break;
       }

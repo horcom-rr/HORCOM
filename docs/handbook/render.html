@@ -23,10 +23,19 @@ The renderer rebuilds Robert's chart wheel from his exact geometry, the
 virtual canvas of 640 by 480 with the centre at 430, 224, the scale
 km&nbsp;0.95, the rings at 90, 128, 152, 165 and 182, the polar mapping
 w&nbsp;=&nbsp;nb(lambda&nbsp;+&nbsp;pi&nbsp;&minus;&nbsp;fza) that puts the ascendant on the left, the
-axes reaching 188 with their labels at 200. The output is a backend
+axes reaching 188 with their labels just outside. The output is a backend
 neutral display list, one code path can feed the screen, an SVG file or a
 printer later, which resolves the original's three way moda&amp; branching by
 design.
+</p>
+<p>
+The sign band wears the colours as they actually appeared on his screen.
+His code asked for red, olive, teal and cyan, but the 48 colour palette
+and the hatch fills of <code>deffi</code> rendered salmon, green, a pale
+cyan grey and blue, verified against captures of the original running
+under emulation. The node glyphs sit inverted on a dark patch like his
+SRCINVERT bitmaps, retrograde bodies carry his red R, and the axis
+labels carry the rounded degree in sign beside AC, IC, DC and MC.
 </p>
 
 <h2>Origin map</h2>

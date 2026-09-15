@@ -84,7 +84,7 @@ std::string to_svg(const DisplayList& dl) {
           << "/>\n";
         break;
       case Primitive::Kind::kSector:
-        s << "<path d=\"" << sector_path(p) << "\" fill=\"" << hex(p.fill) << "\" fill-opacity=\"0.25\" stroke=\""
+        s << "<path d=\"" << sector_path(p) << "\" fill=\"" << hex(p.fill) << "\" stroke=\""
           << hex(p.color) << "\" stroke-width=\"0.5\"/>\n";
         break;
       case Primitive::Kind::kGlyph:

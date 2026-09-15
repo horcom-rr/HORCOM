@@ -26,11 +26,11 @@ constexpr double kSignInner = 152.0;
 constexpr double kSignGlyphRing = 165.0;
 constexpr double kSignOuter = 182.0;
 constexpr double kAxisEnd = 188.0;
-constexpr double kAxisLabel = 200.0;
+constexpr double kAxisLabel = 208.0;
 constexpr double kTickInnerRing = 148.0;
 constexpr double kConjDotRing = 85.0;  // the original red conjunction dot
 constexpr double kGlyphSize = 14.0;
-constexpr double kNumberSize = 8.0;
+constexpr double kNumberSize = 10.0;
 constexpr double kAxisTextSize = 11.0;
 // the transit ring of a20, glyphs from plein1 and markers from plmk
 constexpr double kTransitGlyphRing = 212.0;
@@ -41,8 +41,12 @@ constexpr double kMarkInset = 3.0;
 constexpr double kMarkOutset = 5.0;
 constexpr double kLabelSize = 10.0;
 
-// element colours of the original fill_color, fire, earth, air, water
-constexpr Rgb kElementColor[4] = {0xFF0000, 0x808000, 0x008080, 0x00FFFF};
+// element colours of the original fill_color as they appeared on his
+// screen, fire, earth, air, water. His code asked for red, olive, teal
+// and cyan, but the 48 colour palette and the hatch fills of deffi
+// rendered salmon, green, pale cyan grey and blue. These are the
+// hatch densities pre blended on white, drawn opaque.
+constexpr Rgb kElementColor[4] = {0xFF9086, 0x14CD14, 0xDEF2F2, 0x4646FF};
 
 // aspect chord colours of the original aspz1 per divisor
 constexpr Rgb kAspectColor[13] = {0, 0, 0xFF0000, 0x00C800, 0xFF0000, 0x0000C8, 0x00C800,
@@ -251,7 +255,9 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
       t.x1 = pl.x;
       t.y1 = pl.y;
       t.size = kAxisTextSize;
-      t.text = kAxisLabelText[a];
+      // his layout carries the rounded degree in sign beside the label
+      t.text = std::string(kAxisLabelText[a]) + " " +
+               std::to_string(static_cast<int>(norm_deg(cusp * kRadToDeg)) % 30);
       add(t);
     }
   }
@@ -295,21 +301,43 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
     const Pt tick2 = at(w_true, kSignInner);
     add({Primitive::Kind::kLine, tick1.x, tick1.y, tick2.x, tick2.y});
     const Pt g = at(wl[si], kGlyphRing + dc[si]);
+    // his node glyphs sit inverted on a dark patch, putbm SRCINVERT
+    const bool inverted = slot == body::kNodeAsc || slot == body::kNodeDesc;
+    if (inverted) {
+      Primitive box;
+      box.kind = Primitive::Kind::kDot;
+      box.x1 = g.x;
+      box.y1 = g.y;
+      box.r1 = kGlyphSize * 0.62;
+      box.color = 0x000000;
+      add(box);
+    }
     Primitive p;
     p.kind = Primitive::Kind::kGlyph;
     p.x1 = g.x;
     p.y1 = g.y;
     p.size = kGlyphSize;
+    if (inverted) {
+      p.color = 0xFFFFFF;
+    }
     // in the hrg mode the moon slot carries the earth
     p.text = (opt.heliocentric && slot == body::kMoon) ? "\xE2\x8A\x95" : kBodyGlyph[si];
-    if (chart.b[si].tb < 0.0 && slot >= 3 && slot <= 10) {
-      p.text += " R";
-    }
     //RR einzelne Planeten ROT markieren
     if (opt.emphasis[si] > 0) {
       p.color = 0xFF0000;
     }
     add(p);
+    // the red R of his retrograde marker beside the glyph
+    if (chart.b[si].tb < 0.0 && slot >= 3 && slot <= 10) {
+      Primitive r;
+      r.kind = Primitive::Kind::kText;
+      r.x1 = g.x + kGlyphSize * 0.85;
+      r.y1 = g.y - kGlyphSize * 0.3;
+      r.size = kNumberSize;
+      r.color = 0xFF0000;
+      r.text = "R";
+      add(r);
+    }
     if (opt.degree_numbers) {
       const Pt n = at(wl[si], kGlyphRing + dc[si] - kGlyphSize);
       Primitive num;

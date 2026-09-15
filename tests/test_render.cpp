@@ -113,7 +113,7 @@ TEST_CASE("the wheel puts the ascendant on the left") {
   // centre 430, 224
   bool found = false;
   for (const Primitive& p : dl.items) {
-    if (p.kind == Primitive::Kind::kText && p.text == "AC") {
+    if (p.kind == Primitive::Kind::kText && p.text.rfind("AC", 0) == 0) {
       found = true;
       CHECK(p.x1 < kWheelCenterX - 0.9 * 190.0);
       CHECK(std::abs(p.y1 - kWheelCenterY) < 15.0);
