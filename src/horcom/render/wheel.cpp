@@ -31,8 +31,8 @@ constexpr double kAxisLabel = 208.0;
 // the position mark ring of plein11, ticks span minus 3 to plus 5
 constexpr double kTickRing = 150.0;
 constexpr double kConjDotRing = 85.0;  // the original red conjunction dot
-constexpr double kGlyphSize = 14.0;
-constexpr double kNumberSize = 10.0;
+constexpr double kGlyphSize = 11.0;
+constexpr double kNumberSize = 8.0;
 constexpr double kAxisTextSize = 11.0;
 // the transit ring of a20, glyphs from plein1 and markers from plmk
 constexpr double kTransitGlyphRing = 212.0;
@@ -234,7 +234,7 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
       const double w = wheel_angle(chart.houses.cusp[static_cast<std::size_t>(dial_axes[a])], fza);
       const Pt p1 = at(w, kAspectRing);
       const Pt p2 = at(w, kAxisEnd);
-      add({Primitive::Kind::kLine, p1.x, p1.y, p2.x, p2.y, 0, 0, 0, 0, 0, 0x000000, 0xFFFFFF, Primitive::Style::kSolid, 2.0});
+      add({Primitive::Kind::kLine, p1.x, p1.y, p2.x, p2.y, 0, 0, 0, 0, 0, 0x000000, 0xFFFFFF, Primitive::Style::kSolid, 1.3});
       const Pt pl = at(w, kAxisLabel);
       Primitive t;
       t.kind = Primitive::Kind::kText;
@@ -253,16 +253,18 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
       const double w = wheel_angle(cusp, fza);
       const Pt p1 = at(w, kAspectRing);
       const Pt p2 = at(w, kAxisEnd);
-      add({Primitive::Kind::kLine, p1.x, p1.y, p2.x, p2.y, 0, 0, 0, 0, 0, 0x000000, 0xFFFFFF, Primitive::Style::kSolid, 2.0});
+      add({Primitive::Kind::kLine, p1.x, p1.y, p2.x, p2.y, 0, 0, 0, 0, 0, 0x000000, 0xFFFFFF, Primitive::Style::kSolid, 1.3});
       const Pt pl = at(w, kAxisLabel);
       Primitive t;
       t.kind = Primitive::Kind::kText;
       t.x1 = pl.x;
       t.y1 = pl.y;
       t.size = kAxisTextSize;
-      // his layout carries the rounded degree in sign beside the label
+      // his layout carries the degree in sign beside the label, rounded
+      // to the nearest like planziff1
+      const double q = norm_deg(cusp * kRadToDeg);
       t.text = std::string(kAxisLabelText[a]) + " " +
-               std::to_string(static_cast<int>(norm_deg(cusp * kRadToDeg)) % 30);
+               std::to_string(static_cast<int>(std::lround(q - 30.0 * std::floor(q / 30.0))));
       add(t);
     }
   }
@@ -317,7 +319,7 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
     // the paper cutouts, his putbm sprites erased the lines beneath
     // with their white background
     const Pt g = at(wl[si], kGlyphRing + dc[si]);
-    add({Primitive::Kind::kDot, g.x, g.y, 0, 0, kGlyphSize * 0.72, 0, 0, 0, 0, kPaper});
+    add({Primitive::Kind::kDot, g.x, g.y, 0, 0, kGlyphSize * 0.60, 0, 0, 0, 0, kPaper});
     if (chart.b[si].tb < 0.0 && slot >= 3 && slot <= 10) {
       add({Primitive::Kind::kDot, g.x + kGlyphSize * 0.85, g.y - kGlyphSize * 0.3, 0, 0,
            kNumberSize * 0.6, 0, 0, 0, 0, kPaper});
@@ -338,7 +340,7 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
       box.kind = Primitive::Kind::kDot;
       box.x1 = g.x;
       box.y1 = g.y;
-      box.r1 = kGlyphSize * 0.82;
+      box.r1 = kGlyphSize * 0.62;
       box.color = 0x000000;
       add(box);
     }
@@ -510,7 +512,7 @@ static void draw_outer_bodies(DisplayList& dl, const Chart& chart, double fza, d
     const Pt m2 = at(w_true, mark_ring + kMarkOutset);
     add({Primitive::Kind::kLine, m1.x, m1.y, m2.x, m2.y});
     const Pt g = at(wl[si], glyph_ring + dc[si]);
-    add({Primitive::Kind::kDot, g.x, g.y, 0, 0, kGlyphSize * 0.72, 0, 0, 0, 0, kPaper});
+    add({Primitive::Kind::kDot, g.x, g.y, 0, 0, kGlyphSize * 0.60, 0, 0, 0, 0, kPaper});
     Primitive p;
     p.kind = Primitive::Kind::kGlyph;
     p.x1 = g.x;
@@ -568,7 +570,7 @@ DisplayList build_double_wheel(const Chart& inner, const Chart& outer, const Cha
       const double w = wheel_angle(outer.houses.cusp[static_cast<std::size_t>(a)], fza);
       const Pt p1 = at(w, kAspectRing);
       const Pt p2 = at(w, kAxisEnd);
-      add({Primitive::Kind::kLine, p1.x, p1.y, p2.x, p2.y, 0, 0, 0, 0, 0, 0x000000, 0xFFFFFF, Primitive::Style::kSolid, 2.0});
+      add({Primitive::Kind::kLine, p1.x, p1.y, p2.x, p2.y, 0, 0, 0, 0, 0, 0x000000, 0xFFFFFF, Primitive::Style::kSolid, 1.3});
     }
   }
   if (!opt.heliocentric && !opt.dial && !(s.houses == HouseSystem::kAcMcOnly || s.houses == HouseSystem::kNone)) {
