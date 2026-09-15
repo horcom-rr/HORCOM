@@ -88,6 +88,13 @@ class MainWindow : public QMainWindow {
   /// @return true when the page was written
   bool export_pdf_to(const QString& path);
 
+  /// Writes the classic sheet as SVG with his sprites embedded, the
+  /// file half of the SVG export dialog.
+  ///
+  /// @param path the target file
+  /// @return true when the document was written
+  bool export_svg_to(const QString& path);
+
  private slots:
   void recompute();
   void open_records();

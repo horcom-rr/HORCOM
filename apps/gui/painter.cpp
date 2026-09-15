@@ -4,6 +4,7 @@
 
 #include "painter.hpp"
 
+#include <QBuffer>
 #include <QHash>
 #include <QImage>
 #include <QPainter>
@@ -186,6 +187,30 @@ void paint_display_list(QPainter& p, const DisplayList& dl) {
       }
     }
   }
+}
+
+GlyphImageResolver svg_sprite_resolver() {
+  return [](const std::string& glyph, Rgb color) -> std::string {
+    const auto stem = sprite_stems().find(QString::fromStdString(glyph));
+    if (stem == sprite_stems().end()) {
+      return {};
+    }
+    static QHash<QString, std::string> cache;
+    const QString key = *stem + QChar(':') + QString::number(color, 16);
+    const auto it = cache.constFind(key);
+    if (it != cache.constEnd()) {
+      return *it;
+    }
+    const QImage& img = sprite(*stem, color);
+    if (img.isNull()) {
+      return {};
+    }
+    QByteArray png;
+    QBuffer buf(&png);
+    buf.open(QIODevice::WriteOnly);
+    img.save(&buf, "PNG");
+    return *cache.insert(key, "data:image/png;base64," + png.toBase64().toStdString());
+  };
 }
 
 void paint_fitted(QPainter& p, const DisplayList& dl, const QRectF& target) {

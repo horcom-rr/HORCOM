@@ -3913,11 +3913,17 @@ void MainWindow::export_svg() {
   if (path.isEmpty()) {
     return;
   }
-  const std::string svg = to_svg(classic_export_list());
+  export_svg_to(path);
+}
+
+bool MainWindow::export_svg_to(const QString& path) {
+  const std::string svg = to_svg(classic_export_list(), svg_sprite_resolver());
   QFile f(path);
-  if (f.open(QIODevice::WriteOnly)) {
-    f.write(svg.data(), static_cast<qint64>(svg.size()));
+  if (!f.open(QIODevice::WriteOnly)) {
+    return false;
   }
+  f.write(svg.data(), static_cast<qint64>(svg.size()));
+  return true;
 }
 
 bool MainWindow::export_pdf_to(const QString& path) {

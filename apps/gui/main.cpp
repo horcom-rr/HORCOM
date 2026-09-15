@@ -353,6 +353,12 @@ int main(int argc, char** argv) {
     window.export_pdf_to(args[shot_pdf + 1]);
     return 0;
   }
+  // --shot-svg FILE does the same for the SVG export
+  const int shot_svg = args.indexOf("--shot-svg");
+  if (shot_svg >= 0 && shot_svg + 1 < args.size()) {
+    window.export_svg_to(args[shot_svg + 1]);
+    return 0;
+  }
   // --size WxH fixes the window size, mainly for captures
   const int size_arg = args.indexOf("--size");
   if (size_arg >= 0 && size_arg + 1 < args.size()) {

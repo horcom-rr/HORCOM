@@ -68,7 +68,7 @@ std::string sector_path(const Primitive& p) {
 
 }  // namespace
 
-std::string to_svg(const DisplayList& dl) {
+std::string to_svg(const DisplayList& dl, const GlyphImageResolver& sprites) {
   std::ostringstream s;
   s << "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 " << num(dl.width) << ' ' << num(dl.height)
     << "\" font-family=\"'Segoe UI Symbol', 'Noto Sans Symbols', sans-serif\">\n";
@@ -88,6 +88,19 @@ std::string to_svg(const DisplayList& dl) {
         s << "<path d=\"" << sector_path(p) << "\" fill=\"" << hex(p.fill) << "\" stroke=\"none\"/>\n";
         break;
       case Primitive::Kind::kGlyph:
+        if (sprites) {
+          // his sprite, pre tinted by the resolver, drawn at the same
+          // slightly grown side as the screen painter
+          const std::string uri = sprites(p.text, p.color);
+          if (!uri.empty()) {
+            const double side = p.size * 1.1;
+            s << "<image x=\"" << num(p.x1 - side / 2.0) << "\" y=\"" << num(p.y1 - side / 2.0)
+              << "\" width=\"" << num(side) << "\" height=\"" << num(side) << "\" href=\"" << uri
+              << "\"/>\n";
+            break;
+          }
+        }
+        [[fallthrough]];
       case Primitive::Kind::kText:
         s << "<text x=\"" << num(p.x1) << "\" y=\"" << num(p.y1) << "\" font-size=\"" << num(p.size)
           << "\" text-anchor=\"" << (p.align_right ? "end" : p.align_left ? "start" : "middle")

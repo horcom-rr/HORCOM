@@ -61,7 +61,10 @@ the corner, since the coordinate and house tables live in their own
 panels now. The export paths, SVG, PDF and printing, still produce his
 classic 640 by 480 sheet, the body table with velocities down the left
 margin, the house summary and the record corners around the wheel on
-the right, one page and no separate table sheet.
+the right, one page and no separate table sheet. The GUI hands its
+tinted sprite cache into the SVG writer as embedded images, so the
+export carries his symbols like the screen, while the Qt free CLI
+falls back to font glyphs.
 </p>
 
 <h2>Origin map</h2>

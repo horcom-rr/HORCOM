@@ -6,6 +6,7 @@
 
 #include <QRectF>
 
+#include "horcom/render/svg.hpp"
 #include "horcom/render/wheel.hpp"
 
 class QPainter;
@@ -27,5 +28,11 @@ void paint_display_list(QPainter& p, const DisplayList& dl);
 /// @param dl     the list to draw
 /// @param target the page area to fill
 void paint_fitted(QPainter& p, const DisplayList& dl, const QRectF& target);
+
+/// A resolver that embeds his sprite drawings into SVG exports as data
+/// URIs, tinted like the screen, so the export shows the same symbols.
+///
+/// @return the hook for to_svg, empty results fall back to the font
+[[nodiscard]] GlyphImageResolver svg_sprite_resolver();
 
 }  // namespace horcom

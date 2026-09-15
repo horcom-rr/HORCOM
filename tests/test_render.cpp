@@ -190,6 +190,12 @@ TEST_CASE("sign boxes, inverted rulers and stacked axis numbers") {
   CHECK(white_glyphs == 4);
   // the SVG backend knows the box
   CHECK(to_svg(dl).find("<rect") != std::string::npos);
+  // a sprite resolver turns glyphs into embedded images, without one
+  // the font text stays
+  const std::string with_sprites =
+      to_svg(dl, [](const std::string&, Rgb) { return std::string("data:image/png;base64,AA=="); });
+  CHECK(with_sprites.find("<image") != std::string::npos);
+  CHECK(to_svg(dl).find("<image") == std::string::npos);
   // MC carries its degree stacked below the tag like habes
   bool stacked = false;
   for (const Primitive& t : dl.items) {
