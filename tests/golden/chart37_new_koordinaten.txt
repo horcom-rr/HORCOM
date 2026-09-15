@@ -1,0 +1,35 @@
+horcom  |  25.05.1910  08:08.13 UT  |  Lon -58.3833  Lat -34.6000
+JD(UT) 2418816.83898  Delta T 0.16 min  ARMC 305.6812  Placidus  MitParall.
+
+     LAENGE         BREITE     DEKLIN.    GESCHW.   
+so    3 GM 13'44"     +0.0018   +20.8151    +0.9599 
+mo   14 SG 47'08"     -1.3453   -23.9204   +12.0662 
+me    3 GM 48'09"     -1.5615   +19.3884    -0.5670   R
+ve   19 AR 39'06"     -2.0184    +5.8226    +1.1041 
+ma   14 CN 34'14"     +1.3254   +23.9727    +0.6211 
+ju    4 LI 41'56"     +1.4674    -0.5213    -0.0225   R
+sa    0 TA 56'14"     -2.2757    +9.6724    +0.1142 
+ur   24 CP 58'30"     -0.5020   -21.6411    -0.0197   R
+ne   17 CN 24'55"     -0.6502   +21.6728    +0.0284 
+pl   25 GM 49'03"     -6.6740   +16.7152    +0.0223 
+dr   28 TA 15'45"     +0.0000   +19.7838    -0.0095   R
+ds   28 SC 15'45"     +0.0000   -19.7838    -0.0095   R
+ac   29 AR 46'09"                                   
+mc    3 AQ 22'31"                                   
+
+HAEUSER (Placidus)
+ 1   29 AR 46'09"
+ 2   28 TA 20'29"
+ 3   29 GM 53'13"
+ 4    3 LE 22'31"
+ 5    6 VI 03'46"
+ 6    5 LI 09'41"
+ 7   29 LI 46'09"
+ 8   28 SC 20'29"
+ 9   29 SG 53'13"
+10    3 AQ 22'31"
+11    6 PS 03'46"
+12    5 AR 09'41"
+
+ASPEKTE  konj 8  opp 2  trigon 6  quadrat 2  sextil 0
+Wheel written to C:\Users\domin\AppData\Local\Temp\claude\C--Users-domin-horcom\9bfbc697-9674-43b6-9a0d-d44568299610\scratchpad\golden\chart37_new_wheel.svg

@@ -133,9 +133,16 @@ The test suite currently holds 131 test cases with 1622 assertions, all green,
 built with MSVC at warning level 4 with warnings as errors. The anchors are
 Jean Meeus's worked examples, the binary data files themselves and cross
 checks between independent engines, the Chapront theory against the
-integrated Pluto file among them. Golden fixtures recorded from the original
-program join the suite once the calculation chain produces full coordinate
-tables.
+integrated Pluto file among them. The golden reference now exists,
+<code>tests/golden</code> holds fifty synthetic charts recorded from the
+original HORCOM7P.EXE running under emulation, dates 1900 to 2012 across
+both hemispheres, the equator, the polar circle and the calendar edge
+cases. All 550 planet longitudes agree with the original within one arc
+second of display rounding, 47 of 50 charts agree on every house cusp,
+and the three exceptions are a single cusp 1.1 arc minutes off whose
+cause, the early stop of the original's Placidus iteration in GFA
+arithmetic, is documented there. <code>tools/compare_golden.py</code>
+replays the comparison.
 </p>
 
 </main>
