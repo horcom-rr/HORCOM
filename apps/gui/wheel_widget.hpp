@@ -19,11 +19,12 @@ class WheelWidget : public QWidget {
  public:
   explicit WheelWidget(QWidget* parent = nullptr);
 
-  /// Replaces the drawing and repaints.
+  /// Replaces the drawing and repaints. The screen shows the wheel
+  /// centred on a square sheet, the classic sheet stays for export.
   void set_display_list(DisplayList dl);
 
-  /// @return the current drawing, the print and PDF paths read it
-  [[nodiscard]] const DisplayList& display_list() const { return dl_; }
+  /// @return the classic sheet drawing, the print and PDF paths read it
+  [[nodiscard]] const DisplayList& display_list() const { return classic_; }
 
  protected:
   void paintEvent(QPaintEvent* event) override;
@@ -34,7 +35,8 @@ class WheelWidget : public QWidget {
   void mouseDoubleClickEvent(QMouseEvent* event) override;
 
  private:
-  DisplayList dl_;
+  DisplayList classic_;
+  DisplayList dl_;  // the centred screen view of classic_
   double zoom_ = 1.0;
   QPointF pan_;
   QPointF drag_start_;

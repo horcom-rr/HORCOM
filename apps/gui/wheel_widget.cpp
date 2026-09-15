@@ -20,7 +20,8 @@ WheelWidget::WheelWidget(QWidget* parent) : QWidget(parent) {
 }
 
 void WheelWidget::set_display_list(DisplayList dl) {
-  dl_ = std::move(dl);
+  classic_ = std::move(dl);
+  dl_ = centered_sheet(classic_);
   update();
 }
 
@@ -29,7 +30,7 @@ void WheelWidget::paintEvent(QPaintEvent* /*event*/) {
   p.setRenderHint(QPainter::Antialiasing, true);
   p.setRenderHint(QPainter::TextAntialiasing, true);
   // the dark desk of the theme
-  p.fillRect(rect(), QColor(0x0A, 0x0F, 0x1E));
+  p.fillRect(rect(), QColor(0x10, 0x17, 0x2B));
   if (dl_.items.empty()) {
     return;
   }

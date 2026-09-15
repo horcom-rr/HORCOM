@@ -3833,6 +3833,67 @@ void MainWindow::save_aaf() {
   }
 }
 
+// the corner texts of his HOROSKOP GRAPHIK screen, the export sheet
+// carries them so the old print comes back out of the new program
+ClassicSheetText MainWindow::classic_sheet_text() const {
+  ClassicSheetText t;
+  t.name = QString("%1 %2")
+               .arg(QString::fromStdString(record_.surname), QString::fromStdString(record_.given))
+               .trimmed()
+               .toStdString();
+  t.place = record_.place;
+  const ChartSettings s = current_settings();
+  if (s.heliocentric) {
+    t.mode = tr("Heliozentrisch").toStdString();
+  } else {
+    //RR Topozentrisch
+    t.mode = (s.topocentric_parallax ? tr("Topozentrisch") : tr("Geozentrisch")).toStdString();
+  }
+  if (last_chart_) {
+    const double stz_h = norm_deg(last_chart_->armc_deg) / 15.0;
+    const int stz_s = static_cast<int>(stz_h * 3600.0 + 0.5);
+    t.stz = QString::asprintf("STZ:%2dh %2dm %2ds", stz_s / 3600, (stz_s / 60) % 60, stz_s % 60)
+                .toStdString();
+    //RR day_w$, der WOCHENTAG im HOROSKOP-Formular
+    static constexpr const char* kWeekday[7] = {QT_TR_NOOP("Sonntag"),    QT_TR_NOOP("Montag"),
+                                                QT_TR_NOOP("Dienstag"),   QT_TR_NOOP("Mittwoch"),
+                                                QT_TR_NOOP("Donnerstag"), QT_TR_NOOP("Freitag"),
+                                                QT_TR_NOOP("Samstag")};
+    const int wd = static_cast<int>(std::fmod(last_chart_->jd_ut + 1.5, 7.0));
+    if (wd >= 0 && wd < 7) {
+      t.weekday = tr(kWeekday[wd]).toStdString();
+    }
+  }
+  const ChartInput in = current_input();
+  const auto coord = [](const char* tag, double v, char pos, char neg) {
+    const char hemi = v < 0.0 ? neg : pos;
+    const double a = std::abs(v);
+    const int d = static_cast<int>(a);
+    return QString::asprintf("%s %d\xC2\xB0 %4.1f'%c", tag, d, (a - d) * 60.0, hemi).toStdString();
+  };
+  //RR Lä: und Br:, die Ortszeile des Formulars
+  t.lon = coord("L\xC3\xA4:", in.lon_deg_east, 'E', 'W');
+  t.lat = coord("Br:", in.lat_deg, 'N', 'S');
+  t.date = QString::asprintf("Datum:%2d.%2d.%04d", in.date_ut.day, in.date_ut.month, in.date_ut.year)
+               .toStdString();
+  int sec = static_cast<int>((in.date_ut.hour * 60.0 + in.date_ut.minute) * 60.0 + 0.5);
+  if (sec >= kSecondsPerDay) {
+    sec = kSecondsPerDay - 1;
+  }
+  t.ut = QString::asprintf("UT:%3dh %2dm %2ds", sec / 3600, (sec / 60) % 60, sec % 60).toStdString();
+  return t;
+}
+
+// the export drawing, the classic sheet of the original with the body
+// table down the left margin around whatever the wheel currently shows
+DisplayList MainWindow::classic_export_list() const {
+  DisplayList dl = wheel_->display_list();
+  if (last_chart_) {
+    add_classic_text(dl, *last_chart_, current_settings(), classic_sheet_text());
+  }
+  return dl;
+}
+
 void MainWindow::export_svg() {
   if (!last_chart_ || !last_aspects_) {
     return;
@@ -3841,74 +3902,15 @@ void MainWindow::export_svg() {
   if (path.isEmpty()) {
     return;
   }
-  const std::string svg = to_svg(build_wheel(*last_chart_, current_settings(), *last_aspects_));
+  const std::string svg = to_svg(classic_export_list());
   QFile f(path);
   if (f.open(QIODevice::WriteOnly)) {
     f.write(svg.data(), static_cast<qint64>(svg.size()));
   }
 }
 
-// ported from bes_big, the data sheet of the DINA4 chart print with
-// the coordinate block, the houses and the midpoint list
-void MainWindow::paint_data_sheet(QPainter& p, const QRectF& page) {
-  if (!last_chart_ || !last_aspects_) {
-    return;
-  }
-  const Chart& chart = *last_chart_;
-  QFont font = p.font();
-  font.setPixelSize(static_cast<int>(page.height() / 52.0));
-  p.setFont(font);
-  p.setPen(Qt::black);
-  const double lh = page.height() / 46.0;
-  const double col_w = page.width() / 3.0;
-  const auto tag_of = [](int slot) {
-    return QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
-                             static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size()));
-  };
-  double y = page.top() + lh;
-  p.drawText(QPointF(page.left(), y), tr("KOORDINATEN"));
-  y += lh;
-  for (int slot = 0; slot < body::kSlotCount; ++slot) {
-    const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
-    if (!b.present || !b.valid || slot == body::kNodeDesc || (slot >= 15 && slot <= 18)) {
-      continue;
-    }
-    p.drawText(QPointF(page.left(), y),
-               QString("%1  %2  %3'/d").arg(slot == 0 ? "sp" : tag_of(slot), -4).arg(zodiac(b.el)).arg(b.tb * kRadToDeg * 60.0, 0, 'f', 1));
-    y += lh;
-    if (y > page.bottom() - lh) {
-      break;
-    }
-  }
-  y = page.top() + lh;
-  p.drawText(QPointF(page.left() + col_w, y), tr("HÄUSER"));
-  y += lh;
-  if (chart.houses.ok) {
-    for (int i = 1; i <= 12; ++i) {
-      p.drawText(QPointF(page.left() + col_w, y),
-                 QString("H%1  %2").arg(i, 2).arg(zodiac(chart.houses.cusp[static_cast<std::size_t>(i)])));
-      y += lh;
-    }
-  }
-  //RR die Halbsummenliste der GANZSEITEN-Graphik
-  y = page.top() + lh;
-  p.drawText(QPointF(page.left() + 2.0 * col_w, y), tr("HALBSUMMEN"));
-  y += lh;
-  const MidpointResult mid = scan_midpoints(chart, current_settings(), aspect_settings_);
-  static constexpr const char* kLevel[9] = {"", "360", "180", "", "90", "", "", "", "45"};
-  for (const MidpointHit& h : mid.hits) {
-    p.drawText(QPointF(page.left() + 2.0 * col_w, y),
-               QString("%1 = %2/%3  %4°").arg(tag_of(h.t), tag_of(h.u), tag_of(h.w), QString(kLevel[h.nh])));
-    y += lh;
-    if (y > page.bottom() - lh) {
-      p.drawText(QPointF(page.left() + 2.0 * col_w, y), QString::fromUtf8("…"));
-      break;
-    }
-  }
-}
-
 bool MainWindow::export_pdf_to(const QString& path) {
-  const DisplayList& dl = wheel_->display_list();
+  const DisplayList dl = classic_export_list();
   if (dl.items.empty()) {
     return false;
   }
@@ -3923,11 +3925,6 @@ bool MainWindow::export_pdf_to(const QString& path) {
     return false;
   }
   paint_fitted(p, dl, QRectF(0, 0, writer.width(), writer.height()));
-  if (last_chart_ && last_aspects_) {
-    writer.newPage();
-    paint_data_sheet(p, QRectF(writer.width() * 0.04, writer.height() * 0.04, writer.width() * 0.92,
-                               writer.height() * 0.92));
-  }
   p.end();
   return true;
 }
@@ -3943,7 +3940,7 @@ void MainWindow::export_pdf() {
 }
 
 void MainWindow::print_chart() {
-  const DisplayList& dl = wheel_->display_list();
+  const DisplayList dl = classic_export_list();
   if (dl.items.empty()) {
     return;
   }
@@ -3961,12 +3958,6 @@ void MainWindow::print_chart() {
     return;
   }
   paint_fitted(p, dl, QRectF(printer.pageRect(QPrinter::DevicePixel)));
-  if (last_chart_ && last_aspects_) {
-    printer.newPage();
-    const QRectF page(printer.pageRect(QPrinter::DevicePixel));
-    paint_data_sheet(p, page.adjusted(page.width() * 0.04, page.height() * 0.04, -page.width() * 0.04,
-                                      -page.height() * 0.04));
-  }
   p.end();
 }
 

@@ -15,6 +15,7 @@
 #include "horcom/data/aaf.hpp"
 #include "horcom/data/chart_file.hpp"
 #include "horcom/data/konsta.hpp"
+#include "horcom/render/wheel.hpp"
 
 class QAction;
 class QCheckBox;
@@ -137,7 +138,8 @@ class MainWindow : public QMainWindow {
   void build_ui();
   void wander_dialog(bool place);
   void return_list(bool lunar);
-  void paint_data_sheet(QPainter& p, const QRectF& page);
+  [[nodiscard]] ClassicSheetText classic_sheet_text() const;
+  [[nodiscard]] DisplayList classic_export_list() const;
   void fill_tables(const Chart& chart, const AspectResult& aspects);
   [[nodiscard]] ChartInput current_input() const;
   [[nodiscard]] ChartSettings current_settings() const;
