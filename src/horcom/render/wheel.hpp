@@ -115,6 +115,10 @@ struct WheelOptions {
   /// the second inverted ruler of geb_herr, the ruler of a whole sign
   /// intercepted in the first house, negative for none
   int ruler_slot2 = -1;
+  /// his moknw flag, only the true node draws inverted
+  bool invert_nodes = true;
+  /// his apogw flag, the true apogee draws Lilith inverted
+  bool invert_apogee = false;
   /// print the degree within sign under each glyph, the original pziff
   bool degree_numbers = true;
 };

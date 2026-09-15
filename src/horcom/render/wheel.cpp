@@ -328,6 +328,17 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
   // ticks and glyphs like plein1 and plein11. The paper cutouts of all
   // glyphs land first, then every symbol, so crowded neighbours never
   // erase each other.
+  // the SRCINVERT set of bmp_color_pl, both geb_herr rulers, the true
+  // node pair under moknw and the true apogee Lilith under apogw
+  const auto inverted_slot = [&opt](int slot) {
+    if (slot == opt.ruler_slot || slot == opt.ruler_slot2) {
+      return true;
+    }
+    if ((slot == body::kNodeAsc || slot == body::kNodeDesc) && opt.invert_nodes) {
+      return true;
+    }
+    return slot == body::kApogee && opt.invert_apogee;
+  };
   for (int slot : slots) {
     const auto si = static_cast<std::size_t>(slot);
     const double w_true = wheel_angle(pl[si], fza);
@@ -349,9 +360,7 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
     // with their white background. The inverted patch pushes its
     // number and R marker a little further out.
     const Pt g = at(wl[si], kGlyphRing + dc[si]);
-    const bool inv =
-        slot == body::kNodeAsc || slot == body::kNodeDesc || slot == opt.ruler_slot ||
-        slot == opt.ruler_slot2;
+    const bool inv = inverted_slot(slot);
     add({Primitive::Kind::kDot, g.x, g.y, 0, 0, kGlyphSize * 0.60, 0, 0, 0, 0, kPaper});
     if (chart.b[si].tb < 0.0 && slot >= 3 && slot <= 10) {
       add({Primitive::Kind::kDot, g.x + kGlyphSize * (inv ? 1.05 : 0.85), g.y - kGlyphSize * 0.3,
@@ -369,9 +378,7 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
     const Pt g = at(wl[si], kGlyphRing + dc[si]);
     // nodes and the birth ruler sit inverted on a dark patch, the
     // putbm SRCINVERT stamping of rulers and nodes
-    const bool inverted =
-        slot == body::kNodeAsc || slot == body::kNodeDesc || slot == opt.ruler_slot ||
-        slot == opt.ruler_slot2;
+    const bool inverted = inverted_slot(slot);
     if (inverted) {
       Primitive box;
       box.kind = Primitive::Kind::kDot;
@@ -404,9 +411,7 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
   for (int slot : slots) {
     const auto si = static_cast<std::size_t>(slot);
     const Pt g = at(wl[si], kGlyphRing + dc[si]);
-    const bool inv =
-        slot == body::kNodeAsc || slot == body::kNodeDesc || slot == opt.ruler_slot ||
-        slot == opt.ruler_slot2;
+    const bool inv = inverted_slot(slot);
     // the red R of his retrograde marker beside the glyph
     if (chart.b[si].tb < 0.0 && slot >= 3 && slot <= 10) {
       Primitive r;

@@ -822,6 +822,10 @@ void MainWindow::recompute() {
       wopt.ruler_slot2 = k3;
     }
   }
+  // only the true node and true apogee draw inverted, his moknw and
+  // apogw flags in the SRCINVERT condition
+  wopt.invert_nodes = s.true_node;
+  wopt.invert_apogee = s.true_apogee;
   // the record corners come from show_wheel now, like his sheet
   wopt.heliocentric = s.heliocentric;
 
