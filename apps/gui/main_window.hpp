@@ -138,6 +138,7 @@ class MainWindow : public QMainWindow {
   void build_ui();
   void wander_dialog(bool place);
   void return_list(bool lunar);
+  void show_wheel(DisplayList dl);
   [[nodiscard]] ClassicSheetText classic_sheet_text() const;
   [[nodiscard]] DisplayList classic_export_list() const;
   void fill_tables(const Chart& chart, const AspectResult& aspects);

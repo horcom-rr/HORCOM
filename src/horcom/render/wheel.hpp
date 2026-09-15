@@ -22,6 +22,8 @@ namespace horcom {
 /// The virtual canvas and wheel geometry of the original, shared with the
 /// tests and every backend.
 inline constexpr double kCanvasWidth = 640.0;
+/// the screen sheet is a little narrower, the wheel centred fills it
+inline constexpr double kScreenSheetWidth = 560.0;
 inline constexpr double kCanvasHeight = 480.0;
 //RR Horoskop-Mitte
 inline constexpr double kWheelCenterX = 430.0;
@@ -177,6 +179,16 @@ struct ClassicSheetText {
 /// @param s its settings, the length mode tags the table header
 /// @param txt the corner texts
 void add_classic_text(DisplayList& dl, const Chart& chart, const ChartSettings& s, const ClassicSheetText& txt);
+
+/// Writes only the record corners around the wheel, the screen sheet
+/// uses this since its tables live in the panels.
+///
+/// @param dl the wheel list the corners join
+/// @param txt the corner texts
+/// @param left_x the left margin of the name and place blocks
+/// @param center_x the mode line rides the wheel centre
+/// @param right_x the left edge of the moment block
+void add_corner_text(DisplayList& dl, const ClassicSheetText& txt, double left_x, double center_x, double right_x);
 
 /// The unicode glyph of a body slot, his two letter tag where none
 /// exists, shared by every drawing that stamps bodies.

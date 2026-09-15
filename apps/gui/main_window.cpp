@@ -808,52 +808,8 @@ void MainWindow::recompute() {
       wopt.emphasis[static_cast<std::size_t>(kp)] = 1;
     }
   }
-  {
-    QString name = clock ? QStringLiteral("UHR")
-                         : QString("%1 %2")
-                               .arg(QString::fromStdString(record_.surname), QString::fromStdString(record_.given))
-                               .trimmed();
-    if (!name.isEmpty()) {
-      wopt.info_lines.push_back(name.toStdString());
-    }
-    if (!clock && !record_.place.empty()) {
-      wopt.info_lines.push_back(record_.place);
-    }
-    const CalendarDate& dd = in.date_ut;
-    int sec = static_cast<int>((dd.hour * 60.0 + dd.minute) * 60.0 + 0.5);
-    if (sec >= kSecondsPerDay) {
-      sec = kSecondsPerDay - 1;
-    }
-    //RR day_w$, der WOCHENTAG im HOROSKOP-Formular
-    static constexpr const char* kWeekday[7] = {QT_TR_NOOP("Sonntag"),    QT_TR_NOOP("Montag"),
-                                                QT_TR_NOOP("Dienstag"),   QT_TR_NOOP("Mittwoch"),
-                                                QT_TR_NOOP("Donnerstag"), QT_TR_NOOP("Freitag"),
-                                                QT_TR_NOOP("Samstag")};
-    const int wd = static_cast<int>(std::fmod(chart.jd_ut + 1.5, 7.0));
-    wopt.info_lines.push_back(
-        QString::asprintf("%02d.%02d.%04d", dd.day, dd.month, dd.year).toStdString());
-    if (wd >= 0 && wd < 7) {
-      wopt.info_lines.push_back(tr(kWeekday[wd]).toStdString());
-    }
-    wopt.info_lines.push_back(
-        QString::asprintf("%02d:%02d:%02d UT", sec / 3600, (sec / 60) % 60, sec % 60).toStdString());
-    wopt.info_lines.push_back(QString::fromUtf8("L %1°  B %2°")
-                                  .arg(in.lon_deg_east, 0, 'f', 2)
-                                  .arg(in.lat_deg, 0, 'f', 2)
-                                  .toStdString());
-    if (s.heliocentric) {
-      //RR Heliozentrisch
-      wopt.info_lines.push_back(tr("Heliozentrisch").toStdString());
-    } else {
-      QString hs = QString::fromUtf8(chart.houses.name.data(), static_cast<int>(chart.houses.name.size())).trimmed();
-      if (s.topocentric_parallax) {
-        //RR MitParall.
-        hs += "  MitParall.";
-      }
-      wopt.info_lines.push_back(hs.toStdString());
-    }
-    wopt.heliocentric = s.heliocentric;
-  }
+  // the record corners come from show_wheel now, like his sheet
+  wopt.heliocentric = s.heliocentric;
 
   bool transit_drawn = false;
   QString cross_text;
@@ -866,7 +822,7 @@ void MainWindow::recompute() {
     WheelOptions opt = wopt;
     //RR " UHR "
     opt.center_label = " UHR ";
-    wheel_->set_display_list(build_wheel(chart, s, aspects, opt));
+    show_wheel(build_wheel(chart, s, aspects, opt));
     banner_->set_record(QString("UHR %1 UT").arg(QDateTime::currentDateTimeUtc().time().toString("HH:mm:ss")));
     transit_drawn = true;
   } else if (transit_on_->isChecked()) {
@@ -882,7 +838,7 @@ void MainWindow::recompute() {
       WheelOptions opt = wopt;
       opt.center_label =
           QString("TRANSIT=>%1 %2 UT").arg(td.toString("dd.MM.yyyy"), tt.toString("HH:mm")).toStdString();
-      wheel_->set_display_list(build_transit_wheel(chart, tchart, s, aspects, opt));
+      show_wheel(build_transit_wheel(chart, tchart, s, aspects, opt));
       transit_drawn = true;
       // the comparison list of a12asp with his one degree transit orb
       // rule, running body, separation, radix body
@@ -893,7 +849,7 @@ void MainWindow::recompute() {
   } else if (mundane) {
     WheelOptions opt = wopt;
     opt.center_label = "MUNDAN";
-    wheel_->set_display_list(build_wheel(chart, s, aspects, opt));
+    show_wheel(build_wheel(chart, s, aspects, opt));
     transit_drawn = true;
     banner_->set_record("MUNDAN");
   } else if (directions_action_ != nullptr && directions_action_->isChecked() && dir_jd_ > 0.0 && !s.heliocentric) {
@@ -911,7 +867,7 @@ void MainWindow::recompute() {
     opt.center_label = QString("STZ-DIFF=%1°").arg(d.arc_deg, 0, 'f', 3).toStdString();
     opt.scale = kDirectedWheelScale;
     opt.aspect_lines = false;
-    wheel_->set_display_list(build_wheel(dir_holder, s, aspects, opt));
+    show_wheel(build_wheel(dir_holder, s, aspects, opt));
     shown = &dir_holder;
     transit_drawn = true;
     banner_->set_record(QString("%1 %2°")
@@ -927,7 +883,7 @@ void MainWindow::recompute() {
                                      s.houses, lat_->value());
     WheelOptions opt = wopt;
     opt.center_label = kMultiName[static_cast<int>(multi_mode_)];
-    wheel_->set_display_list(build_double_wheel(chart, mchart, s, aspects, opt));
+    show_wheel(build_double_wheel(chart, mchart, s, aspects, opt));
     transit_drawn = true;
     //RR " LJ"
     banner_->set_record(QString("%1 = %2 LJ").arg(kMultiName[static_cast<int>(multi_mode_)]).arg(lja, 0, 'f', 3));
@@ -939,7 +895,7 @@ void MainWindow::recompute() {
     WheelOptions opt = wopt;
     //RR STR$(ha) + ".HARMONIC"
     opt.center_label = QString("%1.HARMONIC").arg(harm_n_).toStdString();
-    wheel_->set_display_list(build_double_wheel(chart, hc, s, aspects, opt));
+    show_wheel(build_double_wheel(chart, hc, s, aspects, opt));
     transit_drawn = true;
     banner_->set_record(QString("%1.HARMONIC").arg(harm_n_));
   } else if (composite_action_ != nullptr && composite_action_->isChecked() && partner_chart_) {
@@ -952,7 +908,7 @@ void MainWindow::recompute() {
     comp_aspects_holder = scan_aspects(comp_holder, s, aspect_settings_);
     WheelOptions opt = wopt;
     opt.center_label = "COMPOSIT";
-    wheel_->set_display_list(build_wheel(comp_holder, s, comp_aspects_holder, opt));
+    show_wheel(build_wheel(comp_holder, s, comp_aspects_holder, opt));
     shown = &comp_holder;
     shown_aspects = &comp_aspects_holder;
     transit_drawn = true;
@@ -977,13 +933,13 @@ void MainWindow::recompute() {
       WheelOptions opt = wopt;
       opt.dial = true;
       opt.center_label = "90\xC2\xB0- KREIS";
-      wheel_->set_display_list(build_double_wheel(d1, d2, s, da, opt));
+      show_wheel(build_double_wheel(d1, d2, s, da, opt));
       cross_text = tr("<span style='color:#D4A94A'>VERGLEICH 90°</span>&nbsp; ");
       cross_text += cross.empty() ? tr("keine") : cross_hits_text(cross);
       banner_->set_record(QString::fromUtf8("90° %1 × %2").arg(mine, partner_name_));
     } else {
       // the a12 double wheel, the partner outside at full scale
-      wheel_->set_display_list(build_double_wheel(chart, *partner_chart_, s, aspects, wopt));
+      show_wheel(build_double_wheel(chart, *partner_chart_, s, aspects, wopt));
       const std::vector<CrossAspectHit> cross = scan_aspects_between(chart, *partner_chart_, aspect_settings_, false);
       cross_text = tr("<span style='color:#D4A94A'>VERGLEICH</span>&nbsp; ");
       cross_text += cross.empty() ? tr("keine") : cross_hits_text(cross);
@@ -992,7 +948,7 @@ void MainWindow::recompute() {
     transit_drawn = true;
   }
   if (!transit_drawn) {
-    wheel_->set_display_list(build_wheel(chart, s, aspects, wopt));
+    show_wheel(build_wheel(chart, s, aspects, wopt));
   }
   banner_->set_info(QString("JD(UT) %1   ΔT %2 min   ARMC %3°   %4%5")
                         .arg(chart.jd_ut, 0, 'f', 5)
@@ -3831,6 +3787,18 @@ void MainWindow::save_aaf() {
   if (!write_aaf(path.toStdWString(), records)) {
     QMessageBox::warning(this, "HORCOM", tr("Speichern fehlgeschlagen."));
   }
+}
+
+// every wheel list passes through here, the screen gets the record
+// corners of his HOROSKOP GRAPHIK screen and the centred sheet
+void MainWindow::show_wheel(DisplayList dl) {
+  ClassicSheetText t = classic_sheet_text();
+  if (clock_action_ != nullptr && clock_action_->isChecked()) {
+    //RR UHR
+    t.name = "UHR";
+  }
+  add_corner_text(dl, t, 8.0, kScreenSheetWidth / 2.0, 400.0);
+  wheel_->set_display_list(std::move(dl));
 }
 
 // the corner texts of his HOROSKOP GRAPHIK screen, the export sheet

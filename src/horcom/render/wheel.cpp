@@ -571,11 +571,11 @@ DisplayList build_double_wheel(const Chart& inner, const Chart& outer, const Cha
 
 DisplayList centered_sheet(const DisplayList& dl) {
   DisplayList out = dl;
-  // the wheel centre of the classic sheet moves to the middle of a
-  // square sheet, the corner notes and the credit stay on the margins
-  const double dx = kCanvasHeight / 2.0 - kCx;
+  // the wheel centre of the classic sheet moves to the middle of the
+  // full width sheet, the corner notes and the credit stay on the margins
+  const double dx = kScreenSheetWidth / 2.0 - kCx;
   const double dy = kCanvasHeight / 2.0 - kCy;
-  out.width = kCanvasHeight;
+  out.width = kScreenSheetWidth;
   for (Primitive& p : out.items) {
     if (p.anchor != Primitive::Anchor::kSheet) {
       continue;
@@ -696,34 +696,51 @@ void add_classic_text(DisplayList& dl, const Chart& chart, const ChartSettings& 
   //RR Spiegelung:
   text(x0, y, "Spiegelung:");
 
-  // the record corners of his HOROSKOP GRAPHIK screen
+  add_corner_text(dl, txt, 205.0, 383.0, 470.0);
+}
+
+void add_corner_text(DisplayList& dl, const ClassicSheetText& txt, double left_x, double center_x, double right_x) {
+  auto text = [&](double x, double y, std::string t, bool centered = false) {
+    Primitive p;
+    p.kind = Primitive::Kind::kText;
+    p.x1 = x;
+    p.y1 = y;
+    p.size = 10.0;
+    p.align_left = !centered;
+    p.anchor = Primitive::Anchor::kCorner;
+    p.text = std::move(t);
+    dl.items.push_back(std::move(p));
+  };
+  // the record corners of his HOROSKOP GRAPHIK screen, the name top
+  // left, the place bottom left, the moment bottom right
+  text(left_x, 16.0, "Name:");
   if (!txt.name.empty()) {
-    text(205.0, 16.0, "Name: " + txt.name);
+    text(left_x, 28.0, txt.name);
   }
   if (!txt.mode.empty()) {
-    text(360.0, 16.0, txt.mode);
+    text(center_x, 16.0, txt.mode, true);
   }
   if (!txt.stz.empty()) {
-    text(500.0, 16.0, txt.stz);
+    text(right_x + 30.0, 16.0, txt.stz);
   }
-  text(205.0, 420.0, "Ort:");
+  text(left_x, 420.0, "Ort:");
   if (!txt.place.empty()) {
-    text(205.0, 432.0, txt.place);
+    text(left_x, 432.0, txt.place);
   }
   if (!txt.lon.empty()) {
-    text(205.0, 444.0, txt.lon);
+    text(left_x, 444.0, txt.lon);
   }
   if (!txt.lat.empty()) {
-    text(205.0, 456.0, txt.lat);
+    text(left_x, 456.0, txt.lat);
   }
   if (!txt.date.empty()) {
-    text(470.0, 432.0, txt.date);
+    text(right_x, 432.0, txt.date);
   }
   if (!txt.ut.empty()) {
-    text(470.0, 444.0, txt.ut);
+    text(right_x, 444.0, txt.ut);
   }
   if (!txt.weekday.empty()) {
-    text(470.0, 456.0, txt.weekday);
+    text(right_x, 456.0, txt.weekday);
   }
 }
 
