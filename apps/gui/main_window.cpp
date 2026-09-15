@@ -3797,7 +3797,7 @@ void MainWindow::show_wheel(DisplayList dl) {
     //RR UHR
     t.name = "UHR";
   }
-  add_corner_text(dl, t, 8.0, kScreenSheetWidth / 2.0, 400.0);
+  add_corner_text(dl, t, 8.0, kScreenSheetWidth / 2.0, kScreenSheetWidth - 8.0);
   wheel_->set_display_list(std::move(dl));
 }
 

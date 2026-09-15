@@ -298,7 +298,9 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
   }
   declump(slots, pl, wl, dc);
 
-  // glyphs with tick marks like plein1 and plein11
+  // ticks and glyphs like plein1 and plein11. The paper cutouts of all
+  // glyphs land first, then every symbol, so crowded neighbours never
+  // erase each other.
   for (int slot : slots) {
     const auto si = static_cast<std::size_t>(slot);
     const double w_true = wheel_angle(pl[si], fza);
@@ -312,18 +314,31 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
       const Pt in2 = at(w_true, kAspectRing + kMarkOutset);
       add({Primitive::Kind::kLine, in1.x, in1.y, in2.x, in2.y});
     }
+    // the paper cutouts, his putbm sprites erased the lines beneath
+    // with their white background
     const Pt g = at(wl[si], kGlyphRing + dc[si]);
-    // the paper cutout under every glyph, his putbm sprites erased the
-    // lines beneath with their white background
     add({Primitive::Kind::kDot, g.x, g.y, 0, 0, kGlyphSize * 0.72, 0, 0, 0, 0, kPaper});
-    // his node glyphs sit inverted on a dark patch, putbm SRCINVERT
+    if (chart.b[si].tb < 0.0 && slot >= 3 && slot <= 10) {
+      add({Primitive::Kind::kDot, g.x + kGlyphSize * 0.85, g.y - kGlyphSize * 0.3, 0, 0,
+           kNumberSize * 0.6, 0, 0, 0, 0, kPaper});
+    }
+    if (opt.degree_numbers) {
+      const Pt n = at(wl[si], kGlyphRing + dc[si] - kGlyphSize);
+      add({Primitive::Kind::kDot, n.x, n.y, 0, 0, kNumberSize * 0.75, 0, 0, 0, 0, kPaper});
+    }
+  }
+  for (int slot : slots) {
+    const auto si = static_cast<std::size_t>(slot);
+    const Pt g = at(wl[si], kGlyphRing + dc[si]);
+    // his node glyphs sit inverted on a dark patch, putbm SRCINVERT,
+    // the patch covers the whole sprite
     const bool inverted = slot == body::kNodeAsc || slot == body::kNodeDesc;
     if (inverted) {
       Primitive box;
       box.kind = Primitive::Kind::kDot;
       box.x1 = g.x;
       box.y1 = g.y;
-      box.r1 = kGlyphSize * 0.62;
+      box.r1 = kGlyphSize * 0.82;
       box.color = 0x000000;
       add(box);
     }
@@ -351,19 +366,18 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
       r.size = kNumberSize;
       r.color = 0xFF0000;
       r.text = "R";
-      add({Primitive::Kind::kDot, r.x1, r.y1, 0, 0, kNumberSize * 0.6, 0, 0, 0, 0, kPaper});
       add(r);
     }
     if (opt.degree_numbers) {
       const Pt n = at(wl[si], kGlyphRing + dc[si] - kGlyphSize);
-      add({Primitive::Kind::kDot, n.x, n.y, 0, 0, kNumberSize * 0.75, 0, 0, 0, 0, kPaper});
       Primitive num;
       num.kind = Primitive::Kind::kText;
       num.x1 = n.x;
       num.y1 = n.y;
       num.size = kNumberSize;
-      const int deg = static_cast<int>(norm_deg(pl[si] * kRadToDeg)) % 30;
-      num.text = std::to_string(deg);
+      //RR CINT, planziff1 rounds the degree in sign to the nearest
+      const double q = norm_deg(pl[si] * kRadToDeg);
+      num.text = std::to_string(static_cast<int>(std::lround(q - 30.0 * std::floor(q / 30.0))));
       add(num);
     }
   }
@@ -572,18 +586,25 @@ DisplayList build_double_wheel(const Chart& inner, const Chart& outer, const Cha
 DisplayList centered_sheet(const DisplayList& dl) {
   DisplayList out = dl;
   // the wheel centre of the classic sheet moves to the middle of the
-  // full width sheet, the corner notes and the credit stay on the margins
-  const double dx = kScreenSheetWidth / 2.0 - kCx;
-  const double dy = kCanvasHeight / 2.0 - kCy;
+  // full width sheet, the corner notes and the credit stay on the
+  // margins. The wheel itself grows a little, the sheet has no data
+  // column to leave room for, while the symbols keep their size.
+  const double cx = kScreenSheetWidth / 2.0;
+  const double cy = kCanvasHeight / 2.0;
+  const double dx = cx - kCx;
+  const double dy = cy - kCy;
+  const double f = 1.055;
   out.width = kScreenSheetWidth;
   for (Primitive& p : out.items) {
     if (p.anchor != Primitive::Anchor::kSheet) {
       continue;
     }
-    p.x1 += dx;
-    p.y1 += dy;
-    p.x2 += dx;
-    p.y2 += dy;
+    p.x1 = cx + (p.x1 + dx - cx) * f;
+    p.y1 = cy + (p.y1 + dy - cy) * f;
+    p.x2 = cx + (p.x2 + dx - cx) * f;
+    p.y2 = cy + (p.y2 + dy - cy) * f;
+    p.r1 *= f;
+    p.r2 *= f;
   }
   return out;
 }
@@ -655,7 +676,7 @@ void add_classic_text(DisplayList& dl, const Chart& chart, const ChartSettings& 
   }
   y += 4.0;
   dl.items.push_back({Primitive::Kind::kLine, x0, y, 190.0, y, 0, 0, 0, 0, 0, 0x000000, 0xFFFFFF,
-                      Primitive::Style::kSolid, 1.0, false, Primitive::Anchor::kCorner, ""});
+                      Primitive::Style::kSolid, 1.0, false, false, Primitive::Anchor::kCorner, ""});
   y += 14.0;
   //RR Häusersp., his house summary under the table
   if (chart.houses.ok) {
@@ -691,22 +712,24 @@ void add_classic_text(DisplayList& dl, const Chart& chart, const ChartSettings& 
   }
   y += 4.0;
   dl.items.push_back({Primitive::Kind::kLine, x0, y, 190.0, y, 0, 0, 0, 0, 0, 0x000000, 0xFFFFFF,
-                      Primitive::Style::kSolid, 1.0, false, Primitive::Anchor::kCorner, ""});
+                      Primitive::Style::kSolid, 1.0, false, false, Primitive::Anchor::kCorner, ""});
   y += 14.0;
   //RR Spiegelung:
   text(x0, y, "Spiegelung:");
 
-  add_corner_text(dl, txt, 205.0, 383.0, 470.0);
+  add_corner_text(dl, txt, 205.0, 383.0, kCanvasWidth - 8.0);
 }
 
 void add_corner_text(DisplayList& dl, const ClassicSheetText& txt, double left_x, double center_x, double right_x) {
-  auto text = [&](double x, double y, std::string t, bool centered = false) {
+  enum class Align { kLeft, kCenter, kRight };
+  auto text = [&](double x, double y, std::string t, Align a = Align::kLeft) {
     Primitive p;
     p.kind = Primitive::Kind::kText;
     p.x1 = x;
     p.y1 = y;
     p.size = 10.0;
-    p.align_left = !centered;
+    p.align_left = a == Align::kLeft;
+    p.align_right = a == Align::kRight;
     p.anchor = Primitive::Anchor::kCorner;
     p.text = std::move(t);
     dl.items.push_back(std::move(p));
@@ -718,10 +741,10 @@ void add_corner_text(DisplayList& dl, const ClassicSheetText& txt, double left_x
     text(left_x, 28.0, txt.name);
   }
   if (!txt.mode.empty()) {
-    text(center_x, 16.0, txt.mode, true);
+    text(center_x, 16.0, txt.mode, Align::kCenter);
   }
   if (!txt.stz.empty()) {
-    text(right_x + 30.0, 16.0, txt.stz);
+    text(right_x, 16.0, txt.stz, Align::kRight);
   }
   text(left_x, 420.0, "Ort:");
   if (!txt.place.empty()) {
@@ -734,13 +757,13 @@ void add_corner_text(DisplayList& dl, const ClassicSheetText& txt, double left_x
     text(left_x, 456.0, txt.lat);
   }
   if (!txt.date.empty()) {
-    text(right_x, 432.0, txt.date);
+    text(right_x, 432.0, txt.date, Align::kRight);
   }
   if (!txt.ut.empty()) {
-    text(right_x, 444.0, txt.ut);
+    text(right_x, 444.0, txt.ut, Align::kRight);
   }
   if (!txt.weekday.empty()) {
-    text(right_x, 456.0, txt.weekday);
+    text(right_x, 456.0, txt.weekday, Align::kRight);
   }
 }
 

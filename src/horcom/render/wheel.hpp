@@ -58,6 +58,8 @@ struct Primitive {
   /// text grows rightward from x1 instead of centring on it, the text
   /// column of the original screens
   bool align_left = false;
+  /// text ends at x1, the flush right blocks of the sheet corners
+  bool align_right = false;
   Anchor anchor = Anchor::kSheet;
   std::string text;  // glyph character or label
 };

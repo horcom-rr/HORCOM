@@ -91,7 +91,7 @@ std::string to_svg(const DisplayList& dl) {
       case Primitive::Kind::kGlyph:
       case Primitive::Kind::kText:
         s << "<text x=\"" << num(p.x1) << "\" y=\"" << num(p.y1) << "\" font-size=\"" << num(p.size)
-          << "\" text-anchor=\"" << (p.align_left ? "start" : "middle")
+          << "\" text-anchor=\"" << (p.align_right ? "end" : p.align_left ? "start" : "middle")
           << "\" dominant-baseline=\"middle\" fill=\"" << hex(p.color) << "\"";
         if (p.kind == Primitive::Kind::kText) {
           // the fixed font of his screens, the glyphs keep the symbol face

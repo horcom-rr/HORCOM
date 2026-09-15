@@ -133,7 +133,7 @@ void paint_display_list(QPainter& p, const DisplayList& dl) {
           if (stem != sprite_stems().end()) {
             const QImage& img = sprite(*stem, item.color);
             if (!img.isNull()) {
-              const double side = item.size * 1.2;
+              const double side = item.size * 1.1;
               p.setRenderHint(QPainter::SmoothPixmapTransform, true);
               p.drawImage(QRectF(item.x1 - side / 2.0, item.y1 - side / 2.0, side, side), img);
               break;
@@ -147,7 +147,10 @@ void paint_display_list(QPainter& p, const DisplayList& dl) {
         // long labels like the transit line need a wider box, the
         // centring keeps them in place
         const double half = std::max(40.0, 0.5 * static_cast<double>(item.text.size()) * item.size);
-        if (item.align_left) {
+        if (item.align_right) {
+          const QRectF box(item.x1 - 2.0 * half, item.y1 - 20.0, 2.0 * half, 40.0);
+          p.drawText(box, Qt::AlignRight | Qt::AlignVCenter, QString::fromStdString(item.text));
+        } else if (item.align_left) {
           const QRectF box(item.x1, item.y1 - 20.0, 2.0 * half, 40.0);
           p.drawText(box, Qt::AlignLeft | Qt::AlignVCenter, QString::fromStdString(item.text));
         } else {
