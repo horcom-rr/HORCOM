@@ -1031,7 +1031,7 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
     dock_sized_ = true;
     QTimer::singleShot(0, this, [this]() {
       int want = bodies_->verticalHeader()->width() + 2 * bodies_->frameWidth() + 14;
-      for (int c = 0; c < 5; ++c) {
+      for (int c = 0; c < 7; ++c) {
         want += bodies_->columnWidth(c);
       }
       resizeDocks({body_dock_}, {want}, Qt::Horizontal);
