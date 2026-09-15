@@ -63,6 +63,13 @@ if(Qt6_FOUND)
     BASE ${CMAKE_SOURCE_DIR}/assets
     FILES ${CMAKE_SOURCE_DIR}/assets/logo.svg ${CMAKE_SOURCE_DIR}/assets/arrow-up.svg ${CMAKE_SOURCE_DIR}/assets/arrow-down.svg ${CMAKE_SOURCE_DIR}/assets/arrow-up-dim.svg ${CMAKE_SOURCE_DIR}/assets/arrow-down-dim.svg ${CMAKE_SOURCE_DIR}/assets/arrow-left.svg ${CMAKE_SOURCE_DIR}/assets/arrow-right.svg
   )
+  # Robert Rettig's own symbol drawings from symbbmp, the large variant
+  file(GLOB HORCOM_SYMB ${CMAKE_SOURCE_DIR}/assets/symb/*.png)
+  qt_add_resources(horcom_gui "symbols"
+    PREFIX "/symb"
+    BASE ${CMAKE_SOURCE_DIR}/assets/symb
+    FILES ${HORCOM_SYMB}
+  )
   target_link_libraries(horcom_gui PRIVATE horcom Qt6::Widgets Qt6::Svg Qt6::PrintSupport)
   set_target_properties(horcom_gui PROPERTIES WIN32_EXECUTABLE ON)
   horcom_stamp(horcom_gui "HORCOM desktop shell" horcom_gui horcom_gui.exe)

@@ -35,7 +35,10 @@ using Rgb = unsigned;
 /// One drawing primitive on the virtual 640 by 480 canvas.
 struct Primitive {
   enum class Kind { kCircle, kLine, kSector, kGlyph, kText, kDot };
-  enum class Style { kSolid, kDashed, kDotted };
+  enum class Style { kSolid, kDashed, kDotted, kDashDot };
+  /// what the item anchors to, the wheel itself, the corner notes of
+  /// the screen sheet, or the credit line
+  enum class Anchor { kSheet, kCorner, kCredit };
   Kind kind = Kind::kLine;
   double x1 = 0.0;   // centre for circles, sectors, glyphs and dots
   double y1 = 0.0;
@@ -53,6 +56,7 @@ struct Primitive {
   /// text grows rightward from x1 instead of centring on it, the text
   /// column of the original screens
   bool align_left = false;
+  Anchor anchor = Anchor::kSheet;
   std::string text;  // glyph character or label
 };
 
@@ -139,6 +143,40 @@ struct WheelOptions {
 /// @param opt   drawing options
 /// @return primitives on the virtual canvas, in paint order
 [[nodiscard]] DisplayList build_double_wheel(const Chart& inner, const Chart& outer, const ChartSettings& s, const AspectResult& inner_aspects, const WheelOptions& opt = {});
+
+/// Moves the wheel into the middle of a square sheet for the screen,
+/// the corner notes and the credit line stay on the margins. The
+/// classic 640 by 480 sheet with the wheel on the right remains the
+/// export shape.
+///
+/// @param dl a display list in classic sheet coordinates
+/// @return the same drawing on a 480 by 480 sheet, wheel centred
+[[nodiscard]] DisplayList centered_sheet(const DisplayList& dl);
+
+/// The corner texts of the classic sheet, assembled by the caller so
+/// the drawing layer stays free of locale and record handling.
+struct ClassicSheetText {
+  std::string name;     ///< the record name
+  std::string place;    ///< the record place
+  std::string mode;     ///< Topozentrisch or Geozentrisch
+  std::string stz;      ///< the sidereal time line
+  std::string lon;      ///< the longitude line
+  std::string lat;      ///< the latitude line
+  std::string date;     ///< the date line
+  std::string ut;       ///< the clock line
+  std::string weekday;  ///< the weekday
+};
+
+/// Writes the classic screen sheet of the original around a wheel
+/// list, the body table with velocities down the left margin, the
+/// house summary under it, the record corners like his HOROSKOP
+/// GRAPHIK screen. Existing corner notes of the list are replaced.
+///
+/// @param dl a wheel list in classic sheet coordinates
+/// @param chart the chart the list was built from
+/// @param s its settings, the length mode tags the table header
+/// @param txt the corner texts
+void add_classic_text(DisplayList& dl, const Chart& chart, const ChartSettings& s, const ClassicSheetText& txt);
 
 /// The unicode glyph of a body slot, his two letter tag where none
 /// exists, shared by every drawing that stamps bodies.

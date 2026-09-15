@@ -28,6 +28,7 @@ const char* dash(Primitive::Style s) {
   switch (s) {
     case Primitive::Style::kDashed: return " stroke-dasharray=\"6 4\"";
     case Primitive::Style::kDotted: return " stroke-dasharray=\"1 4\"";
+    case Primitive::Style::kDashDot: return " stroke-dasharray=\"6 3 1.5 3\"";
     default: return "";
   }
 }
@@ -71,7 +72,7 @@ std::string to_svg(const DisplayList& dl) {
   std::ostringstream s;
   s << "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 " << num(dl.width) << ' ' << num(dl.height)
     << "\" font-family=\"'Segoe UI Symbol', 'Noto Sans Symbols', sans-serif\">\n";
-  s << "<rect width=\"" << num(dl.width) << "\" height=\"" << num(dl.height) << "\" fill=\"#FFFFFF\"/>\n";
+  s << "<rect width=\"" << num(dl.width) << "\" height=\"" << num(dl.height) << "\" fill=\"#FCFAF4\"/>\n";
   for (const Primitive& p : dl.items) {
     switch (p.kind) {
       case Primitive::Kind::kCircle:
@@ -91,8 +92,12 @@ std::string to_svg(const DisplayList& dl) {
       case Primitive::Kind::kText:
         s << "<text x=\"" << num(p.x1) << "\" y=\"" << num(p.y1) << "\" font-size=\"" << num(p.size)
           << "\" text-anchor=\"" << (p.align_left ? "start" : "middle")
-          << "\" dominant-baseline=\"middle\" fill=\"" << hex(p.color) << "\">"
-          << escape(p.text) << "</text>\n";
+          << "\" dominant-baseline=\"middle\" fill=\"" << hex(p.color) << "\"";
+        if (p.kind == Primitive::Kind::kText) {
+          // the fixed font of his screens, the glyphs keep the symbol face
+          s << " font-family=\"Cascadia Mono, Consolas, monospace\" font-weight=\"600\"";
+        }
+        s << ">" << escape(p.text) << "</text>\n";
         break;
       case Primitive::Kind::kDot:
         s << "<circle cx=\"" << num(p.x1) << "\" cy=\"" << num(p.y1) << "\" r=\"" << num(p.r1) << "\" fill=\""

@@ -4,8 +4,11 @@
 
 #include "painter.hpp"
 
+#include <QHash>
+#include <QImage>
 #include <QPainter>
 #include <QPainterPath>
+#include <QString>
 #include <algorithm>
 
 #include "horcom/core/constants.hpp"
@@ -18,10 +21,60 @@ QColor rgb(Rgb c, int alpha = 255) {
   return QColor((c >> 16) & 0xFF, (c >> 8) & 0xFF, c & 0xFF, alpha);
 }
 
+// Robert Rettig's own symbol drawings, the glyph text keys his sprite
+// stems from symbbmp. Unmapped texts fall back to the font.
+const QHash<QString, QString>& sprite_stems() {
+  static const QHash<QString, QString> map = {
+      {QStringLiteral("☉"), QStringLiteral("SO")},  {QStringLiteral("☽"), QStringLiteral("MO")},
+      {QStringLiteral("☿"), QStringLiteral("ME")},  {QStringLiteral("♀"), QStringLiteral("VE")},
+      {QStringLiteral("♂"), QStringLiteral("MA")},  {QStringLiteral("♃"), QStringLiteral("JU")},
+      {QStringLiteral("♄"), QStringLiteral("SA")},  {QStringLiteral("♅"), QStringLiteral("UR")},
+      {QStringLiteral("♆"), QStringLiteral("NE")},  {QStringLiteral("♇"), QStringLiteral("PL")},
+      {QStringLiteral("☊"), QStringLiteral("DR")},  {QStringLiteral("☋"), QStringLiteral("DS")},
+      {QStringLiteral("⊕"), QStringLiteral("TE")},  {QStringLiteral("⚸"), QStringLiteral("AG")},
+      {QStringLiteral("⚷"), QStringLiteral("CH")},  {QStringLiteral("TP"), QStringLiteral("TP")},
+      {QStringLiteral("⊗"), QStringLiteral("GL")},  {QStringLiteral("⚳"), QStringLiteral("CE")},
+      {QStringLiteral("⚴"), QStringLiteral("PA")},  {QStringLiteral("⚵"), QStringLiteral("JN")},
+      {QStringLiteral("⚶"), QStringLiteral("VS")},  {QStringLiteral("CU"), QStringLiteral("CU")},
+      {QStringLiteral("HA"), QStringLiteral("HA")}, {QStringLiteral("ZE"), QStringLiteral("ZE")},
+      {QStringLiteral("KR"), QStringLiteral("KR")}, {QStringLiteral("AP"), QStringLiteral("AP")},
+      {QStringLiteral("AD"), QStringLiteral("AD")}, {QStringLiteral("VU"), QStringLiteral("VU")},
+      {QStringLiteral("PO"), QStringLiteral("PO")}, {QStringLiteral("QU"), QStringLiteral("QU")},
+      {QStringLiteral("☄"), QStringLiteral("HL")},  {QStringLiteral("PH"), QStringLiteral("PH")},
+      {QStringLiteral("DA"), QStringLiteral("DA")}, {QStringLiteral("NS"), QStringLiteral("NS")},
+      {QStringLiteral("XE"), QStringLiteral("XE")}, {QStringLiteral("♈"), QStringLiteral("ZAR")},
+      {QStringLiteral("♉"), QStringLiteral("ZTA")}, {QStringLiteral("♊"), QStringLiteral("ZGM")},
+      {QStringLiteral("♋"), QStringLiteral("ZCN")}, {QStringLiteral("♌"), QStringLiteral("ZLE")},
+      {QStringLiteral("♍"), QStringLiteral("ZVI")}, {QStringLiteral("♎"), QStringLiteral("ZLI")},
+      {QStringLiteral("♏"), QStringLiteral("ZSC")}, {QStringLiteral("♐"), QStringLiteral("ZSG")},
+      {QStringLiteral("♑"), QStringLiteral("ZCP")}, {QStringLiteral("♒"), QStringLiteral("ZAQ")},
+      {QStringLiteral("♓"), QStringLiteral("ZPS")}};
+  return map;
+}
+
+// his sprites are black on transparent, the wheel tints them like
+// bmp_color_pl, red for emphasis, white for the inverted nodes
+const QImage& sprite(const QString& stem, Rgb color) {
+  static QHash<QString, QImage> cache;
+  const QString key = stem + QChar(':') + QString::number(color, 16);
+  auto it = cache.find(key);
+  if (it != cache.end()) {
+    return *it;
+  }
+  QImage img(QStringLiteral(":/symb/") + stem + QStringLiteral(".png"));
+  if (color != 0x000000 && !img.isNull()) {
+    QPainter tint(&img);
+    tint.setCompositionMode(QPainter::CompositionMode_SourceIn);
+    tint.fillRect(img.rect(), rgb(color));
+  }
+  return *cache.insert(key, std::move(img));
+}
+
 Qt::PenStyle pen_style(Primitive::Style s) {
   switch (s) {
     case Primitive::Style::kDashed: return Qt::DashLine;
     case Primitive::Style::kDotted: return Qt::DotLine;
+    case Primitive::Style::kDashDot: return Qt::DashDotLine;
     default: return Qt::SolidLine;
   }
 }
@@ -29,7 +82,12 @@ Qt::PenStyle pen_style(Primitive::Style s) {
 }  // namespace
 
 void paint_display_list(QPainter& p, const DisplayList& dl) {
-  QFont font = p.font();
+  // the fixed font of his SYSTEM_FIXED_FONT screens for the labels,
+  // the symbol face only for the glyphs
+  QFont text_font("Cascadia Mono");
+  text_font.setStyleHint(QFont::Monospace);
+  text_font.setWeight(QFont::DemiBold);
+  QFont glyph_font = p.font();
   for (const Primitive& item : dl.items) {
     switch (item.kind) {
       case Primitive::Kind::kCircle: {
@@ -69,7 +127,21 @@ void paint_display_list(QPainter& p, const DisplayList& dl) {
       }
       case Primitive::Kind::kGlyph:
       case Primitive::Kind::kText: {
+        if (item.kind == Primitive::Kind::kGlyph) {
+          const QString key = QString::fromStdString(item.text);
+          const auto stem = sprite_stems().find(key);
+          if (stem != sprite_stems().end()) {
+            const QImage& img = sprite(*stem, item.color);
+            if (!img.isNull()) {
+              const double side = item.size * 1.2;
+              p.setRenderHint(QPainter::SmoothPixmapTransform, true);
+              p.drawImage(QRectF(item.x1 - side / 2.0, item.y1 - side / 2.0, side, side), img);
+              break;
+            }
+          }
+        }
         p.setPen(QPen(rgb(item.color)));
+        QFont& font = item.kind == Primitive::Kind::kGlyph ? glyph_font : text_font;
         font.setPixelSize(static_cast<int>(item.size));
         p.setFont(font);
         // long labels like the transit line need a wider box, the
@@ -104,6 +176,8 @@ void paint_fitted(QPainter& p, const DisplayList& dl, const QRectF& target) {
   p.save();
   p.translate(ox, oy);
   p.scale(s, s);
+  // the warm paper of the sheet, the glyph cutouts blend into it
+  p.fillRect(QRectF(0, 0, dl.width, dl.height), QColor(0xFC, 0xFA, 0xF4));
   paint_display_list(p, dl);
   p.restore();
 }

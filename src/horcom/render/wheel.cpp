@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstdio>
 
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
@@ -27,7 +28,8 @@ constexpr double kSignGlyphRing = 165.0;
 constexpr double kSignOuter = 182.0;
 constexpr double kAxisEnd = 188.0;
 constexpr double kAxisLabel = 208.0;
-constexpr double kTickInnerRing = 148.0;
+// the position mark ring of plein11, ticks span minus 3 to plus 5
+constexpr double kTickRing = 150.0;
 constexpr double kConjDotRing = 85.0;  // the original red conjunction dot
 constexpr double kGlyphSize = 14.0;
 constexpr double kNumberSize = 10.0;
@@ -40,6 +42,9 @@ constexpr double kCompareMarkRing = 180.0;
 constexpr double kMarkInset = 3.0;
 constexpr double kMarkOutset = 5.0;
 constexpr double kLabelSize = 10.0;
+
+// the paper of the sheet, the cutouts under the glyphs wear it
+constexpr Rgb kPaper = 0xFCFAF4;
 
 // element colours of the original fill_color as they appeared on his
 // screen, fire, earth, air, water. His code asked for red, olive, teal
@@ -297,10 +302,20 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
   for (int slot : slots) {
     const auto si = static_cast<std::size_t>(slot);
     const double w_true = wheel_angle(pl[si], fza);
-    const Pt tick1 = at(w_true, kTickInnerRing);
-    const Pt tick2 = at(w_true, kSignInner);
+    // the two position marks of plein11, r 150 and, with aspects on,
+    // r 90 on the aspect circle, each spanning r minus 3 to r plus 5
+    const Pt tick1 = at(w_true, kTickRing - kMarkInset);
+    const Pt tick2 = at(w_true, kTickRing + kMarkOutset);
     add({Primitive::Kind::kLine, tick1.x, tick1.y, tick2.x, tick2.y});
+    if (opt.aspect_lines) {
+      const Pt in1 = at(w_true, kAspectRing - kMarkInset);
+      const Pt in2 = at(w_true, kAspectRing + kMarkOutset);
+      add({Primitive::Kind::kLine, in1.x, in1.y, in2.x, in2.y});
+    }
     const Pt g = at(wl[si], kGlyphRing + dc[si]);
+    // the paper cutout under every glyph, his putbm sprites erased the
+    // lines beneath with their white background
+    add({Primitive::Kind::kDot, g.x, g.y, 0, 0, kGlyphSize * 0.72, 0, 0, 0, 0, kPaper});
     // his node glyphs sit inverted on a dark patch, putbm SRCINVERT
     const bool inverted = slot == body::kNodeAsc || slot == body::kNodeDesc;
     if (inverted) {
@@ -336,10 +351,12 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
       r.size = kNumberSize;
       r.color = 0xFF0000;
       r.text = "R";
+      add({Primitive::Kind::kDot, r.x1, r.y1, 0, 0, kNumberSize * 0.6, 0, 0, 0, 0, kPaper});
       add(r);
     }
     if (opt.degree_numbers) {
       const Pt n = at(wl[si], kGlyphRing + dc[si] - kGlyphSize);
+      add({Primitive::Kind::kDot, n.x, n.y, 0, 0, kNumberSize * 0.75, 0, 0, 0, 0, kPaper});
       Primitive num;
       num.kind = Primitive::Kind::kText;
       num.x1 = n.x;
@@ -383,6 +400,17 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
       const Pt b = at(w2, kAspectRing);
       Primitive line{Primitive::Kind::kLine, a.x, a.y, b.x, b.y};
       line.color = (h.n >= 2 && h.n <= 12) ? kAspectColor[h.n] : 0x000000;
+      // the DEFLINE styles of aspz1 per divisor, dash for the
+      // opposition, dot for the trigon, dash dot for the quadrat
+      static constexpr Primitive::Style kChordStyle[13] = {
+          Primitive::Style::kSolid,   Primitive::Style::kSolid,  Primitive::Style::kDashed,
+          Primitive::Style::kDotted,  Primitive::Style::kDashDot, Primitive::Style::kDotted,
+          Primitive::Style::kDashed,  Primitive::Style::kDotted, Primitive::Style::kDashDot,
+          Primitive::Style::kDotted,  Primitive::Style::kDotted, Primitive::Style::kDotted,
+          Primitive::Style::kDashDot};
+      if (h.n >= 2 && h.n <= 12) {
+        line.style = kChordStyle[h.n];
+      }
       add(line);
     }
   }
@@ -396,6 +424,7 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
     credit.size = 8.0;
     credit.color = 0x808080;
     credit.align_left = true;
+    credit.anchor = Primitive::Anchor::kCredit;
     credit.text = "HORCOM \xC2\xB7 Robert Rettig \xC2\xB7 \xC2\xA9 Dominik Schwimmbeck";
     add(credit);
   }
@@ -411,6 +440,7 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
       t.y1 = y;
       t.size = kLabelSize;
       t.align_left = true;
+      t.anchor = Primitive::Anchor::kCorner;
       t.text = line;
       add(t);
       y += 13.0;
@@ -466,18 +496,28 @@ static void draw_outer_bodies(DisplayList& dl, const Chart& chart, double fza, d
     const Pt m2 = at(w_true, mark_ring + kMarkOutset);
     add({Primitive::Kind::kLine, m1.x, m1.y, m2.x, m2.y});
     const Pt g = at(wl[si], glyph_ring + dc[si]);
+    add({Primitive::Kind::kDot, g.x, g.y, 0, 0, kGlyphSize * 0.72, 0, 0, 0, 0, kPaper});
     Primitive p;
     p.kind = Primitive::Kind::kGlyph;
     p.x1 = g.x;
     p.y1 = g.y;
     p.size = kGlyphSize;
     p.text = kBodyGlyph[si];
-    if (chart.b[si].tb < 0.0 && slot >= 3 && slot <= 10) {
-      p.text += " R";
-    }
     add(p);
+    if (chart.b[si].tb < 0.0 && slot >= 3 && slot <= 10) {
+      Primitive r;
+      r.kind = Primitive::Kind::kText;
+      r.x1 = g.x + kGlyphSize * 0.85;
+      r.y1 = g.y - kGlyphSize * 0.3;
+      r.size = kNumberSize;
+      r.color = 0xFF0000;
+      r.text = "R";
+      add({Primitive::Kind::kDot, r.x1, r.y1, 0, 0, kNumberSize * 0.6, 0, 0, 0, 0, kPaper});
+      add(r);
+    }
     if (opt.degree_numbers) {
       const Pt n = at(wl[si], glyph_ring + dc[si] - kGlyphSize);
+      add({Primitive::Kind::kDot, n.x, n.y, 0, 0, kNumberSize * 0.75, 0, 0, 0, 0, kPaper});
       Primitive num;
       num.kind = Primitive::Kind::kText;
       num.x1 = n.x;
@@ -527,6 +567,164 @@ DisplayList build_double_wheel(const Chart& inner, const Chart& outer, const Cha
   }
   draw_outer_bodies(dl, outer, fza, kKm, kCompareMarkRing, kCompareGlyphRing, opt);
   return dl;
+}
+
+DisplayList centered_sheet(const DisplayList& dl) {
+  DisplayList out = dl;
+  // the wheel centre of the classic sheet moves to the middle of a
+  // square sheet, the corner notes and the credit stay on the margins
+  const double dx = kCanvasHeight / 2.0 - kCx;
+  const double dy = kCanvasHeight / 2.0 - kCy;
+  out.width = kCanvasHeight;
+  for (Primitive& p : out.items) {
+    if (p.anchor != Primitive::Anchor::kSheet) {
+      continue;
+    }
+    p.x1 += dx;
+    p.y1 += dy;
+    p.x2 += dx;
+    p.y2 += dy;
+  }
+  return out;
+}
+
+void add_classic_text(DisplayList& dl, const Chart& chart, const ChartSettings& s, const ClassicSheetText& txt) {
+  // the corner notes of the screen sheet give way to his block
+  dl.items.erase(std::remove_if(dl.items.begin(), dl.items.end(),
+                                [](const Primitive& p) { return p.anchor == Primitive::Anchor::kCorner; }),
+                 dl.items.end());
+  auto text = [&](double x, double y, std::string t, double size = 10.0) {
+    Primitive p;
+    p.kind = Primitive::Kind::kText;
+    p.x1 = x;
+    p.y1 = y;
+    p.size = size;
+    p.align_left = true;
+    p.anchor = Primitive::Anchor::kCorner;
+    p.text = std::move(t);
+    dl.items.push_back(std::move(p));
+  };
+  static constexpr const char* kSign3[12] = {"AR", "TA", "GM", "CN", "LE", "VI",
+                                             "LI", "SC", "SG", "CP", "AQ", "PS"};
+  const auto zod = [](double rad, char mark) {
+    const double deg = norm_deg(rad * kRadToDeg);
+    int sg = static_cast<int>(deg / 30.0);
+    const double in_sign = deg - sg * 30.0;
+    int d = static_cast<int>(in_sign);
+    int m = static_cast<int>((in_sign - d) * 60.0 + 0.5);
+    if (m == 60) {
+      m = 0;
+      if (++d == 30) {
+        d = 0;
+        sg = (sg + 1) % 12;
+      }
+    }
+    char buf[24];
+    std::snprintf(buf, sizeof(buf), "%2d %s %2d%c", d, kSign3[sg], m, mark);
+    return std::string(buf);
+  };
+
+  //RR Länge:A1, the length mode tag of his table header
+  const char* mode = s.apparent == ApparentMode::kLightTime         ? "A1"
+                     : s.apparent == ApparentMode::kLightTimeAberration ? "A2"
+                                                                        : "T";
+  const double x0 = 6.0;
+  text(x0, 16.0, std::string("L\xC3\xA4nge:") + mode);
+  text(118.0, 16.0, "Vel.");
+  static constexpr const char* kRowTag[11] = {"SO", "MO", "ME", "VE", "MA", "JU",
+                                              "SA", "UR", "NE", "PL", "DR"};
+  double y = 31.0;
+  for (int row = 0; row < 11; ++row) {
+    const int slot = (row < 10) ? row + 1 : body::kNodeAsc;
+    const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
+    if (!b.present || !b.valid) {
+      continue;
+    }
+    // P marks the parallax corrected rows, W the true node like his W
+    char mark = ' ';
+    if (row < 10 && s.topocentric_parallax) {
+      mark = 'P';
+    } else if (row == 10) {
+      mark = s.true_node ? 'W' : 'M';
+    }
+    char buf[48];
+    std::snprintf(buf, sizeof(buf), "%s %s %7.1f", kRowTag[row],
+                  zod(b.el, mark).c_str(), b.tb * kRadToDeg * 60.0);
+    text(x0, y, buf);
+    y += 12.5;
+  }
+  y += 4.0;
+  dl.items.push_back({Primitive::Kind::kLine, x0, y, 190.0, y, 0, 0, 0, 0, 0, 0x000000, 0xFFFFFF,
+                      Primitive::Style::kSolid, 1.0, false, Primitive::Anchor::kCorner, ""});
+  y += 14.0;
+  //RR Häusersp., his house summary under the table
+  if (chart.houses.ok) {
+    text(x0, y, "H\xC3\xA4usersp.");
+    y += 12.5;
+    std::string hn(chart.houses.name.data(), chart.houses.name.size());
+    while (!hn.empty() && hn.back() == ' ') {
+      hn.pop_back();
+    }
+    text(x0, y, "(" + hn + ")");
+    y += 12.5;
+    static constexpr const char* kHouseTag[6] = {" AC", "H 2", "H 3", " MC", "H11", "H12"};
+    static constexpr int kHouseIdx[6] = {1, 2, 3, 10, 11, 12};
+    for (int i = 0; i < 6; ++i) {
+      const double c = chart.houses.cusp[static_cast<std::size_t>(kHouseIdx[i])];
+      const double deg = norm_deg(c * kRadToDeg);
+      int sg = static_cast<int>(deg / 30.0);
+      const double in_sign = deg - sg * 30.0;
+      int d = static_cast<int>(in_sign);
+      int m = static_cast<int>((in_sign - d) * 60.0 + 0.5);
+      if (m == 60) {
+        m = 0;
+        if (++d == 30) {
+          d = 0;
+          sg = (sg + 1) % 12;
+        }
+      }
+      char buf[40];
+      std::snprintf(buf, sizeof(buf), "%s:%2d\xC2\xB0 %s %2d'", kHouseTag[i], d, kSign3[sg], m);
+      text(x0, y, buf);
+      y += 12.5;
+    }
+  }
+  y += 4.0;
+  dl.items.push_back({Primitive::Kind::kLine, x0, y, 190.0, y, 0, 0, 0, 0, 0, 0x000000, 0xFFFFFF,
+                      Primitive::Style::kSolid, 1.0, false, Primitive::Anchor::kCorner, ""});
+  y += 14.0;
+  //RR Spiegelung:
+  text(x0, y, "Spiegelung:");
+
+  // the record corners of his HOROSKOP GRAPHIK screen
+  if (!txt.name.empty()) {
+    text(205.0, 16.0, "Name: " + txt.name);
+  }
+  if (!txt.mode.empty()) {
+    text(360.0, 16.0, txt.mode);
+  }
+  if (!txt.stz.empty()) {
+    text(500.0, 16.0, txt.stz);
+  }
+  text(205.0, 420.0, "Ort:");
+  if (!txt.place.empty()) {
+    text(205.0, 432.0, txt.place);
+  }
+  if (!txt.lon.empty()) {
+    text(205.0, 444.0, txt.lon);
+  }
+  if (!txt.lat.empty()) {
+    text(205.0, 456.0, txt.lat);
+  }
+  if (!txt.date.empty()) {
+    text(470.0, 432.0, txt.date);
+  }
+  if (!txt.ut.empty()) {
+    text(470.0, 444.0, txt.ut);
+  }
+  if (!txt.weekday.empty()) {
+    text(470.0, 456.0, txt.weekday);
+  }
 }
 
 const char* body_glyph(int slot) {
