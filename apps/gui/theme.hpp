@@ -18,8 +18,8 @@ inline constexpr const char* kPanel = "#182138";
 inline constexpr const char* kPanelEdge = "#2C3759";
 inline constexpr const char* kInk = "#E9E5D9";
 inline constexpr const char* kInkDim = "#A7A498";
-inline constexpr const char* kGold = "#D4A94A";
-inline constexpr const char* kGoldDim = "#8F7433";
+inline constexpr const char* kGold = "#C9B183";
+inline constexpr const char* kGoldDim = "#83744F";
 inline constexpr const char* kTeal = "#5FC0C0";
 inline constexpr const char* kFire = "#E85D4E";
 //RR RGB($C0,$DC,$C0)
@@ -86,7 +86,7 @@ QLabel#aspectsLine {
   font-size: @13px@;
 }
 QDockWidget {
-  color: #D4A94A;
+  color: #C9B183;
   background: #10172B;
   font-family: "Courier New", monospace;
   font-size: @12px@;
@@ -116,7 +116,7 @@ QAbstractScrollArea::corner {
 }
 QHeaderView::section {
   background: #182138;
-  color: #D4A94A;
+  color: #C9B183;
   border: none;
   border-bottom: 1px solid #2C3759;
   border-right: 1px solid #222C4E;
@@ -138,7 +138,7 @@ QComboBox, QDateEdit, QTimeEdit, QSpinBox, QDoubleSpinBox, QLineEdit {
   selection-background-color: #33406B;
 }
 QComboBox:focus, QDateEdit:focus, QTimeEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QLineEdit:focus {
-  border-color: #8F7433;
+  border-color: #83744F;
 }
 QComboBox::drop-down, QDateEdit::drop-down {
   border: none;
@@ -271,8 +271,8 @@ QCheckBox::indicator {
   background: #151C33;
 }
 QCheckBox::indicator:checked {
-  background: #8F7433;
-  border-color: #D4A94A;
+  background: #83744F;
+  border-color: #C9B183;
 }
 QScrollBar:vertical {
   background: transparent;
@@ -314,7 +314,7 @@ QListWidget {
 QToolTip {
   background: #182138;
   color: #E9E5D9;
-  border: 1px solid #8F7433;
+  border: 1px solid #83744F;
 }
 QMessageBox {
   background: #182138;
@@ -326,7 +326,7 @@ QPushButton {
   padding: 5px 16px;
 }
 QPushButton:hover {
-  border-color: #8F7433;
+  border-color: #83744F;
 }
 QPushButton:pressed {
   background: #2C3759;
@@ -338,7 +338,7 @@ QToolButton {
   padding: 4px 10px;
 }
 QToolButton:hover {
-  border-color: #8F7433;
+  border-color: #83744F;
 }
 QToolButton:pressed {
   background: #2C3759;

@@ -50,8 +50,8 @@
     </message>
     <message>
         <location filename="../aspektarium_dialog.cpp" line="184"/>
-        <source>&lt;span style=&apos;color:#D4A94A&apos;&gt;Planeten-Gewichtung&lt;/span&gt;&amp;nbsp; </source>
-        <translation>&lt;span style=&apos;color:#D4A94A&apos;&gt;Planet weighting&lt;/span&gt;&amp;nbsp; </translation>
+        <source>&lt;span style=&apos;color:#C9B183&apos;&gt;Planeten-Gewichtung&lt;/span&gt;&amp;nbsp; </source>
+        <translation>&lt;span style=&apos;color:#C9B183&apos;&gt;Planet weighting&lt;/span&gt;&amp;nbsp; </translation>
     </message>
     <message>
         <location filename="../aspektarium_dialog.cpp" line="194"/>
@@ -855,8 +855,8 @@ KURZANL5.TXT) into the folder:
     </message>
     <message>
         <location filename="../main_window.cpp" line="855"/>
-        <source>&lt;span style=&apos;color:#D4A94A&apos;&gt;TRANSITE&lt;/span&gt;&amp;nbsp; </source>
-        <translation>&lt;span style=&apos;color:#D4A94A&apos;&gt;TRANSITS&lt;/span&gt;&amp;nbsp; </translation>
+        <source>&lt;span style=&apos;color:#C9B183&apos;&gt;TRANSITE&lt;/span&gt;&amp;nbsp; </source>
+        <translation>&lt;span style=&apos;color:#C9B183&apos;&gt;TRANSITS&lt;/span&gt;&amp;nbsp; </translation>
     </message>
     <message>
         <location filename="../main_window.cpp" line="856"/>
@@ -867,13 +867,13 @@ KURZANL5.TXT) into the folder:
     </message>
     <message>
         <location filename="../main_window.cpp" line="946"/>
-        <source>&lt;span style=&apos;color:#D4A94A&apos;&gt;VERGLEICH 90°&lt;/span&gt;&amp;nbsp; </source>
-        <translation>&lt;span style=&apos;color:#D4A94A&apos;&gt;COMPARISON 90°&lt;/span&gt;&amp;nbsp; </translation>
+        <source>&lt;span style=&apos;color:#C9B183&apos;&gt;VERGLEICH 90°&lt;/span&gt;&amp;nbsp; </source>
+        <translation>&lt;span style=&apos;color:#C9B183&apos;&gt;COMPARISON 90°&lt;/span&gt;&amp;nbsp; </translation>
     </message>
     <message>
         <location filename="../main_window.cpp" line="953"/>
-        <source>&lt;span style=&apos;color:#D4A94A&apos;&gt;VERGLEICH&lt;/span&gt;&amp;nbsp; </source>
-        <translation>&lt;span style=&apos;color:#D4A94A&apos;&gt;COMPARISON&lt;/span&gt;&amp;nbsp; </translation>
+        <source>&lt;span style=&apos;color:#C9B183&apos;&gt;VERGLEICH&lt;/span&gt;&amp;nbsp; </source>
+        <translation>&lt;span style=&apos;color:#C9B183&apos;&gt;COMPARISON&lt;/span&gt;&amp;nbsp; </translation>
     </message>
     <message>
         <location filename="../main_window.cpp" line="997"/>
@@ -882,8 +882,8 @@ KURZANL5.TXT) into the folder:
     </message>
     <message>
         <location filename="../main_window.cpp" line="1055"/>
-        <source>&lt;span style=&apos;color:#D4A94A&apos;&gt;ASPEKTE&lt;/span&gt;&amp;nbsp; konj %1  opp %2  trigon %3  quadrat %4  sextil %5</source>
-        <translation>&lt;span style=&apos;color:#D4A94A&apos;&gt;ASPECTS&lt;/span&gt;&amp;nbsp; conj %1  opp %2  trine %3  square %4  sextile %5</translation>
+        <source>&lt;span style=&apos;color:#C9B183&apos;&gt;ASPEKTE&lt;/span&gt;&amp;nbsp; konj %1  opp %2  trigon %3  quadrat %4  sextil %5</source>
+        <translation>&lt;span style=&apos;color:#C9B183&apos;&gt;ASPECTS&lt;/span&gt;&amp;nbsp; conj %1  opp %2  trine %3  square %4  sextile %5</translation>
     </message>
     <message>
         <location filename="../main_window.cpp" line="1103"/>
@@ -1210,8 +1210,8 @@ KURZANL5.TXT) into the folder:
         <translation>Planet selection…</translation>
     </message>
     <message>
-        <source>&amp;nbsp;&amp;nbsp;&lt;span style=&apos;color:#D4A94A&apos;&gt;MONDPHASE&lt;/span&gt;&amp;nbsp; %1° (%2%)</source>
-        <translation type="vanished">&amp;nbsp;&amp;nbsp;&lt;span style=&apos;color:#D4A94A&apos;&gt;MOON PHASE&lt;/span&gt;&amp;nbsp; %1° (%2%)</translation>
+        <source>&amp;nbsp;&amp;nbsp;&lt;span style=&apos;color:#C9B183&apos;&gt;MONDPHASE&lt;/span&gt;&amp;nbsp; %1° (%2%)</source>
+        <translation type="vanished">&amp;nbsp;&amp;nbsp;&lt;span style=&apos;color:#C9B183&apos;&gt;MOON PHASE&lt;/span&gt;&amp;nbsp; %1° (%2%)</translation>
     </message>
     <message>
         <location filename="../main_window.cpp" line="1125"/>
@@ -2088,8 +2088,8 @@ The language applies from the next start.</translation>
     </message>
     <message>
         <location filename="../main_window.cpp" line="1051"/>
-        <source>&lt;br&gt;&lt;span style=&apos;color:#D4A94A&apos;&gt;MONDPHASE&lt;/span&gt;&amp;nbsp; %1° (%2%)</source>
-        <translation>&lt;br&gt;&lt;span style=&apos;color:#D4A94A&apos;&gt;MOON PHASE&lt;/span&gt;&amp;nbsp; %1° (%2%)</translation>
+        <source>&lt;br&gt;&lt;span style=&apos;color:#C9B183&apos;&gt;MONDPHASE&lt;/span&gt;&amp;nbsp; %1° (%2%)</source>
+        <translation>&lt;br&gt;&lt;span style=&apos;color:#C9B183&apos;&gt;MOON PHASE&lt;/span&gt;&amp;nbsp; %1° (%2%)</translation>
     </message>
     <message>
         <location filename="../main_window.cpp" line="3127"/>
@@ -2679,14 +2679,14 @@ The language applies from the next start.</translation>
     </message>
     <message>
         <location filename="../statist_dialog.cpp" line="340"/>
-        <source>&lt;span style=&apos;color:#D4A94A&apos;&gt;HÄUSER&lt;/span&gt;&amp;nbsp; </source>
-        <translation>&lt;span style=&apos;color:#D4A94A&apos;&gt;HOUSES&lt;/span&gt;&amp;nbsp; </translation>
+        <source>&lt;span style=&apos;color:#C9B183&apos;&gt;HÄUSER&lt;/span&gt;&amp;nbsp; </source>
+        <translation>&lt;span style=&apos;color:#C9B183&apos;&gt;HOUSES&lt;/span&gt;&amp;nbsp; </translation>
     </message>
     <message>
         <location filename="../statist_dialog.cpp" line="341"/>
         <location filename="../statist_dialog.cpp" line="387"/>
-        <source>&lt;span style=&apos;color:#D4A94A&apos;&gt;ZEICHEN&lt;/span&gt;&amp;nbsp; </source>
-        <translation>&lt;span style=&apos;color:#D4A94A&apos;&gt;SIGNS&lt;/span&gt;&amp;nbsp; </translation>
+        <source>&lt;span style=&apos;color:#C9B183&apos;&gt;ZEICHEN&lt;/span&gt;&amp;nbsp; </source>
+        <translation>&lt;span style=&apos;color:#C9B183&apos;&gt;SIGNS&lt;/span&gt;&amp;nbsp; </translation>
     </message>
     <message>
         <location filename="../statist_dialog.cpp" line="394"/>

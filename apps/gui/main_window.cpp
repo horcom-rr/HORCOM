@@ -861,7 +861,7 @@ void MainWindow::recompute() {
       // the comparison list of a12asp with his one degree transit orb
       // rule, running body, separation, radix body
       const std::vector<CrossAspectHit> cross = scan_aspects_between(chart, tchart, aspect_settings_, true);
-      cross_text = tr("<span style='color:#D4A94A'>TRANSITE</span>&nbsp; ");
+      cross_text = tr("<span style='color:#C9B183'>TRANSITE</span>&nbsp; ");
       cross_text += cross.empty() ? tr("keine") : cross_hits_text(cross);
     }
   } else if (mundane) {
@@ -952,14 +952,14 @@ void MainWindow::recompute() {
       opt.dial = true;
       opt.center_label = "90\xC2\xB0- KREIS";
       show_wheel(build_double_wheel(d1, d2, s, da, opt));
-      cross_text = tr("<span style='color:#D4A94A'>VERGLEICH 90°</span>&nbsp; ");
+      cross_text = tr("<span style='color:#C9B183'>VERGLEICH 90°</span>&nbsp; ");
       cross_text += cross.empty() ? tr("keine") : cross_hits_text(cross);
       banner_->set_record(QString::fromUtf8("90° %1 × %2").arg(mine, partner_name_));
     } else {
       // the a12 double wheel, the partner outside at full scale
       show_wheel(build_double_wheel(chart, *partner_chart_, s, aspects, wopt));
       const std::vector<CrossAspectHit> cross = scan_aspects_between(chart, *partner_chart_, aspect_settings_, false);
-      cross_text = tr("<span style='color:#D4A94A'>VERGLEICH</span>&nbsp; ");
+      cross_text = tr("<span style='color:#C9B183'>VERGLEICH</span>&nbsp; ");
       cross_text += cross.empty() ? tr("keine") : cross_hits_text(cross);
       banner_->set_record(QString("%1 × %2").arg(mine, partner_name_));
     }
@@ -1060,11 +1060,11 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
   if (!helio && chart.b[body::kSun].valid && chart.b[body::kMoon].valid) {
     const double d = norm_rad(chart.b[body::kMoon].el - chart.b[body::kSun].el) * kRadToDeg;
     const double pct = (180.0 - std::abs(d - 180.0)) / 180.0 * kPercent;
-    phase_text = tr("<br><span style='color:#D4A94A'>MONDPHASE</span>&nbsp; %1° (%2%)")
+    phase_text = tr("<br><span style='color:#C9B183'>MONDPHASE</span>&nbsp; %1° (%2%)")
                      .arg(d, 0, 'f', 0)
                      .arg(pct, 0, 'f', 0);
   }
-  aspects_label_->setText(tr("<span style='color:#D4A94A'>ASPEKTE</span>&nbsp; "
+  aspects_label_->setText(tr("<span style='color:#C9B183'>ASPEKTE</span>&nbsp; "
                              "konj %1  opp %2  trigon %3  quadrat %4  sextil %5")
                               .arg(aspects.zh[1])
                               .arg(aspects.zh[2])

@@ -337,8 +337,8 @@ void StatistDialog::apply_condition() {
                            .arg(set_.records.size()));
   if (res.distribution[0] > 0) {
     const bool houses = q.window == StatWindow::kInHouse;
-    QString text = houses ? tr("<span style='color:#D4A94A'>HÄUSER</span>&nbsp; ")
-                          : tr("<span style='color:#D4A94A'>ZEICHEN</span>&nbsp; ");
+    QString text = houses ? tr("<span style='color:#C9B183'>HÄUSER</span>&nbsp; ")
+                          : tr("<span style='color:#C9B183'>ZEICHEN</span>&nbsp; ");
     for (int i = 1; i <= 12; ++i) {
       if (i > 1) {
         text += "  ";
@@ -384,7 +384,7 @@ void StatistDialog::refresh_distribution() {
     ++bins[static_cast<std::size_t>(sign)];
     ++have;
   }
-  QString text = tr("<span style='color:#D4A94A'>ZEICHEN</span>&nbsp; ");
+  QString text = tr("<span style='color:#C9B183'>ZEICHEN</span>&nbsp; ");
   for (int i = 0; i < 12; ++i) {
     if (i > 0) {
       text += "  ";

@@ -75,7 +75,7 @@ void Banner::paintEvent(QPaintEvent* /*event*/) {
   title.setBold(true);
   title.setLetterSpacing(QFont::AbsoluteSpacing, 7.0);
   p.setFont(title);
-  p.setPen(QColor(0xD4, 0xA9, 0x4A));
+  p.setPen(QColor(0xC9, 0xB1, 0x83));
   p.drawText(QRect(66, 0, 260, height()), Qt::AlignVCenter | Qt::AlignLeft, "HORCOM");
 
   // the record, spoken on the green of his main menu panel
