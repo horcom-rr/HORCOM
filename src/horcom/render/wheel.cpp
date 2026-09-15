@@ -343,7 +343,9 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
       box.kind = Primitive::Kind::kDot;
       box.x1 = g.x;
       box.y1 = g.y;
-      box.r1 = kGlyphSize * 0.62;
+      // measured over every sprite, the widest ink reaches 0.66 of
+      // the glyph size, the patch clears it with a small margin
+      box.r1 = kGlyphSize * 0.68;
       box.color = 0x000000;
       add(box);
     }
