@@ -410,7 +410,7 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
           wa += kPi;
         }
         const Pt p = at(wa, kConjDotRing);
-        add({Primitive::Kind::kDot, p.x, p.y, 0, 0, 3.0, 0, 0, 0, 0, 0xFF0000});
+        add({Primitive::Kind::kDot, p.x, p.y, 0, 0, 2.0, 0, 0, 0, 0, 0xFF0000});
         continue;
       }
       const Pt a = at(w1, kAspectRing);
