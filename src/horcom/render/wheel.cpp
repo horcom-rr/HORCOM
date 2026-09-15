@@ -676,7 +676,7 @@ void add_classic_text(DisplayList& dl, const Chart& chart, const ChartSettings& 
                      : s.apparent == ApparentMode::kLightTimeAberration ? "A2"
                                                                         : "T";
   const double x0 = 6.0;
-  text(x0, 16.0, std::string("L\xC3\xA4nge:") + mode);
+  text(x0, 16.0, (txt.len_header.empty() ? std::string("L\xC3\xA4nge:") : txt.len_header) + mode);
   text(118.0, 16.0, "Vel.");
   static constexpr const char* kRowTag[11] = {"SO", "MO", "ME", "VE", "MA", "JU",
                                               "SA", "UR", "NE", "PL", "DR"};
@@ -706,7 +706,7 @@ void add_classic_text(DisplayList& dl, const Chart& chart, const ChartSettings& 
   y += 14.0;
   //RR Häusersp., his house summary under the table
   if (chart.houses.ok) {
-    text(x0, y, "H\xC3\xA4usersp.");
+    text(x0, y, txt.houses_header.empty() ? "H\xC3\xA4usersp." : txt.houses_header);
     y += 12.5;
     std::string hn(chart.houses.name.data(), chart.houses.name.size());
     while (!hn.empty() && hn.back() == ' ') {
@@ -741,7 +741,7 @@ void add_classic_text(DisplayList& dl, const Chart& chart, const ChartSettings& 
                       Primitive::Style::kSolid, 1.0, false, false, Primitive::Anchor::kCorner, ""});
   y += 14.0;
   //RR Spiegelung:
-  text(x0, y, "Spiegelung:");
+  text(x0, y, txt.mirror_label.empty() ? "Spiegelung:" : txt.mirror_label);
 
   add_corner_text(dl, txt, 205.0, 383.0, kCanvasWidth - 8.0);
 }
@@ -762,7 +762,7 @@ void add_corner_text(DisplayList& dl, const ClassicSheetText& txt, double left_x
   };
   // the record corners of his HOROSKOP GRAPHIK screen, the name top
   // left, the place bottom left, the moment bottom right
-  text(left_x, 16.0, "Name:");
+  text(left_x, 16.0, txt.name_label.empty() ? "Name:" : txt.name_label);
   if (!txt.name.empty()) {
     text(left_x, 28.0, txt.name);
   }
@@ -772,7 +772,7 @@ void add_corner_text(DisplayList& dl, const ClassicSheetText& txt, double left_x
   if (!txt.stz.empty()) {
     text(right_x, 16.0, txt.stz, Align::kRight);
   }
-  text(left_x, 420.0, "Ort:");
+  text(left_x, 420.0, txt.place_label.empty() ? "Ort:" : txt.place_label);
   if (!txt.place.empty()) {
     text(left_x, 432.0, txt.place);
   }

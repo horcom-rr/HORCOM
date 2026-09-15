@@ -85,8 +85,8 @@ void paint_display_list(QPainter& p, const DisplayList& dl) {
   // the fixed font of his SYSTEM_FIXED_FONT screens for the labels,
   // the symbol face only for the glyphs
   QFont text_font;
-  text_font.setFamilies({QStringLiteral("Cascadia Mono"), QStringLiteral("Consolas"),
-                         QStringLiteral("Courier New")});
+  text_font.setFamilies({QStringLiteral("Fixedsys"), QStringLiteral("Terminal"),
+                         QStringLiteral("Lucida Console"), QStringLiteral("Consolas")});
   text_font.setStyleHint(QFont::Monospace);
   text_font.setFixedPitch(true);
   text_font.setWeight(QFont::DemiBold);

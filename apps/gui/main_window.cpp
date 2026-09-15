@@ -3840,10 +3840,17 @@ ClassicSheetText MainWindow::classic_sheet_text() const {
     //RR Topozentrisch
     t.mode = (s.topocentric_parallax ? tr("Topozentrisch") : tr("Geozentrisch")).toStdString();
   }
+  //RR the corner labels of his sheet, the English build translates them
+  t.name_label = tr("Name:").toStdString();
+  t.place_label = tr("Ort:").toStdString();
+  t.len_header = tr("Länge:").toStdString();
+  t.houses_header = tr("Häusersp.").toStdString();
+  t.mirror_label = tr("Spiegelung:").toStdString();
   if (last_chart_) {
     const double stz_h = norm_deg(last_chart_->armc_deg) / 15.0;
     const int stz_s = static_cast<int>(stz_h * 3600.0 + 0.5);
-    t.stz = QString::asprintf("STZ:%2dh %2dm %2ds", stz_s / 3600, (stz_s / 60) % 60, stz_s % 60)
+    t.stz = (tr("STZ") + QString::asprintf(":%2dh %2dm %2ds", stz_s / 3600, (stz_s / 60) % 60,
+                                           stz_s % 60))
                 .toStdString();
     //RR day_w$, der WOCHENTAG im HOROSKOP-Formular
     static constexpr const char* kWeekday[7] = {QT_TR_NOOP("Sonntag"),    QT_TR_NOOP("Montag"),
@@ -3863,9 +3870,10 @@ ClassicSheetText MainWindow::classic_sheet_text() const {
     return QString::asprintf("%s %d\xC2\xB0 %4.1f'%c", tag, d, (a - d) * 60.0, hemi).toStdString();
   };
   //RR Lä: und Br:, die Ortszeile des Formulars
-  t.lon = coord("L\xC3\xA4:", in.lon_deg_east, 'E', 'W');
-  t.lat = coord("Br:", in.lat_deg, 'N', 'S');
-  t.date = QString::asprintf("Datum:%2d.%2d.%04d", in.date_ut.day, in.date_ut.month, in.date_ut.year)
+  t.lon = coord(tr("Lä:").toUtf8().constData(), in.lon_deg_east, 'E', 'W');
+  t.lat = coord(tr("Br:").toUtf8().constData(), in.lat_deg, 'N', 'S');
+  t.date = (tr("Datum") + QString::asprintf(":%2d.%2d.%04d", in.date_ut.day, in.date_ut.month,
+                                            in.date_ut.year))
                .toStdString();
   int sec = static_cast<int>((in.date_ut.hour * 60.0 + in.date_ut.minute) * 60.0 + 0.5);
   if (sec >= kSecondsPerDay) {

@@ -172,6 +172,13 @@ struct ClassicSheetText {
   std::string date;     ///< the date line
   std::string ut;       ///< the clock line
   std::string weekday;  ///< the weekday
+  // the labels, the caller translates them, empty falls back to his
+  // German wording
+  std::string name_label;    ///< Name:
+  std::string place_label;   ///< Ort:
+  std::string len_header;    ///< Länge:, the mode tag joins it
+  std::string houses_header; ///< Häusersp.
+  std::string mirror_label;  ///< Spiegelung:
 };
 
 /// Writes the classic screen sheet of the original around a wheel
