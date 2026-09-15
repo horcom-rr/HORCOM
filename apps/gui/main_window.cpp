@@ -6,6 +6,7 @@
 
 #include <QActionGroup>
 #include <QApplication>
+#include <QScreen>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDateEdit>
@@ -336,7 +337,10 @@ void MainWindow::build_ui() {
   cusp_layout->addWidget(aspects_label_);
   cusp_dock->setWidget(cusp_host);
   addDockWidget(Qt::RightDockWidgetArea, cusp_dock);
-  resizeDocks({body_dock, cusp_dock}, {395, 395}, Qt::Horizontal);
+  // the first table fill sizes the dock so the core columns close
+  // flush, the remaining columns stay a scroll away
+  body_dock_ = body_dock;
+  resizeDocks({body_dock, cusp_dock}, {420, 420}, Qt::Horizontal);
 
   // the menu
   //RR EIN-AUSG. | EPHEMERIDE | HOROSKOPE | AUSWERTUNG | DIVERSES
@@ -1020,6 +1024,19 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
   }
   bodies_->setVerticalHeaderLabels(row_names);
   bodies_->resizeColumnsToContents();
+  // size the panel once so Laenge through A close flush with the
+  // edge, no half cut column, the rest scrolls. Deferred, the dock
+  // layout must settle first.
+  if (!dock_sized_ && body_dock_ != nullptr) {
+    dock_sized_ = true;
+    QTimer::singleShot(0, this, [this]() {
+      int want = bodies_->verticalHeader()->width() + 2 * bodies_->frameWidth() + 14;
+      for (int c = 0; c < 5; ++c) {
+        want += bodies_->columnWidth(c);
+      }
+      resizeDocks({body_dock_}, {want}, Qt::Horizontal);
+    });
+  }
   // bes111 lists no cusps in the hrg mode
   for (int i = 1; i <= 12; ++i) {
     cusps_->setItem(i - 1, 0,

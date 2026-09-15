@@ -22,6 +22,7 @@ class QCheckBox;
 class QComboBox;
 class QDate;
 class QDateEdit;
+class QDockWidget;
 class QTime;
 class QTimer;
 class QDoubleSpinBox;
@@ -177,6 +178,8 @@ class MainWindow : public QMainWindow {
   QDoubleSpinBox* lon_ = nullptr;
   QDoubleSpinBox* lat_ = nullptr;
   QComboBox* houses_ = nullptr;
+  QDockWidget* body_dock_ = nullptr;
+  bool dock_sized_ = false;
   QCheckBox* parallax_ = nullptr;
   QCheckBox* extras_ = nullptr;
   QCheckBox* true_node_ = nullptr;
