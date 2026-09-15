@@ -353,6 +353,14 @@ int main(int argc, char** argv) {
     window.export_pdf_to(args[shot_pdf + 1]);
     return 0;
   }
+  // --size WxH fixes the window size, mainly for captures
+  const int size_arg = args.indexOf("--size");
+  if (size_arg >= 0 && size_arg + 1 < args.size()) {
+    const QStringList wh = args[size_arg + 1].split('x');
+    if (wh.size() == 2 && wh[0].toInt() > 0 && wh[1].toInt() > 0) {
+      window.resize(wh[0].toInt(), wh[1].toInt());
+    }
+  }
   if (shot >= 0) {
     window.showMinimized();
   } else {
