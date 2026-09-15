@@ -47,7 +47,7 @@ def signed_area(pts):
 
 def vectorize(src):
     ink = np.array(Image.open(src).convert("L")) < 128
-    path = potrace.Bitmap(ink).trace(turdsize=1, alphamax=1.0, opttolerance=0.2)
+    path = potrace.Bitmap(ink).trace(turdsize=1, alphamax=0.9, opttolerance=0.2)
     scale = OUT_SIZE * SUPERSAMPLE / ink.shape[0]
     img = Image.new("L", (OUT_SIZE * SUPERSAMPLE, OUT_SIZE * SUPERSAMPLE), 0)
     draw = ImageDraw.Draw(img)
