@@ -764,6 +764,13 @@ void MainWindow::recompute() {
   }
   const ChartSettings s = current_settings();
   Chart chart = compute_chart(in, s, vsop_, eph_);
+  if (!chart.ok) {
+    // beyond the polar circle the original still computes the chart
+    // and lists only AC and MC, the intermediate cusps stay empty
+    ChartSettings fallback = s;
+    fallback.houses = HouseSystem::kAcMcOnly;
+    chart = compute_chart(in, fallback, vsop_, eph_);
+  }
   // the horm 2 transform runs before every scanner like the original,
   // the hrg mode has no houses so mundane stays out like fixpunkt_def
   const bool mundane = mundane_action_ != nullptr && mundane_action_->isChecked() && !clock && !s.heliocentric;
