@@ -42,6 +42,9 @@ constexpr double kCompareMarkRing = 180.0;
 constexpr double kMarkInset = 3.0;
 constexpr double kMarkOutset = 5.0;
 constexpr double kLabelSize = 10.0;
+// his screen drew rings, cusp lines and ticks two pixels wide on a
+// 624 pixel radius, about 0.6 units here
+constexpr double kThinLine = 0.6;
 
 // the paper of the sheet, the cutouts under the glyphs wear it
 constexpr Rgb kPaper = 0xFCFAF4;
@@ -188,6 +191,7 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
     c.x1 = kCx;
     c.y1 = kCy;
     c.r1 = km * r;
+    c.width = kThinLine;
     add(c);
   }
   //RR SO, horg1 marks the sun as small unscaled circles in the centre
@@ -273,7 +277,9 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
       const double w = wheel_angle(chart.houses.cusp[static_cast<std::size_t>(i)], fza);
       const Pt p1 = at(w, kAspectRing);
       const Pt p2 = at(w, kSignInner);
-      add({Primitive::Kind::kLine, p1.x, p1.y, p2.x, p2.y});
+      Primitive hl{Primitive::Kind::kLine, p1.x, p1.y, p2.x, p2.y};
+      hl.width = kThinLine;
+      add(hl);
     }
   }
 
@@ -310,11 +316,15 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
     // r 90 on the aspect circle, each spanning r minus 3 to r plus 5
     const Pt tick1 = at(w_true, kTickRing - kMarkInset);
     const Pt tick2 = at(w_true, kTickRing + kMarkOutset);
-    add({Primitive::Kind::kLine, tick1.x, tick1.y, tick2.x, tick2.y});
+    Primitive tk{Primitive::Kind::kLine, tick1.x, tick1.y, tick2.x, tick2.y};
+    tk.width = kThinLine;
+    add(tk);
     if (opt.aspect_lines) {
       const Pt in1 = at(w_true, kAspectRing - kMarkInset);
       const Pt in2 = at(w_true, kAspectRing + kMarkOutset);
-      add({Primitive::Kind::kLine, in1.x, in1.y, in2.x, in2.y});
+      Primitive ik{Primitive::Kind::kLine, in1.x, in1.y, in2.x, in2.y};
+      ik.width = kThinLine;
+      add(ik);
     }
     // the paper cutouts, his putbm sprites erased the lines beneath
     // with their white background. The inverted patch pushes its
@@ -405,7 +415,7 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
     const double w2 = wheel_angle(chart.b[body::kNodeDesc].el, fza);
     const Pt a = at(w1, kAspectRing);
     const Pt b = at(w2, kAspectRing);
-    add({Primitive::Kind::kLine, a.x, a.y, b.x, b.y, 0, 0, 0, 0, 0, 0x0000FF, 0xFFFFFF, Primitive::Style::kDashed, 1.0});
+    add({Primitive::Kind::kLine, a.x, a.y, b.x, b.y, 0, 0, 0, 0, 0, 0x0000FF, 0xFFFFFF, Primitive::Style::kDashed, 0.7});
   }
 
   // aspect chords on the inner ring like aspz0 and aspz1, gated per
@@ -442,6 +452,7 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
       if (h.n >= 2 && h.n <= 12) {
         line.style = kChordStyle[h.n];
       }
+      line.width = 0.7;
       add(line);
     }
   }
@@ -527,7 +538,9 @@ static void draw_outer_bodies(DisplayList& dl, const Chart& chart, double fza, d
     const double w_true = wheel_angle(pl[si], fza);
     const Pt m1 = at(w_true, mark_ring - kMarkInset);
     const Pt m2 = at(w_true, mark_ring + kMarkOutset);
-    add({Primitive::Kind::kLine, m1.x, m1.y, m2.x, m2.y});
+    Primitive mk{Primitive::Kind::kLine, m1.x, m1.y, m2.x, m2.y};
+    mk.width = kThinLine;
+    add(mk);
     const Pt g = at(wl[si], glyph_ring + dc[si]);
     add({Primitive::Kind::kDot, g.x, g.y, 0, 0, kGlyphSize * 0.60, 0, 0, 0, 0, kPaper});
     if (chart.b[si].tb < 0.0 && slot >= 3 && slot <= 10) {
@@ -609,7 +622,9 @@ DisplayList build_double_wheel(const Chart& inner, const Chart& outer, const Cha
       const double w = wheel_angle(outer.houses.cusp[static_cast<std::size_t>(i)], fza);
       const Pt p1 = at(w, kAspectRing);
       const Pt p2 = at(w, kSignInner);
-      add({Primitive::Kind::kLine, p1.x, p1.y, p2.x, p2.y});
+      Primitive hl{Primitive::Kind::kLine, p1.x, p1.y, p2.x, p2.y};
+      hl.width = kThinLine;
+      add(hl);
     }
   }
   draw_outer_bodies(dl, outer, fza, kKm, kCompareMarkRing, kCompareGlyphRing, opt);
