@@ -107,6 +107,9 @@ struct WheelOptions {
   /// the right mouse selection of the original chart screen, per slot,
   /// 0 draws normally, 1 marks the glyph red, -1 hides the body
   std::array<int, body::kSlotCount> emphasis{};
+  /// the birth ruler slot, drawn inverted on a dark patch like the
+  /// putbm SRCINVERT stamping of rulers and nodes, negative for none
+  int ruler_slot = -1;
   /// print the degree within sign under each glyph, the original pziff
   bool degree_numbers = true;
 };

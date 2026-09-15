@@ -334,9 +334,10 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
   for (int slot : slots) {
     const auto si = static_cast<std::size_t>(slot);
     const Pt g = at(wl[si], kGlyphRing + dc[si]);
-    // his node glyphs sit inverted on a dark patch, putbm SRCINVERT,
-    // the patch covers the whole sprite
-    const bool inverted = slot == body::kNodeAsc || slot == body::kNodeDesc;
+    // nodes and the birth ruler sit inverted on a dark patch, the
+    // putbm SRCINVERT stamping of rulers and nodes
+    const bool inverted =
+        slot == body::kNodeAsc || slot == body::kNodeDesc || slot == opt.ruler_slot;
     if (inverted) {
       Primitive box;
       box.kind = Primitive::Kind::kDot;
@@ -361,6 +362,12 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
       p.color = 0xFF0000;
     }
     add(p);
+  }
+  // numbers and retrograde marks last, they stay readable over any
+  // crowded neighbour glyph
+  for (int slot : slots) {
+    const auto si = static_cast<std::size_t>(slot);
+    const Pt g = at(wl[si], kGlyphRing + dc[si]);
     // the red R of his retrograde marker beside the glyph
     if (chart.b[si].tb < 0.0 && slot >= 3 && slot <= 10) {
       Primitive r;
@@ -506,6 +513,8 @@ static void draw_outer_bodies(DisplayList& dl, const Chart& chart, double fza, d
     wl[static_cast<std::size_t>(slot)] = wheel_angle(b.el, fza);
   }
   declump(slots, pl, wl, dc);
+  // cutouts first, then the symbols, then the small texts on top, the
+  // same three passes as the radix ring
   for (int slot : slots) {
     const auto si = static_cast<std::size_t>(slot);
     const double w_true = wheel_angle(pl[si], fza);
@@ -514,6 +523,18 @@ static void draw_outer_bodies(DisplayList& dl, const Chart& chart, double fza, d
     add({Primitive::Kind::kLine, m1.x, m1.y, m2.x, m2.y});
     const Pt g = at(wl[si], glyph_ring + dc[si]);
     add({Primitive::Kind::kDot, g.x, g.y, 0, 0, kGlyphSize * 0.60, 0, 0, 0, 0, kPaper});
+    if (chart.b[si].tb < 0.0 && slot >= 3 && slot <= 10) {
+      add({Primitive::Kind::kDot, g.x + kGlyphSize * 0.85, g.y - kGlyphSize * 0.3, 0, 0,
+           kNumberSize * 0.6, 0, 0, 0, 0, kPaper});
+    }
+    if (opt.degree_numbers) {
+      add({Primitive::Kind::kDot, g.x, g.y + kGlyphSize, 0, 0, kNumberSize * 0.75, 0, 0, 0, 0,
+           kPaper});
+    }
+  }
+  for (int slot : slots) {
+    const auto si = static_cast<std::size_t>(slot);
+    const Pt g = at(wl[si], glyph_ring + dc[si]);
     Primitive p;
     p.kind = Primitive::Kind::kGlyph;
     p.x1 = g.x;
@@ -521,6 +542,10 @@ static void draw_outer_bodies(DisplayList& dl, const Chart& chart, double fza, d
     p.size = kGlyphSize;
     p.text = kBodyGlyph[si];
     add(p);
+  }
+  for (int slot : slots) {
+    const auto si = static_cast<std::size_t>(slot);
+    const Pt g = at(wl[si], glyph_ring + dc[si]);
     if (chart.b[si].tb < 0.0 && slot >= 3 && slot <= 10) {
       Primitive r;
       r.kind = Primitive::Kind::kText;
@@ -529,12 +554,9 @@ static void draw_outer_bodies(DisplayList& dl, const Chart& chart, double fza, d
       r.size = kNumberSize;
       r.color = 0xFF0000;
       r.text = "R";
-      add({Primitive::Kind::kDot, r.x1, r.y1, 0, 0, kNumberSize * 0.6, 0, 0, 0, 0, kPaper});
       add(r);
     }
     if (opt.degree_numbers) {
-      add({Primitive::Kind::kDot, g.x, g.y + kGlyphSize, 0, 0, kNumberSize * 0.75, 0, 0, 0, 0,
-           kPaper});
       Primitive num;
       num.kind = Primitive::Kind::kText;
       num.x1 = g.x;

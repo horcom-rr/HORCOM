@@ -801,11 +801,15 @@ void MainWindow::recompute() {
   if (chords_set_) {
     wopt.chord_divisor = chords_;
   }
-  //RR der GEBURTSHERRSCHER wird hervorgehoben
-  if (ruler_red_ && !current_settings().heliocentric && last_chart_ && last_chart_->houses.ok) {
-    const int kp = sign_ruler(last_chart_->houses.cusp[1], false);
-    if (kp > 0 && kp < body::kSlotCount && wopt.emphasis[static_cast<std::size_t>(kp)] == 0) {
-      wopt.emphasis[static_cast<std::size_t>(kp)] = 1;
+  //RR der GEBURTSHERRSCHER, the original stamps him inverted like the
+  // nodes, the Planeten-Auswahl red marking rides on top of that
+  if (!s.heliocentric && chart.houses.ok) {
+    const int kp = sign_ruler(chart.houses.cusp[1], false);
+    if (kp > 0 && kp < body::kSlotCount) {
+      wopt.ruler_slot = kp;
+      if (ruler_red_ && wopt.emphasis[static_cast<std::size_t>(kp)] == 0) {
+        wopt.emphasis[static_cast<std::size_t>(kp)] = 1;
+      }
     }
   }
   // the record corners come from show_wheel now, like his sheet
