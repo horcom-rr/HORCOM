@@ -84,11 +84,12 @@ Qt::PenStyle pen_style(Primitive::Style s) {
 void paint_display_list(QPainter& p, const DisplayList& dl) {
   // the fixed font of his SYSTEM_FIXED_FONT screens for the labels,
   // the symbol face only for the glyphs
-  QFont text_font;
-  text_font.setFamilies({QStringLiteral("Fixedsys Excelsior"), QStringLiteral("Consolas"),
-                         QStringLiteral("Courier New")});
+  // the Courier New of the old IDE days, bold so the sheet reads at
+  // wheel sizes, rendered on whole device pixels below
+  QFont text_font(QStringLiteral("Courier New"));
   text_font.setStyleHint(QFont::Monospace);
   text_font.setFixedPitch(true);
+  text_font.setWeight(QFont::Bold);
   QFont glyph_font = p.font();
   for (const Primitive& item : dl.items) {
     switch (item.kind) {
@@ -144,21 +145,30 @@ void paint_display_list(QPainter& p, const DisplayList& dl) {
         }
         p.setPen(QPen(rgb(item.color)));
         QFont& font = item.kind == Primitive::Kind::kGlyph ? glyph_font : text_font;
-        font.setPixelSize(static_cast<int>(item.size));
+        // sheet text renders at a whole device pixel size with the
+        // transform lifted, the raster face stays sharp like his
+        // SYSTEM_FIXED_FONT did at its native strike
+        const QTransform tf = p.transform();
+        const double sc = std::hypot(tf.m11(), tf.m12());
+        const int px = std::max(6, static_cast<int>(std::lround(item.size * sc)));
+        font.setPixelSize(px);
+        p.save();
+        const QPointF dev = tf.map(QPointF(item.x1, item.y1));
+        p.resetTransform();
         p.setFont(font);
-        // long labels like the transit line need a wider box, the
-        // centring keeps them in place
-        const double half = std::max(40.0, 0.5 * static_cast<double>(item.text.size()) * item.size);
+        const double half =
+            std::max(60.0, 0.5 * static_cast<double>(item.text.size()) * px);
         if (item.align_right) {
-          const QRectF box(item.x1 - 2.0 * half, item.y1 - 20.0, 2.0 * half, 40.0);
+          const QRectF box(dev.x() - 2.0 * half, dev.y() - 2.0 * px, 2.0 * half, 4.0 * px);
           p.drawText(box, Qt::AlignRight | Qt::AlignVCenter, QString::fromStdString(item.text));
         } else if (item.align_left) {
-          const QRectF box(item.x1, item.y1 - 20.0, 2.0 * half, 40.0);
+          const QRectF box(dev.x(), dev.y() - 2.0 * px, 2.0 * half, 4.0 * px);
           p.drawText(box, Qt::AlignLeft | Qt::AlignVCenter, QString::fromStdString(item.text));
         } else {
-          const QRectF box(item.x1 - half, item.y1 - 20.0, 2.0 * half, 40.0);
+          const QRectF box(dev.x() - half, dev.y() - 2.0 * px, 2.0 * half, 4.0 * px);
           p.drawText(box, Qt::AlignCenter, QString::fromStdString(item.text));
         }
+        p.restore();
         break;
       }
       case Primitive::Kind::kDot: {

@@ -1,6 +1,0 @@
-Fixedsys Excelsior 3.02.9, the vector remake of the classic Windows
-Fixedsys bitmap font. Obtained from the maintained release at
-https://github.com/kika/fixedsys (release v3.02.9). The typeface is
-distributed by its authors as a free font in the public domain spirit
-of the original Fixedsys Excelsior 3.01 by Darien Valentine. This file
-keeps its own terms, it is not covered by the repository's GPL.

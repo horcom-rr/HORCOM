@@ -32,8 +32,8 @@ constexpr double kAxisLabel = 208.0;
 constexpr double kTickRing = 150.0;
 constexpr double kConjDotRing = 85.0;  // the original red conjunction dot
 constexpr double kGlyphSize = 11.0;
-constexpr double kNumberSize = 8.0;
-constexpr double kAxisTextSize = 11.0;
+constexpr double kNumberSize = 9.0;
+constexpr double kAxisTextSize = 12.0;
 // the transit ring of a20, glyphs from plein1 and markers from plmk
 constexpr double kTransitGlyphRing = 212.0;
 // the comparison ring of a12, the second chart of the double wheel
@@ -762,7 +762,7 @@ void add_corner_text(DisplayList& dl, const ClassicSheetText& txt, double left_x
     p.kind = Primitive::Kind::kText;
     p.x1 = x;
     p.y1 = y;
-    p.size = 10.0;
+    p.size = 11.0;
     p.align_left = a == Align::kLeft;
     p.align_right = a == Align::kRight;
     p.anchor = Primitive::Anchor::kCorner;

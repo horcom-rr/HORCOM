@@ -95,7 +95,7 @@ std::string to_svg(const DisplayList& dl) {
           << "\" dominant-baseline=\"middle\" fill=\"" << hex(p.color) << "\"";
         if (p.kind == Primitive::Kind::kText) {
           // the fixed font of his screens, the glyphs keep the symbol face
-          s << " font-family=\"Fixedsys Excelsior, Cascadia Mono, Consolas, monospace\"";
+          s << " font-family=\"Courier New, monospace\" font-weight=\"bold\"";
         }
         s << ">" << escape(p.text) << "</text>\n";
         break;
