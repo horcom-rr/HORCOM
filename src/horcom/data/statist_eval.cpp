@@ -56,6 +56,26 @@ int sign_ruler(double w, bool classic) {
   }
 }
 
+// ported from HORCOM geb_herr
+std::pair<int, int> birth_rulers(double cusp1, double cusp2, bool classic) {
+  std::pair<int, int> k{0, 0};
+  if (cusp1 == 0.0 || cusp2 == 0.0) {
+    return k;
+  }
+  k.first = sign_ruler(norm_rad(cusp1), classic);
+  const int j1 = static_cast<int>(std::floor(6.0 * norm_rad(cusp1) / kPi)) + 1;
+  int j2 = static_cast<int>(std::floor(6.0 * norm_rad(cusp2) / kPi)) + 1;
+  if (j2 < j1) {
+    j2 += 12;
+  }
+  // a whole sign intercepted in the first house makes its ruler a
+  // second birth ruler, the sign sits 30 degrees before the second cusp
+  if (j2 - j1 == 2) {
+    k.second = sign_ruler(norm_rad(cusp2 - kPi / 6.0), classic);
+  }
+  return k;
+}
+
 namespace {
 
 // one longitude of a record, AC and MC live beside the slot array

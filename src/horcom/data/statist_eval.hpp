@@ -6,6 +6,7 @@
 
 #include <array>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "horcom/chart/aspects.hpp"
@@ -115,6 +116,17 @@ struct StatEvalResult {
 ///                for Aquarius, Jupiter for Pisces
 /// @return the ruling body slot, 0 when w is not inside the circle
 [[nodiscard]] int sign_ruler(double w, bool classic);
+
+/// The birth rulers of the original geb_herr. The first is the ruler
+/// of the ascendant sign. When the second cusp stands two signs past
+/// the ascendant a whole sign lies intercepted in the first house and
+/// its ruler joins as the second. Both draw inverted on the wheel.
+///
+/// @param cusp1   house cusp 1 in radians
+/// @param cusp2   house cusp 2 in radians
+/// @param classic true takes the old rulers like sign_ruler
+/// @return the two ruler slots, 0 where none applies
+[[nodiscard]] std::pair<int, int> birth_rulers(double cusp1, double cusp2, bool classic);
 
 /// Runs one condition over a dataset like stat_ausw.
 ///

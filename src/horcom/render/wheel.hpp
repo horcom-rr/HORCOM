@@ -112,6 +112,9 @@ struct WheelOptions {
   /// the birth ruler slot, drawn inverted on a dark patch like the
   /// putbm SRCINVERT stamping of rulers and nodes, negative for none
   int ruler_slot = -1;
+  /// the second inverted ruler of geb_herr, the ruler of a whole sign
+  /// intercepted in the first house, negative for none
+  int ruler_slot2 = -1;
   /// print the degree within sign under each glyph, the original pziff
   bool degree_numbers = true;
 };

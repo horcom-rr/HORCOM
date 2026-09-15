@@ -816,6 +816,11 @@ void MainWindow::recompute() {
         wopt.emphasis[static_cast<std::size_t>(kp)] = 1;
       }
     }
+    // geb_herr adds the ruler of a sign intercepted in the first house
+    const int k3 = birth_rulers(chart.houses.cusp[1], chart.houses.cusp[2], false).second;
+    if (k3 > 0 && k3 < body::kSlotCount) {
+      wopt.ruler_slot2 = k3;
+    }
   }
   // the record corners come from show_wheel now, like his sheet
   wopt.heliocentric = s.heliocentric;

@@ -83,6 +83,23 @@ TEST_CASE("ze_pl hands every sign its ruler, the old ones on demand") {
   CHECK(sign_ruler(0.0, false) == 0);
 }
 
+TEST_CASE("geb_herr names the ascendant ruler and the intercepted second") {
+  // TEST02, AC 24 AR and cusp 2 at 1 GM leave Taurus whole in house 1
+  auto k = birth_rulers(24.29 * kDegToRad, 61.16 * kDegToRad, false);
+  CHECK(k.first == body::kMars);
+  CHECK(k.second == body::kVenus);
+  // TEST04, AC 19 PS with cusp 2 at 13 TA intercepts Aries
+  k = birth_rulers(348.98 * kDegToRad, 43.32 * kDegToRad, false);
+  CHECK(k.first == body::kNeptune);
+  CHECK(k.second == body::kMars);
+  // a plain chart, cusp 2 in the next sign carries no second ruler
+  k = birth_rulers(15.0 * kDegToRad, 40.0 * kDegToRad, false);
+  CHECK(k.first == body::kMars);
+  CHECK(k.second == 0);
+  k = birth_rulers(0.0, 40.0 * kDegToRad, false);
+  CHECK(k.first == 0);
+}
+
 TEST_CASE("the degree window finds a body and wraps the zero point") {
   const StatSet set = sample();
   StatQuery q;
