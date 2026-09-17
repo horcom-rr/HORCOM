@@ -72,7 +72,8 @@ std::string to_svg(const DisplayList& dl, const GlyphImageResolver& sprites) {
   std::ostringstream s;
   s << "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 " << num(dl.width) << ' ' << num(dl.height)
     << "\" font-family=\"'Segoe UI Symbol', 'Noto Sans Symbols', sans-serif\">\n";
-  s << "<rect width=\"" << num(dl.width) << "\" height=\"" << num(dl.height) << "\" fill=\"#FCFAF4\"/>\n";
+  s << "<rect width=\"" << num(dl.width) << "\" height=\"" << num(dl.height) << "\" fill=\"" << hex(kPaperColor)
+    << "\"/>\n";
   for (const Primitive& p : dl.items) {
     switch (p.kind) {
       case Primitive::Kind::kCircle:

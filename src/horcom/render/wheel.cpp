@@ -47,7 +47,7 @@ constexpr double kLabelSize = 10.0;
 constexpr double kThinLine = 0.6;
 
 // the paper of the sheet, the cutouts under the glyphs wear it
-constexpr Rgb kPaper = 0xFCFAF4;
+constexpr Rgb kPaper = kPaperColor;
 
 // element colours of the original fill_color as they appeared on his
 // screen, fire, earth, air, water. His code asked for red, olive, teal
@@ -283,7 +283,7 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
         Primitive n = t;
         n.size = kNumberSize;
         n.y1 += (kAxisTextSize + kNumberSize) * 0.5 + 1.0;
-        n.text = std::to_string(static_cast<int>(std::lround(q - 30.0 * std::floor(q / 30.0))));
+        n.text = std::to_string(static_cast<int>(std::lround(q - kDegPerSign * std::floor(q / kDegPerSign))));
         add(n);
       }
     }
@@ -428,7 +428,7 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
       num.size = kNumberSize;
       //RR CINT, planziff1 rounds the degree in sign to the nearest
       const double q = norm_deg(pl[si] * kRadToDeg);
-      num.text = std::to_string(static_cast<int>(std::lround(q - 30.0 * std::floor(q / 30.0))));
+      num.text = std::to_string(static_cast<int>(std::lround(q - kDegPerSign * std::floor(q / kDegPerSign))));
       add(num);
     }
   }
@@ -614,7 +614,7 @@ static void draw_outer_bodies(DisplayList& dl, const Chart& chart, double fza, d
       num.size = kNumberSize;
       //RR CINT, planziff1 rounds the degree in sign to the nearest
       const double q = norm_deg(pl[si] * kRadToDeg);
-      num.text = std::to_string(static_cast<int>(std::lround(q - 30.0 * std::floor(q / 30.0))));
+      num.text = std::to_string(static_cast<int>(std::lround(q - kDegPerSign * std::floor(q / kDegPerSign))));
       add(num);
     }
   }
@@ -716,8 +716,8 @@ void add_classic_text(DisplayList& dl, const Chart& chart, const ChartSettings& 
                                              "LI", "SC", "SG", "CP", "AQ", "PS"};
   const auto zod = [](double rad, char mark) {
     const double deg = norm_deg(rad * kRadToDeg);
-    int sg = static_cast<int>(deg / 30.0);
-    const double in_sign = deg - sg * 30.0;
+    int sg = static_cast<int>(deg / kDegPerSign);
+    const double in_sign = deg - sg * kDegPerSign;
     int d = static_cast<int>(in_sign);
     int m = static_cast<int>((in_sign - d) * 60.0 + 0.5);
     if (m == 60) {
@@ -780,8 +780,8 @@ void add_classic_text(DisplayList& dl, const Chart& chart, const ChartSettings& 
     for (int i = 0; i < 6; ++i) {
       const double c = chart.houses.cusp[static_cast<std::size_t>(kHouseIdx[i])];
       const double deg = norm_deg(c * kRadToDeg);
-      int sg = static_cast<int>(deg / 30.0);
-      const double in_sign = deg - sg * 30.0;
+      int sg = static_cast<int>(deg / kDegPerSign);
+      const double in_sign = deg - sg * kDegPerSign;
       int d = static_cast<int>(in_sign);
       int m = static_cast<int>((in_sign - d) * 60.0 + 0.5);
       if (m == 60) {
@@ -896,10 +896,10 @@ DisplayList a4_print_sheet(const Chart& chart, const ChartSettings& s, const Asp
                                              "LI", "SC", "SG", "CP", "AQ", "PS"};
   const auto zodsec = [](double rad) {
     const double deg = norm_deg(rad * kRadToDeg);
-    int sg = static_cast<int>(deg / 30.0);
-    const double in_sign = deg - sg * 30.0;
+    int sg = static_cast<int>(deg / kDegPerSign);
+    const double in_sign = deg - sg * kDegPerSign;
     int total = static_cast<int>(in_sign * 3600.0 + 0.5);
-    if (total >= 30 * 3600) {
+    if (total >= static_cast<int>(kDegPerSign) * 3600) {
       total = 0;
       sg = (sg + 1) % 12;
     }
@@ -969,7 +969,7 @@ DisplayList a4_print_sheet(const Chart& chart, const ChartSettings& s, const Asp
         }
       }
       const double w = wpct * factor;
-      const int sg = static_cast<int>(norm_deg(b.el * kRadToDeg) / 30.0) % 12;
+      const int sg = static_cast<int>(norm_deg(b.el * kRadToDeg) / kDegPerSign) % 12;
       quality[sg % 3] += w;
       element[sg % 4] += w;
     }

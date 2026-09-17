@@ -236,7 +236,7 @@ void paint_fitted(QPainter& p, const DisplayList& dl, const QRectF& target) {
   p.translate(ox, oy);
   p.scale(s, s);
   // the warm paper of the sheet, the glyph cutouts blend into it
-  p.fillRect(QRectF(0, 0, dl.width, dl.height), QColor(0xFC, 0xFA, 0xF4));
+  p.fillRect(QRectF(0, 0, dl.width, dl.height), rgb(kPaperColor));
   paint_display_list(p, dl);
   p.restore();
 }

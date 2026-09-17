@@ -27,8 +27,8 @@ double gmst0_hours(const CalendarDate& d, Calendar cal) {
 }
 
 double apparent_sidereal_hours(double h0_mean, double dpsi, double ekls) {
-  // kRadToRaHours converts dpsi from radians to hours of right ascension,
-  // 12 / pi divided by 15 written as one literal in the original
+  // kRadToRaHours converts the equation of the equinoxes from radians to
+  // hours of right ascension, twelve over pi as one literal in the original
   return norm_hours(h0_mean + dpsi * kRadToRaHours * std::cos(ekls));
 }
 

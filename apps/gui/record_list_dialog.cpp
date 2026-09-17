@@ -16,6 +16,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include "horcom/core/constants.hpp"
+
 namespace horcom {
 
 namespace {
@@ -23,14 +25,11 @@ namespace {
 // the search buttons of ausw_datei only appeared on long lists
 constexpr int kSearchThreshold = 58;
 
-// the division guard of the original, his kk
-constexpr double kGuard = 1e-10;
-
 // one coordinate like grmise(gd,1), degrees in three, tenth minutes in
 // five columns
 QString coordinate(double value, char pos, char neg) {
   const char hemi = value < 0.0 ? neg : pos;
-  const double g = std::abs(value) + kGuard;
+  const double g = std::abs(value) + kEps;
   const int deg = static_cast<int>(g);
   const double min = 60.0 * (g - deg);
   return QString::asprintf("%3d\xC2\xB0%5.1f' %c", deg, min, hemi);

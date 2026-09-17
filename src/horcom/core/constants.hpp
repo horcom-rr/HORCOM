@@ -54,6 +54,9 @@ inline constexpr double kDegPerSign = 30.0;
 /// per body orb weights and house orb percentages count in percent
 inline constexpr double kPercent = 100.0;
 
+/// the default aspect orb is the base angle over thirty, his pn / 30
+inline constexpr double kDefaultOrbDivisor = 30.0;
+
 /// clock seconds of one civil day, the clamp ceiling of the panels
 inline constexpr int kSecondsPerDay = 86400;
 

@@ -75,7 +75,7 @@ void WheelWidget::paintEvent(QPaintEvent* /*event*/) {
     p.setBrush(QColor(0, 0, 0, 22));
     p.drawRoundedRect(paper.adjusted(-i, -i + 2.0, i, i + 2.0), 10, 10);
   }
-  p.setBrush(QColor(0xFC, 0xFA, 0xF4));
+  p.setBrush(QColor((kPaperColor >> 16) & 0xFF, (kPaperColor >> 8) & 0xFF, kPaperColor & 0xFF));
   p.setPen(QPen(theme::paper_edge_color(dark), 1.0));
   p.drawRoundedRect(paper, 8, 8);
 

@@ -14,8 +14,9 @@ namespace horcom {
 
 namespace {
 
-// the default window is the base angle over thirty, his pn / 30
-constexpr double kDefaultOrbDivisor = 30.0;
+// the base orb of the mirror points, his spieg1 orb*2 and the orbe(13)
+// preset both rest on two degrees
+constexpr double kMirrorOrbDeg = 2.0;
 
 // the original a18st for the geocentric scan, jumps the gap between the
 // angles and the extra bodies and skips bodies outside their ephemeris
@@ -95,7 +96,7 @@ void AspectSettings::preset_equal_orbs() {
   for (int i = 1; i <= 12; ++i) {
     orbe[static_cast<std::size_t>(i)] = kDegToRad * 12.0 / i;
   }
-  orbe[13] = kDegToRad * 2.0;
+  orbe[13] = kDegToRad * kMirrorOrbDeg;
   orbe[14] = kDegToRad * 1.0;
 }
 
@@ -245,7 +246,7 @@ AspectResult scan_aspects(const Chart& chart, const ChartSettings& s, const Aspe
   // sum to PI about the solstice axis or to 2 PI about the equinox axis,
   // the base orb is two degrees times his orb factor, the south node
   // slot 12 stays out as it only mirrors its own head
-  const double dd_m = a.orb * 2.0 * kDegToRad;
+  const double dd_m = a.orb * kMirrorOrbDeg * kDegToRad;
   for (int t = 1; t <= bb - 1; ++t) {
     t = next_slot(chart, s, t, np);
     if (t > bb - 1) {
@@ -390,7 +391,7 @@ std::vector<CrossAspectHit> scan_aspects_between(const Chart& first, const Chart
           ++n;
         }
         const double pn = kTwoPi / n;
-        const double dd = a.orb * pn / 30.0;
+        const double dd = a.orb * pn / kDefaultOrbDivisor;
         const int m_end = std::max(1, n - 1);
         int m = 0;
         while (m != m_end) {

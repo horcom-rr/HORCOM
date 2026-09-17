@@ -35,6 +35,11 @@ inline constexpr double kGlyphRingRadius = 128.0;
 /// Colours as packed 0xRRGGBB like the original RGB() calls.
 using Rgb = unsigned;
 
+/// the paper of the classic sheet, the cutouts under the glyphs and the
+/// canvas of the wheel wear it, a rewrite addition shared by the screen,
+/// the SVG export and the painter so all three match
+inline constexpr Rgb kPaperColor = 0xFCFAF4;
+
 /// One drawing primitive on the virtual 640 by 480 canvas.
 struct Primitive {
   /// kRect fills an axis aligned box, x1 y1 the centre, r1 and r2 the

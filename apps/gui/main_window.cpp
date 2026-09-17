@@ -3519,7 +3519,7 @@ void MainWindow::eclipse_table() {
       bool taken = false;
       for (int w = 1; w <= d1 && !taken; ++w) {
         const double pn = kTwoPi / w;
-        const double dds = orbis_discr2(o1, o2, orb_factor * pn / 30.0);
+        const double dds = orbis_discr2(o1, o2, orb_factor * pn / kDefaultOrbDivisor);
         if (dds <= 0.0) {
           break;
         }
@@ -3678,7 +3678,7 @@ void MainWindow::converters() {
   auto* jd_in = new QDoubleSpinBox(&dialog);
   jd_in->setRange(0.0, 4000000.0);
   jd_in->setDecimals(5);
-  jd_in->setValue(2451545.0);
+  jd_in->setValue(kJdJ2000);
   auto* jd_out = new QLabel(&dialog);
   form->addRow(tr("Julianisches Datum"), jd_in);
   form->addRow(tr("ergibt (UT)"), jd_out);
@@ -3695,7 +3695,7 @@ void MainWindow::converters() {
   connect(jd_in, &QDoubleSpinBox::valueChanged, &dialog, jd_update);
   jd_update();
   // delta T of the panel date carries UT to ET and back
-  const double jd_panel = last_chart_ ? last_chart_->jd_ut : 2451545.0;
+  const double jd_panel = last_chart_ ? last_chart_->jd_ut : kJdJ2000;
   auto* delt = new QLabel(QString::fromUtf8("ΔT = %1 min,  ET = UT + ΔT")
                               .arg(delta_t_minutes(jd_panel), 0, 'f', 2),
                           &dialog);
@@ -5385,7 +5385,7 @@ ClassicSheetText MainWindow::classic_sheet_text() const {
   t.houses_header = tr("Häusersp.").toStdString();
   t.mirror_label = tr("Spiegelung:").toStdString();
   if (last_chart_) {
-    const double stz_h = norm_deg(last_chart_->armc_deg) / 15.0;
+    const double stz_h = norm_deg(last_chart_->armc_deg) / kDegPerHour;
     const int stz_s = static_cast<int>(stz_h * 3600.0 + 0.5);
     t.stz = (tr("STZ") + QString::asprintf(":%2dh %2dm %2ds", stz_s / 3600, (stz_s / 60) % 60,
                                            stz_s % 60))
