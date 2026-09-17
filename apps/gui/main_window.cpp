@@ -251,8 +251,12 @@ void MainWindow::build_ui() {
   houses_->addItems({"PLACIDUS", "TOPOZENTRISCH", "KOCH-GOH", "REGIOMONTANUS", "CAMPANUS",
                      "ÄQUAL EKLIPTIKAL ab AC", "ÄQUAL n. VEHLOW", "NUR AC und MC", "KEINE"});
   parallax_ = new QCheckBox(tr("Parallaxe (topozentrisch)"), form_host);
-  // off at startup like the original klpl!
-  extras_ = new QCheckBox(tr("Zusatzplaneten"), form_host);
+  // off at startup like the original klpl!, the real extras and the
+  // Hamburg factors sit on their own rows as the author's family
+  // wished, the AG display beside them
+  extras_ = new QCheckBox(tr("Zusatz-Planeten CH QU XE"), form_host);
+  hamburg_ = new QCheckBox(tr("Hamburger Planeten"), form_host);
+  apogee_show_ = new QCheckBox(tr("Apogäum (Schwarzer Mond)"), form_host);
   true_node_ = new QCheckBox(tr("Wahrer Mondknoten"), form_host);
   true_apogee_ = new QCheckBox(tr("Wahres Apogäum"), form_host);
   //RR HELIOZENTRISCH
@@ -276,6 +280,8 @@ void MainWindow::build_ui() {
   form->addRow(tr("Häuser"), houses_);
   form->addRow(parallax_);
   form->addRow(extras_);
+  form->addRow(hamburg_);
+  form->addRow(apogee_show_);
   form->addRow(true_node_);
   form->addRow(true_apogee_);
   form->addRow(helio_);
@@ -305,6 +311,14 @@ void MainWindow::build_ui() {
   parallax_->setChecked(preset.topocentric_parallax);
   true_node_->setChecked(preset.true_node);
   true_apogee_->setChecked(preset.true_apogee);
+  // a konsta file may preselect extras through its nk table
+  extras_->setChecked(preset.nk[2] > 0 || preset.nk[17] > 0 || preset.nk[22] > 0);
+  bool hamburg_on = false;
+  for (int i = 9; i <= 16; ++i) {
+    hamburg_on = hamburg_on || preset.nk[static_cast<std::size_t>(i)] > 0;
+  }
+  hamburg_->setChecked(hamburg_on);
+  apogee_show_->setChecked(preset.nk[1] > 0);
   // the preferred place of the original ORT.EXT seeds the coordinates
   if (const auto home = read_preferred_place(data_dir_ / "ort.ext")) {
     lon_->setValue(home->lon);
@@ -748,7 +762,7 @@ void MainWindow::build_ui() {
   connect(lon_, &QDoubleSpinBox::valueChanged, this, &MainWindow::recompute);
   connect(lat_, &QDoubleSpinBox::valueChanged, this, &MainWindow::recompute);
   connect(houses_, &QComboBox::currentIndexChanged, this, &MainWindow::recompute);
-  for (QCheckBox* box : {parallax_, extras_, true_node_, true_apogee_, helio_}) {
+  for (QCheckBox* box : {parallax_, extras_, hamburg_, apogee_show_, true_node_, true_apogee_, helio_}) {
     connect(box, &QCheckBox::toggled, this, &MainWindow::recompute);
   }
   connect(transit_on_, &QCheckBox::toggled, this, [this](bool on) {
@@ -783,14 +797,24 @@ ChartSettings MainWindow::current_settings() const {
   s.true_node = true_node_->isChecked();
   s.true_apogee = true_apogee_->isChecked();
   s.heliocentric = helio_ != nullptr && helio_->isChecked();
-  if (extras_->isChecked()) {
-    if (!s.extra_bodies) {
-      s.enable_standard_extras();
-    }
-    s.extra_bodies = true;
-  } else {
-    s.extra_bodies = false;
+  // the panel rows rule the nk table. The real extras are CH QU XE
+  // like his own final profile, the Hamburg factors and the AG display
+  // switch separately
+  s.nk = {};
+  if (apogee_show_->isChecked()) {
+    s.nk[1] = body::kApogee;
   }
+  if (extras_->isChecked()) {
+    s.nk[2] = body::kChiron;
+    s.nk[17] = body::kQuaoar;
+    s.nk[22] = body::kXena;
+  }
+  if (hamburg_->isChecked()) {
+    for (int i = 9; i <= 16; ++i) {
+      s.nk[static_cast<std::size_t>(i)] = 18 + i;
+    }
+  }
+  s.extra_bodies = extras_->isChecked() || hamburg_->isChecked() || apogee_show_->isChecked();
   return s;
 }
 
@@ -864,9 +888,10 @@ void MainWindow::recompute() {
       wopt.ruler_slot2 = k3;
     }
   }
-  // only the true node and true apogee draw inverted, his moknw and
-  // apogw flags in the SRCINVERT condition
-  wopt.invert_nodes = s.true_node;
+  // the original stamped the true nodes inverted like the rulers, the
+  // author's family asked for them as normal planets, so only the true
+  // apogee keeps his SRCINVERT dress
+  wopt.invert_nodes = false;
   wopt.invert_apogee = s.true_apogee;
   // the record corners come from show_wheel now, like his sheet
   wopt.heliocentric = s.heliocentric;
@@ -1974,7 +1999,7 @@ void MainWindow::rhythm_table() {
     opt.begin_house = begin->value();
     opt.leftward = direction->currentData().toInt() == 1;
     opt.sextile = sextile->isChecked();
-    opt.apogee_opposite = true_apogee_ != nullptr && extras_ != nullptr && extras_->isChecked();
+    opt.apogee_opposite = apogee_show_ != nullptr && apogee_show_->isChecked();
     if (sp_mode->currentData().toInt() == 1) {
       opt.special = sp_deg->value() * kDegToRad;
     } else if (sp_mode->currentData().toInt() == 2) {
@@ -3749,6 +3774,12 @@ void MainWindow::show_directions(double jd_event_ut, bool converse) {
   const QSignalBlocker block(directions_action_);
   directions_action_->setChecked(true);
   recompute();
+}
+
+void MainWindow::preset_extras(bool real, bool hamburg, bool apogee) {
+  extras_->setChecked(real);
+  hamburg_->setChecked(hamburg);
+  apogee_show_->setChecked(apogee);
 }
 
 void MainWindow::preset_chart(const AafRecord& r, bool parallax, bool true_node) {

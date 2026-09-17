@@ -271,6 +271,15 @@ int main(int argc, char** argv) {
     }
   }
 
+  // --extras REAL,HAMBURG,AG switches the extra body rows, each 0 or 1
+  const int extras_arg = args.indexOf("--extras");
+  if (extras_arg >= 0 && extras_arg + 1 < args.size()) {
+    const QStringList f = args[extras_arg + 1].split(',');
+    if (f.size() == 3) {
+      window.preset_extras(f[0] == "1", f[1] == "1", f[2] == "1");
+    }
+  }
+
   // --shot FILE saves a capture of the window and quits, the hook for
   // visual checks without touching the desktop, --shot-transit FILE does
   // the same with the transit view switched on

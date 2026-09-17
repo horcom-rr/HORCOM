@@ -59,6 +59,10 @@ class MainWindow : public QMainWindow {
   /// the --chart flag of the capture hook.
   void preset_chart(const AafRecord& r, bool parallax, bool true_node);
 
+  /// Switches the extra body rows for a scripted capture, the
+  /// --extras flag of the capture hook.
+  void preset_extras(bool real, bool hamburg, bool apogee);
+
   /// Opens the comparison view over the given partner record, the
   /// capture hook's path into the Vergleich toggle.
   void show_compare(const AafRecord& partner);
@@ -193,7 +197,12 @@ class MainWindow : public QMainWindow {
   QDockWidget* body_dock_ = nullptr;
   bool dock_sized_ = false;
   QCheckBox* parallax_ = nullptr;
+  /// the real extra bodies CH QU XE of his own final profile
   QCheckBox* extras_ = nullptr;
+  /// the hypothetical factors of the Hamburg school, their own row
+  QCheckBox* hamburg_ = nullptr;
+  /// shows the Apogäum AG, the true Black Moon, on the wheel
+  QCheckBox* apogee_show_ = nullptr;
   QCheckBox* true_node_ = nullptr;
   QCheckBox* true_apogee_ = nullptr;
   QCheckBox* helio_ = nullptr;
