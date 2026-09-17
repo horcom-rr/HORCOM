@@ -20,11 +20,12 @@
 <h2>Getting started</h2>
 <p>
 Download the newest release from the GitHub releases page, unpack it
-anywhere and start <code>horcom_gui.exe</code>. The menu bar keeps the
-five columns of the original main menu, Datei for records and files,
-Ephemeride for the sky tables and statistics, Horoskope for the chart
-views, Auswertung for returns and directions, Diverses for the
-remaining tools. The <code>data</code> folder must stay
+anywhere and start <code>horcom_gui.exe</code>. The menu bar carries the
+original main menu word for word, ÜBER HORCOM for the commentaries,
+EIN-AUSG. for records and files, EPHEMERIDE for the sky tables and
+statistics, HOROSKOPE for the chart views, AUSWERTUNG for returns and
+directions, DIVERSES for the remaining tools, only the Ansicht menu
+is an addition of the rewrite. The <code>data</code> folder must stay
 beside the program, it carries the planetary tables, the ephemeris
 files and the place and zone catalogues. The program speaks German on
 a German Windows and English everywhere else. <b>Sprache / Language</b>
@@ -44,7 +45,7 @@ and on the sheet corner of the wheel. Then a birth date
 and clock time, then the time zone in hours east of Greenwich, the
 little <code>…</code> button beside it opens Robert's zone name catalogue when
 you only know the zone by name. Longitude and latitude take decimal
-degrees, east and north positive, and <b>Ort suchen</b> in the Datei menu
+degrees, east and north positive, and <b>ORTS-DATEIEN / Ort suchen</b> in the EIN-AUSG. menu
 (Ctrl+L) finds both from his gazetteer of places instead and carries
 the place name onto the sheet. Choose the
 house system, Placidus is his default, and the chart recomputes with
@@ -107,9 +108,14 @@ only when something was removed, like the original rename rule.
 </p>
 <p>
 The fetched records live in the five <b>RADIX-DATEN</b> slots of the
-Datei menu, SATZ1 to SATZ5, the checked slot is the chart on the
-wheel and clicking another slot switches to it. Vergleich, 90°-Kreis,
-Composit and Combin offer the loaded slots first and open the file
+EIN-AUSG. menu, SATZ1 to SATZ5, the checked slot is the chart on the
+wheel and clicking another slot switches to it. Every computed return
+chart writes itself back into a <b>SOLAR...-DATEN</b> slot the same
+way, so a Solar stays a menu click away like in the original, and the
+<b>DOPPEL-DATEN</b> rows jump to Composit, Combin and the double
+wheel. <b>AUFRÄUMEN / RÜCKSETZEN</b> empties all slots and returns to
+the plain wheel. DOPPEL-KREIS / VERGLEICH, 90-GRAD-KREIS,
+COMPOSIT and COMBIN offer the loaded slots first and open the file
 chooser only when the partner is not in memory yet.
 <b>Neu-Eingabe von Datensätzen</b> (Ctrl+N) runs the entry box in a
 loop, every new record lands in the next slot and can be entered into
@@ -118,10 +124,11 @@ the record mask with the AAF fields, name, place, country, summer
 time code, and <b>Aktuellen Datensatz eintragen</b> (Ctrl+S) is the
 EINTRAGEN of the hub as a direct key. AAF is the exchange format, so
 your records travel between HORCOM and every program that reads AAF.
-<b>Dateien verketten</b> merges any mix of DAT and AAF collections into
-one AAF chain file, <b>AAF-Datei → HORCOM-Datei</b> converts an exchange
-file into his fixed record layout, and <b>Statistik-Datei erstellen</b>
-computes a whole collection into a research dataset.
+<b>DATEIEN VERKETTEN</b> in the DIVERSES menu merges any mix of DAT and
+AAF collections into one AAF chain file, <b>AAF-DATEI &lt; &gt;
+HORCOM-DATEI</b> beside it converts an exchange file into his fixed
+record layout, and <b>AUSWERTEFÄHIGE DATEI ERSTELLEN</b> in the
+EPHEMERIDE menu computes a whole collection into a research dataset.
 </p>
 
 <h2>The running sky</h2>
@@ -136,7 +143,8 @@ the present moment at the panel's place.
 
 <h2>Returns</h2>
 <p>
-The Auswertung menu carries the whole return family.
+The AUSWERTUNG menu carries the whole return family in the order of
+his tree, SOLAR, SEPTAR, LUNAR, PLANETAR, PERSONAR.
 <b>Solar</b> finds the moment the transiting sun returns exactly onto its
 radix degree in a chosen year and draws that chart, <b>Lunar</b> does the
 same with the moon in a chosen month or, by number, counts the n-th
@@ -198,13 +206,13 @@ degrees and <b>Ingresse</b> the sign entries. Under Diverses,
 <b>Aufgang/Untergang</b> tables the rising, meridian and setting clocks,
 <b>Finsternisse</b> the new and full moons with the eclipse letters and,
 on demand, their aspects to the valid record, and <b>Großes Jahr</b> the
-precession driven age point. <b>Histogramme</b> in the Horoskope menu
+precession driven age point. <b>Histogramme</b> in the EPHEMERIDE menu
 counts the element and quality columns with his point weights.
 </p>
 
 <h2>The Aspektarium</h2>
 <p>
-<b>Aspektarium</b> in the Horoskope menu opens his triangular aspect
+<b>ASPEKTARIUM</b> in the HOROSKOPE menu opens his triangular aspect
 matrix, exact separations above the diagonal, the named aspects below
 it, the hit count of every body on the diagonal, and the divisor
 table with angle and orb beside it. The Maximaler Teiler box rescans
@@ -216,12 +224,12 @@ glows red.
 
 <h2>Fine tuning</h2>
 <p>
-<b>Vorgaben (Orbes, Fixpunkt)</b> in the Datei menu edits the orb factor,
+<b>VORGABEN HOROSKOP ÄNDERN</b> in the HOROSKOPE menu edits the orb factor,
 the maximal divisor, the equal probability mode and the planet
 weights, and places the Fixpunkt, a chosen ecliptic degree that rides
 the chart as the point <code>FP</code>. A checkbox writes everything as
 <code>konsta.int</code> beside the data so the next start keeps it.
-<b>Korrektur</b> in the Diverses menu rectifies the birth time, pick
+<b>KORREKTUR</b> in the DIVERSES menu rectifies the birth time, pick
 sidereal time, MC, AC, an intermediate cusp, sun or moon, give the
 target value, and the panel clock shifts until the chosen quantity
 reaches it. The Direktionen dialog collects trial shifts in a sum
@@ -236,7 +244,7 @@ aberration, or true.
 
 <h2>Statistics</h2>
 <p>
-<b>Statistik</b> in the Ephemeride menu loads one of his STATIST7 datasets,
+<b>STATISTIK</b> in the EPHEMERIDE menu loads one of his STATIST7 datasets,
 lists the charts and shows the sign distribution of any object over
 the whole set. Below that the search conditions of his stat_ausw
 world wait, pick an object, a body, a ruler, a midpoint, an aspect, a

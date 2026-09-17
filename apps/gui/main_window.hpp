@@ -203,8 +203,8 @@ class MainWindow : public QMainWindow {
   void fill_tables(const Chart& chart, const AspectResult& aspects);
   [[nodiscard]] ChartInput current_input() const;
   [[nodiscard]] ChartSettings current_settings() const;
-  void apply_record(const AafRecord& r);
-  void apply_moment(double jd_ut, const QString& label);
+  void apply_record(const AafRecord& r, bool claim_slot = true);
+  void apply_moment(double jd_ut, const QString& label, bool solar_slot = false);
   void run_solar(int year);
   void refresh_record_label();
   [[nodiscard]] SearchContext make_context() const;
@@ -220,6 +220,15 @@ class MainWindow : public QMainWindow {
   void set_slot(int index, const AafRecord& r, bool activate);
   void update_slot_actions();
   [[nodiscard]] int next_slot() const;
+  // the SOLAR...-DATEN slots, derived charts written back like his ^ items
+  void store_solar(const QString& label);
+  void update_solar_actions();
+  // AUFRÄUMEN / RÜCKSETZEN and the plain HOROSKOP - GRAPHIK entry
+  void reset_views();
+  void clear_slots();
+  // the VORGABEN EPHEMERIDE ÄNDERN chain and the HÄUSERSYSTEM box
+  void vorgaben_ephemeride();
+  void choose_house_system();
   [[nodiscard]] std::optional<AafRecord> choose_record(const QString& title);
   [[nodiscard]] std::optional<AafRecord> choose_record_from_file(const QString& title);
   [[nodiscard]] ChartInput record_input(const AafRecord& r) const;
@@ -236,6 +245,13 @@ class MainWindow : public QMainWindow {
   std::array<std::optional<AafRecord>, 5> slots_{};
   int active_slot_ = -1;
   std::array<QAction*, 5> slot_actions_{};
+  /// the SOLAR...-DATEN slots, snapshots of the derived charts
+  std::array<std::optional<AafRecord>, 5> solar_slots_{};
+  std::array<QString, 5> solar_labels_{};
+  std::array<QAction*, 5> solar_actions_{};
+  /// which slot family holds the panel, false radix, true solar
+  bool active_is_solar_ = false;
+  int active_solar_ = -1;
 
   VsopTables vsop_;
   Ephemerides eph_;
