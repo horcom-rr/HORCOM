@@ -867,7 +867,7 @@ void add_corner_text(DisplayList& dl, const ClassicSheetText& txt, double left_x
 // wheel over them, Reihenfolge wichtig wie im Original
 DisplayList a4_print_sheet(const Chart& chart, const ChartSettings& s, const AspectResult& aspects,
                            const MidpointResult& midpoints, const ClassicSheetText& txt,
-                           const WheelOptions& opt) {
+                           const WheelOptions& opt, const std::array<int, body::kSlotCount>& weights) {
   DisplayList dl;
   dl.width = 640.0;
   dl.height = 980.0;
@@ -941,50 +941,71 @@ DisplayList a4_print_sheet(const Chart& chart, const ChartSettings& s, const Asp
   text(452.0, 34.0, txt.ut, header);
   text(452.0, 48.0, txt.weekday, 9.0);
 
-  // the sign counts of bes_big_kafige and bes_big_elem, plain body
-  // counts per quality and element, his pn weight table stays out here
+  // the sign counts of bes_big_elem and bes_big_kafige, weighted by his
+  // pn table and doubled for a body in the first house or the birth
+  // ruler like his el&/kfg& factor, the bars scale to the group max
   {
-    int quality[3] = {0, 0, 0};
-    int element[4] = {0, 0, 0, 0};
+    double quality[3] = {0, 0, 0};
+    double element[4] = {0, 0, 0, 0};
+    const bool have_houses = !s.heliocentric && chart.houses.ok;
     for (int slot = 1; slot <= 14; ++slot) {
       const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
       if (!b.present || !b.valid) {
         continue;
       }
+      //RR pn&(t&), the point weight in percent, hundred is neutral
+      const int wpct = weights[static_cast<std::size_t>(slot)];
+      double factor = 1.0;
+      //RR el&(t&)/kfg&(t&) = 2, Planeten im ERSTEN HAUS und der Geburtsherrscher
+      if (slot == opt.ruler_slot || slot == opt.ruler_slot2) {
+        factor = 2.0;
+      } else if (have_houses) {
+        const double a1 = norm_deg(chart.houses.cusp[1] * kRadToDeg);
+        const double a2 = norm_deg(chart.houses.cusp[2] * kRadToDeg);
+        const double p = norm_deg(b.el * kRadToDeg);
+        const double span = norm_deg(a2 - a1);
+        if (norm_deg(p - a1) < span) {
+          factor = 2.0;
+        }
+      }
+      const double w = wpct * factor;
       const int sg = static_cast<int>(norm_deg(b.el * kRadToDeg) / 30.0) % 12;
-      ++quality[sg % 3];
-      ++element[sg % 4];
+      quality[sg % 3] += w;
+      element[sg % 4] += w;
     }
-    //RR KARDINAL - FIX - GEMISCHT
+    const auto bar = [&](double x, double y, double frac, Rgb color) {
+      Primitive p;
+      p.kind = Primitive::Kind::kRect;
+      const double len = frac * 40.0;
+      p.x1 = x + len;
+      p.y1 = y - 3.0;
+      p.r1 = len;
+      p.r2 = 3.5;
+      p.fill = color;
+      p.color = color;
+      add(p);
+    };
+    //RR KARDINAL - FIX - GEMISCHT, proportional bars to the group max
+    const double qmax = std::max({quality[0], quality[1], quality[2], 1.0});
     double y = 100.0;
     text(16.0, y, "Zeichen-Quali:", 8.5);
     static constexpr const char* kQuali[3] = {"Kardinal", "Fix", "Gemischt"};
     for (int i = 0; i < 3; ++i) {
       y += 12.0;
-      char buf[24];
-      std::snprintf(buf, sizeof(buf), "%-8s %2d", kQuali[i], quality[i]);
-      text(16.0, y, buf, 8.5);
+      text(16.0, y, kQuali[i], 8.5);
+      bar(70.0, y, quality[i] / qmax, 0x606060);
     }
-    //RR Elemente F E L W with the little bars of elemhist1, the bars
-    // wear the strong zeich_col shades, not the ring fills
+    //RR Elemente F E L W with the bars of elemhist1, the strong zeich_col
+    // shades, scaled to the element max
+    const double emax = std::max({element[0], element[1], element[2], element[3], 1.0});
     y = 490.0;
     text(16.0, y, "Elemente:", 8.5);
     static constexpr const char* kElemTag[4] = {"F", "E", "L", "W"};
     static constexpr Rgb kBarColor[4] = {0xFF0000, 0x808000, 0x008080, 0x00C8C8};
     for (int i = 0; i < 4; ++i) {
       y += 12.0;
-      char buf[16];
-      std::snprintf(buf, sizeof(buf), "%s %2d", kElemTag[i], element[i]);
-      text(16.0, y, buf, 8.5);
-      Primitive bar;
-      bar.kind = Primitive::Kind::kRect;
-      bar.x1 = 40.0 + element[i] * 2.0;
-      bar.y1 = y - 3.0;
-      bar.r1 = element[i] * 2.0;
-      bar.r2 = 3.5;
-      bar.fill = kBarColor[i];
-      bar.color = kBarColor[i];
-      add(bar);
+      text(16.0, y, kElemTag[i], 8.5);
+      bar(40.0, y, element[i] / emax, kBarColor[i]);
     }
   }
 
@@ -1057,22 +1078,23 @@ DisplayList a4_print_sheet(const Chart& chart, const ChartSettings& s, const Asp
       text(x, y, buf, 8.5);
     }
     //RR spieg1, the mirror contacts close the box
-    std::string mirrors;
-    for (const AspectHit& h : aspects.hits) {
-      if (h.n != 13) {
-        continue;
+    if (!aspects.mirrors.empty()) {
+      line(212.0, 928.0, 386.0, 928.0);
+      text(220.0, 940.0, txt.mirror_label.empty() ? std::string("Spiegelung:") : txt.mirror_label, 8.0);
+      double my = 940.0;
+      double mx = 220.0;
+      for (const auto& [t, w] : aspects.mirrors) {
+        const std::string pair = tag(t) + "/" + tag(w);
+        if (mx > 330.0) {
+          mx = 220.0;
+          my += 11.0;
+        }
+        if (my > 956.0) {
+          break;
+        }
+        text(mx, my + 11.0, pair, 8.0);
+        mx += 46.0;
       }
-      if (!mirrors.empty()) {
-        mirrors += "  ";
-      }
-      mirrors += tag(h.t) + "/" + tag(h.w);
-    }
-    if (!mirrors.empty()) {
-      line(212.0, 936.0, 386.0, 936.0);
-      text(220.0, 948.0,
-           (txt.mirror_label.empty() ? std::string("Spiegelung:") : txt.mirror_label) + " " +
-               mirrors.substr(0, 32),
-           8.0);
     }
   }
 

@@ -90,8 +90,6 @@ Beim Ort können Sie einen VORZUGS-ORT festlegen,meist wohl Ihren Wohnort.
 
 Orte,die Sie eventuell später wieder brauchen,können Sie in ORTS-DATEIEN eingeben und bei Bedarf wieder holen.
 
-*Anmerkung der Neufassung, in dieser Version werden Orte aus den ORTS-DATEIEN gesucht und geholt, das Anlegen eigener Orte in eine Orts-Datei ist noch nicht enthalten.*
-
 ORTS-Dateien für die meisten europäischen Länder befinden sich auf der System-Disc.
 
 Alle ORTS-Dateien befinden sich in dem Ordner "\HORCOM\SPEZ_ORT. Wird bei Länge u.Breite statt "E" bzw "N" einfach weitergegangen,so wird dies trotzdem als "E" u. "N" interpretiert.Nur "W" bzw. "S" muß man wirklich eingeben ( vorher "E" bzw. "N" löschen ).Großenteils kann man daher mit der rechten Hand im Ziffernblock eingeben.

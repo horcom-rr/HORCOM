@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <utility>
 #include <vector>
 
 #include "horcom/chart/chart.hpp"
@@ -61,6 +62,10 @@ struct AspectResult {
   /// the original aspz%(15), the Schiemenz grand trine count
   int grand_trines = 0;
   std::vector<AspectHit> hits;
+  /// the mirror point pairs of the original spieg1, antiscia about the
+  /// solstice axis and contra antiscia about the equinox axis, the
+  /// Spiegelungen his sheets list under the aspects
+  std::vector<std::pair<int, int>> mirrors;
 };
 
 /// Scans a chart for aspects, the original asp1 without the drawing.

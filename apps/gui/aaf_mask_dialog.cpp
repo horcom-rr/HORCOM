@@ -57,7 +57,15 @@ AafMaskDialog::AafMaskDialog(AafRecord record, std::filesystem::path kommen, QWi
   auto* datum = new QHBoxLayout();
   day_ = box(a, QString::number(base_.day), 2, 31);
   month_ = box(a, QString::number(base_.month), 2, 12);
-  year_ = box(a, QString::number(base_.year > 0 ? base_.year : 1 - base_.year), 5, 99999);
+  //RR ed$(5), the year carries a g or j suffix that forces the Gregorian
+  // or Julian calendar, so it stays a free text field, not integer only
+  QString year_text = QString::number(base_.year > 0 ? base_.year : 1 - base_.year);
+  if (base_.calendar == Calendar::kGregorian) {
+    year_text += "g";
+  } else if (base_.calendar == Calendar::kJulian) {
+    year_text += "j";
+  }
+  year_ = box(a, year_text, 6, 0);
   datum->addWidget(day_);
   datum->addWidget(month_);
   datum->addWidget(year_);
@@ -185,7 +193,18 @@ AafRecord AafMaskDialog::record() const {
   r.country = country_->text().trimmed().toUpper().toStdString();
   r.day = day_->text().toInt();
   r.month = month_->text().toInt();
-  const int year = year_->text().toInt();
+  //RR ein g oder j hinter dem Jahr erzwingt den Kalender
+  QString year_text = year_->text().trimmed();
+  if (year_text.endsWith('g', Qt::CaseInsensitive)) {
+    r.calendar = Calendar::kGregorian;
+    year_text.chop(1);
+  } else if (year_text.endsWith('j', Qt::CaseInsensitive)) {
+    r.calendar = Calendar::kJulian;
+    year_text.chop(1);
+  } else {
+    r.calendar = Calendar::kAuto;
+  }
+  const int year = year_text.toInt();
   //RR 'V' macht aus dem historischen Jahr die astronomische Zählung
   r.year = bc_->text().trimmed().toUpper().startsWith('V') ? 1 - year : year;
   r.hour = hour_->text().toInt();

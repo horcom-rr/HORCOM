@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <string>
 #include <vector>
 
@@ -231,9 +232,12 @@ void add_corner_text(DisplayList& dl, const ClassicSheetText& txt, double left_x
 /// @param txt       the corner texts of the sheet
 /// @param opt       wheel options, the scale is set inside
 /// @return the page as one display list, 640 wide and 980 tall
+/// @param weights the per body point weights of his pn table, percent,
+///                index by slot, they scale the element and quality bars
 [[nodiscard]] DisplayList a4_print_sheet(const Chart& chart, const ChartSettings& s, const AspectResult& aspects,
                                          const MidpointResult& midpoints, const ClassicSheetText& txt,
-                                         const WheelOptions& opt);
+                                         const WheelOptions& opt,
+                                         const std::array<int, body::kSlotCount>& weights);
 
 /// The unicode glyph of a body slot, his two letter tag where none
 /// exists, shared by every drawing that stamps bodies.

@@ -240,6 +240,43 @@ AspectResult scan_aspects(const Chart& chart, const ChartSettings& s, const Aspe
       }
     }
   }
+
+  //RR spieg1, the mirror points, a pair mirrors when the two longitudes
+  // sum to PI about the solstice axis or to 2 PI about the equinox axis,
+  // the base orb is two degrees times his orb factor, the south node
+  // slot 12 stays out as it only mirrors its own head
+  const double dd_m = a.orb * 2.0 * kDegToRad;
+  for (int t = 1; t <= bb - 1; ++t) {
+    t = next_slot(chart, s, t, np);
+    if (t > bb - 1) {
+      break;
+    }
+    if (as[static_cast<std::size_t>(t)] == 0.0 || t == 12) {
+      continue;
+    }
+    const double o1 = org(a, t, 1);
+    const double at = as[static_cast<std::size_t>(t)];
+    for (int w = t + 1; w <= bb; ++w) {
+      w = next_slot(chart, s, w, np);
+      if (w > bb) {
+        break;
+      }
+      if (w == 12 || as[static_cast<std::size_t>(w)] == 0.0) {
+        continue;
+      }
+      const double o2 = org(a, w, 1);
+      const double dds = orbis_discr2(o1, o2, dd_m);
+      const double au = as[static_cast<std::size_t>(w)];
+      const double w11 = norm_rad(kPi - dds - au);
+      const double w12 = norm_rad(kPi + dds - au);
+      const double w21 = norm_rad(kTwoPi - dds - au);
+      const double w22 = norm_rad(kTwoPi + dds - au);
+      if ((at > w11 && at < w12) || (at > w21 && at < w22) || (at > kTwoPi - dds && w22 < dds) ||
+          (at < dds && w22 > kTwoPi - dds)) {
+        out.mirrors.emplace_back(t, w);
+      }
+    }
+  }
   return out;
 }
 

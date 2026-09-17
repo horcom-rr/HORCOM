@@ -108,6 +108,7 @@ class MainWindow : public QMainWindow {
   void data_file_io();
   void new_records_entry();
   void open_place();
+  void save_place();
   void pick_zone();
   void edit_record();
   void open_statistics();

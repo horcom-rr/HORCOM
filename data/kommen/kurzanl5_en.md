@@ -90,8 +90,6 @@ At the place you can define a PREFERRED PLACE, mostly probably your place of res
 
 Places that you might need again later you can enter into PLACE FILES and fetch again when needed.
 
-*Note of this edition, in this version places are searched and fetched from the PLACE FILES, entering your own places into a place file is not yet included.*
-
 PLACE files for most European countries are located on the system disc.
 
 All PLACE files are located in the folder "\HORCOM\SPEZ_ORT. If, at longitude and latitude, instead of "E" or "N" one simply moves on, then this is nevertheless interpreted as "E" and "N". Only "W" or "S" one really has to enter (delete "E" or "N" beforehand). To a large extent one can therefore enter with the right hand in the numeric keypad.

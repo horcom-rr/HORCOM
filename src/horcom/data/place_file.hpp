@@ -49,6 +49,22 @@ struct PlaceRecord {
 ///         no multiple of the record size
 [[nodiscard]] std::optional<std::vector<PlaceRecord>> read_place_file(const std::filesystem::path& path);
 
+/// Writes a whole place file in the original 36 byte layout.
+///
+/// @param path    a SPEZ_ORT style .INT file
+/// @param records the places
+/// @return true on success
+bool write_place_file(const std::filesystem::path& path, const std::vector<PlaceRecord>& records);
+
+/// Appends one place to a place file, ported from the EINTRAGEN branch
+/// of a2ort, the file is read, the record added and the file rewritten,
+/// a missing file is created.
+///
+/// @param path   the .INT file
+/// @param record the place to add
+/// @return true on success
+bool append_place(const std::filesystem::path& path, const PlaceRecord& record);
+
 /// Reads the single record preferred place file ORT.EXT.
 ///
 /// The writer of the original stores integer micro degrees while older

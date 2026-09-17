@@ -103,6 +103,28 @@ std::optional<std::vector<PlaceRecord>> read_place_file(const std::filesystem::p
   return out;
 }
 
+bool write_place_file(const std::filesystem::path& path, const std::vector<PlaceRecord>& records) {
+  std::ofstream f(path, std::ios::binary | std::ios::trunc);
+  if (!f) {
+    return false;
+  }
+  for (const PlaceRecord& r : records) {
+    const std::string rec = encode_place_record(r);
+    f.write(rec.data(), static_cast<std::streamsize>(rec.size()));
+  }
+  return static_cast<bool>(f);
+}
+
+// ported from the EINTRAGEN branch of a2ort
+bool append_place(const std::filesystem::path& path, const PlaceRecord& record) {
+  std::vector<PlaceRecord> records;
+  if (const auto existing = read_place_file(path)) {
+    records = *existing;
+  }
+  records.push_back(record);
+  return write_place_file(path, records);
+}
+
 std::optional<PlaceRecord> read_preferred_place(const std::filesystem::path& path) {
   std::ifstream f(path, std::ios::binary);
   if (!f) {

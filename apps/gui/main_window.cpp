@@ -559,6 +559,7 @@ void MainWindow::build_ui() {
   file->addAction(tr("DATENSATZ BEARBEITEN…"), QKeySequence(Qt::CTRL | Qt::Key_D), this, &MainWindow::edit_record);
   //RR ORTS-DATEIEN : HOLEN - EINTRAGEN - LÖSCHEN
   file->addAction(tr("ORTS-DATEIEN / ORT SUCHEN…"), QKeySequence(Qt::CTRL | Qt::Key_L), this, &MainWindow::open_place);
+  file->addAction(tr("ORT in Orts-Datei EINTRAGEN…"), this, &MainWindow::save_place);
   //RR RADIX-DATEN: SATZ1 bis SATZ5, the loaded slots stay visible in
   // the menu and the checked one is the chart on the wheel
   file->addSection(tr("RADIX-DATEN:"));
@@ -1707,6 +1708,19 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
     phase_text = "<br>" + theme::heading_span(tr("MONDPHASE")) +
                  tr("&nbsp; %1° (%2%)").arg(d, 0, 'f', 0).arg(pct, 0, 'f', 0);
   }
+  //RR Spiegelung, the mirror point pairs of spieg1
+  QString mirror_text;
+  if (!aspects.mirrors.empty()) {
+    QStringList pairs;
+    for (const auto& [t, w] : aspects.mirrors) {
+      const auto name = [](int slot) {
+        const std::string_view v = body::kName[static_cast<std::size_t>(slot)];
+        return QString::fromUtf8(v.data(), static_cast<int>(v.size()));
+      };
+      pairs << name(t) + "/" + name(w);
+    }
+    mirror_text = "<br>" + theme::heading_span(tr("SPIEGELUNG")) + "&nbsp; " + pairs.join("  ");
+  }
   aspects_label_->setText(theme::heading_span(tr("ASPEKTE")) +
                           tr("&nbsp; konj %1  opp %2  trigon %3  quadrat %4  sextil %5")
                               .arg(aspects.zh[1])
@@ -1714,7 +1728,7 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
                               .arg(aspects.zh[3])
                               .arg(aspects.zh[4])
                               .arg(aspects.zh[6]) +
-                          phase_text);
+                          mirror_text + phase_text);
 }
 
 void MainWindow::open_place() {
@@ -1736,6 +1750,32 @@ void MainWindow::open_place() {
   // the new place belongs on the sheet, not only its coordinates
   record_.place = dialog.chosen_name().toStdString();
   recompute();
+}
+
+//RR the EINTRAGEN branch of a2ort, the current panel place is written
+// into an ORTS-DATEI, a chosen existing one grows or a new one starts
+void MainWindow::save_place() {
+  PlaceRecord r;
+  r.lon = lon_->value();
+  r.lat = lat_->value();
+  r.name = record_.place;
+  if (r.name.empty()) {
+    r.name = "ORT";
+  }
+  const std::filesystem::path start = data_dir_ / "places";
+  const QString path = QFileDialog::getSaveFileName(
+      this, tr("Ort in Orts-Datei eintragen"), QString::fromStdWString((start / "eigene.int").wstring()),
+      tr("Orts-Dateien (*.INT *.int)"), nullptr, QFileDialog::DontConfirmOverwrite);
+  if (path.isEmpty()) {
+    return;
+  }
+  if (!append_place(std::filesystem::path(path.toStdWString()), r)) {
+    QMessageBox::warning(this, "HORCOM", tr("Die Orts-Datei ließ sich nicht schreiben."));
+    return;
+  }
+  QMessageBox::information(this, "HORCOM",
+                           tr("Ort '%1' in %2 eingetragen.")
+                               .arg(QString::fromStdString(r.name), QFileInfo(path).fileName()));
 }
 
 void MainWindow::apply_moment(double jd_ut, const QString& label, bool solar_slot) {
@@ -5427,7 +5467,8 @@ DisplayList MainWindow::a4_export_list() const {
   if (chords_set_) {
     opt.chord_divisor = chords_;
   }
-  return a4_print_sheet(*last_chart_, current_settings(), *last_aspects_, mids, classic_sheet_text(), opt);
+  return a4_print_sheet(*last_chart_, current_settings(), *last_aspects_, mids, classic_sheet_text(), opt,
+                        aspect_settings_.weight);
 }
 
 //RR DRUCKER-GRAPHIK DIN A5 ? oder DIN A4 ?, the druck_graph_ein choice

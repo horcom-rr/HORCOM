@@ -117,6 +117,30 @@ TEST_CASE("place records round trip and keep the layout") {
   CHECK_FALSE(back.zone_to_ut().has_value());
 }
 
+TEST_CASE("appending a place grows the file and round trips") {
+  namespace fs = std::filesystem;
+  const fs::path path = fs::temp_directory_path() / "horcom_place_write.int";
+  fs::remove(path);
+  PlaceRecord a;
+  a.lon = 13.05;
+  a.lat = 47.7967;
+  a.name = "SALZBURG";
+  REQUIRE(append_place(path, a));
+  PlaceRecord b;
+  b.lon = -0.1275;
+  b.lat = 51.5072;
+  b.name = "LONDON";
+  REQUIRE(append_place(path, b));
+  const auto back = read_place_file(path);
+  REQUIRE(back.has_value());
+  REQUIRE(back->size() == 2);
+  CHECK((*back)[0].name == "SALZBURG");
+  CHECK((*back)[0].lon == doctest::Approx(13.05));
+  CHECK((*back)[1].name == "LONDON");
+  CHECK((*back)[1].lon == doctest::Approx(-0.1275));
+  fs::remove(path);
+}
+
 TEST_CASE("the zone picker suffix reads like the original") {
   // MEZ is stored as the correction to UT, minus one
   PlaceRecord p;
