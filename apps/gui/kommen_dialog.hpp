@@ -23,14 +23,18 @@ class KommenDialog : public QDialog {
   Q_OBJECT
 
  public:
-  /// @param dir the local kommen folder, data/kommen by convention
-  explicit KommenDialog(const std::filesystem::path& dir, QWidget* parent = nullptr);
+  /// @param dir       the local kommen folder, data/kommen by convention
+  /// @param preselect file stem to open first, like komm2 for his
+  ///                  ERLÄUTERUNG 2 menu entry, empty starts at the top
+  explicit KommenDialog(const std::filesystem::path& dir, const QString& preselect = QString(),
+                        QWidget* parent = nullptr);
 
  private:
   void reload(const std::filesystem::path& dir);
   void show_entry(int row);
   void search();
 
+  QString preselect_;
   std::vector<KommenEntry> entries_;
   QListWidget* list_ = nullptr;
   QTextBrowser* text_ = nullptr;

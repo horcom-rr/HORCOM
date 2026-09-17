@@ -508,11 +508,14 @@ void MainWindow::build_ui() {
   QMenu* horo = menuBar()->addMenu(tr("H&OROSKOPE"));
   QMenu* ausw = menuBar()->addMenu(tr("&AUSWERTUNG"));
   QMenu* divers = menuBar()->addMenu(tr("&DIVERSES"));
-  //RR EINFÜHRUNG = ERLÄUTERUNG 1, his commentary texts
-  ueber->addAction(tr("EINFÜHRUNG / ERLÄUTERUNGEN…"), QKeySequence(Qt::Key_F1), this, [this]() {
-    KommenDialog dialog(data_dir_ / "kommen", this);
+  //RR EINFÜHRUNG = ERLÄUTERUNG 1, his commentary texts, every menu
+  // keeps its ERLÄUTERUNG entry opening the matching text
+  const auto erlaeuterung = [this](const QString& stem) {
+    KommenDialog dialog(data_dir_ / "kommen", stem, this);
     dialog.exec();
-  });
+  };
+  ueber->addAction(tr("EINFÜHRUNG / ERLÄUTERUNGEN…"), QKeySequence(Qt::Key_F1), this,
+                   [erlaeuterung]() { erlaeuterung("komm1"); });
   ueber->addAction(tr("ÜBER HORCOM"), this, &MainWindow::about);
   //RR DATEN-DATEI EIN-AUSGABE
   file->addAction(tr("DATEN-DATEI EIN-AUSGABE…"), QKeySequence::Open, this, &MainWindow::data_file_io);
@@ -585,6 +588,7 @@ void MainWindow::build_ui() {
   //RR DRUCKER-GRAPHIK, the druck_graph_ein world over one shared painter
   file->addAction(tr("HOROSKOP als PDF SPEICHERN…"), this, &MainWindow::export_pdf);
   file->addAction(tr("DRUCKEN…"), QKeySequence::Print, this, &MainWindow::print_chart);
+  file->addAction(tr("ERLÄUTERUNG 2…"), this, [erlaeuterung]() { erlaeuterung("komm2"); });
   file->addSeparator();
   file->addAction(tr("BEENDEN"), QKeySequence::Quit, this, &QWidget::close);
   // EPHEMERIDE in the order of his menu tree
@@ -611,6 +615,7 @@ void MainWindow::build_ui() {
   ephem->addSeparator();
   //RR STATISTIK
   ephem->addAction(tr("STATISTIK…"), this, &MainWindow::open_statistics);
+  ephem->addAction(tr("ERLÄUTERUNG STATISTIK…"), this, [erlaeuterung]() { erlaeuterung("kommstat"); });
   ephem->addAction(tr("AUSWERTEFÄHIGE DATEI ERSTELLEN…"), this, &MainWindow::create_statistics);
   ephem->addAction(tr("HISTOGRAMME…"), this, &MainWindow::histogram_view);
   ephem->addSeparator();
@@ -625,6 +630,7 @@ void MainWindow::build_ui() {
   ephem->addSeparator();
   //RR ET aus UT, UT aus ET, DATUM aus JD, WINKEL-UMRECHNUNG
   ephem->addAction(tr("UMRECHNUNGEN ( ET, UT, JD, WINKEL )…"), this, &MainWindow::converters);
+  ephem->addAction(tr("ERLÄUTERUNG 3…"), this, [erlaeuterung]() { erlaeuterung("komm3"); });
   // HOROSKOPE head, the toggles follow below in his order
   //RR VORGABEN HOROSKOP ÄNDERN
   horo->addAction(tr("VORGABEN HOROSKOP ÄNDERN…"), this, &MainWindow::orb_settings);
@@ -647,9 +653,11 @@ void MainWindow::build_ui() {
   //RR TAGES-HOR. / PROGRESS.- HOR.
   ausw->addAction(tr("TAGES-HOROSKOP…"), this, &MainWindow::day_chart);
   ausw->addAction(tr("PROGRESSIONS-HOROSKOP…"), this, &MainWindow::progression_chart);
+  ausw->addAction(tr("ERLÄUTERUNG 5…"), this, [erlaeuterung]() { erlaeuterung("komm5"); });
   ausw->addSeparator();
   //RR MÜNCHNER RHYTHMENLEHRE
   ausw->addAction(tr("MÜNCHNER RHYTHMENLEHRE…"), this, &MainWindow::rhythm_table);
+  ausw->addAction(tr("ERLÄUTERUNG 6…"), this, [erlaeuterung]() { erlaeuterung("komm6"); });
   ausw->addAction(tr("GRAD-DATUM-LISTE…"), this, &MainWindow::degree_date_list);
   //RR SEKUNDÄR-DIREKTION / DYNAMOGRAMM
   ausw->addAction(tr("SEKUNDÄR-DIREKTION / DYNAMOGRAMM…"), this, &MainWindow::dynamogram_view);
@@ -664,11 +672,13 @@ void MainWindow::build_ui() {
   ausw->addAction(tr("LINEAR-GRAPHIK…"), this, &MainWindow::linear_graph);
   //RR TRANSITE
   ausw->addAction(tr("TRANSIT-LISTE…"), this, &MainWindow::transit_list);
+  ausw->addAction(tr("ERLÄUTERUNG 7…"), this, [erlaeuterung]() { erlaeuterung("komm7"); });
   // DIVERSES in the order of his menu tree
   //RR HÄUSER-SYSTEM
   divers->addAction(tr("HÄUSER-SYSTEM…"), this, &MainWindow::choose_house_system);
   //RR HÄUSER-TABELLE
   divers->addAction(tr("HÄUSER-TABELLE…"), this, &MainWindow::house_table);
+  divers->addAction(tr("ERLÄUTERUNG 8…"), this, [erlaeuterung]() { erlaeuterung("komm8"); });
   //RR KORREKTUR
   divers->addAction(tr("KORREKTUR…"), this, &MainWindow::correction);
   //RR ZEIT-WANDERN
@@ -703,6 +713,9 @@ void MainWindow::build_ui() {
   divers->addAction(tr("ORT-WANDERN…"), this, &MainWindow::place_wander);
   //RR GROßES ( = PLATONISCHES ) JAHR
   divers->addAction(tr("GROßES ( = PLATONISCHES ) JAHR…"), this, &MainWindow::great_year);
+  divers->addAction(tr("ERLÄUTERUNG 9…"), this, [erlaeuterung]() { erlaeuterung("komm9"); });
+  //RR ÄNDERUNGEN / HINWEISE / KURZANL.
+  divers->addAction(tr("ÄNDERUNGEN / HINWEISE / KURZANL.…"), this, [erlaeuterung]() { erlaeuterung("aendlist"); });
   //RR HARMONICS = GRUNDHOROSKOP * GANZZAHLIGEM FAKTOR !
   harmonic_action_ = horo->addAction(tr("HARMONICS…"));
   harmonic_action_->setCheckable(true);
@@ -871,6 +884,7 @@ void MainWindow::build_ui() {
     }
     recompute();
   });
+  horo->addAction(tr("ERLÄUTERUNG 4…"), this, [erlaeuterung]() { erlaeuterung("komm4"); });
   // the primary directed axes of prima with his sidereal time variation
   directions_action_ = ausw->addAction(tr("PRIMÄR-DIREKTION ( E.C.KÜHR )…"));
   directions_action_->setCheckable(true);
@@ -1485,7 +1499,6 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
   // a chart without a sun but with the moon slot filled is the hrg
   // mode, the slot then carries the earth
   const bool helio = !chart.b[body::kSun].present && chart.b[body::kMoon].present;
-  QStringList row_names;
   for (int slot = 0; slot < body::kSlotCount; ++slot) {
     const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
     if (!b.present) {
@@ -1496,7 +1509,15 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
     //RR pl$(2) = "TE", the moon slot carries the earth in the hrg mode
     const std::string_view tag = (helio && slot == body::kMoon) ? body::kEarthName
                                                                 : body::kName[static_cast<std::size_t>(slot)];
-    row_names << QString::fromUtf8(tag.data(), static_cast<int>(tag.size()));
+    const QString name = QString::fromUtf8(tag.data(), static_cast<int>(tag.size()));
+    // his Pl column drew the black planet sprite, it rides beside the
+    // uppercase tag the family wished for
+    auto* head = new QTableWidgetItem(name);
+    const QImage head_img = glyph_sprite(name, theme::dark_now() ? 0xE9E5D9 : 0x000000);
+    if (!head_img.isNull()) {
+      head->setIcon(QIcon(QPixmap::fromImage(head_img)));
+    }
+    bodies_->setVerticalHeaderItem(row, head);
     if (!b.valid) {
       bodies_->setItem(row, 0, new QTableWidgetItem(tr("außerhalb der Ephemeride")));
       continue;
@@ -1511,7 +1532,24 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
       // the sign of the acceleration, direct or retrograde at a station
       bodies_->setItem(row, 4, new QTableWidgetItem(b.ttb < 0.0 ? QString::fromUtf8("−") : "+"));
       if (b.dr > 0.0) {
-        bodies_->setItem(row, 5, new QTableWidgetItem(QString::number(b.dr, 'f', 3)));
+        //RR ENTFERNUNGSWERTE der GROßEN PLANETEN RELATIV oder ABSOLUT ?
+        //RR Mittelwerte nach MEYERS Lexikon Weltall
+        static constexpr double kMeanGeo[11] = {0.0, 1.0, 0.0,    1.0,    1.0,   1.52, 5.195,
+                                                9.525, 19.215, 30.055, 39.44};
+        static constexpr double kMeanHelio[11] = {0.0, 1.0, 1.0,    0.387,  0.723, 1.542, 5.205,
+                                                  9.567, 19.281, 30.142, 39.880};
+        const double mean = (slot >= 1 && slot <= 10)
+                                ? (helio ? kMeanHelio[slot] : kMeanGeo[slot])
+                                : 0.0;
+        if (konsta_.entf == 1) {
+          // percent of the mean, bodies without a mean stay blank
+          if (mean > 0.0) {
+            bodies_->setItem(row, 5,
+                             new QTableWidgetItem(QString::number(std::lround(kPercent * b.dr / mean)) + "%"));
+          }
+        } else {
+          bodies_->setItem(row, 5, new QTableWidgetItem(QString::number(b.dr, 'f', 3)));
+        }
       }
       //RR die mittleren Planeten-KNOTEN und die PLANETEN-APSIDEN
       const PlanetPoints pts = planet_points(chart, slot, current_settings());
@@ -1526,7 +1564,6 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
       bodies_->setItem(row, 10, retro);
     }
   }
-  bodies_->setVerticalHeaderLabels(row_names);
   bodies_->resizeColumnsToContents();
   // size the panel once so Laenge through A close flush with the
   // edge, no half cut column, the rest scrolls. Deferred, the dock
@@ -4250,7 +4287,9 @@ void MainWindow::vorgaben_ephemeride() {
                                          tr("MONDKNOTEN : MITTELWERT ? oder WAHRER Wert ?"),
                                          tr("SO,MO und Planeten MIT oder OHNE Parallaxe ?"),
                                          tr("ZUSATZ - PLANETEN WÄHLEN ?"),
-                                         tr("FIXPUNKT als 'PLANET' DEFINIEREN ?"), tr("EXIT")});
+                                         tr("FIXPUNKT als 'PLANET' DEFINIEREN ?"),
+                                         tr("ENTFERNUNGSWERTE der GROßEN PLANETEN RELATIV oder ABSOLUT ?"),
+                                         tr("EXIT")});
     switch (theme) {
       case 0: {
         //RR MODUS DER Planeten-POSITIONEN ?
@@ -4335,6 +4374,20 @@ void MainWindow::vorgaben_ephemeride() {
           }
         } else if (es == 1) {
           fixpunkt_ = -1.0;
+          recompute();
+        }
+        break;
+      }
+      case 5: {
+        //RR ENTFERNUNGSWERTE der GROßEN PLANETEN In % des MITTELWERTES
+        const int es = ChoiceDialog::ask(this, tr("AUSWAHL"),
+                                         {tr("ENTFERNUNGSWERTE der GROßEN PLANETEN"),
+                                          tr("In % des MITTELWERTES"), tr("MITTELWERT = 100 %"),
+                                          tr("Oder ABSOLUT in AE ?")},
+                                         {tr("PROZENTUAL"), tr("ABSOLUT"), tr("EXIT")},
+                                         konsta_.entf == 1 ? 0 : 1);
+        if (es == 0 || es == 1) {
+          konsta_.entf = es + 1;
           recompute();
         }
         break;

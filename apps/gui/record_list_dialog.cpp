@@ -8,7 +8,10 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QPrintDialog>
+#include <QPrinter>
 #include <QPushButton>
+#include <QTextDocument>
 #include <QVBoxLayout>
 #include <algorithm>
 #include <cmath>
@@ -97,8 +100,29 @@ RecordListDialog::RecordListDialog(const std::vector<AafRecord>& records, const 
   auto* done = new QPushButton(tr("WAHL - ENDE"), this);
   done->setDefault(true);
   auto* exit = new QPushButton(tr("EXIT"), this);
+  //RR &DRUCKEN, the list goes to the printer as his datei_pr did
+  auto* print = new QPushButton(tr("DRUCKEN"), this);
   row->addWidget(exit);
   row->addWidget(done);
+  row->addWidget(print);
+  connect(print, &QPushButton::clicked, this, [this, head]() {
+    QPrinter printer;
+    QPrintDialog ask(&printer, this);
+    if (ask.exec() != QDialog::Accepted) {
+      return;
+    }
+    QString body = head->text() + "\n\n";
+    for (int i = 0; i < list_->count(); ++i) {
+      body += list_->item(i)->text() + "\n";
+    }
+    QTextDocument doc;
+    QFont mono("Courier New");
+    mono.setStyleHint(QFont::Monospace);
+    mono.setPointSize(8);
+    doc.setDefaultFont(mono);
+    doc.setPlainText(windowTitle() + "\n\n" + body);
+    doc.print(&printer);
+  });
   if (static_cast<int>(records.size()) > kSearchThreshold) {
     // one field covers his Wortanfang and Allgemein search buttons,
     // typing jumps to the word start, Enter scans on through the rows

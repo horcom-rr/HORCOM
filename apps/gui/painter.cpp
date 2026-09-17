@@ -191,10 +191,14 @@ void paint_display_list(QPainter& p, const DisplayList& dl) {
 
 QImage glyph_sprite(const QString& glyph, Rgb color) {
   const auto stem = sprite_stems().find(glyph);
-  if (stem == sprite_stems().end()) {
-    return {};
+  if (stem != sprite_stems().end()) {
+    return sprite(*stem, color);
   }
-  return sprite(*stem, color);
+  // a plain body tag like SO or MO is already a sprite stem
+  if (glyph.size() <= 3 && glyph.toUpper() == glyph) {
+    return sprite(glyph, color);
+  }
+  return {};
 }
 
 GlyphImageResolver svg_sprite_resolver() {

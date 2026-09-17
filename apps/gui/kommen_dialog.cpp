@@ -16,7 +16,8 @@
 
 namespace horcom {
 
-KommenDialog::KommenDialog(const std::filesystem::path& dir, QWidget* parent) : QDialog(parent) {
+KommenDialog::KommenDialog(const std::filesystem::path& dir, const QString& preselect, QWidget* parent)
+    : QDialog(parent), preselect_(preselect) {
   //RR TEXT-DATEI LESEN
   setWindowTitle(tr("Text-Datei lesen"));
   auto* v = new QVBoxLayout(this);
@@ -74,7 +75,18 @@ void KommenDialog::reload(const std::filesystem::path& dir) {
            "Alternativ unten einen KOMMEN7P-Ordner direkt auswählen.")
             .arg(QString::fromStdWString(dir.wstring())));
   } else {
-    list_->setCurrentRow(0);
+    int row = 0;
+    if (!preselect_.isEmpty()) {
+      // the ERLÄUTERUNG entries of his menus land on their own text
+      for (std::size_t i = 0; i < entries_.size(); ++i) {
+        const QString stem = QString::fromStdWString(entries_[i].path.stem().wstring());
+        if (stem.compare(preselect_, Qt::CaseInsensitive) == 0) {
+          row = static_cast<int>(i);
+          break;
+        }
+      }
+    }
+    list_->setCurrentRow(row);
   }
 }
 
