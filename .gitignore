@@ -18,3 +18,5 @@ aqtinstall.log
 # the byte exact original commentary files stay local, the repository
 # carries their markdown editions beside them
 data/kommen/*.TXT
+
+/issues/
