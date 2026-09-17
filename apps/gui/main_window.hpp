@@ -105,7 +105,8 @@ class MainWindow : public QMainWindow {
 
  private slots:
   void recompute();
-  void open_records();
+  void data_file_io();
+  void new_records_entry();
   void open_place();
   void pick_zone();
   void edit_record();
@@ -134,7 +135,6 @@ class MainWindow : public QMainWindow {
   void chain_files();
   void create_statistics();
   void aaf_to_dat();
-  void tidy_file();
   void orb_settings();
   void converters();
   void planetar_chart();
@@ -208,13 +208,34 @@ class MainWindow : public QMainWindow {
   void run_solar(int year);
   void refresh_record_label();
   [[nodiscard]] SearchContext make_context() const;
+  // the working Daten-Datei and its hub, ported from a2dat and a2fdat
+  void bind_data_file(const QString& path);
+  void refresh_data_file_label();
+  [[nodiscard]] std::optional<std::vector<AafRecord>> load_collection(const QString& path) const;
+  [[nodiscard]] std::vector<std::size_t> ask_order(const std::vector<AafRecord>& records, const QString& file_label);
+  void fetch_from_file();
+  void delete_from_file();
+  void tidy_data_file(bool minimize);
+  // the RADIX slots of his EIN-AUSG. menu, up to five records loaded
+  void set_slot(int index, const AafRecord& r, bool activate);
+  void update_slot_actions();
+  [[nodiscard]] int next_slot() const;
   [[nodiscard]] std::optional<AafRecord> choose_record(const QString& title);
+  [[nodiscard]] std::optional<AafRecord> choose_record_from_file(const QString& title);
   [[nodiscard]] ChartInput record_input(const AafRecord& r) const;
   [[nodiscard]] ChartRecord dat_from_record(const AafRecord& r) const;
   [[nodiscard]] AafRecord panel_record() const;
   bool set_partner(const AafRecord& r);
   QString record_label_;
   AafRecord record_;
+  /// the bound working collection of DATEN-DATEI EIN-AUSGABE
+  QString data_file_;
+  int data_count_ = 0;
+  QLabel* data_file_label_ = nullptr;
+  /// the RADIX SATZ1 to SATZ5 slots, the active one drives the panel
+  std::array<std::optional<AafRecord>, 5> slots_{};
+  int active_slot_ = -1;
+  std::array<QAction*, 5> slot_actions_{};
 
   VsopTables vsop_;
   Ephemerides eph_;

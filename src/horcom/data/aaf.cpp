@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
+#include <string_view>
 
 #include "horcom/data/encoding.hpp"
 
@@ -362,6 +363,48 @@ bool write_aaf(const std::filesystem::path& path, const std::vector<AafRecord>& 
   const std::string text = utf8_to_cp1252(format_aaf(records));
   f.write(text.data(), static_cast<std::streamsize>(text.size()));
   return static_cast<bool>(f);
+}
+
+namespace {
+
+bool folder_is(const std::filesystem::path& dir, std::string_view name) {
+  std::string d = dir.filename().string();
+  if (d.size() != name.size()) {
+    return false;
+  }
+  for (std::size_t i = 0; i < d.size(); ++i) {
+    if (std::toupper(static_cast<unsigned char>(d[i])) != name[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// the basename swap of bilde_aaffile$ and bilde_horcfile$, folder pair
+// SPEZIAL and AAFDATEN when his tree is present, siblings otherwise
+std::filesystem::path twin(const std::filesystem::path& path, std::string_view own_folder,
+                           std::string_view twin_folder, const char* extension) {
+  const std::filesystem::path dir = path.parent_path();
+  std::filesystem::path stem = path.stem();
+  stem += extension;
+  if (folder_is(dir, own_folder)) {
+    const std::filesystem::path other = dir.parent_path() / twin_folder;
+    std::error_code ec;
+    if (std::filesystem::is_directory(other, ec)) {
+      return other / stem;
+    }
+  }
+  return dir / stem;
+}
+
+}  // namespace
+
+std::filesystem::path aaf_twin_path(const std::filesystem::path& dat_path) {
+  return twin(dat_path, "SPEZIAL", "AAFDATEN", ".AAF");
+}
+
+std::filesystem::path dat_twin_path(const std::filesystem::path& aaf_path) {
+  return twin(aaf_path, "AAFDATEN", "SPEZIAL", ".DAT");
 }
 
 }  // namespace horcom

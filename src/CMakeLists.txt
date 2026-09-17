@@ -35,6 +35,7 @@ add_library(horcom STATIC
   horcom/render/svg.cpp
   horcom/data/encoding.cpp
   horcom/data/chart_file.cpp
+  horcom/data/record_order.cpp
   horcom/data/place_file.cpp
   horcom/data/zone_names.cpp
   horcom/data/countries.cpp

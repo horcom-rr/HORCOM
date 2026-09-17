@@ -4,6 +4,8 @@
 
 #include "horcom/data/chart_file.hpp"
 
+#include <algorithm>
+#include <cctype>
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
@@ -152,22 +154,78 @@ bool write_chart_file(const std::filesystem::path& path, const std::vector<Chart
   return static_cast<bool>(f);
 }
 
-// ported from Datei TRIMMEN
-void trim_records(std::vector<ChartRecord>& records) {
+// ported from a2f_tr_dat, the trim and the delete branch share one
+// pass over the file like the original t! switch
+void delete_records(std::vector<ChartRecord>& records, const std::vector<std::size_t>& doomed) {
   std::vector<ChartRecord> kept;
   kept.reserve(records.size());
-  for (ChartRecord& r : records) {
-    const std::size_t first = r.name.find_first_not_of(' ');
-    if (first == std::string::npos) {
-      //RR Leer-Datensätze beseitigen
+  for (std::size_t i = 0; i < records.size(); ++i) {
+    ChartRecord& r = records[i];
+    // records without any place coordinates never survive the pass
+    if (r.lon == 0.0 && r.lat == 0.0) {
       continue;
     }
-    if (first > 0) {
+    if (std::find(doomed.begin(), doomed.end(), i) != doomed.end()) {
+      continue;
+    }
+    // the original kept a record only while its day field held a value
+    if (r.day <= 0) {
+      continue;
+    }
+    const std::size_t first = r.name.find_first_not_of(' ');
+    if (first != std::string::npos && first > 0) {
       r.name.erase(0, first);
     }
     kept.push_back(std::move(r));
   }
   records = std::move(kept);
+}
+
+// ported from Datei TRIMMEN
+void trim_records(std::vector<ChartRecord>& records) {
+  delete_records(records, {});
+}
+
+namespace {
+
+// case blind trimmed name equality, see remove_records_by_name
+bool same_name(const std::string& a, const std::string& b) {
+  const auto trim = [](const std::string& s) {
+    const std::size_t x = s.find_first_not_of(' ');
+    if (x == std::string::npos) {
+      return std::string();
+    }
+    return s.substr(x, s.find_last_not_of(' ') - x + 1);
+  };
+  const std::string ta = trim(a);
+  const std::string tb = trim(b);
+  if (ta.size() != tb.size()) {
+    return false;
+  }
+  for (std::size_t i = 0; i < ta.size(); ++i) {
+    if (std::toupper(static_cast<unsigned char>(ta[i])) != std::toupper(static_cast<unsigned char>(tb[i]))) {
+      return false;
+    }
+  }
+  return true;
+}
+
+}  // namespace
+
+// ported from a22ueberschrb
+std::size_t remove_records_by_name(std::vector<ChartRecord>& records, const std::string& name) {
+  std::vector<ChartRecord> kept;
+  kept.reserve(records.size());
+  std::size_t removed = 0;
+  for (ChartRecord& r : records) {
+    if (same_name(r.name, name)) {
+      ++removed;
+      continue;
+    }
+    kept.push_back(std::move(r));
+  }
+  records = std::move(kept);
+  return removed;
 }
 
 // ported from Datei MINIMIEREN

@@ -7,7 +7,9 @@
 #include <fstream>
 
 #include "doctest.h"
+#include "horcom/data/aaf.hpp"
 #include "horcom/data/chart_file.hpp"
+#include "horcom/data/record_order.hpp"
 #include "horcom/data/encoding.hpp"
 #include "horcom/data/countries.hpp"
 #include "horcom/data/place_file.hpp"
@@ -325,15 +327,84 @@ TEST_CASE("the kommen reader keeps the lese_text rules") {
   std::filesystem::remove(path);
 }
 
-TEST_CASE("trimming drops empty records and leading blanks") {
-  std::vector<ChartRecord> r(3);
+TEST_CASE("trimming drops dayless and placeless records like a2f_tr_dat") {
+  std::vector<ChartRecord> r(4);
   r[0].name = "  Muster Hans";
-  r[1].name = "   ";
-  r[2].name = "Beispiel Eva";
+  r[0].day = 13;
+  r[0].lon = 11.3;
+  r[1].name = "OHNE TAG";
+  r[1].day = 0;
+  r[1].lon = 11.3;
+  r[2].name = "OHNE ORT";
+  r[2].day = 5;
+  r[2].lon = 0.0;
+  r[2].lat = 0.0;
+  r[3].name = "Beispiel Eva";
+  r[3].day = 7;
+  r[3].lat = 48.1;
   trim_records(r);
   REQUIRE(r.size() == 2);
   CHECK(r[0].name == "Muster Hans");
   CHECK(r[1].name == "Beispiel Eva");
+}
+
+TEST_CASE("deleting removes the marked records and trims alongside") {
+  std::vector<ChartRecord> r(4);
+  for (std::size_t i = 0; i < r.size(); ++i) {
+    r[i].name = "SATZ " + std::to_string(i);
+    r[i].day = 1;
+    r[i].lon = 10.0;
+  }
+  r[2].day = 0;
+  delete_records(r, {1});
+  REQUIRE(r.size() == 2);
+  CHECK(r[0].name == "SATZ 0");
+  CHECK(r[1].name == "SATZ 3");
+}
+
+TEST_CASE("overwrite by name drops every copy case blind") {
+  std::vector<ChartRecord> r(3);
+  r[0].name = "MOZART WOLFGANG AMADEUS";
+  r[1].name = "Mozart Wolfgang Amadeus ";
+  r[2].name = "HAYDN JOSEF";
+  CHECK(remove_records_by_name(r, " mozart wolfgang amadeus") == 2);
+  REQUIRE(r.size() == 1);
+  CHECK(r[0].name == "HAYDN JOSEF");
+}
+
+TEST_CASE("record order follows the SORTIER-MODUS keys") {
+  std::vector<OrderKeySource> r;
+  r.push_back({"MOZART WOLFGANG AMADEUS", 27, 1, 1756});
+  r.push_back({"HAYDN JOSEF", 31, 3, 1732});
+  r.push_back({"BACH JOHANN SEBASTIAN", 31, 3, 1685});
+  const auto by_name = record_order(r, RecordOrder::kName123);
+  CHECK(by_name == std::vector<std::size_t>{2, 1, 0});
+  // 2. und 3. Name keys on five characters of each word, JOHANN SEB
+  // against JOSEF against WOLFGANG AMADE
+  const auto by_given = record_order(r, RecordOrder::kName23);
+  REQUIRE(by_given.size() == 3);
+  CHECK(by_given[0] == 2);
+  CHECK(by_given[1] == 1);
+  CHECK(by_given[2] == 0);
+  // birthday ignores the year, both 31.3. keep file order, 27.1. first
+  const auto by_birthday = record_order(r, RecordOrder::kBirthday);
+  CHECK(by_birthday == std::vector<std::size_t>{0, 1, 2});
+  const auto by_date = record_order(r, RecordOrder::kDate);
+  CHECK(by_date == std::vector<std::size_t>{2, 1, 0});
+  CHECK(record_order(r, RecordOrder::kFile) == std::vector<std::size_t>{0, 1, 2});
+}
+
+TEST_CASE("aaf twin paths swap his folder pair and fall back to siblings") {
+  namespace fs = std::filesystem;
+  const fs::path root = fs::temp_directory_path() / "horcom_twin_test";
+  fs::create_directories(root / "SPEZIAL");
+  fs::create_directories(root / "AAFDATEN");
+  const fs::path dat = root / "SPEZIAL" / "MUSIKER.DAT";
+  CHECK(aaf_twin_path(dat) == root / "AAFDATEN" / "MUSIKER.AAF");
+  CHECK(dat_twin_path(root / "AAFDATEN" / "MUSIKER.AAF") == root / "SPEZIAL" / "MUSIKER.DAT");
+  const fs::path lone = root / "NEU.DAT";
+  CHECK(aaf_twin_path(lone) == root / "NEU.AAF");
+  fs::remove_all(root);
 }
 
 TEST_CASE("minimizing collapses same name and birth clock") {

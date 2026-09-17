@@ -79,8 +79,12 @@
 #include "horcom/data/statist.hpp"
 #include "horcom/render/linear.hpp"
 #include "horcom/render/svg.hpp"
+#include "choice_dialog.hpp"
+#include "horcom/data/record_order.hpp"
 #include "place_dialog.hpp"
 #include "record_dialog.hpp"
+#include "record_list_dialog.hpp"
+#include "record_mask_dialog.hpp"
 #include "statist_dialog.hpp"
 #include "theme.hpp"
 #include "transit_list_dialog.hpp"
@@ -320,6 +324,12 @@ void MainWindow::build_ui() {
   nav_row->addWidget(forward_button);
   nav_row->addStretch(1);
   form->addRow(nav_row);
+  //RR Daten-Datei, the bound collection of his main screen with its
+  // record count beside the drive column
+  data_file_label_ = new QLabel(form_host);
+  data_file_label_->setWordWrap(true);
+  form->addRow(tr("Daten-Datei"), data_file_label_);
+  refresh_data_file_label();
   history_timer_ = new QTimer(this);
   history_timer_->setSingleShot(true);
   history_timer_->setInterval(kHistorySettleMs);
@@ -481,10 +491,34 @@ void MainWindow::build_ui() {
   QMenu* horo = menuBar()->addMenu(tr("&Horoskope"));
   QMenu* ausw = menuBar()->addMenu(tr("A&uswertung"));
   QMenu* divers = menuBar()->addMenu(tr("Di&verses"));
-  file->addAction(tr("Datensätze öffnen…"), QKeySequence::Open, this, &MainWindow::open_records);
+  //RR DATEN-DATEI EIN-AUSGABE
+  file->addAction(tr("Daten-Datei Ein-Ausgabe…"), QKeySequence::Open, this, &MainWindow::data_file_io);
+  //RR NEU-EINGABE von DATENSÄTZEN
+  file->addAction(tr("Neu-Eingabe von Datensätzen…"), QKeySequence::New, this, &MainWindow::new_records_entry);
   file->addAction(tr("Datensatz bearbeiten…"), QKeySequence(Qt::CTRL | Qt::Key_D), this, &MainWindow::edit_record);
   file->addAction(tr("Ort suchen…"), QKeySequence(Qt::CTRL | Qt::Key_L), this, &MainWindow::open_place);
-  file->addAction(tr("Datensatz speichern…"), QKeySequence::Save, this, &MainWindow::save_record);
+  //RR AKTUELLEN Datensatz EINTRAGEN ?
+  file->addAction(tr("Aktuellen Datensatz eintragen…"), QKeySequence::Save, this, &MainWindow::save_record);
+  //RR RADIX-DATEN: SATZ1 bis SATZ5, the loaded slots stay visible in
+  // the menu and the checked one is the chart on the wheel
+  file->addSection(tr("Radix-Daten"));
+  auto* slot_group = new QActionGroup(this);
+  slot_group->setExclusive(true);
+  for (int i = 0; i < 5; ++i) {
+    QAction* a = file->addAction(QString("SATZ%1").arg(i + 1));
+    a->setCheckable(true);
+    a->setEnabled(false);
+    slot_group->addAction(a);
+    connect(a, &QAction::triggered, this, [this, i]() {
+      if (slots_[static_cast<std::size_t>(i)]) {
+        active_slot_ = i;
+        apply_record(*slots_[static_cast<std::size_t>(i)]);
+        update_slot_actions();
+      }
+    });
+    slot_actions_[static_cast<std::size_t>(i)] = a;
+  }
+  file->addSeparator();
   file->addAction(tr("Horoskop als SVG…"), this, &MainWindow::export_svg);
   //RR DRUCKER-GRAPHIK, the druck_graph_ein world over one shared painter
   file->addAction(tr("Horoskop als PDF…"), this, &MainWindow::export_pdf);
@@ -492,7 +526,6 @@ void MainWindow::build_ui() {
   file->addAction(tr("Dateien verketten…"), this, &MainWindow::chain_files);
   file->addAction(tr("Statistik-Datei erstellen…"), this, &MainWindow::create_statistics);
   file->addAction(tr("AAF-Datei → HORCOM-Datei…"), this, &MainWindow::aaf_to_dat);
-  file->addAction(tr("Datei trimmen/minimieren…"), this, &MainWindow::tidy_file);
   file->addAction(tr("Vorgaben (Orbes, Fixpunkt)…"), this, &MainWindow::orb_settings);
   file->addSeparator();
   file->addAction(tr("Beenden"), QKeySequence::Quit, this, &QWidget::close);
@@ -1064,6 +1097,12 @@ void MainWindow::flush_history() {
     back_.erase(back_.begin());
   }
   update_history_actions();
+  // a settled panel edit is the live data of the active slot, like his
+  // eingabe wrote straight into the SATZ arrays
+  if (active_slot_ >= 0) {
+    slots_[static_cast<std::size_t>(active_slot_)] = panel_record();
+    update_slot_actions();
+  }
 }
 
 void MainWindow::history_back() {
@@ -1933,35 +1972,6 @@ void MainWindow::aaf_to_dat() {
     return;
   }
   QMessageBox::information(this, "HORCOM", tr("%1 Datensätze umgewandelt.").arg(out.size()));
-}
-
-// ported from Datei TRIMMEN and Datei MINIMIEREN
-void MainWindow::tidy_file() {
-  const QString src = QFileDialog::getOpenFileName(this, tr("Daten-Datei wählen"), QString(), tr("HORCOM Daten (*.dat *.DAT)"));
-  if (src.isEmpty()) {
-    return;
-  }
-  const std::filesystem::path p(src.toStdWString());
-  auto records = read_chart_file(p);
-  if (!records) {
-    QMessageBox::warning(this, "HORCOM", tr("Die Datei ließ sich nicht lesen."));
-    return;
-  }
-  const std::size_t before = records->size();
-  trim_records(*records);
-  minimize_records(*records);
-  if (records->size() == before) {
-    QMessageBox::information(this, "HORCOM", tr("Nichts zu bereinigen, %1 Datensätze.").arg(before));
-    return;
-  }
-  if (QMessageBox::question(this, "HORCOM",
-                            tr("%1 von %2 Datensätzen bleiben. Datei überschreiben?").arg(records->size()).arg(before)) !=
-      QMessageBox::Yes) {
-    return;
-  }
-  if (!write_chart_file(p, *records)) {
-    QMessageBox::warning(this, "HORCOM", tr("Die Datei ließ sich nicht schreiben."));
-  }
 }
 
 // ported from AUSWERTEFÄHIGE DATEI ERSTELLEN, every record of a
@@ -3840,152 +3850,457 @@ void MainWindow::pick_zone() {
   recompute();
 }
 
-void MainWindow::open_records() {
-  if (const auto r = choose_record(tr("Datensatz wählen"))) {
-    apply_record(*r);
+// ported from a2dat and a2fdat, the FILESELECT into the file hub. One
+// action per visit like the original, the file stays bound afterwards
+void MainWindow::data_file_io() {
+  QString start = data_file_;
+  if (start.isEmpty()) {
+    start = QString::fromStdWString((data_dir_ / "spezial").wstring());
+  }
+  //RR FILESELECT hrc$+"\SPEZIAL\*.DAT", a fresh name starts a new file
+  const QString path = QFileDialog::getSaveFileName(
+      this, tr("Daten-Datei wählen oder neu anlegen"), start,
+      tr("HORCOM Daten-Dateien (*.DAT *.dat);;AAF (*.AAF *.aaf)"), nullptr,
+      QFileDialog::DontConfirmOverwrite);
+  if (path.isEmpty()) {
+    return;
+  }
+  std::filesystem::path dat(path.toStdWString());
+  if (path.endsWith(".aaf", Qt::CaseInsensitive)) {
+    //RR Die parallele HORCOM-Datei GLEICHEN NAMENS dient als Pilot
+    const std::filesystem::path aaf = dat;
+    dat = dat_twin_path(aaf);
+    if (!std::filesystem::exists(dat) && std::filesystem::exists(aaf)) {
+      const auto records = read_aaf(aaf);
+      if (records && !records->empty()) {
+        std::vector<ChartRecord> out;
+        out.reserve(records->size());
+        for (const AafRecord& a : *records) {
+          out.push_back(dat_from_record(a));
+        }
+        write_chart_file(dat, out);
+      }
+    }
+  }
+  if (!std::filesystem::exists(dat)) {
+    //RR Neue Datei, the current record becomes its first entry
+    if (!write_chart_file(dat, {dat_from_record(panel_record())})) {
+      QMessageBox::warning(this, "HORCOM", tr("Die Datei ließ sich nicht anlegen."));
+      return;
+    }
+    QMessageBox::information(this, "HORCOM",
+                             tr("NEUE DATEN-DATEI %1 !").arg(QString::fromStdWString(dat.filename().wstring())));
+  }
+  bind_data_file(QString::fromStdWString(dat.wstring()));
+  const QString label = QFileInfo(data_file_).fileName();
+  //RR the hub of a2fdat, one question per box
+  const int action = ChoiceDialog::ask(this, tr("DATEI : %1").arg(label), {},
+                                       {tr("Datensätze HOLEN ?"), tr("AKTUELLEN Datensatz EINTRAGEN ?"),
+                                        tr("Datensätze LÖSCHEN ?"), tr("Datei TRIMMEN ?"),
+                                        tr("Datei MINIMIEREN ?"), tr("ABBRUCH")});
+  switch (action) {
+    case 0:
+      fetch_from_file();
+      break;
+    case 1:
+      save_record();
+      break;
+    case 2:
+      delete_from_file();
+      break;
+    case 3:
+      tidy_data_file(false);
+      break;
+    case 4:
+      tidy_data_file(true);
+      break;
+    default:
+      break;
   }
 }
 
-std::optional<AafRecord> MainWindow::choose_record(const QString& title) {
-  const QString path = QFileDialog::getOpenFileName(this, tr("Datensätze öffnen"), QString(),
-                                                    tr("HORCOM Datensätze (*.DAT *.dat *.AAF *.aaf)"));
-  if (path.isEmpty()) {
-    return std::nullopt;
+void MainWindow::bind_data_file(const QString& path) {
+  data_file_ = path;
+  data_count_ = 0;
+  if (!path.isEmpty()) {
+    const auto records = read_chart_file(std::filesystem::path(path.toStdWString()));
+    data_count_ = records ? static_cast<int>(records->size()) : 0;
   }
+  refresh_data_file_label();
+}
+
+void MainWindow::refresh_data_file_label() {
+  if (data_file_label_ == nullptr) {
+    return;
+  }
+  if (data_file_.isEmpty()) {
+    data_file_label_->setText(tr("keine"));
+    return;
+  }
+  //RR Daten-Datei: ... Anzahl Dats.:
+  data_file_label_->setText(QString("%1\n%2").arg(QFileInfo(data_file_).fileName(),
+                                                  tr("Anzahl Dats.: %1").arg(data_count_)));
+}
+
+// reads a collection into the exchange form, DAT or AAF
+std::optional<std::vector<AafRecord>> MainWindow::load_collection(const QString& path) const {
   std::vector<AafRecord> records;
   if (path.endsWith(".aaf", Qt::CaseInsensitive)) {
     const auto r = read_aaf(path.toStdWString());
-    if (r) {
-      records = *r;
+    if (!r) {
+      return std::nullopt;
     }
+    records = *r;
   } else {
     const auto r = read_chart_file(path.toStdWString());
-    if (r) {
-      for (const ChartRecord& c : *r) {
-        records.push_back(aaf_from_chart_record(c));
-      }
+    if (!r) {
+      return std::nullopt;
+    }
+    records.reserve(r->size());
+    for (const ChartRecord& c : *r) {
+      records.push_back(aaf_from_chart_record(c));
     }
   }
-  if (records.empty()) {
+  return records;
+}
+
+// ported from a210, the SORTIER-MODUS box before the chooser, short
+// files skip the question and sort by name like the original
+std::vector<std::size_t> MainWindow::ask_order(const std::vector<AafRecord>& records, const QString& file_label) {
+  RecordOrder order = RecordOrder::kName123;
+  //RR laf& > 45
+  if (records.size() > 45) {
+    const int es = ChoiceDialog::ask(this, tr("SORTIER-MODUS ?  DATEI : %1").arg(file_label), {},
+                                     {tr("ALPHABETISCH: 1., 2. und 3. NAME"), tr("ALPHABETISCH: 2. und 3. NAME"),
+                                      tr("ALPHABETISCH: nur 3. NAME"), tr("GEBURTSTAG"), tr("DATUM"),
+                                      tr("ABBRUCH")});
+    switch (es) {
+      case 0:
+        order = RecordOrder::kName123;
+        break;
+      case 1:
+        order = RecordOrder::kName23;
+        break;
+      case 2:
+        order = RecordOrder::kName3;
+        break;
+      case 3:
+        order = RecordOrder::kBirthday;
+        break;
+      case 4:
+        order = RecordOrder::kDate;
+        break;
+      default:
+        return {};
+    }
+  }
+  std::vector<OrderKeySource> keys;
+  keys.reserve(records.size());
+  for (const AafRecord& r : records) {
+    OrderKeySource k;
+    k.name = (QString::fromStdString(r.surname).trimmed() + " " + QString::fromStdString(r.given).trimmed())
+                 .trimmed()
+                 .toStdString();
+    k.day = r.day;
+    k.month = r.month;
+    k.year = r.year;
+    keys.push_back(std::move(k));
+  }
+  return record_order(keys, order);
+}
+
+int MainWindow::next_slot() const {
+  for (int i = 0; i < 5; ++i) {
+    if (!slots_[static_cast<std::size_t>(i)]) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+void MainWindow::set_slot(int index, const AafRecord& r, bool activate) {
+  slots_[static_cast<std::size_t>(index)] = r;
+  if (activate) {
+    active_slot_ = index;
+    apply_record(r);
+  }
+  update_slot_actions();
+}
+
+void MainWindow::update_slot_actions() {
+  for (int i = 0; i < 5; ++i) {
+    QAction* a = slot_actions_[static_cast<std::size_t>(i)];
+    if (a == nullptr) {
+      continue;
+    }
+    const auto& slot = slots_[static_cast<std::size_t>(i)];
+    if (slot) {
+      //RR SATZ1: RADIX  <name>, the menu shows what every slot holds
+      const QString name = (QString::fromStdString(slot->surname).trimmed() + " " +
+                            QString::fromStdString(slot->given).trimmed())
+                               .trimmed()
+                               .toUpper();
+      a->setText(QString("SATZ%1: RADIX  %2").arg(i + 1).arg(name));
+      a->setEnabled(true);
+      a->setChecked(i == active_slot_);
+    } else {
+      a->setText(QString("SATZ%1").arg(i + 1));
+      a->setEnabled(false);
+      a->setChecked(false);
+    }
+  }
+}
+
+// ported from a210 through a2113, HOLEN fills the free slots and every
+// record passes through the ANZEIGE box on its way in
+void MainWindow::fetch_from_file() {
+  const auto records = load_collection(data_file_);
+  if (!records || records->empty()) {
+    QMessageBox::warning(this, "HORCOM", tr("Keine Datensätze gefunden."));
+    return;
+  }
+  const QString label = QFileInfo(data_file_).fileName();
+  const auto order = ask_order(*records, label);
+  if (order.empty()) {
+    return;
+  }
+  int free = 0;
+  for (const auto& s : slots_) {
+    free += s ? 0 : 1;
+  }
+  const int max_pick = free > 0 ? free : 1;
+  RecordListDialog list(*records, order, label, max_pick, RecordListDialog::Mode::kFetch, this);
+  if (list.exec() != QDialog::Accepted || list.picked().empty()) {
+    return;
+  }
+  bool first = true;
+  for (const std::size_t i : list.picked()) {
+    int slot = next_slot();
+    if (slot < 0) {
+      //RR DIESER DATENSATZ ÜBERSCHREIBT DEN VORHERGEHENDEN !
+      const QString last = slots_[4] ? QString::fromStdString(slots_[4]->surname).trimmed().toUpper() : QString();
+      const int es = ChoiceDialog::ask(this, tr("AUSWAHL"),
+                                       {tr("DIESER DATENSATZ ÜBERSCHREIBT"), tr("DEN VORHERGEHENDEN !"),
+                                        tr("NR. 5 :  %1").arg(last)},
+                                       {tr("WEITER"), tr("ABBRUCH")});
+      if (es != 0) {
+        break;
+      }
+      slot = 4;
+    }
+    //RR EINGABE- und ANZEIGE-BOX | RADIX NR.n
+    RecordMaskDialog mask((*records)[i], tr("EINGABE- und ANZEIGE-BOX | RADIX NR.%1").arg(slot + 1),
+                          RecordMaskDialog::Mode::kShow, this);
+    if (mask.exec() != QDialog::Accepted) {
+      continue;
+    }
+    set_slot(slot, mask.record(), first);
+    first = false;
+  }
+}
+
+// ported from the LÖSCHEN branch of a2fdat and ausw_datei, the marked
+// records leave the file, on request their AAF twins go with them
+void MainWindow::delete_from_file() {
+  const std::filesystem::path dat(data_file_.toStdWString());
+  auto stored = read_chart_file(dat);
+  if (!stored || stored->empty()) {
+    QMessageBox::warning(this, "HORCOM", tr("Keine Datensätze gefunden."));
+    return;
+  }
+  const std::filesystem::path twin = aaf_twin_path(dat);
+  bool also_aaf = false;
+  if (std::filesystem::exists(twin)) {
+    //RR Wollen Sie auch die korrespondierenden AAF-Datensätze LÖSCHEN ?
+    const int es = ChoiceDialog::ask(this, "HORCOM",
+                                     {tr("Wollen Sie auch die korrespondierenden AAF-Datensätze"),
+                                      tr("der Datei %1 LÖSCHEN ?").arg(QFileInfo(data_file_).fileName()),
+                                      tr("Dies ist in der Regel zweckmäßig !")},
+                                     {tr("JA = LÖSCHEN"), tr("AAF-Datensätze BEIBEHALTEN")});
+    if (es < 0) {
+      return;
+    }
+    also_aaf = es == 0;
+  }
+  std::vector<AafRecord> view;
+  view.reserve(stored->size());
+  for (const ChartRecord& c : *stored) {
+    view.push_back(aaf_from_chart_record(c));
+  }
+  const QString label = QFileInfo(data_file_).fileName();
+  const auto order = ask_order(view, label);
+  if (order.empty()) {
+    return;
+  }
+  //RR Bis zu 10 zu LÖSCHENDE DATENSÄTZE markieren !
+  RecordListDialog list(view, order, label, 10, RecordListDialog::Mode::kDelete, this);
+  if (list.exec() != QDialog::Accepted || list.picked().empty()) {
+    return;
+  }
+  const int sure = ChoiceDialog::ask(this, tr("DATEI : %1").arg(label), {},
+                                     {tr("%1 Datensätze LÖSCHEN ?").arg(list.picked().size()), tr("ABBRUCH")});
+  if (sure != 0) {
+    return;
+  }
+  //RR RRESERVE.DAT, die Reserve vor dem zerstörenden Durchlauf
+  std::error_code ec;
+  std::filesystem::copy_file(dat, dat.parent_path() / "RRESERVE.DAT",
+                             std::filesystem::copy_options::overwrite_existing, ec);
+  std::vector<std::string> doomed_names;
+  for (const std::size_t i : list.picked()) {
+    doomed_names.push_back((*stored)[i].name);
+  }
+  delete_records(*stored, list.picked());
+  if (!write_chart_file(dat, *stored)) {
+    QMessageBox::warning(this, "HORCOM", tr("Die Datei ließ sich nicht schreiben."));
+    return;
+  }
+  if (also_aaf) {
+    if (auto aaf_records = read_aaf(twin)) {
+      for (const std::string& name : doomed_names) {
+        //RR aaf_ident, der Satz gleichen Namens im AAF-File
+        const QString wanted = QString::fromStdString(name).trimmed();
+        for (auto it = aaf_records->begin(); it != aaf_records->end(); ++it) {
+          const QString have = (QString::fromStdString(it->surname).trimmed() + " " +
+                                QString::fromStdString(it->given).trimmed())
+                                   .trimmed();
+          if (have.compare(wanted, Qt::CaseInsensitive) == 0) {
+            aaf_records->erase(it);
+            break;
+          }
+        }
+      }
+      write_aaf(twin, *aaf_records);
+    }
+  }
+  bind_data_file(data_file_);
+}
+
+// ported from Datei TRIMMEN and Datei MINIMIEREN, the file is replaced
+// only when the pass removed something, like the original rename rule
+void MainWindow::tidy_data_file(bool minimize) {
+  const std::filesystem::path dat(data_file_.toStdWString());
+  auto records = read_chart_file(dat);
+  if (!records) {
+    QMessageBox::warning(this, "HORCOM", tr("Die Datei ließ sich nicht lesen."));
+    return;
+  }
+  const std::size_t before = records->size();
+  std::error_code ec;
+  std::filesystem::copy_file(dat, dat.parent_path() / "RRESERVE.DAT",
+                             std::filesystem::copy_options::overwrite_existing, ec);
+  if (minimize) {
+    minimize_records(*records);
+  } else {
+    trim_records(*records);
+  }
+  if (records->size() == before) {
+    QMessageBox::information(this, "HORCOM", tr("Nichts zu bereinigen, %1 Datensätze.").arg(before));
+    return;
+  }
+  if (!write_chart_file(dat, *records)) {
+    QMessageBox::warning(this, "HORCOM", tr("Die Datei ließ sich nicht schreiben."));
+    return;
+  }
+  QMessageBox::information(this, "HORCOM",
+                           tr("%1 von %2 Datensätzen bleiben.").arg(records->size()).arg(before));
+  bind_data_file(data_file_);
+}
+
+// ported from a3, every new record runs through the box into the next
+// slot, the file entry afterwards is the EINTRAGEN of the hub
+void MainWindow::new_records_entry() {
+  bool entered = false;
+  for (;;) {
+    int slot = next_slot();
+    if (slot < 0) {
+      const QString last = slots_[4] ? QString::fromStdString(slots_[4]->surname).trimmed().toUpper() : QString();
+      const int es = ChoiceDialog::ask(this, tr("AUSWAHL"),
+                                       {tr("DIESER DATENSATZ ÜBERSCHREIBT"), tr("DEN VORHERGEHENDEN !"),
+                                        tr("NR. 5 :  %1").arg(last)},
+                                       {tr("WEITER"), tr("ABBRUCH")});
+      if (es != 0) {
+        break;
+      }
+      slot = 4;
+    }
+    RecordMaskDialog mask(panel_record(), tr("EINGABE- und ANZEIGE-BOX | RADIX NR.%1").arg(slot + 1),
+                          RecordMaskDialog::Mode::kEntry, this);
+    if (mask.exec() != QDialog::Accepted) {
+      break;
+    }
+    set_slot(slot, mask.record(), true);
+    entered = true;
+    //RR WEITEREN Datensatz NEU EINGEBEN ?
+    const int more = ChoiceDialog::ask(this, tr("NEU-EINGABE"), {tr("WEITEREN Datensatz NEU EINGEBEN ?")},
+                                       {tr("ENDE"), tr("WEITERE NEU-EINGABE")});
+    if (more != 1) {
+      break;
+    }
+  }
+  if (entered && !data_file_.isEmpty()) {
+    const int save = ChoiceDialog::ask(this, tr("DATEI : %1").arg(QFileInfo(data_file_).fileName()),
+                                       {tr("AKTUELLEN Datensatz EINTRAGEN ?")},
+                                       {tr("EINTRAGEN"), tr("NICHT EINTRAGEN")});
+    if (save == 0) {
+      save_record();
+    }
+  }
+}
+
+// the partner chooser, loaded slots first like the original, the file
+// only when the wanted chart is not in memory yet
+std::optional<AafRecord> MainWindow::choose_record(const QString& title) {
+  QStringList buttons;
+  std::vector<int> map;
+  for (int i = 0; i < 5; ++i) {
+    if (slots_[static_cast<std::size_t>(i)] && i != active_slot_) {
+      const auto& s = *slots_[static_cast<std::size_t>(i)];
+      const QString name = (QString::fromStdString(s.surname).trimmed() + " " +
+                            QString::fromStdString(s.given).trimmed())
+                               .trimmed()
+                               .toUpper();
+      buttons << QString("SATZ%1: RADIX  %2").arg(i + 1).arg(name);
+      map.push_back(i);
+    }
+  }
+  if (!buttons.isEmpty()) {
+    buttons << tr("Aus Datei wählen …") << tr("ABBRUCH");
+    const int es = ChoiceDialog::ask(this, title, {}, buttons);
+    if (es < 0 || es == buttons.size() - 1) {
+      return std::nullopt;
+    }
+    if (es < static_cast<int>(map.size())) {
+      return slots_[static_cast<std::size_t>(map[static_cast<std::size_t>(es)])];
+    }
+  }
+  return choose_record_from_file(title);
+}
+
+std::optional<AafRecord> MainWindow::choose_record_from_file(const QString& title) {
+  QString path = data_file_;
+  if (path.isEmpty()) {
+    path = QFileDialog::getOpenFileName(this, title, QString(),
+                                        tr("HORCOM Datensätze (*.DAT *.dat *.AAF *.aaf)"));
+    if (path.isEmpty()) {
+      return std::nullopt;
+    }
+  }
+  const auto records = load_collection(path);
+  if (!records || records->empty()) {
     QMessageBox::warning(this, "HORCOM", tr("Keine Datensätze gefunden."));
     return std::nullopt;
   }
-  QDialog dialog(this);
-  dialog.setWindowTitle(title);
-  auto* v = new QVBoxLayout(&dialog);
-  //RR ALPHABETISCH: 1.,2.und 3.NAME | 2.und 3.NAME | nur 3.NAME |
-  //RR GEBURTSTAG | DATUM, the sort dialog of his record screen
-  auto* order_row = new QHBoxLayout();
-  auto* order = new QComboBox(&dialog);
-  order->addItem(tr("Reihenfolge der Datei"), 0);
-  order->addItem(tr("Alphabetisch (1., 2. und 3. Name)"), 1);
-  order->addItem(tr("Alphabetisch (2. und 3. Name)"), 2);
-  order->addItem(tr("Alphabetisch (nur 3. Name)"), 3);
-  order->addItem(tr("Geburtstag (Tag und Monat)"), 4);
-  order->addItem(tr("Datum"), 5);
-  order_row->addWidget(new QLabel(tr("Sortierung"), &dialog));
-  order_row->addWidget(order, 1);
-  auto* list = new QListWidget(&dialog);
-  list->setSelectionMode(QAbstractItemView::ExtendedSelection);
-  // every row keeps its file index, sorting only rearranges the view
-  const auto rebuild = [&records, list, order]() {
-    std::vector<std::size_t> idx(records.size());
-    for (std::size_t i = 0; i < idx.size(); ++i) {
-      idx[i] = i;
-    }
-    const int mode = order->currentData().toInt();
-    // the name of his mask is one field of words, the alphabetical
-    // modes start the key at the first, second or third word
-    const auto alpha = [&records](std::size_t i, int skip) {
-      const AafRecord& r = records[i];
-      const QString whole = QString::fromStdString(r.surname + " " + r.given).simplified().toLower();
-      const QStringList words = whole.split(' ', Qt::SkipEmptyParts);
-      QStringList rest;
-      for (qsizetype w = skip; w < words.size(); ++w) {
-        rest << words[w];
-      }
-      return rest.join(' ');
-    };
-    if (mode >= 1 && mode <= 3) {
-      std::stable_sort(idx.begin(), idx.end(), [&alpha, mode](std::size_t a, std::size_t b) {
-        return alpha(a, mode - 1) < alpha(b, mode - 1);
-      });
-    } else if (mode == 4) {
-      std::stable_sort(idx.begin(), idx.end(), [&records](std::size_t a, std::size_t b) {
-        return records[a].month * 100 + records[a].day < records[b].month * 100 + records[b].day;
-      });
-    } else if (mode == 5) {
-      std::stable_sort(idx.begin(), idx.end(), [&records](std::size_t a, std::size_t b) {
-        const AafRecord& ra = records[a];
-        const AafRecord& rb = records[b];
-        return (ra.year * 100 + ra.month) * 100 + ra.day < (rb.year * 100 + rb.month) * 100 + rb.day;
-      });
-    }
-    list->clear();
-    for (const std::size_t i : idx) {
-      const AafRecord& r = records[i];
-      auto* item = new QListWidgetItem(QString("%1 %2   %3.%4.%5   %6")
-                                           .arg(QString::fromStdString(r.surname), QString::fromStdString(r.given))
-                                           .arg(r.day, 2, 10, QChar('0'))
-                                           .arg(r.month, 2, 10, QChar('0'))
-                                           .arg(r.year)
-                                           .arg(QString::fromStdString(r.place)));
-      item->setData(Qt::UserRole, static_cast<qulonglong>(i));
-      list->addItem(item);
-    }
-    if (list->count() > 0) {
-      list->setCurrentRow(0);
-    }
-  };
-  connect(order, &QComboBox::currentIndexChanged, &dialog, rebuild);
-  rebuild();
-  //RR das LÖSCHEN nicht mehr benötigter Datensätze
-  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
-  auto* erase = buttons->addButton(tr("Löschen"), QDialogButtonBox::ActionRole);
-  connect(erase, &QPushButton::clicked, &dialog, [this, &records, list, path, rebuild]() {
-    QList<QListWidgetItem*> sel = list->selectedItems();
-    if (sel.isEmpty()) {
-      return;
-    }
-    if (QMessageBox::question(this, "HORCOM", tr("%1 Datensätze aus der Datei löschen?").arg(sel.size())) !=
-        QMessageBox::Yes) {
-      return;
-    }
-    std::vector<std::size_t> rows;
-    for (QListWidgetItem* item : sel) {
-      rows.push_back(item->data(Qt::UserRole).toULongLong());
-    }
-    std::sort(rows.begin(), rows.end(), std::greater<std::size_t>());
-    for (const std::size_t r : rows) {
-      records.erase(records.begin() + static_cast<std::ptrdiff_t>(r));
-    }
-    rebuild();
-    bool ok = false;
-    if (path.endsWith(".aaf", Qt::CaseInsensitive)) {
-      ok = write_aaf(std::filesystem::path(path.toStdWString()), records);
-    } else {
-      std::vector<ChartRecord> out;
-      out.reserve(records.size());
-      for (const AafRecord& a : records) {
-        out.push_back(dat_from_record(a));
-      }
-      ok = write_chart_file(std::filesystem::path(path.toStdWString()), out);
-    }
-    if (!ok) {
-      QMessageBox::warning(this, "HORCOM", tr("Die Datei ließ sich nicht schreiben."));
-    }
-  });
-  connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
-  connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-  connect(list, &QListWidget::itemDoubleClicked, &dialog, &QDialog::accept);
-  v->addLayout(order_row);
-  v->addWidget(list, 1);
-  v->addWidget(buttons);
-  dialog.resize(560, 440);
-  if (dialog.exec() == QDialog::Accepted && list->currentItem() != nullptr && !records.empty()) {
-    return records[list->currentItem()->data(Qt::UserRole).toULongLong()];
+  const QString label = QFileInfo(path).fileName();
+  const auto order = ask_order(*records, label);
+  if (order.empty()) {
+    return std::nullopt;
   }
-  return std::nullopt;
+  RecordListDialog list(*records, order, label, 1, RecordListDialog::Mode::kSingle, this);
+  if (list.exec() != QDialog::Accepted || list.picked().empty()) {
+    return std::nullopt;
+  }
+  return (*records)[list.picked().front()];
 }
 
 // one 128 byte record from the exchange form, shared by the delete
@@ -4118,6 +4433,12 @@ void MainWindow::apply_record(const AafRecord& r) {
     return;
   }
   record_ = r;
+  // whatever becomes current also lives in a slot like his SATZ arrays
+  if (active_slot_ < 0) {
+    active_slot_ = 0;
+  }
+  slots_[static_cast<std::size_t>(active_slot_)] = r;
+  update_slot_actions();
   const QSignalBlocker b1(date_);
   const QSignalBlocker b2(time_);
   const QSignalBlocker b3(zone_);
@@ -4240,65 +4561,69 @@ AafRecord MainWindow::panel_record() const {
   return r;
 }
 
-//RR AKTUELLEN Datensatz EINTRAGEN ?, the save half of his DATEN-DATEI
-// EIN-AUSGABE, an existing collection grows, a new name starts one
+// ported from a22dat and the EINTRAGEN branch of a2fdat. The record
+// goes into the bound Daten-Datei, a same named record raises his
+// overwrite question, and where the AAF twin exists it is the pilot,
+// the record lands there too and the DAT is rebuilt from it
 void MainWindow::save_record() {
-  QString name = QString::fromStdString(record_.surname).trimmed().toLower().replace(' ', '_');
-  if (name.isEmpty()) {
-    name = "horoskope";
-  }
-  const QString path = QFileDialog::getSaveFileName(this, tr("Datensatz speichern"), name + ".dat",
-                                                    tr("HORCOM Daten (*.dat);;AAF (*.aaf)"), nullptr,
-                                                    QFileDialog::DontConfirmOverwrite);
-  if (path.isEmpty()) {
+  if (data_file_.isEmpty()) {
+    data_file_io();
     return;
   }
-  const AafRecord r = panel_record();
-  const bool aaf = path.endsWith(".aaf", Qt::CaseInsensitive);
-  bool append = false;
-  if (QFile::exists(path)) {
-    QMessageBox ask(this);
-    ask.setWindowTitle("HORCOM");
-    ask.setText(tr("Die Datei gibt es schon. Datensatz an die Sammlung anhängen?"));
-    auto* append_button = ask.addButton(tr("Anhängen"), QMessageBox::AcceptRole);
-    ask.addButton(tr("Überschreiben"), QMessageBox::DestructiveRole);
-    auto* cancel = ask.addButton(QMessageBox::Cancel);
-    ask.exec();
-    if (ask.clickedButton() == cancel) {
+  const std::filesystem::path dat(data_file_.toStdWString());
+  auto records = read_chart_file(dat);
+  if (!records) {
+    QMessageBox::warning(this, "HORCOM", tr("Die Sammlung ließ sich nicht lesen, nichts geschrieben."));
+    return;
+  }
+  const AafRecord current = panel_record();
+  const ChartRecord entry = dat_from_record(current);
+  const QString wanted = QString::fromStdString(entry.name).trimmed();
+  bool exists = false;
+  for (const ChartRecord& r : *records) {
+    if (QString::fromStdString(r.name).trimmed().compare(wanted, Qt::CaseInsensitive) == 0) {
+      exists = true;
+      break;
+    }
+  }
+  const std::filesystem::path twin = aaf_twin_path(dat);
+  const bool twin_exists = std::filesystem::exists(twin);
+  if (exists && !twin_exists) {
+    //RR DATENSATZ GLEICHEN NAMENS in der DATEI ÜBERSCHREIBEN ?
+    const int es = ChoiceDialog::ask(this, tr("DATEI : %1").arg(QFileInfo(data_file_).fileName()),
+                                     {tr("DATENSATZ GLEICHEN NAMENS in der DATEI ÜBERSCHREIBEN ?")},
+                                     {tr("ÜBERSCHREIBEN"), tr("Datensatz ZUSÄTZLICH SPEICHERN"), tr("ABBRUCH")});
+    if (es < 0 || es == 2) {
       return;
     }
-    append = ask.clickedButton() == append_button;
-  }
-  bool ok = false;
-  if (aaf) {
-    std::vector<AafRecord> records{r};
-    if (append) {
-      const auto existing = read_aaf(path.toStdWString());
-      if (!existing) {
-        // never overwrite a collection that would not read back
-        QMessageBox::warning(this, "HORCOM", tr("Die Sammlung ließ sich nicht lesen, nichts geschrieben."));
-        return;
-      }
-      records = *existing;
-      records.push_back(r);
+    if (es == 0) {
+      remove_records_by_name(*records, entry.name);
     }
-    ok = write_aaf(path.toStdWString(), records);
-  } else {
-    std::vector<ChartRecord> records{dat_from_record(r)};
-    if (append) {
-      const auto existing = read_chart_file(path.toStdWString());
-      if (!existing) {
-        QMessageBox::warning(this, "HORCOM", tr("Die Sammlung ließ sich nicht lesen, nichts geschrieben."));
-        return;
-      }
-      records = *existing;
-      records.push_back(dat_from_record(r));
-    }
-    ok = write_chart_file(path.toStdWString(), records);
   }
-  if (!ok) {
+  records->push_back(entry);
+  if (!write_chart_file(dat, *records)) {
     QMessageBox::warning(this, "HORCOM", tr("Speichern fehlgeschlagen."));
+    return;
   }
+  if (twin_exists) {
+    //RR Die parallele HORCOM-Datei GLEICHEN NAMENS dient als Pilot
+    if (auto aaf_records = read_aaf(twin)) {
+      aaf_records->push_back(current);
+      if (write_aaf(twin, *aaf_records)) {
+        std::vector<ChartRecord> rebuilt;
+        rebuilt.reserve(aaf_records->size());
+        for (const AafRecord& a : *aaf_records) {
+          rebuilt.push_back(dat_from_record(a));
+        }
+        write_chart_file(dat, rebuilt);
+      }
+    }
+  }
+  bind_data_file(data_file_);
+  QMessageBox::information(this, "HORCOM",
+                           tr("Datensatz eingetragen, %1 Datensätze in %2.")
+                               .arg(data_count_)
+                               .arg(QFileInfo(data_file_).fileName()));
 }
 
 // every wheel list passes through here, the screen gets the record

@@ -73,16 +73,41 @@ struct ChartRecord {
 /// @return true on success
 bool write_chart_file(const std::filesystem::path& path, const std::vector<ChartRecord>& records);
 
-/// The Datei TRIMMEN pass, empty records fall out and leading blanks
-/// leave the names.
+/// The Datei TRIMMEN pass, ported from a2f_tr_dat.
+///
+/// Records with day zero and records whose longitude and latitude are
+/// both zero fall out, every text field comes back trimmed. The
+/// original replaced the file only when the pass removed something,
+/// callers keep that rule.
 ///
 /// @param records edited in place
 void trim_records(std::vector<ChartRecord>& records);
+
+/// The Datensätze LÖSCHEN pass, ported from a2f_tr_dat in delete mode.
+///
+/// The doomed records fall out and the trim drop rules run alongside
+/// exactly like the original single pass did.
+///
+/// @param records edited in place
+/// @param doomed  zero based indices into records before the pass
+void delete_records(std::vector<ChartRecord>& records, const std::vector<std::size_t>& doomed);
 
 /// The Datei MINIMIEREN pass, records sharing name and birth clock
 /// collapse onto their first copy.
 ///
 /// @param records edited in place, order kept
 void minimize_records(std::vector<ChartRecord>& records);
+
+/// Removes every record wearing the given name, the overwrite half of
+/// AKTUELLEN Datensatz EINTRAGEN, ported from a22ueberschrb.
+///
+/// The original compared the names verbatim after its list pass had
+/// already uppercased them all, the port compares case blind for the
+/// same effect.
+///
+/// @param records edited in place
+/// @param name    the name to overwrite, surrounding blanks ignored
+/// @return how many records fell out
+std::size_t remove_records_by_name(std::vector<ChartRecord>& records, const std::string& name);
 
 }  // namespace horcom

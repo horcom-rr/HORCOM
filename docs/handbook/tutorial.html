@@ -82,21 +82,46 @@ the whole wheel back.
 
 <h2>Records</h2>
 <p>
-<b>Datensätze öffnen</b> (Ctrl+O) reads his chart collections, the original
-DAT files as well as the AAF exchange format. The Sortierung box
-lists them in file order, alphabetically from the first, second or
-third word of the name like his sort dialog, by birthday or by date. Double click a record
-and it fills the panel, marked records can be deleted from the file. <b>Datensatz bearbeiten</b> (Ctrl+D) opens the
-record mask with name, place and country, and <b>Datensatz speichern</b>
-(Ctrl+S) writes the current chart into a collection, an existing DAT
-or AAF file grows by the record, a new name starts a new file. AAF is
-the exchange format, so your records travel between HORCOM and every
-program that reads AAF.
+<b>Daten-Datei Ein-Ausgabe</b> (Ctrl+O) is the record hub of the
+original. It first asks for the working Daten-Datei, an existing DAT
+collection, a fresh name to start one with the current record, or an
+AAF file whose DAT twin is then built beside it. The bound file and
+its record count stay visible in the Eingabe panel. The hub then asks
+one question per box, exactly like his dialog system:
+<b>Datensätze HOLEN</b> fetches records, for more than 45 records the
+SORTIER-MODUS box asks first whether to list them alphabetically from
+the first, second or third word of the name, by birthday or by date,
+then the chooser lists name, date, UT clock, coordinates and place in
+his fixed columns. Up to five records can be picked, each one passes
+through the EINGABE- und ANZEIGE-BOX on its way into a free RADIX
+slot. <b>AKTUELLEN Datensatz EINTRAGEN</b> appends the panel record to
+the file, a record of the same name raises his overwrite question,
+and where the AAF twin of the file exists it is the pilot, the record
+lands there too and the DAT is rebuilt from it.
+<b>Datensätze LÖSCHEN</b> marks up to ten records for removal,
+optionally together with their AAF twins, a full copy of the file
+survives as RRESERVE.DAT beside it. <b>Datei TRIMMEN</b> drops records
+without a day or without coordinates and <b>Datei MINIMIEREN</b>
+collapses records sharing name and birth clock, both replace the file
+only when something was removed, like the original rename rule.
+</p>
+<p>
+The fetched records live in the five <b>RADIX-DATEN</b> slots of the
+Datei menu, SATZ1 to SATZ5, the checked slot is the chart on the
+wheel and clicking another slot switches to it. Vergleich, 90°-Kreis,
+Composit and Combin offer the loaded slots first and open the file
+chooser only when the partner is not in memory yet.
+<b>Neu-Eingabe von Datensätzen</b> (Ctrl+N) runs the entry box in a
+loop, every new record lands in the next slot and can be entered into
+the bound file at the end. <b>Datensatz bearbeiten</b> (Ctrl+D) opens
+the record mask with the AAF fields, name, place, country, summer
+time code, and <b>Aktuellen Datensatz eintragen</b> (Ctrl+S) is the
+EINTRAGEN of the hub as a direct key. AAF is the exchange format, so
+your records travel between HORCOM and every program that reads AAF.
 <b>Dateien verketten</b> merges any mix of DAT and AAF collections into
 one AAF chain file, <b>AAF-Datei → HORCOM-Datei</b> converts an exchange
-file into his fixed record layout, <b>Datei trimmen/minimieren</b> tidies
-a collection, and <b>Statistik-Datei erstellen</b> computes a whole
-collection into a research dataset.
+file into his fixed record layout, and <b>Statistik-Datei erstellen</b>
+computes a whole collection into a research dataset.
 </p>
 
 <h2>The running sky</h2>

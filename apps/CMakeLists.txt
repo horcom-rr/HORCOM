@@ -37,6 +37,12 @@ if(Qt6_FOUND)
     gui/aspektarium_dialog.hpp
     gui/banner.cpp
     gui/banner.hpp
+    gui/choice_dialog.cpp
+    gui/choice_dialog.hpp
+    gui/record_list_dialog.cpp
+    gui/record_list_dialog.hpp
+    gui/record_mask_dialog.cpp
+    gui/record_mask_dialog.hpp
     gui/direction_list_dialog.cpp
     gui/direction_list_dialog.hpp
     gui/ingress_dialog.cpp

@@ -22,7 +22,10 @@
 #include <QTranslator>
 
 #include "aspektarium_dialog.hpp"
+#include "choice_dialog.hpp"
 #include "kommen_dialog.hpp"
+#include "record_list_dialog.hpp"
+#include "record_mask_dialog.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
 #include "main_window.hpp"
@@ -209,6 +212,80 @@ int main(int argc, char** argv) {
     const horcom::Chart chart = horcom::compute_chart(in, cs, vsop, eph);
     horcom::AspektariumDialog dialog(chart, cs, {}, "13.10.1992");
     dialog.grab().save(args[shot_aspektarium + 1]);
+    return 0;
+  }
+  // the dialog family of the DATEN-DATEI EIN-AUSGABE rework, captured
+  // for the side by side check against his reference screenshots
+  const int shot_hub = args.indexOf("--shot-hub");
+  if (shot_hub >= 0 && shot_hub + 1 < args.size()) {
+    horcom::ChoiceDialog dialog(
+        "DATEI : MUSIKER.DAT", {},
+        {QStringLiteral("Datensätze HOLEN ?"), QStringLiteral("AKTUELLEN Datensatz EINTRAGEN ?"),
+         QStringLiteral("Datensätze LÖSCHEN ?"), QStringLiteral("Datei TRIMMEN ?"),
+         QStringLiteral("Datei MINIMIEREN ?"), QStringLiteral("ABBRUCH")},
+        0);
+    dialog.grab().save(args[shot_hub + 1]);
+    return 0;
+  }
+  const int shot_sort = args.indexOf("--shot-sort");
+  if (shot_sort >= 0 && shot_sort + 1 < args.size()) {
+    horcom::ChoiceDialog dialog(
+        "SORTIER-MODUS ?  DATEI : MUSIKER.DAT", {},
+        {QStringLiteral("ALPHABETISCH: 1., 2. und 3. NAME"), QStringLiteral("ALPHABETISCH: 2. und 3. NAME"),
+         QStringLiteral("ALPHABETISCH: nur 3. NAME"), QStringLiteral("GEBURTSTAG"), QStringLiteral("DATUM"),
+         QStringLiteral("ABBRUCH")},
+        0);
+    dialog.grab().save(args[shot_sort + 1]);
+    return 0;
+  }
+  const int shot_chooser = args.indexOf("--shot-chooser");
+  if (shot_chooser >= 0 && shot_chooser + 1 < args.size()) {
+    // invented sample records, no real people
+    std::vector<horcom::AafRecord> sample;
+    const char* names[4] = {"MUSTER ANNA MARIA", "BEISPIEL BERND", "DEMO CARLA", "PROBE DORA"};
+    const char* places[4] = {"EICHENAU", "SALZBURG", "WIEN", "PARIS"};
+    for (int i = 0; i < 4; ++i) {
+      horcom::AafRecord r;
+      r.surname = names[i];
+      r.place = places[i];
+      r.day = 3 + 7 * i;
+      r.month = 1 + 2 * i;
+      r.year = 1920 + 17 * i;
+      r.hour = 4 + 5 * i;
+      r.minute = 10 * i;
+      r.lon_deg = 11 + i;
+      r.lon_min = 19;
+      r.lat_deg = 48;
+      r.lat_min = 10 + i;
+      sample.push_back(r);
+    }
+    std::vector<std::size_t> order{1, 2, 0, 3};
+    horcom::RecordListDialog dialog(sample, order, "MUSIKER.DAT", 5, horcom::RecordListDialog::Mode::kFetch);
+    dialog.grab().save(args[shot_chooser + 1]);
+    return 0;
+  }
+  const int shot_mask = args.indexOf("--shot-mask");
+  if (shot_mask >= 0 && shot_mask + 1 < args.size()) {
+    // the reference example of his screenshots, historical data
+    horcom::AafRecord r;
+    r.surname = "MOZART WOLFGANG AMADEUS";
+    r.place = "SALZBURG";
+    r.day = 27;
+    r.month = 1;
+    r.year = 1756;
+    r.hour = 19;
+    r.minute = 0;
+    r.second = 1;
+    r.lon_deg = 13;
+    r.lon_min = 3;
+    r.lon_sec = 0;
+    r.lat_deg = 47;
+    r.lat_min = 47;
+    r.lat_sec = 48;
+    r.comment = "KORRIGIERT: 20H08 =19H UT";
+    horcom::RecordMaskDialog dialog(r, "EINGABE- und ANZEIGE-BOX | RADIX NR.1",
+                                    horcom::RecordMaskDialog::Mode::kShow);
+    dialog.grab().save(args[shot_mask + 1]);
     return 0;
   }
   const int shot_kommen = args.indexOf("--shot-kommen");

@@ -90,4 +90,21 @@ struct AafRecord {
 /// Writes an .AAF file in Windows 1252 like the original.
 bool write_aaf(const std::filesystem::path& path, const std::vector<AafRecord>& records);
 
+/// The AAF twin of a chart collection, ported from bilde_aaffile$.
+///
+/// The original swapped SPEZIAL for AAFDATEN under its fixed root. The
+/// port keeps that swap when the collection lives in a SPEZIAL folder
+/// with an AAFDATEN folder beside it and otherwise places the twin next
+/// to the collection, same base name, AAF extension.
+///
+/// @param dat_path the .DAT collection
+/// @return where its .AAF twin lives or would live
+[[nodiscard]] std::filesystem::path aaf_twin_path(const std::filesystem::path& dat_path);
+
+/// The chart collection twin of an AAF file, ported from bilde_horcfile$.
+///
+/// @param aaf_path the .AAF file
+/// @return where its .DAT twin lives or would live
+[[nodiscard]] std::filesystem::path dat_twin_path(const std::filesystem::path& aaf_path);
+
 }  // namespace horcom
