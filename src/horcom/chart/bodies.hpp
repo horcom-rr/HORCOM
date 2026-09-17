@@ -45,11 +45,23 @@ inline constexpr int kXena = 40;
 inline constexpr int kSlotCount = 41;
 
 /// The two letter tags of the original ps$ table, index 0 through 40.
+/// They key his sprite drawings, all text output uses kName instead.
 inline constexpr std::string_view kTag[kSlotCount] = {
     "te", "so", "mo", "me", "ve", "ma", "ju", "sa", "ur", "ne", "pl",
     "dr", "ds", "ac", "mc", "ar", "cn", "li", "cp", "ag", "ch", "tp",
     "gl", "ce", "pa", "jn", "vs", "cu", "ha", "ze", "kr", "ap", "ad",
     "vu", "po", "qu", "hl", "ph", "da", "ns", "xe"};
+
+/// The uppercase display names of the original pl$ table, ported from
+/// HORCOM plnm. Slot 0 is the user defined Fixpunkt, his FP.
+inline constexpr std::string_view kName[kSlotCount] = {
+    "FP", "SO", "MO", "ME", "VE", "MA", "JU", "SA", "UR", "NE", "PL",
+    "DR", "DS", "AC", "MC", "AR", "CN", "LI", "CP", "AG", "CH", "TP",
+    "GL", "CE", "PA", "JN", "VS", "CU", "HA", "ZE", "KR", "AP", "AD",
+    "VU", "PO", "QU", "HL", "PH", "DA", "NS", "XE"};
+
+//RR pl$(2) = "TE", the moon slot carries the earth in the hrg mode
+inline constexpr std::string_view kEarthName = "TE";
 
 /// @param slot a body slot 19 and up in the standard layout
 /// @return the ephemeris file stem for eph based bodies, empty otherwise

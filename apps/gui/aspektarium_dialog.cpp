@@ -114,7 +114,7 @@ void AspektariumDialog::rebuild() {
   a.divisors = divisors_->currentData().toInt();
   const AspectResult res = scan_aspects(chart_, s_, a);
 
-  // the visible slots in the original order, the earth wears te on the
+  // the visible slots in the original order, the earth wears TE on the
   // moon's row in the hrg mode
   const bool helio = !chart_.b[body::kSun].present && chart_.b[body::kMoon].present;
   std::vector<int> shown;
@@ -125,11 +125,8 @@ void AspektariumDialog::rebuild() {
       continue;
     }
     shown.push_back(slot);
-    std::string_view tag = (helio && slot == body::kMoon) ? body::kTag[0]
-                                                           : body::kTag[static_cast<std::size_t>(slot)];
-    if (slot == 0) {
-      tag = "sp";
-    }
+    const std::string_view tag = (helio && slot == body::kMoon) ? body::kEarthName
+                                                                : body::kName[static_cast<std::size_t>(slot)];
     tags << QString::fromUtf8(tag.data(), static_cast<int>(tag.size()));
   }
   const int n = static_cast<int>(shown.size());

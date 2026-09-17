@@ -135,11 +135,11 @@ QString cross_hits_text(const std::vector<CrossAspectHit>& hits) {
       out += ",  ";
     }
     out += QString("%1 %2° %3")
-               .arg(QString::fromUtf8(body::kTag[static_cast<std::size_t>(h.w)].data(),
-                                      static_cast<int>(body::kTag[static_cast<std::size_t>(h.w)].size())))
+               .arg(QString::fromUtf8(body::kName[static_cast<std::size_t>(h.w)].data(),
+                                      static_cast<int>(body::kName[static_cast<std::size_t>(h.w)].size())))
                .arg(qRound(h.sep_deg))
-               .arg(QString::fromUtf8(body::kTag[static_cast<std::size_t>(h.t)].data(),
-                                      static_cast<int>(body::kTag[static_cast<std::size_t>(h.t)].size())));
+               .arg(QString::fromUtf8(body::kName[static_cast<std::size_t>(h.t)].data(),
+                                      static_cast<int>(body::kName[static_cast<std::size_t>(h.t)].size())));
     ++shown;
   }
   return out;
@@ -492,8 +492,8 @@ void MainWindow::build_ui() {
     // the reference point feeds only MULTI 3 and MULTI-ARC
     auto* ref = new QComboBox(&dialog);
     for (int slot = 1; slot <= 14; ++slot) {
-      ref->addItem(QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
-                                     static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size())),
+      ref->addItem(QString::fromUtf8(body::kName[static_cast<std::size_t>(slot)].data(),
+                                     static_cast<int>(body::kName[static_cast<std::size_t>(slot)].size())),
                    slot);
     }
     for (int h = 1; h <= 12; ++h) {
@@ -995,12 +995,9 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
     }
     const int row = bodies_->rowCount();
     bodies_->insertRow(row);
-    std::string_view tag = (helio && slot == body::kMoon) ? body::kTag[0]
-                                                           : body::kTag[static_cast<std::size_t>(slot)];
-    if (slot == 0) {
-      //RR Fixpunkt, sein SP
-      tag = "sp";
-    }
+    //RR pl$(2) = "TE", the moon slot carries the earth in the hrg mode
+    const std::string_view tag = (helio && slot == body::kMoon) ? body::kEarthName
+                                                                : body::kName[static_cast<std::size_t>(slot)];
     row_names << QString::fromUtf8(tag.data(), static_cast<int>(tag.size()));
     if (!b.valid) {
       bodies_->setItem(row, 0, new QTableWidgetItem(tr("außerhalb der Ephemeride")));
@@ -1230,8 +1227,8 @@ void MainWindow::fixed_star_table() {
       if (!asp.isEmpty()) {
         asp += "  ";
       }
-      asp += QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
-                               static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size())) +
+      asp += QString::fromUtf8(body::kName[static_cast<std::size_t>(slot)].data(),
+                               static_cast<int>(body::kName[static_cast<std::size_t>(slot)].size())) +
              " " + QChar(kind);
     }
     auto* aspects = new QTableWidgetItem(asp);
@@ -1329,8 +1326,8 @@ void MainWindow::midpoint_tree() {
     }
     const int row = table->rowCount();
     table->insertRow(row);
-    table->setItem(row, 0, new QTableWidgetItem(QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
-                                                                  static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size()))));
+    table->setItem(row, 0, new QTableWidgetItem(QString::fromUtf8(body::kName[static_cast<std::size_t>(slot)].data(),
+                                                                  static_cast<int>(body::kName[static_cast<std::size_t>(slot)].size()))));
     table->setItem(row, 1, new QTableWidgetItem(zodiac(b.el)));
     // his sort key, eight times the longitude folded into the circle
     const double dial = norm_rad(8.0 * b.el) * kRadToDeg;
@@ -1363,10 +1360,10 @@ void MainWindow::midpoint_tree() {
         contacts += ",  ";
       }
       contacts += QString("%1/%2 (%3°)")
-                      .arg(QString::fromUtf8(body::kTag[static_cast<std::size_t>(h.u)].data(),
-                                             static_cast<int>(body::kTag[static_cast<std::size_t>(h.u)].size())),
-                           QString::fromUtf8(body::kTag[static_cast<std::size_t>(h.w)].data(),
-                                             static_cast<int>(body::kTag[static_cast<std::size_t>(h.w)].size())),
+                      .arg(QString::fromUtf8(body::kName[static_cast<std::size_t>(h.u)].data(),
+                                             static_cast<int>(body::kName[static_cast<std::size_t>(h.u)].size())),
+                           QString::fromUtf8(body::kName[static_cast<std::size_t>(h.w)].data(),
+                                             static_cast<int>(body::kName[static_cast<std::size_t>(h.w)].size())),
                            QString(kLevel[h.nh]));
     }
     table->setItem(row, 3, new QTableWidgetItem(contacts));
@@ -1716,8 +1713,8 @@ void MainWindow::orb_settings() {
   auto* weights = new QTableWidget(1, 14, &dialog);
   QStringList heads;
   for (int slot = 1; slot <= 14; ++slot) {
-    heads << QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
-                               static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size()));
+    heads << QString::fromUtf8(body::kName[static_cast<std::size_t>(slot)].data(),
+                               static_cast<int>(body::kName[static_cast<std::size_t>(slot)].size()));
     auto* item = new QTableWidgetItem(QString::number(aspect_settings_.weight[static_cast<std::size_t>(slot)]));
     weights->setItem(0, slot - 1, item);
   }
@@ -1793,8 +1790,8 @@ void MainWindow::degree_list() {
     for (int slot = 0; slot < body::kSlotCount; ++slot) {
       const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
       if (b.present && b.valid && b.el > kEps) {
-        rows.emplace_back(b.el, QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
-                                                  static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size())));
+        rows.emplace_back(b.el, QString::fromUtf8(body::kName[static_cast<std::size_t>(slot)].data(),
+                                                  static_cast<int>(body::kName[static_cast<std::size_t>(slot)].size())));
       }
     }
     if (with_houses->isChecked()) {
@@ -1972,8 +1969,8 @@ void MainWindow::rhythm_table() {
       //RR der Sonderpunkt als rotes F
       auto* point = new QTableWidgetItem(
           t.slot == 0 ? QStringLiteral("F")
-                      : QString::fromUtf8(body::kTag[static_cast<std::size_t>(t.slot)].data(),
-                                          static_cast<int>(body::kTag[static_cast<std::size_t>(t.slot)].size())));
+                      : QString::fromUtf8(body::kName[static_cast<std::size_t>(t.slot)].data(),
+                                          static_cast<int>(body::kName[static_cast<std::size_t>(t.slot)].size())));
       if (t.slot == 0) {
         point->setForeground(QColor(0xE8, 0x5D, 0x4E));
       }
@@ -1985,8 +1982,8 @@ void MainWindow::rhythm_table() {
       table->setItem(row, 4, new QTableWidgetItem(art));
       table->setItem(row, 5,
                      new QTableWidgetItem(t.source > 0
-                                              ? QString::fromUtf8(body::kTag[static_cast<std::size_t>(t.source)].data(),
-                                                                  static_cast<int>(body::kTag[static_cast<std::size_t>(t.source)].size()))
+                                              ? QString::fromUtf8(body::kName[static_cast<std::size_t>(t.source)].data(),
+                                                                  static_cast<int>(body::kName[static_cast<std::size_t>(t.source)].size()))
                                               : QString()));
     }
     count->setText(tr("%1 Auslösungen").arg(rows.size()));
@@ -2023,8 +2020,8 @@ void MainWindow::planet_selection() {
     }
     const int row = table->rowCount();
     table->insertRow(row);
-    auto* name = new QTableWidgetItem(QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
-                                                        static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size())));
+    auto* name = new QTableWidgetItem(QString::fromUtf8(body::kName[static_cast<std::size_t>(slot)].data(),
+                                                        static_cast<int>(body::kName[static_cast<std::size_t>(slot)].size())));
     name->setData(Qt::UserRole, slot);
     name->setFlags(Qt::ItemIsEnabled);
     table->setItem(row, 0, name);
@@ -2136,8 +2133,8 @@ void MainWindow::degree_date_list() {
   auto* pa = new QComboBox(&dialog);
   auto* pb = new QComboBox(&dialog);
   for (int slot = 1; slot <= 10; ++slot) {
-    const QString tag = QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
-                                          static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size()));
+    const QString tag = QString::fromUtf8(body::kName[static_cast<std::size_t>(slot)].data(),
+                                          static_cast<int>(body::kName[static_cast<std::size_t>(slot)].size()));
     pa->addItem(tag, slot);
     pb->addItem(tag, slot);
   }
@@ -2153,8 +2150,8 @@ void MainWindow::degree_date_list() {
   connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
   const std::filesystem::path grade_file = data_dir_ / "grade.int";
   const auto tag_of = [](int slot) {
-    return QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
-                             static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size()));
+    return QString::fromUtf8(body::kName[static_cast<std::size_t>(slot)].data(),
+                             static_cast<int>(body::kName[static_cast<std::size_t>(slot)].size()));
   };
   const auto refresh = [this, table, phase, unit, dir, mundan, only_marked, grade_file, tag_of]() {
     RhythmOptions opt;
@@ -2244,8 +2241,8 @@ void MainWindow::histogram_view() {
   auto* weights = new QTableWidget(1, 15, &dialog);
   QStringList heads;
   for (int i = 1; i <= 14; ++i) {
-    heads << QString::fromUtf8(body::kTag[static_cast<std::size_t>(i)].data(),
-                               static_cast<int>(body::kTag[static_cast<std::size_t>(i)].size()));
+    heads << QString::fromUtf8(body::kName[static_cast<std::size_t>(i)].data(),
+                               static_cast<int>(body::kName[static_cast<std::size_t>(i)].size()));
   }
   heads << tr("Zusatz");
   weights->setHorizontalHeaderLabels(heads);
@@ -2689,8 +2686,8 @@ void MainWindow::rise_set() {
       const RiseSet rs = rise_transit_set(jd, slot, mode->currentData().toInt() == 1, ctx);
       const int row = table->rowCount();
       table->insertRow(row);
-      table->setItem(row, 0, new QTableWidgetItem(QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
-                                                                    static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size()))));
+      table->setItem(row, 0, new QTableWidgetItem(QString::fromUtf8(body::kName[static_cast<std::size_t>(slot)].data(),
+                                                                    static_cast<int>(body::kName[static_cast<std::size_t>(slot)].size()))));
       if (!rs.ok) {
         //RR AUßER BEREICH !
         table->setItem(row, 1, new QTableWidgetItem(rs.circumpolar ? tr("außer Bereich") : QString::fromUtf8("—")));
@@ -2799,8 +2796,8 @@ void MainWindow::eclipse_table() {
             if (!out.isEmpty()) {
               out += "  ";
             }
-            out += QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
-                                     static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size())) +
+            out += QString::fromUtf8(body::kName[static_cast<std::size_t>(slot)].data(),
+                                     static_cast<int>(body::kName[static_cast<std::size_t>(slot)].size())) +
                    QString::fromUtf8(" 0°");
           }
           continue;
@@ -2815,8 +2812,8 @@ void MainWindow::eclipse_table() {
             if (!out.isEmpty()) {
               out += "  ";
             }
-            out += QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
-                                     static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size())) +
+            out += QString::fromUtf8(body::kName[static_cast<std::size_t>(slot)].data(),
+                                     static_cast<int>(body::kName[static_cast<std::size_t>(slot)].size())) +
                    QString::asprintf(" %.0f\xC2\xB0", m * pn * kRadToDeg);
           }
         }

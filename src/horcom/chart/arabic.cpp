@@ -25,11 +25,7 @@ struct Term {
 };
 
 std::string tag_of(int slot) {
-  std::string t(body::kTag[static_cast<std::size_t>(slot)]);
-  for (char& ch : t) {
-    ch = static_cast<char>(std::toupper(static_cast<unsigned char>(ch)));
-  }
-  return t;
+  return std::string(body::kName[static_cast<std::size_t>(slot)]);
 }
 
 // resolves one term against the chart, label as his columns spelled it

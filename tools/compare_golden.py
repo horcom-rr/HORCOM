@@ -18,9 +18,11 @@ def parse_new(cid):
     armc = None
     jd = None
     for line in open(path, encoding="utf-8"):
-        m = re.match(r"^(so|mo|me|ve|ma|ju|sa|ur|ne|pl|dr|ds|ac|mc)\s+(\d+)\s+(\w\w)\s+(\d+)'(\d+)\"\s*([-+0-9.]*)\s*([-+0-9.]*)\s*([-+0-9.]*)", line)
+        # the CLI prints the uppercase pl$ names, older recordings the
+        # lowercase sprite tags, both parse
+        m = re.match(r"^(so|mo|me|ve|ma|ju|sa|ur|ne|pl|dr|ds|ac|mc)\s+(\d+)\s+(\w\w)\s+(\d+)'(\d+)\"\s*([-+0-9.]*)\s*([-+0-9.]*)\s*([-+0-9.]*)", line, re.IGNORECASE)
         if m:
-            b = m.group(1)
+            b = m.group(1).lower()
             bodies[b] = {
                 "lon": lon_deg(int(m.group(2)), m.group(3), int(m.group(4)), int(m.group(5))),
                 "lat": float(m.group(6)) if m.group(6) else None,

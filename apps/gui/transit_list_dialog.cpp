@@ -37,8 +37,8 @@ inline void color_aspect_item(QTableWidgetItem* item, double angle_deg) {
 namespace {
 
 QString slot_tag(int slot) {
-  return QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
-                           static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size()));
+  return QString::fromUtf8(body::kName[static_cast<std::size_t>(slot)].data(),
+                           static_cast<int>(body::kName[static_cast<std::size_t>(slot)].size()));
 }
 
 QString moment_text(double jd_ut, QString& time_out) {

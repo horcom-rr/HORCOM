@@ -39,7 +39,7 @@ constexpr int kCuspBase = 100;
 constexpr int kRulerBase = 200;
 
 QString slot_label(int slot) {
-  const std::string_view tag = body::kTag[static_cast<std::size_t>(slot)];
+  const std::string_view tag = body::kName[static_cast<std::size_t>(slot)];
   return QString::fromUtf8(tag.data(), static_cast<int>(tag.size()));
 }
 

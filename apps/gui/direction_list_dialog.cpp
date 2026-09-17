@@ -48,8 +48,8 @@ QString slot_tag(int slot, DirectionExtras extras) {
     static constexpr const char* kCardinal[4] = {"0°AR", "0°CN", "0°LI", "0°CP"};
     return QString::fromUtf8(kCardinal[slot - 15]);
   }
-  return QString::fromUtf8(body::kTag[static_cast<std::size_t>(slot)].data(),
-                           static_cast<int>(body::kTag[static_cast<std::size_t>(slot)].size()));
+  return QString::fromUtf8(body::kName[static_cast<std::size_t>(slot)].data(),
+                           static_cast<int>(body::kName[static_cast<std::size_t>(slot)].size()));
 }
 
 }  // namespace

@@ -150,7 +150,7 @@ int main(int argc, char** argv) {
     if (!b.present) {
       continue;
     }
-    const std::string tag(body::kTag[static_cast<std::size_t>(slot)]);
+    const std::string tag(body::kName[static_cast<std::size_t>(slot)]);
     if (!b.valid) {
       std::printf("%-4s ausserhalb der Ephemeride\n", tag.c_str());
       continue;

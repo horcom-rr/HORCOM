@@ -2,6 +2,7 @@
 // horcom, the C++ rewrite of HORCOM by Robert Rettig (1989 to 2010)
 // Copyright (c) 2026 Dominik Schwimmbeck
 
+#include <cctype>
 #include <cmath>
 
 #include "doctest.h"
@@ -417,4 +418,31 @@ TEST_CASE("the mean planetary nodes and apsides fill their columns") {
   // the descending node is not the antipode of the ascending one, a
   // nearby space point can stand on the same side of the Earth
   CHECK(std::abs(norm_rad(geo.node_south - geo.node) - kPi) < kPi);
+}
+
+TEST_CASE("body name table matches the pl$ assignments of plnm") {
+  // transcription pins against PROCEDURE plnm, uppercase display names
+  CHECK(body::kName[body::kSun] == "SO");
+  CHECK(body::kName[body::kMoon] == "MO");
+  CHECK(body::kName[body::kMercury] == "ME");
+  CHECK(body::kName[body::kPluto] == "PL");
+  CHECK(body::kName[body::kNodeAsc] == "DR");
+  CHECK(body::kName[body::kNodeDesc] == "DS");
+  CHECK(body::kName[body::kAscendant] == "AC");
+  CHECK(body::kName[body::kMc] == "MC");
+  CHECK(body::kName[body::kApogee] == "AG");
+  CHECK(body::kName[body::kChiron] == "CH");
+  CHECK(body::kName[body::kQuaoar] == "QU");
+  CHECK(body::kName[body::kXena] == "XE");
+  CHECK(body::kName[body::kFixpunkt] == "FP");
+  CHECK(body::kEarthName == "TE");
+  // every name is the uppercase twin of the sprite tag, slot 0 aside
+  for (int slot = 1; slot < body::kSlotCount; ++slot) {
+    const std::string_view tag = body::kTag[static_cast<std::size_t>(slot)];
+    const std::string_view name = body::kName[static_cast<std::size_t>(slot)];
+    REQUIRE(tag.size() == name.size());
+    for (std::size_t i = 0; i < tag.size(); ++i) {
+      CHECK(static_cast<char>(std::toupper(static_cast<unsigned char>(tag[i]))) == name[i]);
+    }
+  }
 }
