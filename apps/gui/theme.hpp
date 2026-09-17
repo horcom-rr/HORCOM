@@ -363,6 +363,13 @@ QListWidget {
   border: 1px solid @edge@;
   font-family: "Courier New", monospace;
 }
+QTextBrowser, QTextEdit, QPlainTextEdit {
+  background: @field@;
+  color: @ink@;
+  border: 1px solid @edge@;
+  selection-background-color: @selBg@;
+  selection-color: @selInk@;
+}
 QToolTip {
   background: @panel@;
   color: @ink@;
