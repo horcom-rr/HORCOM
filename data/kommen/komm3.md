@@ -41,17 +41,15 @@ Die charakteristischen genäherten Bahndaten für PLUTO,QUAOAR und XENA sind:
 
 ```text
    Name         Kürzel    a        e     i (Grad)     T (Jahre)
-```
-
-```text
    PLUTO         PL     39.65    0.25   17.15°       250
    QUAOAR        QU     43.25    0.035   7.99°       284
    XENA          XE     67.66    0.44   44.18°       557
 ```
 
-Dabei sind: a = Große Halbachse e = Exzentrizität
+Dabei sind:
 
 ```text
+              a = Große Halbachse e = Exzentrizität
               i = Inklination     T = Umlaufszeit
 ___________________________________________________________________________
 ```
@@ -66,126 +64,38 @@ Die bereits VOREINGESTELLTEN Werte sind an dem jeweils DICK UMRANDETEN Kästchen
 
 Im Einzelnen:
 
-```text
-  -Bei den LÄNGEN kann zwischen den WAHREN = GEOMETRISCHEN und den
-   APPARENTEN   Werten gewählt werden,wobei im letzteren Fall noch
-   unterschieden wird zwischen Berücksichtigung der LICHT-LAUFZEIT
-   allein ( = astrometrische Koordinaten ),sowie zusätzlich der
-   "JÄHRLICHEN ABERRATION" .
-   Für den Mond können alle diese Unterschiede vernachlässigt werden.
-```
+- Bei den LÄNGEN kann zwischen den WAHREN = GEOMETRISCHEN und den APPARENTEN Werten gewählt werden,wobei im letzteren Fall noch unterschieden wird zwischen Berücksichtigung der LICHT-LAUFZEIT allein ( = astrometrische Koordinaten ),sowie zusätzlich der "JÄHRLICHEN ABERRATION" . Für den Mond können alle diese Unterschiede vernachlässigt werden.
 
-```text
-  Abkürzungen :
-```
+Abkürzungen :
 
-```text
-  W  = Wahre ( =Geometrische ) Position.
-  A1 = Apparente Position,wenn nur die LICHT-LAUFZEIT berücksichtigt ist.
-  Hier ist der Abstand des Planeten maßgebend ( = "astrometrische" Position).
-  A2 = Apparente Position,wenn die JÄHRLICHE ABERRATION zugefügt ist.
-  Hier ist auch die Umlaufgeschwindigkeit relativ zum Beobachter maßgebend.
-  Diese wird i.a. nur bei Fixstern-Positionen verwendet und ist daher bei
-  diesem Programm automatisch eingeschaltet um evtl. Vergleiche zu
-  ermöglichen.
-```
+- W = Wahre ( =Geometrische ) Position.
+- A1 = Apparente Position,wenn nur die LICHT-LAUFZEIT berücksichtigt ist. Hier ist der Abstand des Planeten maßgebend ( = "astrometrische" Position).
+- A2 = Apparente Position,wenn die JÄHRLICHE ABERRATION zugefügt ist. Hier ist auch die Umlaufgeschwindigkeit relativ zum Beobachter maßgebend. Diese wird i.a. nur bei Fixstern-Positionen verwendet und ist daher bei diesem Programm automatisch eingeschaltet um evtl. Vergleiche zu ermöglichen.
 
-```text
-  All diese Unterscheidungen spielen sich unterhalb einer Bogenminute ab,
-  sind aber interessant,wenn man mit gedruckten Ephemeriden vergleichen will.
-  Leider ist bei astrologischen Eph. nicht immer angegeben,welche Werte ge-
-  meint sind und welche Zeit (UT oder ET) zugrunde liegt (siehe unten !).In
-  jedem Fall erfordert ein korrekter Vergleich einige astronomische Grund-
-  kenntnisse,die nur wenigen Astrologen geläufig sind.Die Genauigkeits-Fana-
-  tiker mögen sich also bitte erst vergewissern,daß Sie nicht " Äpfel mit
-  Birnen" vergleichen,bevor sie ungenaue Zahlen feststellen !
-  Bei älteren Ephemeriden ist übrigens mit Fehlern bei Pluto und Neptun bis
-  zu ca. 0.5' zu rechnen,da vor 1978 für die Masse des Pluto ein viel zu
-  hoher Wert zugrundegelegt wurde.
-```
+All diese Unterscheidungen spielen sich unterhalb einer Bogenminute ab, sind aber interessant,wenn man mit gedruckten Ephemeriden vergleichen will. Leider ist bei astrologischen Eph. nicht immer angegeben,welche Werte gemeint sind und welche Zeit (UT oder ET) zugrunde liegt (siehe unten !).In jedem Fall erfordert ein korrekter Vergleich einige astronomische Grundkenntnisse,die nur wenigen Astrologen geläufig sind.Die Genauigkeits-Fanatiker mögen sich also bitte erst vergewissern,daß Sie nicht " Äpfel mit Birnen" vergleichen,bevor sie ungenaue Zahlen feststellen ! Bei älteren Ephemeriden ist übrigens mit Fehlern bei Pluto und Neptun bis zu ca. 0.5' zu rechnen,da vor 1978 für die Masse des Pluto ein viel zu hoher Wert zugrundegelegt wurde.
 
-```text
-  Bei Solaren ist die Wahl dieser Berechnungs-Modalitäten kaum von Belang.
-  Bei Direktionen kann sie sich in etwas unterschiedlichen Zeitpunkten aus-
-  wirken.
-  Was nun "richtig" ist,soll hier nicht entschieden werden.Meist wird die
-  mit APPARENT1,bzw. A1 bezeichnete Version angewendet.
-  Wichtig ist natürlich daß man bei Solaren usw. immer mit den gleichen
-  Parametern rechnet wie bei der Radix.
-```
+Bei Solaren ist die Wahl dieser Berechnungs-Modalitäten kaum von Belang. Bei Direktionen kann sie sich in etwas unterschiedlichen Zeitpunkten auswirken. Was nun "richtig" ist,soll hier nicht entschieden werden.Meist wird die mit APPARENT1,bzw. A1 bezeichnete Version angewendet. Wichtig ist natürlich daß man bei Solaren usw. immer mit den gleichen Parametern rechnet wie bei der Radix.
 
--Beim MONDKNOTEN kann zwischen dem üblichen MITTLEREN Wert und dem
+- Beim MONDKNOTEN kann zwischen dem üblichen MITTLEREN Wert und dem WAHREN (="oskulierenden" bzw. momentanen) Wert gewählt werden. Der Mittelwert kann sehr präzise angegeben werden der wahre Wert kann einen Fehler von wenigen Bogenminuten aufweisen.
 
-```text
-  WAHREN  (="oskulierenden" bzw. momentanen) Wert gewählt werden.
-  Der Mittelwert kann sehr präzise angegeben werden der wahre Wert kann
-  einen Fehler von wenigen Bogenminuten aufweisen.
-```
+- "PARALLAXE" Dient zur Wahl der Planeten-Berechnung mit Berücksichtigung der Parallaxe oder ohne.Bei LUNAREN kann der Unterschied mehr als 1h ausmachen ! Mit Parallaxe heißt : Die Koordinaten werden TOPOZENTRISCH bestimmt.,d.h. für den jeweiligen Ort des Beobachters auf der Erdoberfläche,der natürlich auch zeitabhängig ist infolge der Erdrotation. Bezeichnung durch "P" oder durch entspr. Text. Die Parallaxe wird nun für alle Planeten berechnet. Bei den äusseren Planeten NE,PL liegt der Effekt unterhalb der Rechengenauigkeit.Bei Venus kann er bis 34" betragen,bei Mars bis 24",bei Jupiter bis 2.2". Es kann wohl keinem Zweifel unterliegen,daß die topozentrischen Positionen, d.h. MIT Parallaxe,die astrologisch "richtigeren" sind.
 
--"PARALLAXE" Dient zur Wahl der Planeten-Berechnung mit Berücksichtigung
+- "ZUSATZ-PLANETEN" erlaubt die Einbeziehung der "ASTEROIDEN" CHIRON, CERES,PALLAS,JUNO,VESTA .Zeitliche Gültigkeit,siehe unten.
 
-```text
-  der Parallaxe oder ohne.Bei LUNAREN kann der Unterschied mehr als 1h
-  ausmachen !
-  Mit Parallaxe heißt : Die Koordinaten werden TOPOZENTRISCH bestimmt.,d.h.
-  für den jeweiligen Ort des Beobachters auf der Erdoberfläche,der natürlich
-  auch zeitabhängig ist infolge der Erdrotation.
-  Bezeichnung durch "P" oder durch entspr. Text.
-  Die Parallaxe wird nun für alle Planeten berechnet.
-  Bei den äusseren Planeten NE,PL liegt der Effekt unterhalb der Rechenge-
-  nauigkeit.Bei Venus kann er bis 34" betragen,bei Mars bis 24",bei Jupiter
-  bis 2.2".
-  Es kann wohl keinem Zweifel unterliegen,daß die topozentrischen Positionen,
-  d.h. MIT Parallaxe,die astrologisch "richtigeren" sind.
-```
+Der "TRANS-PLUTO" ( oft auch ISIS genannt ) ist ebenfalls unter ZUSATZ-PLANETEN anzuwählen (s.unten), wie auch der GLÜCKSPUNKT.
 
--"ZUSATZ-PLANETEN" erlaubt die Einbeziehung der "ASTEROIDEN" CHIRON,
+Die 8 "HAMBURGER" Planeten können ebenfalls gewählt werden ( siehe unten ).
 
-```text
-  CERES,PALLAS,JUNO,VESTA .Zeitliche Gültigkeit,siehe unten.
-```
+Ab HORCOM7P wurden noch zusätzliche 7 Objekte aufgenommen:
 
-```text
-  Der "TRANS-PLUTO" ( oft auch ISIS genannt ) ist ebenfalls unter ZUSATZ-
-  PLANETEN anzuwählen (s.unten), wie auch der GLÜCKSPUNKT.
-```
+Astrologisch von Interesse können wohl vor allem diejenigen Asteroiden sein,die,ähnlich wie CHIRON einen großen mittleren Abstand = a und große Exzentrizität = e haben,sodaß sie unter den tausenden von Asteroiden unterscheidbar sein könnten. Oft werden diese Objekte als "KENTAUREN" bezeichnet.Einige haben auch entsprechende Namen.
 
-```text
-  Die 8 "HAMBURGER" Planeten können ebenfalls gewählt werden ( siehe unten ).
-```
+Insgesamt sind ab HORCOM7P 4 solcher Objekte ( einschließlich CHIRON ) aufgenommen,zusätzlich noch der Komet HALLEY,der eine noch extremere Bahncharakteristik aufweist. In der folgenden Tabelle sind Näherungswerte einiger charakteristischer heliozentrischen Bahndaten aufgeführt.Dabei ist i die Bahn-Neigung gegen die Ekliptik,T die ungefähre Umlaufszeit.
 
-```text
-  Ab HORCOM7P wurden noch zusätzliche 7 Objekte aufgenommen:
-```
-
-```text
-  Astrologisch von Interesse können wohl vor allem diejenigen Asteroiden
-  sein,die,ähnlich wie CHIRON einen großen mittleren Abstand = a und große
-  Exzentrizität = e  haben,sodaß sie unter den tausenden von Asteroiden
-  unterscheidbar sein könnten.
-  Oft werden diese Objekte als "KENTAUREN" bezeichnet.Einige haben auch
-  entsprechende Namen.
-```
-
-```text
-  Insgesamt sind ab HORCOM7P 4 solcher Objekte ( einschließlich CHIRON )
-  aufgenommen,zusätzlich noch der Komet HALLEY,der eine noch extremere
-  Bahncharakteristik aufweist.
-  In der folgenden Tabelle sind Näherungswerte einiger charakteristischer
-  heliozentrischen Bahndaten aufgeführt.Dabei ist i die Bahn-Neigung
-  gegen die Ekliptik,T die ungefähre Umlaufszeit.
-```
-
-```text
-  Im Fall des Kometen HALLEY ist die Bahnneigung fast 180 Grad,sodass
-  dieser heliozentrisch retrograd zu den übrigen Planeten verläuft.
-```
+Im Fall des Kometen HALLEY ist die Bahnneigung fast 180 Grad,sodass dieser heliozentrisch retrograd zu den übrigen Planeten verläuft.
 
 ```text
    Name         Kürzel      a        e     i (Grad)     T (Jahre)
-```
-
-```text
    KOMET HALLEY  HL        17.94    0.97  162.24        76
    Chiron        CH        13.61    0.38    6.94        50
    Damocles      DA        11.82    0.86   61.84        41
@@ -193,102 +103,38 @@ Im Einzelnen:
    Pholus        PH        20.23    0.57   24.70        91
 ```
 
-```text
-  Für alle diese Objekte wurden die Ephemeriden durch numerische
-  Integration im Ensemble mit den großen Planeten von mir errechnet,
-  sodass deren Einflüsse voll berücksichtigt sind.Als Startwerte wurden
-  die neuesten Bahnelemente verwendet (Natürlich viel genauer als die
-  oben genannten Richtwerte ).
-```
+Für alle diese Objekte wurden die Ephemeriden durch numerische Integration im Ensemble mit den großen Planeten von mir errechnet, sodass deren Einflüsse voll berücksichtigt sind.Als Startwerte wurden die neuesten Bahnelemente verwendet (Natürlich viel genauer als die oben genannten Richtwerte ).
 
-```text
-  Über die verwendeten SYMBOLE gibt die Tabelle "ZUSATZ-PLANETEN-
-  KOORDINATEN" ( Zweites Blatt ! ) Aufschluss.
-```
+Über die verwendeten SYMBOLE gibt die Tabelle "ZUSATZ-PLANETEN-KOORDINATEN" ( Zweites Blatt ! ) Aufschluss.
 
-```text
-  Die Zeitspannen der von mir errechneten und in HORCOM7P gespeicherten
-  Ephemeriden sind nochmals zusammengefasst :
-```
+Die Zeitspannen der von mir errechneten und in HORCOM7P gespeicherten Ephemeriden sind nochmals zusammengefasst :
 
 ```text
    PLUTO,QUAOAR und XENA :
    JD 1502079.5 bis 2525120.5  = 18.05.602 v.Chr. bis 12.06.2201
-```
 
-```text
    CHIRON:
    JD 1502279.5 bis 2524460.5  = 07.01.600 v.Chr. bis 21.08.2199
-```
 
-```text
    ASTEROIDEN CERES...VESTA und die 3 "KENTAUREN" DAMOKLES,NESSUS
    PHOLUS :
-```
-
-```text
    JD 2268939.5 bis 2488390.5  = 08.01.1500       bis 18.11.2100
-```
 
-```text
    Komet HALLEY :
    JD 2305446.5 bis 2469806.5  = 31.12.1599       bis 31.12.2049
 ```
 
-```text
-  Der Komet HALLEY wird nach meiner Rechnung bei der nächsten Wiederkehr
-  ( 2061 ) im Perihel der Venus sehr nahe kommen und danach erheblich
-  veränderte Bahndaten haben.
-```
+Der Komet HALLEY wird nach meiner Rechnung bei der nächsten Wiederkehr ( 2061 ) im Perihel der Venus sehr nahe kommen und danach erheblich veränderte Bahndaten haben.
 
-```text
-  Die gewählten Zusatz-Planeten erscheinen in den Horoskopen und sonstigen
-  Darstellungen.In der Tabelle "ZUSATZ-PLANETEN-KOORD." sind alle auf zwei
-  Blättern dargestellt.
-  Beim Programm  "ASPEKTARIUM" können max.5 verarbeitet werden !
-```
+Die gewählten Zusatz-Planeten erscheinen in den Horoskopen und sonstigen Darstellungen.In der Tabelle "ZUSATZ-PLANETEN-KOORD." sind alle auf zwei Blättern dargestellt. Beim Programm "ASPEKTARIUM" können max.5 verarbeitet werden !
 
-```text
-  Je mehr Zusatz-Planeten gewählt werden,desto höher werden die Rechen-und
-  Auswerte-Zeiten ( Bei Aspekten und Halbsummen bis zum 10-fachen Wert ! ).
-  Außerdem kann es öfter zu Überdeckungen der Symbole im Horoskop,oder zur
-  Beschneidung von Graphiken kommen.
-  Also : Nicht mehr Zusatz-Elemente auswählen,als angemessen !!
-```
+Je mehr Zusatz-Planeten gewählt werden,desto höher werden die Rechen-und Auswerte-Zeiten ( Bei Aspekten und Halbsummen bis zum 10-fachen Wert ! ). Außerdem kann es öfter zu Überdeckungen der Symbole im Horoskop,oder zur Beschneidung von Graphiken kommen. Also : Nicht mehr Zusatz-Elemente auswählen,als angemessen !!
 
-```text
-  Auch die MOND-APSIDEN ( = "SCHWARZER MOND" ) sind unter den Zusatz-Plane-
-  ten anwählbar.
-  SYMBOL : 2 sich schneidende Kreise.Es kann zwischen dem MITTLEREN Wert
-  und dem WAHREN (="oskulierenden" = momentanen) Wert gewählt werden.Der
-  wahre Wert kann sich hier vom mittleren um mehr als 20 Grad unterscheiden.
-```
+Auch die MOND-APSIDEN ( = "SCHWARZER MOND" ) sind unter den Zusatz-Planeten anwählbar. SYMBOL : 2 sich schneidende Kreise.Es kann zwischen dem MITTLEREN Wert und dem WAHREN (="oskulierenden" = momentanen) Wert gewählt werden.Der wahre Wert kann sich hier vom mittleren um mehr als 20 Grad unterscheiden.
 
-```text
-  Der "SCHWARZE MOND" Ist das WAHRE (=MOMENTANE) APOGÄUM = AG
-  der MOND-  BAHN.
-  Der WAHRE Wert ist jeweils durch INVERTIERTES SYMBOL,bzw. mit "W" gekenn-
-  zeichnet (bei den Drucker-Graphiken durch einen Rechteckrahmen um das Sym-
-  bol),der MITTLERE durch "M".Der mittlere Wert ist jeweils exakt,der wahre
-  eine gute numerische Näherung mit einigen Bogenminuten max.Fehler.
-  Der "schwarze Mond" ist kein Planet sondern eine "Achse".
-  Ein Aspekt mit Winkel W zum S.M. ist also gleichbedeutend mit W+180 zum Ge-
-  genpol.Eine Einbeziehung des Gegenpols mit eigenem Symbol,wie dies ja bei
-  den Mondknoten der Fall ist,wurde einstweilen nicht vorgenommen.Es ist
-  daher ratsam,bei der Beurteilung von Aspekten usw. zu diesem Faktor,das
-  Horoskop-Diagramm mit zu verwenden,in dem die Achse als gestrichelte Linie
-  eingetragen ist.
-```
+Der "SCHWARZE MOND" Ist das WAHRE (=MOMENTANE) APOGÄUM = AG der MOND-BAHN. Der WAHRE Wert ist jeweils durch INVERTIERTES SYMBOL,bzw. mit "W" gekennzeichnet (bei den Drucker-Graphiken durch einen Rechteckrahmen um das Symbol),der MITTLERE durch "M".Der mittlere Wert ist jeweils exakt,der wahre eine gute numerische Näherung mit einigen Bogenminuten max.Fehler. Der "schwarze Mond" ist kein Planet sondern eine "Achse". Ein Aspekt mit Winkel W zum S.M. ist also gleichbedeutend mit W+180 zum Gegenpol.Eine Einbeziehung des Gegenpols mit eigenem Symbol,wie dies ja bei den Mondknoten der Fall ist,wurde einstweilen nicht vorgenommen.Es ist daher ratsam,bei der Beurteilung von Aspekten usw. zu diesem Faktor,das Horoskop-Diagramm mit zu verwenden,in dem die Achse als gestrichelte Linie eingetragen ist.
 
-```text
-  ACHTUNG! Für den schwarzen Mond sind unterschiedliche Definitionen in
-  Gebrauch.In HORCOM wird für den WAHREN Wert darunter die "oskulierende"
-  Apside der Mondbahn verstanden.Diese Werte entsprechen,mit Abweichungen
-  von wenigen Bogenminuten,z.B denen der "ROSICRUCIAN EPHEMERIS",die
-  wiederum auf der Ephemeride DE200/LE200 des US NAVAL OBSERVATORY
-  entspricht.
-  Was den MITTELWERT der Mondapsiden anbelangt besteht Einheitlichkeit.
-```
+ACHTUNG! Für den schwarzen Mond sind unterschiedliche Definitionen in Gebrauch.In HORCOM wird für den WAHREN Wert darunter die "oskulierende" Apside der Mondbahn verstanden.Diese Werte entsprechen,mit Abweichungen von wenigen Bogenminuten,z.B denen der "ROSICRUCIAN EPHEMERIS",die wiederum auf der Ephemeride DE200/LE200 des US NAVAL OBSERVATORY entspricht. Was den MITTELWERT der Mondapsiden anbelangt besteht Einheitlichkeit.
 
 ## "VORGABE EPHEMERIDE ÄNDERN"
 
@@ -316,11 +162,10 @@ Man kann aus allen TABELLEN-ausgaben heraus,durch Drücken der FUNKTIONS-TASTE F
 
 Umrechnungs-Formeln wurden großenteils folgenden Büchern entnommen,die für den Selbst-Programmierer eine gute erste Grundlage sind,vorausgesetzt er hat solide mathematische Grund-Kenntnisse.
 
-"ASTRONAMICAL FORMULAE for CALCULATORS" von J.MEEUS / 1985 ( Kein Lehrbuch ) "ASTRONOMISCHE ALGORITHMEN" von J.MEEUS / 1992 ( Kein Lehrbuch,aber eine Fundgrube astronomischer Formeln,die den neuesten Stand für den Selbstprogrammierer darstellt,und fast alle wünschenswerten Formeln enthält.Siehe oben ! )
-
-"GRUNDLAGEN DER EPHEMERIDENRECHNUNG" von O.MONTENBRUCK / 1985 ( LEHRBUCH ).
-
-"EINFÜHRUNG IN DIE HIMMELSMECHANIK UND EPHEMERIDENRECHNUNG" A.GUTHMANN B.I. WISSENSCHAFTSVERLAG ( LEHRBUCH ).
+- "ASTRONAMICAL FORMULAE for CALCULATORS" von J.MEEUS / 1985 ( Kein Lehrbuch )
+- "ASTRONOMISCHE ALGORITHMEN" von J.MEEUS / 1992 ( Kein Lehrbuch,aber eine Fundgrube astronomischer Formeln,die den neuesten Stand für den Selbstprogrammierer darstellt,und fast alle wünschenswerten Formeln enthält.Siehe oben ! )
+- "GRUNDLAGEN DER EPHEMERIDENRECHNUNG" von O.MONTENBRUCK / 1985 ( LEHRBUCH ).
+- "EINFÜHRUNG IN DIE HIMMELSMECHANIK UND EPHEMERIDENRECHNUNG" A.GUTHMANN B.I. WISSENSCHAFTSVERLAG ( LEHRBUCH ).
 
 Literatur-Hinweise sind bei MONTENBRUCK zu finden.Die Original-Literatur verlangt zum Verständnis allerdings erhebliche Vorkenntnisse in der sphärischen Astronomie und der Himmels-Mechanik.
 
@@ -347,14 +192,10 @@ Die GEOZENTRISCHEN MAXIMALEN Geschwindigkeiten der Paneten in POSITIVER und NEGA
 ```text
 PLANET          MAXIMAL POSITIV      MINIMAL bzw. MAXIMAL NEGATIV
                       min/d                   min/d
-```
 
-```text
 SONNE                 61.188                  57.186
 MOND                 922.28                  709.18
-```
 
-```text
 MERKUR               132.08                  -81.74
 VENUS                 75.48                  -37.59
 MARS                  47.47                  -23.91
@@ -363,23 +204,17 @@ SATURN                 7.82                   -4.95
 URANUS                 3.68                   -2.51
 NEPTUN                 2.27                   -1.70
 PLUTO                  2.38                   -1.75
-```
 
-```text
 MONDKNOTEN WAHR        2.334                 -15.768
 APOGÄUM WAHR         367.33                 -213.24
-```
 
-```text
 CHIRON                 6.71                   -4.11
 TRANSPLUTO             0.850                  -0.719
 CERES                 26.94                  -14.58
 PALLAS                35.29                  -21.99
 JUNO                  34.96                  -16.59
 VESTA                 32.25                  -16.45
-```
 
-```text
 CUPIDO                 1.600                  -1.265
 HADES                  1.321                  -1.014
 ZEUS                   1.094                  -0.897
@@ -438,21 +273,11 @@ Die Symbole der Kleinplaneten verschwinden wenn der vorgegebene Zeitrahmen über
 
 Der hypothetische TRANS-PLUTO ( = ISIS ),nach den Bahn-Elementen von E.SEVIN ist ebenfalls unter ZUSATZ-PLANETEN rubriziert.Die Längen-Werte entsprechen der Ephemeride von NEIL F.MICHELSEN.
 
-In dieser Ephemeride sind auch die astronomischen Voraussetzungen recht ausführlich beschrieben :"HAWKINS ENTERPRISING PUBLIKATIONS DALLAS/TEXAS 1978" Die Ephemeride von TH.LANDSCHEIDT gibt davon etwas abweichende Werte.Offenbar hat er etwas andere "Bahn-Elemente" verwendet.HERAUSGEBER :"F.BRANDAU PASSAU / 1984." Zu diesem sehr fragwürdigen "Planeten" ist folgendes zu sagen: -Bisher ist TP nur berechnet aber nie beobachtet worden.
+In dieser Ephemeride sind auch die astronomischen Voraussetzungen recht ausführlich beschrieben :"HAWKINS ENTERPRISING PUBLIKATIONS DALLAS/TEXAS 1978" Die Ephemeride von TH.LANDSCHEIDT gibt davon etwas abweichende Werte.Offenbar hat er etwas andere "Bahn-Elemente" verwendet.HERAUSGEBER :"F.BRANDAU PASSAU / 1984." Zu diesem sehr fragwürdigen "Planeten" ist folgendes zu sagen:
 
--Bei den Bahnelementen ist die Bahn-Neigung und die Knotenlänge unbestimmt.
-
-```text
-  Für die Bahn-Neigung werden indes Werte zwischen 0 und ca.40 Grad unter ver-
-  schiedenen Astronomen diskutiert,für die mittlere Anomalie weit auseinander-
-  liegende Werte,bis zur gegenseitigen Opposition.
-  Rektaszension,Deklination,Breite und Knotenlänge bleiben in den Tabellen
-  deshalb offen.
--Es ist daher nicht sinnvoll,mit vorliegenden Werten minutengenau zu arbei-
-  ten,da der Planet,falls er wirklich existiert,um mehrere Grade abweichen
-  oder gar in ungefährer Opposition dazu stehen könnte.Am besten läßt man
-  die Finger davon !!
-```
+- Bisher ist TP nur berechnet aber nie beobachtet worden.
+- Bei den Bahnelementen ist die Bahn-Neigung und die Knotenlänge unbestimmt. Für die Bahn-Neigung werden indes Werte zwischen 0 und ca.40 Grad unter verschiedenen Astronomen diskutiert,für die mittlere Anomalie weit auseinanderliegende Werte,bis zur gegenseitigen Opposition. Rektaszension,Deklination,Breite und Knotenlänge bleiben in den Tabellen deshalb offen.
+- Es ist daher nicht sinnvoll,mit vorliegenden Werten minutengenau zu arbeiten,da der Planet,falls er wirklich existiert,um mehrere Grade abweichen oder gar in ungefährer Opposition dazu stehen könnte.Am besten läßt man die Finger davon !!
 
 Für die "HAMBURGER Planeten",die nach astronomischem Ermessen kaum diesen Namen verdienen können,werden allgemein Kreisbahnen vorausgesetzt,d.h. von den insgesamt nötigen 7 Bahnelementen werden nur 2 verwendet,z.B. große Bahnachse und mittlere Anomalie ( = exzentrische Anomalie = wahre Anomalie = mittlere Länge = wahre Länge ).
 
@@ -486,7 +311,7 @@ Weist eines der Objekte einen ASPEKT mit den Planeten des aktuellen Daten-Satzes
 
 Der Orbis kann über "VORGABEN HOROSKOP.." beeinflußt werden.Siehe auch Erl.4 ! Entsprechendes gilt auch für das folgende Prog. "ARABISCHE TEILE" ! In der Spalte "QUALITÄT" ist der Charakter des betreffenden Objekts mit 1 bis 3 Planeten-Symbolen dargestellt,wie er in etwa bei R.EBERTIN "Die Bedeutung der Fixsterne" zu finden ist.
 
-Die Formulierungen,auch für APEX und GALAKTISCHES ZENTRUM (von TH.LAND-SCHEIDT in die Astrologie eingeführt) sind nur als unverbindliche Arbeitshypothese auffassen !!
+Die Formulierungen,auch für APEX und GALAKTISCHES ZENTRUM (von TH.LANDSCHEIDT in die Astrologie eingeführt) sind nur als unverbindliche Arbeitshypothese auffassen !!
 
 Überhaupt scheint mir ein "Einfluß" der Fixsterne besonders fragwürdig,da mit heutigen Fernrohren jeder Grad des Himmels mit Objekten bedeckt erscheint, die kaum auseinander zu halten wären.Die alten Astrologen konnten dies noch nicht wissen.
 
@@ -494,7 +319,7 @@ Falls sich diese trotzdem statistisch belegen ließen,müßte man eher bestimmte
 
 ## ARABISCHE TEILE
 
-Das Programm berechnet für den aktuellen Datensatz eine Liste von 37 "ARA-BISCHEN TEILEN" wie Glücks-Punkt usw."Klassisch" sind zum Teil diejenigen, die Planeten bis SA benutzen.Die anderen sind "Nachschöpfungen".Die jeweilige Formel ist immer mit angegeben.Einige sind mir von Bekannten genannt worden.Ich selbst habe damit noch kaum gearbeitet.
+Das Programm berechnet für den aktuellen Datensatz eine Liste von 37 "ARABISCHEN TEILEN" wie Glücks-Punkt usw."Klassisch" sind zum Teil diejenigen, die Planeten bis SA benutzen.Die anderen sind "Nachschöpfungen".Die jeweilige Formel ist immer mit angegeben.Einige sind mir von Bekannten genannt worden.Ich selbst habe damit noch kaum gearbeitet.
 
 Die Haupt-Aspekte mit Radix-Faktoren werden,wie im vorhergehen Programm angezeigt.Die Werte können auch nach ekl.Länge SORTIERT werden (LEER-Taste). Soweit Häuserspitzen verwendet werden,bedeutet z.B. H12 die Spitze 12.Haus. Hv9 bedeutet dagegen Herr von Haus9.
 
@@ -540,35 +365,12 @@ Das KALENDER-Programm (Formeln z.B.aus MEEUS) umfaßt den gregorianischen und Ju
 
 Die Zählung der JD (="Julianische Tage") geht bis JD=0,was dem 1.1.4713 v.Chr. 12H nach julianischem Kalender entspricht.
 
-```text
-                 FRÜHERE DATEN NICHT VERWENDEN !!
-Da in vielen Ländern die Umstellung sehr viel später erfolgte,ist für die
-Jahre 1583 bis 1890 noch eine Abfrage zur Wahl des Kalenders eingeschaltet.
-Der gewählte Kalender wird in der Koordinatentabelle und den Horoskopen,
-wenn noch julianisch zu rechnen ist mit dem Kürzel JULIAN. angemerkt.
-Z.B. wurde im prot. Deutschland erst am 17.2.1700 umgestellt.
-Ab 1890 aufwärts wird der gregorianische Kalender immer vorausgesetzt.
-Falls doch noch Daten im julianischen Kalender vorliegen,müssen Sie also
-das julianische Datum selbst gregorianisch ausdrücken,also zum julianischen
-Datum 10 Tage addieren.Nur dann rechnet das Programm richtig.
-Bei  DATEN V.CHR. geben Sie bei "V.CH." ein "V" oder ein "-" ein.
-Das Minus ist hier nur deshalb zusätzlich gewählt,damit man weitgehend
-mit der rechten Hand eingeben kann -.Bei "JAHR" geben Sie nämlich die
-normale,von den Historikern verwendete Jahreszahl ein,ohne Vorzeichen !
-In den Tabellen-AUSGABEN ist meist die Angabe V.CHR. durch das MINUS-
-Zeichen ersetzt,wobei die arithmetische ( = astronomische ) Zählung ange-
-geben ist !
-Dabei entspricht z.B. das Jahr -62 dem Jahr 63 v.Chr. Das kommt daher,daß
-die Historiker das Jahr 0 "vergessen" haben.Das Jahr 0 entspricht dem Jahr
-1 v.Chr !! Im übrigen ist "v.Chr." auch als "VC" abgekürzt.
-Im Tabellenkopf ist das "Julianische Datum" JD=..  und die in "Julianischen
-Jahrhunderten"(=36525 Tage) gemessene Zeitkoordinate T ab Datum 31.12.1899 12H
-UT angegeben.(Entspricht JD=2415020.0).Dies ist eine in der Astronomie
-übliche Zeit-Angabe für den hier verwendeten Bezugs-Zeitpunkt.
-Mit dem kleinen Programm " DATUM aus JD " kann man nach Eingabe des vollen
-julianischen Datums",das Datum im jeweiligen Kalender ermitteln.Z.B. ist
-für JD=1507900.13 ( UT ) das Datum der 28.5.-584 (=585 v.Chr.) 15 h 7.2 Min
-(UT).
-```
+FRÜHERE DATEN NICHT VERWENDEN !!
+
+Da in vielen Ländern die Umstellung sehr viel später erfolgte,ist für die Jahre 1583 bis 1890 noch eine Abfrage zur Wahl des Kalenders eingeschaltet. Der gewählte Kalender wird in der Koordinatentabelle und den Horoskopen, wenn noch julianisch zu rechnen ist mit dem Kürzel JULIAN. angemerkt. Z.B. wurde im prot. Deutschland erst am 17.2.1700 umgestellt. Ab 1890 aufwärts wird der gregorianische Kalender immer vorausgesetzt. Falls doch noch Daten im julianischen Kalender vorliegen,müssen Sie also das julianische Datum selbst gregorianisch ausdrücken,also zum julianischen Datum 10 Tage addieren.Nur dann rechnet das Programm richtig.
+
+Bei DATEN V.CHR. geben Sie bei "V.CH." ein "V" oder ein "-" ein. Das Minus ist hier nur deshalb zusätzlich gewählt,damit man weitgehend mit der rechten Hand eingeben kann -.Bei "JAHR" geben Sie nämlich die normale,von den Historikern verwendete Jahreszahl ein,ohne Vorzeichen ! In den Tabellen-AUSGABEN ist meist die Angabe V.CHR. durch das MINUS-Zeichen ersetzt,wobei die arithmetische ( = astronomische ) Zählung angegeben ist ! Dabei entspricht z.B. das Jahr -62 dem Jahr 63 v.Chr. Das kommt daher,daß die Historiker das Jahr 0 "vergessen" haben.Das Jahr 0 entspricht dem Jahr 1 v.Chr !! Im übrigen ist "v.Chr." auch als "VC" abgekürzt.
+
+Im Tabellenkopf ist das "Julianische Datum" JD=.. und die in "Julianischen Jahrhunderten"(=36525 Tage) gemessene Zeitkoordinate T ab Datum 31.12.1899 12H UT angegeben.(Entspricht JD=2415020.0).Dies ist eine in der Astronomie übliche Zeit-Angabe für den hier verwendeten Bezugs-Zeitpunkt. Mit dem kleinen Programm " DATUM aus JD " kann man nach Eingabe des vollen julianischen Datums",das Datum im jeweiligen Kalender ermitteln.Z.B. ist für JD=1507900.13 ( UT ) das Datum der 28.5.-584 (=585 v.Chr.) 15 h 7.2 Min (UT).
 
 Eine umfangreiche Dokumentation zu Kalender- und Zeit-Bestimmungen wurde von Herrn B.MAHL dankenswerterweise für den Computer aufbereitet und kann über TEXTE LESEN im Ordner \HORCOM\ZEITBEST gelesen werden oder auch direkt aus der EINGABE-BOX bei NEU-EINGABE..

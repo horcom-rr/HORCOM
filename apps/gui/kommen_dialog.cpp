@@ -16,8 +16,9 @@
 
 namespace horcom {
 
-KommenDialog::KommenDialog(const std::filesystem::path& dir, const QString& preselect, QWidget* parent)
-    : QDialog(parent), preselect_(preselect) {
+KommenDialog::KommenDialog(const std::filesystem::path& dir, const QString& preselect, bool english,
+                           QWidget* parent)
+    : QDialog(parent), preselect_(preselect), english_(english) {
   //RR TEXT-DATEI LESEN
   setWindowTitle(tr("Text-Datei lesen"));
   auto* v = new QVBoxLayout(this);
@@ -29,8 +30,12 @@ KommenDialog::KommenDialog(const std::filesystem::path& dir, const QString& pres
   split->addWidget(list_);
   split->addWidget(text_, 1);
   v->addLayout(split, 1);
-  // his writing stays untranslated, the note says so in the English shell
-  auto* note = new QLabel(tr("Die Original-Texte von Robert Rettig, in seinem deutschen Wortlaut."), this);
+  // the note names the edition on show, his German original or the
+  // English translation that preserves his wording
+  auto* note = new QLabel(
+      english_ ? tr("English editions of Robert Rettig's original texts, his wording preserved in translation.")
+               : tr("Die Original-Texte von Robert Rettig, in seinem deutschen Wortlaut."),
+      this);
   note->setWordWrap(true);
   v->addWidget(note);
   auto* bottom = new QHBoxLayout();
@@ -59,10 +64,37 @@ KommenDialog::KommenDialog(const std::filesystem::path& dir, const QString& pres
 }
 
 void KommenDialog::reload(const std::filesystem::path& dir) {
-  entries_ = kommen_entries(dir);
+  entries_ = kommen_entries(dir, english_);
   list_->clear();
+  // the list shows his menu titles, the English shell shows them in
+  // English while the German menu titles stay his own words
+  static const std::pair<const char*, const char*> kTitleEn[] = {
+      {"Einführender Kommentar", "Introductory Commentary"},
+      {"Erläuterung Ein-Ausgabe", "Input and Output"},
+      {"Erläuterung Ephemeride", "Ephemeris"},
+      {"Erläuterung Horoskope", "Chart Types"},
+      {"Erläuterung Solar,Septar...", "Solar, Septar and more"},
+      {"Erläuterung M.R.", "Münchner Rhythmenlehre"},
+      {"Erläuterung Direktionen", "Directions"},
+      {"Erläuterung Häuser", "Houses"},
+      {"Erläuterung Diverses", "Miscellaneous"},
+      {"Änderungsliste", "Change list"},
+      {"Hinweise", "Notes"},
+      {"Kurzanleitung", "Short Manual"},
+      {"Erläuterung Statistik", "Statistics"},
+      {"Erläuterung AAF-Ein-Ausgabe", "AAF Input and Output"},
+  };
   for (const KommenEntry& e : entries_) {
-    list_->addItem(QString::fromUtf8(e.title.c_str()));
+    QString title = QString::fromUtf8(e.title.c_str());
+    if (english_) {
+      for (const auto& [de, en] : kTitleEn) {
+        if (e.title == de) {
+          title = QString::fromUtf8(en);
+          break;
+        }
+      }
+    }
+    list_->addItem(title);
   }
   if (entries_.empty()) {
     text_->setPlainText(
@@ -80,7 +112,9 @@ void KommenDialog::reload(const std::filesystem::path& dir) {
       // the ERLÄUTERUNG entries of his menus land on their own text
       for (std::size_t i = 0; i < entries_.size(); ++i) {
         const QString stem = QString::fromStdWString(entries_[i].path.stem().wstring());
-        if (stem.compare(preselect_, Qt::CaseInsensitive) == 0) {
+        // the English edition wears an _en suffix, match either stem
+        if (stem.compare(preselect_, Qt::CaseInsensitive) == 0 ||
+            stem.compare(preselect_ + "_en", Qt::CaseInsensitive) == 0) {
           row = static_cast<int>(i);
           break;
         }

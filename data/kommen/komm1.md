@@ -4,22 +4,11 @@
 
 Die für die Programmerstellung verwendete Software ist:
 
-```text
-   GFA-BSIC für WINDOWS 3.1 , PROFIVERSION RELEASE 4.36 von GFA-
-   SYSTEM - TECHNIK Mönchen-Gladbach.
-```
+GFA-BSIC für WINDOWS 3.1 , PROFIVERSION RELEASE 4.36 von GFA-SYSTEM - TECHNIK Mönchen-Gladbach.
 
-```text
-   Daneben wurden auch direkt API-Funktionen von WINDOWS 3.1
-   eingesetzt.
-```
+Daneben wurden auch direkt API-Funktionen von WINDOWS 3.1 eingesetzt.
 
-```text
-             Dieses Programm enthaelt Softwarecode ( Planeten
-             SO,MO,ME,VE,MA,JU,SA,UR,NE )
-             Copyright (c) 1991-1992 by Jeffrey Sax
-             und verteilt durch Willmann-Bell, Inc.  Serie 10756
-```
+Dieses Programm enthaelt Softwarecode ( Planeten SO,MO,ME,VE,MA,JU,SA,UR,NE ) Copyright (c) 1991-1992 by Jeffrey Sax und verteilt durch Willmann-Bell, Inc.  Serie 10756
 
 Danksagungen :
 

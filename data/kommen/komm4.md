@@ -43,8 +43,9 @@ Bis April 97 mit den folgenden Festwerten :
 ```text
   SO MO ME VE MA JU SA UR NE PL DR DS  KLEIN-PL. AC MC DC IC
    6  6  3  3  3  2  2  1  1  1  1  1  0...       6  6  4  4   Punkte
-Planeten im ERSTEN HAUS und der GEBURTSHERRSCHER werden DOPPELT gewichtet.
 ```
+
+Planeten im ERSTEN HAUS und der GEBURTSHERRSCHER werden DOPPELT gewichtet.
 
 Eine Gewichtung nach "KARDINAL-FIX-GEMEINSCHAFTLICH = KARD/FIX/GEM" nach "Punkten" mit den gleichen Bewertungen wie bei Elementen,allerdings werden IC und DC hier nicht extra gezählt,da dies einer Überbewertung gleichkommen würde.
 
@@ -100,13 +101,7 @@ Mittels des ASPEKTE-ZÄHLERS in "ZEITWANDERN" wurden folgende Orbes ermittelt, d
 
 ```text
 Teiler      :   1    2    3    4    5    6    7    8    9    10    11    12
-```
-
-```text
 Grundwinkel :  360  180  120  90   72   60   51.4  45   40   36    32.7  30
-```
-
-```text
 Orbis       :  5.4  6.8  3.1  3.0  1.6  2.6  1.0  1.5   1.0  1.5   0.6   1.0
 ```
 
@@ -114,13 +109,7 @@ HELIOZENTRISCH ergeben sich auf die gleiche Weise :
 
 ```text
 Teiler      :   1    2    3    4    5    6    7    8    9    10    11    12
-```
-
-```text
 Grundwinkel :  360  180  120  90   72   60   51.4  45   40   36    32.7  30
-```
-
-```text
 Orbis       :  6.51 5.36 3.18 3.0 1.58 2.01 1.02  1.51  1.0 1.53   0.58 1.50
 ```
 
@@ -128,13 +117,7 @@ Nach dem obigen "WELLENMODELL" = HORCOM - Normaleinstellung ergibt sich folgende
 
 ```text
 Teiler      :   1    2    3    4    5    6    7    8    9    10    11    12
-```
-
-```text
 Grundwinkel :  360  180  120  90   72   60   51.4  45   40   36    32.7  30
-```
-
-```text
 Orbis       :   12   6    4    3   2.4  2.0  1.71  1.5 1.33  1.2   1.09  1.0
 ```
 
@@ -329,38 +312,27 @@ Das Composit ist astronomisch nicht "echt".Es arbeitet daher einstweilen nicht m
 Das HÄUSERSYSTEM eines COMPOSIT ist problematisch.In HORCOM5P/7P sind daher für Studienzwecke jetzt drei Möglichkeiten für die Berechnung der Häuser vorgesehen :
 
 1. Es wird die mittlere Sternzeit der Partner-Horoskope berechnet sowie die
-
-```text
    Mittelwerte der geogr. Länge und Breite berechnet und dann damit das
    Häusersystem in üblicher Weise.
-```
 
 2. Als zweite Möglichkeit wird die Methode von ROBERT HAND angewandt.
-
-```text
    Hierbei wird die nächstgelegene Halbsumme der beiden MC-Werte ermit-
    telt,der Aufenthaltsort der Partner eingegeben und davon ausgehend das
    Häusersystem berechnet,wobei die Sternzeit aus dem MC-Mittel zurück-
    gerechnet wird.
-```
 
 3. Als dritte Methode werden einfach die Halbsummen der Häuser der beiden
-
-```text
    Partner gebildet und zwar ausgehend von der nächstgelegenen Halbsum-
    me des MC der beiden Partner.Die Halbsummen der übrigen Häuser werden
    so gewählt,daß ein scheinbar "normales" Häusersystem resultiert.Man kann
    hier nicht immer die nächstgelegenen Halbsummen verwenden,da dies evtl.
    die Richtung im Horoskop vertauschen würde.
-```
 
 ( Als Ekliptik-Schiefe wird in jedem Fall der Mittelwert der beiden
+Partner verwendet ).
 
-```text
-   Partner verwendet ).
 Bei den äqualen Haüsersystemen wird,um völlige Verwirrung zu vermeiden,
 nur die dritte Methode verwendet !
-```
 
 Wie man es auch macht,keine der Methoden ist ganz überzeugend,sodaß ich geneigt wäre,in jedem Fall die Häuser bei der Deutung mit einem großen Fragezeichen zu versehen,einschließlich der sogenannten AC und MC-Werte.
 

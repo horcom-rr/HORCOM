@@ -2,9 +2,9 @@
 
 *Robert Rettig, aus der Original-Dokumentation von HORCOM (Ordner KOMMEN7P). Wortlaut unverändert, weggelassen sind technische Abschnitte zur Installation, Tastatur- und Druckersteuerung der historischen Programmfassung.*
 
-KURZE ANLEITUNG zum schnellen Einstieg in HORCOM :
+## KURZE ANLEITUNG zum schnellen Einstieg in HORCOM :
 
-Bedienung von HORCOM in WINDOWS :
+## Bedienung von HORCOM in WINDOWS :
 
 Die erste Zeile im Hauptmenü ist lediglich eine Titel-Zeile,die auch das Datum der Version enthält.
 
@@ -14,7 +14,7 @@ Die eigentlich wichtige MENÜ-ZEILE zeigt die Oberbegriffe :
 
 Wenn Sie einen der Oberbegriffe anklicken entrollt sich eine Liste von Programm-Titeln,die Sie erst einmal alle anschauen sollten damit Sie zu ahnen beginnen was es in HORCOM alles gibt.Lehrreich ist besonders auch, die Menüpunkte VORGABEN...ÄNDERN einmal durchzugehen,um zu sehen was alles beeinflußbar ist.Bei den Vorgaben für HOROSKOPE sollten Sie insbesondere die Farben für den Horoskopring und die Aspekt-Linien nach Ihrem Gusto festlegen oder zunächst die HORCOM-Standardeinstellungen lassen( für den Anfang empfehlenswert ).
 
-Erste Versuche :
+## Erste Versuche :
 
 Klicken Sie Im Hauptmenü in der Menüzeile EIN-AUSG. an.Es entrollen sich die Menüpunkte,die für die Ein- bzw. Ausgabe und die Aktivierung der einge gebenen Datensätze gebraucht werden.
 
@@ -97,8 +97,8 @@ Bei Daten v.Chr. geben Sie in dem dafür vorgesehenen Feld,das Sie sonst einfach
 Die UT wird bei vorliegender Zonenzeit wie folgt ermittelt :
 
 ```text
-                 UT = GMT = ZONEN-ZEIT + ZZD
-                 ZZD = ZONENZEIT-DIFFERENZ
+UT = GMT = ZONEN-ZEIT + ZZD
+ZZD = ZONENZEIT-DIFFERENZ
 ```
 
 Bei der NEU-Eingabe von Daten erscheint ein Dialog zum Einstellen der Zonenzeit,falls in der Eingabebox die betr. CHECKBOX angeklickt wurde. Sie zeigt links oben ein Editierfeld und zwei Tabellen in welchen hinter dem ORTS-Namen die ZZD-Werte zu ersehen sind.Wollen Sie eine der entfernteren Zonenzeiten wählen,suchen Sie in der Tabelle nach einer Stadt in dem gesuchten Landstrich und klicken diesen an.In dem Editierfeld erscheint dann dieser Wert und Sie können ihn mit "OK" übernehmen. Für MEZ ( = mitteleuropäische Zeit) ist die ZZD = -1 h .Wollen Sie diese wählen,brauchen Sie die Tabellen nicht sondern klicken einfach auf "OK".
@@ -110,24 +110,12 @@ Für geographische Längen östlich Greenwich ist die ZZD i.a. negativ westlich 
 Gebräuchliche Abkürzungen für die näherliegenden Zonenzeiten sind:
 
 ```text
-       MEZ  = MITTEL-europäische Zeit                 ZZD = -1
-```
-
-```text
-       WEZ  = WEST - europäische Zeit                 ZZD = 0
-            = UT = GMT
-```
-
-```text
-       OEZ  = OST -  europäische Zeit                 ZZD = -2
-```
-
-```text
-       DSZ  = Deutsche SOMMER-Zeit                    ZZD = -2
-```
-
-```text
-       DDSZ = Doppelte Deutsche SOMMER-Zeit           ZZD = -3
+MEZ  = MITTEL-europäische Zeit                 ZZD = -1
+WEZ  = WEST - europäische Zeit                 ZZD = 0
+     = UT = GMT
+OEZ  = OST -  europäische Zeit                 ZZD = -2
+DSZ  = Deutsche SOMMER-Zeit                    ZZD = -2
+DDSZ = Doppelte Deutsche SOMMER-Zeit           ZZD = -3
 ```
 
 Wollen Sie ORTS-Zeit eingeben,was bei HISTORISCHEN Horoskopen nötig ist markieren Sie die betreffende CHECKBOX und geben in den Zeit-Feldern die angegebene Ortszeit ein.
@@ -139,5 +127,5 @@ Eine weitere CHECKBOX unter ORTSZEIT dient dazu zu vermerken,wenn nach dem 15.10
 Stehen Ihnen Dateien im AAF-Format ( Astrologisches Austauch-Format ,das Herr MARTIN GARMS dankenswerterweise etabliert hat ) zur Verfügung,so können Sie solche Dateien mit dem entsprechenden Menüpunkt in der letzten Spalte des Hauptmenüs in HORCOM-Dateien umwandeln oder umgekehrt. Ab Version HORCOM6P können,und sollten Sie dann auch,selbst im AAF-Format editieren.
 
 ```text
-  Robert Rettig      Eichenau,den 21.09.2008
+Robert Rettig      Eichenau,den 21.09.2008
 ```

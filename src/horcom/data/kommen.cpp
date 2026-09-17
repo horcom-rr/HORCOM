@@ -41,11 +41,24 @@ constexpr MenuRow kMenu[] = {
 }  // namespace
 
 // ported from HORCOM komm_les and the ae menu titles
-std::vector<KommenEntry> kommen_entries(const std::filesystem::path& dir) {
+std::vector<KommenEntry> kommen_entries(const std::filesystem::path& dir, bool english) {
   std::vector<KommenEntry> out;
   std::error_code ec;
   for (const MenuRow& row : kMenu) {
-    // the markdown edition wins, his original file still counts
+    // the English edition wins in the English shell, then his markdown
+    // edition, then his original text file
+    if (english) {
+      std::string en = row.md;
+      const std::size_t dot = en.rfind(".md");
+      if (dot != std::string::npos) {
+        en.insert(dot, "_en");
+        const std::filesystem::path enp = dir / en;
+        if (std::filesystem::exists(enp, ec)) {
+          out.push_back({row.index, row.title, enp});
+          continue;
+        }
+      }
+    }
     const std::filesystem::path md = dir / row.md;
     if (std::filesystem::exists(md, ec)) {
       out.push_back({row.index, row.title, md});

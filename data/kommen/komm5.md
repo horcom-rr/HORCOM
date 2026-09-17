@@ -90,40 +90,21 @@ ACHTUNG! : Bei Rechnung MIT Parallaxe können Abweichungen auftreten,insbesonder
 
 Berechnet direkt ein Progressiv-Horoskop für ein bestimmtes Ereignis-Datum. Gleichung dabei :
 
-```text
-                    " 1 TAG = 1 JAHR "
-Als Umrechnungs-Konstante wird das tropische Jahr von 365.242199 Tagen
-eingesetzt.
-Für die Uhrzeit,bzw. das Häusersystem können folgende 4 Versionen gewählt
-werden :
-```
+> " 1 TAG = 1 JAHR "
 
-```text
-   1) UT = RADIX-UT,
-   2) Wahre Sonnenzeit wie bei Radix  ( Abstand AR Sonne - ARMC konstant ).
-      Die WAHRE SONNENZEIT wird hier,wie auch beim TAGES-HOROSKOP,recht genau
-      durch Iteration ermittelt,was etwas Rechenzeit kostet.Die Berechnung
-      entspricht der beim TAGES_HOROSKOP.
-   3) Häusersystem des Progressiv-Horoskops um den STERNZEIT-FORTSCHRITT
-      gegenüber dem Radix gedreht.Das MC wandert z.B. bei einem Alter von 50
-      Jahren gegenüber dem RADIX um ungefähr 50 GRAD weiter.Dementsprechend
-      wird die Uhrzeit genau aus der entsprechenden neuen Sternzeit berechnet.
-      Die Häuser wandern hier also um etwa den Faktor 365 langsamer als bei
-      der folgenden Berechnungsart.
-   4) Die PLANETEN und HÄUSER werden,einschließlich der Tageszeit,nach der
-      streng proportional aus der Anzahl der abgelaufenen tropischen Jahre
-      errechneten Zeit berechnet:
-           1 Jahr entspricht genau 1 julianischem Tag bis zu kleinen
-             Bruchteilen von Minuten.
-  Astronomisch korrekt und eindeutig ist nur die Version 4 zu berechnen.
-  Bei den Versionen 1),2),und 3) wurde nun ( ab 26.11.98 ) das Datum so gelegt,
-  daß zu dem korrekten Wert nach 4) maximal ein halber Tag Unterschied bestehen
-  kann.
-  Welche von den angebotenen Möglichkeiten am meisten Sinn macht,wage ich
-  nicht zu entscheiden.Mir fehlt hier die Erfahrung.Nach v.H.KLÖCKLER wäre die
-  Version 1) die übliche.Er hält allerdings generell nicht viel davon.
-  Normalerweise macht man ein Progressiv-Horoskop nur für runde Geburtstage
-  und für den Geburtsort.
-  Das Progressiv-Horoskop soll dann etwas über das kommende Lebensjahr
-  aussagen.
-```
+Als Umrechnungs-Konstante wird das tropische Jahr von 365.242199 Tagen eingesetzt.
+
+Für die Uhrzeit,bzw. das Häusersystem können folgende 4 Versionen gewählt werden :
+
+1. UT = RADIX-UT,
+2. Wahre Sonnenzeit wie bei Radix ( Abstand AR Sonne - ARMC konstant ). Die WAHRE SONNENZEIT wird hier,wie auch beim TAGES-HOROSKOP,recht genau durch Iteration ermittelt,was etwas Rechenzeit kostet.Die Berechnung entspricht der beim TAGES_HOROSKOP.
+3. Häusersystem des Progressiv-Horoskops um den STERNZEIT-FORTSCHRITT gegenüber dem Radix gedreht.Das MC wandert z.B. bei einem Alter von 50 Jahren gegenüber dem RADIX um ungefähr 50 GRAD weiter.Dementsprechend wird die Uhrzeit genau aus der entsprechenden neuen Sternzeit berechnet. Die Häuser wandern hier also um etwa den Faktor 365 langsamer als bei der folgenden Berechnungsart.
+4. Die PLANETEN und HÄUSER werden,einschließlich der Tageszeit,nach der streng proportional aus der Anzahl der abgelaufenen tropischen Jahre errechneten Zeit berechnet: 1 Jahr entspricht genau 1 julianischem Tag bis zu kleinen Bruchteilen von Minuten.
+
+Astronomisch korrekt und eindeutig ist nur die Version 4 zu berechnen. Bei den Versionen 1),2),und 3) wurde nun ( ab 26.11.98 ) das Datum so gelegt, daß zu dem korrekten Wert nach 4) maximal ein halber Tag Unterschied bestehen kann.
+
+Welche von den angebotenen Möglichkeiten am meisten Sinn macht,wage ich nicht zu entscheiden.Mir fehlt hier die Erfahrung.Nach v.H.KLÖCKLER wäre die Version 1) die übliche.Er hält allerdings generell nicht viel davon.
+
+Normalerweise macht man ein Progressiv-Horoskop nur für runde Geburtstage und für den Geburtsort.
+
+Das Progressiv-Horoskop soll dann etwas über das kommende Lebensjahr aussagen.

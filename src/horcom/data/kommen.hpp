@@ -30,9 +30,12 @@ struct KommenEntry {
 /// entry a shipped markdown edition is preferred over the original
 /// text file of the same topic.
 ///
-/// @param dir the local kommen folder
+/// @param dir     the local kommen folder
+/// @param english true prefers the English edition of each text, the
+///                <stem>_en.md file, when it exists, and falls back to
+///                his German edition otherwise
 /// @return the entries in menu order, missing files skipped
-[[nodiscard]] std::vector<KommenEntry> kommen_entries(const std::filesystem::path& dir);
+[[nodiscard]] std::vector<KommenEntry> kommen_entries(const std::filesystem::path& dir, bool english = false);
 
 /// Reads one commentary with the lese_text rules. Lines carrying a
 /// tilde or 256 characters and more are dropped, a line starting with

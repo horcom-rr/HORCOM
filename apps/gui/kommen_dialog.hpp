@@ -26,8 +26,9 @@ class KommenDialog : public QDialog {
   /// @param dir       the local kommen folder, data/kommen by convention
   /// @param preselect file stem to open first, like komm2 for his
   ///                  ERLÄUTERUNG 2 menu entry, empty starts at the top
+  /// @param english   true prefers the English edition of each text
   explicit KommenDialog(const std::filesystem::path& dir, const QString& preselect = QString(),
-                        QWidget* parent = nullptr);
+                        bool english = false, QWidget* parent = nullptr);
 
  private:
   void reload(const std::filesystem::path& dir);
@@ -35,6 +36,7 @@ class KommenDialog : public QDialog {
   void search();
 
   QString preselect_;
+  bool english_ = false;
   std::vector<KommenEntry> entries_;
   QListWidget* list_ = nullptr;
   QTextBrowser* text_ = nullptr;

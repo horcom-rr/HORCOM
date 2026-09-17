@@ -68,9 +68,7 @@ Haben Sie dieses gewählt,erscheint eine zweite Auswahlbox mit verschiedenen Suc
 
 Dabei kann auch ein ASPEKTE- und HALBSUMMEN-Zähler eingeschaltet werden,wie er auch bei ZEITWANDERN anwendbar ist.
 
-```text
-Wird in einer vollständigen Liste angeklickt kann der Zähler wahlweise auch   automatisch die gesamte Datei durchzählen.
-```
+Wird in einer vollständigen Liste angeklickt kann der Zähler wahlweise auch automatisch die gesamte Datei durchzählen.
 
 Am übersichtlichsten sind einfache Fragestellungen oder Suchvorgänge,wie z.B. Welche Datensätze haben die Sonne im Zeichen Zwillinge oder: Bei welchen steht der Herr von Haus 1 im Haus 10 oder: Bei welchen Datensätzen liegt die Halbsumme SO-JU auf dem MC oder irgend einem anderen Faktor. Die normale Art der AUSGABE ist dann eine Liste der Datensätze,die das SuchKriterium erfüllen,wobei nach Namen sortiert wird.
 
@@ -106,11 +104,7 @@ Bei diesen letzteren Objekten kann es auch vorkommen,daß folgende Meldung kommt
 
 Für sinnvolle Ergebnisse darf natürlich die Anzahl der gefundenen Datensätze nur ein Bruchteil der Gesamtzahl sein.Wenn diese Meldung kommt,heißt das also,daß Ihre Frage bei weitem zu unscharf formuliert ist. Schwieriger gestaltet sich die Bedienung ( und gestaltete sich auch die Programmerstellung ) wenn mehrere Kriterien zugleich als "ODER-Verknüpfung" oder "UND-Verknüpfung" untersucht werden sollen,wie z.B:
 
-Welche Datensätze haben die Sonne im Trigon mit einem Planeten ODER im
-
-9. Haus ODER im Aspekt mit Jupiter oder im Schützen.Das wäre eine Frage-
-
-stellung,wie sie sich in der astrologischen Betrachtungsweise von LUTZ RATHKE hinsichtlich einer JUPITER-Dominanz stellen würde.
+Welche Datensätze haben die Sonne im Trigon mit einem Planeten ODER im 9. Haus ODER im Aspekt mit Jupiter oder im Schützen.Das wäre eine Fragestellung,wie sie sich in der astrologischen Betrachtungsweise von LUTZ RATHKE hinsichtlich einer JUPITER-Dominanz stellen würde.
 
 In der "MÜNCHNER RHYTHMENLEHRE" von W.DÖBEREINER dagegen könnte z.B. folgende Frage geprüft werden:
 

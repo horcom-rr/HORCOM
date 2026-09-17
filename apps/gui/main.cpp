@@ -290,7 +290,9 @@ int main(int argc, char** argv) {
   }
   const int shot_kommen = args.indexOf("--shot-kommen");
   if (shot_kommen >= 0 && shot_kommen + 1 < args.size()) {
-    horcom::KommenDialog dialog(data / "kommen");
+    // the capture follows the chosen language so the English edition
+    // can be checked the same way as the shell
+    horcom::KommenDialog dialog(data / "kommen", QString(), !german);
     dialog.grab().save(args[shot_kommen + 1]);
     return 0;
   }

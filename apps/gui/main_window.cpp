@@ -27,6 +27,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QLocale>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QPageLayout>
@@ -535,7 +536,11 @@ void MainWindow::build_ui() {
   //RR EINFÜHRUNG = ERLÄUTERUNG 1, his commentary texts, every menu
   // keeps its ERLÄUTERUNG entry opening the matching text
   const auto erlaeuterung = [this](const QString& stem) {
-    KommenDialog dialog(data_dir_ / "kommen", stem, this);
+    // the English shell opens the English edition, his German original
+    // stays one list click away, the language is the one main chose
+    const QString lang = QSettings().value("language").toString();
+    const bool english = lang.isEmpty() ? QLocale::system().language() != QLocale::German : lang == "en";
+    KommenDialog dialog(data_dir_ / "kommen", stem, english, this);
     dialog.exec();
   };
   ueber->addAction(tr("EINFÜHRUNG / ERLÄUTERUNGEN…"), QKeySequence(Qt::Key_F1), this,

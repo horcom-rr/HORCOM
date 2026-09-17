@@ -149,9 +149,7 @@ Die Abkürzungen sind:
 
 AR = Rektascension DE = Deklination EL = Eklipt.Länge EB = Ekl.Breite MC = Ekl.Länge des MC AC = Ekl.Länge des AC UT = Universal Time = GREENWICH - Zeit.
 
-```text
-LT = Local Time     = ORTS - Zeit ( Nicht Zonenzeit ! ).,
-```
+LT = Local Time = ORTS - Zeit ( Nicht Zonenzeit ! ).,
 
 Die Winkel sind auf das WAHRE Äquinoktium bezogen (mit Nutation). Die Zeit muß,mindestens genähert,eingegeben werden um die Effekte der Präzession und Nutation zu berücksichtigen.
 

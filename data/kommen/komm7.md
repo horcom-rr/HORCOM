@@ -42,11 +42,9 @@ Die SEKUNDÄR-DIREKTION -auch Progression genannt- beruht auf der Gleichung:
 
 ```text
   1 Tag nach der Geburt = 1 Lebensjahr  ( Maß ist die eklipt. Länge ).
-Das Programm ermittelt die Auslösungen nach Sekundär-Direktionen,wie sie z.B.
-in der R.EBERTIN-Schule als LEBENS-DIAGRAMME "LDP" verwendet werden.
-Die Ausgabe kann als TABELLE,als HOROSKOP-GRAPHIK ( siehe dazu auch die Aus-
-führungen unten,bei "TRANSITE) oder LINEAR-GRAPHIK gewählt werden.
 ```
+
+Das Programm ermittelt die Auslösungen nach Sekundär-Direktionen,wie sie z.B. in der R.EBERTIN-Schule als LEBENS-DIAGRAMME "LDP" verwendet werden. Die Ausgabe kann als TABELLE,als HOROSKOP-GRAPHIK ( siehe dazu auch die Ausführungen unten,bei "TRANSITE) oder LINEAR-GRAPHIK gewählt werden.
 
 Bei der LINEAR-GRAPHIK kann ein Zeitraum von 5,10,20,40,80 oder 160 Jahren vorgewählt werden,durch Wahl des ANFANGS- u. END- Jahres in 5er Schritten !! Dies gilt auch für die SONNEN- und MOND-BOGEN-Direktion.
 
@@ -100,9 +98,7 @@ Man kann mit diesem Verfahren die aktiven ( = "positiv" ) bzw. passiven Phasen (
 
 ```text
 "Positiv" :                             "Negativ" :
-```
 
-```text
 Animus                                    Anima
 Bemächtigungsformen                       Bemühungsformen
 aktiv,zugreifend                          passiv,nachgebend
@@ -134,9 +130,9 @@ Die Darstellung ist weitgehend analog der bei Sekundär-Direktion. Die Gleichung
 
 ```text
       1 Eklipt. Tages-Fortschritt der SONNE = 1 Lebensjahr "
-Der Parameter "Tägl.Bewegung" entfällt hier,da alle Planeten mit dem Sonnen-
-bogen "vorgeschoben" werden.
 ```
+
+Der Parameter "Tägl.Bewegung" entfällt hier,da alle Planeten mit dem Sonnenbogen "vorgeschoben" werden.
 
 ## MOND-BOGEN-DIREKTION
 
@@ -144,12 +140,9 @@ Hier gilt sinngemäß das gleiche wie beim Sonnenbogen:
 
 ```text
       1 Eklipt. Tages-Fortschritt des MONDES = 1 Lebensjahr "
-Das ergibt gegenüber dem Sonnenbogen 12 bis 14 mal soviele Auslösungen,also
-evtl. eine Art "Zeitlupe".
-Sowohl bei SONNEN- als auch MOND-BOGEN-DIR. kann sowohl mit HOROSKOP- als
-auch mit LINEAR-GRAPHIK oder mit Tabellen gearbeitet werden.
-Beim MOND-BOGEN mit LINEAR-GRAPHIK,nur den 5-Jahres-Zeitraum verwenden !
 ```
+
+Das ergibt gegenüber dem Sonnenbogen 12 bis 14 mal soviele Auslösungen,also evtl. eine Art "Zeitlupe". Sowohl bei SONNEN- als auch MOND-BOGEN-DIR. kann sowohl mit HOROSKOP- als auch mit LINEAR-GRAPHIK oder mit Tabellen gearbeitet werden. Beim MOND-BOGEN mit LINEAR-GRAPHIK,nur den 5-Jahres-Zeitraum verwenden !
 
 ## PRIMÄR-DIREKTION
 
@@ -179,31 +172,12 @@ Einen Spezial-Aspekt davon,nämlich das sog. "MUNDAN-HOROSKOP" möchte ich von d
 
 Hier können Sie nun 2 Verfahren anwenden,die ich,auch für eigene Experimente, eingeführt habe.
 
-( Es wird IMMER mit PLACIDUS-Häusern gerechnet,da diese dem Sinn der Verfah-
+( Es wird IMMER mit PLACIDUS-Häusern gerechnet,da diese dem Sinn der Verfahren am besten entsprechen).
 
-```text
-   ren am besten entsprechen).
-1.Die ÄQUATORIALEN ABSTÄNDE in der "MUNDAN"-Geometrie,wie sie bei der M.R.
-  auch anwendbar ist.Sie entsprechen den PRIMÄR-Direktionen,ohne Unterschei-
-  dung von Promissor und Signifikator,nur nach der "PTOLEM.FUNDAMENTAL-PROP."
-  Die Aspekte sind DIREKT AUF DEM ÄQUATOR gemessen,was mir hier sachgemäß
-  erscheint.Dies ist auch beim folgenden "AR-SYSTEM" so gehandhabt.Die Win-
-  kel sind also hier keine Raum- sondern primär ZEIT-Abschnitte.
-  Dieses Verfahren ist bisher nicht üblich,scheint mir aber,wenn man schon
-  PRIMÄR-Direktionen verwenden will,das "naturgemässe Verfahren,das die
-  erwähnten Unsicherheiten (s. oben ) umgeht.
-2.Das "AR-SYSTEM" von  C.O.E.CARTER  (s.SYMBOLISCHE DIREKTIONEN  Urania,
-  Blaue Reihe 3 ).Ich habe es,aufgrund meiner Überlegungen etwas abgewandelt:
-  Bei den Planeten wird der AR-Abstand ausgewertet,wie dies CARTER schildert.
-  Bei AC und Zwischenhäusern wird die entsprechende AO ausgewertet.Beim MC
-  ist dies natürlich mit der ARMC identisch.
-  Meine bisherigen Erfahrungen mit diesem System sind eher besser als mit
-  den "klassischen" Primär-Direktionen entsprechend der Darstellung bei KÜHR .
-Der AR- bzw. AO- Abstand wird nach einem wählbaren Schlüssel in Zeit umge-
-rechnet.
-Der naturgemäße SCHLÜSSEL (=JAHRE/GRAD ) für die Umrechnung des BOGENS in
-ZEIT ist in beiden Fällen der NAIBOD-Schlüssel.Die "Gleichung ist hier:
-```
+1. Die ÄQUATORIALEN ABSTÄNDE in der "MUNDAN"-Geometrie,wie sie bei der M.R. auch anwendbar ist.Sie entsprechen den PRIMÄR-Direktionen,ohne Unterscheidung von Promissor und Signifikator,nur nach der "PTOLEM.FUNDAMENTAL-PROP." Die Aspekte sind DIREKT AUF DEM ÄQUATOR gemessen,was mir hier sachgemäß erscheint.Dies ist auch beim folgenden "AR-SYSTEM" so gehandhabt.Die Winkel sind also hier keine Raum- sondern primär ZEIT-Abschnitte. Dieses Verfahren ist bisher nicht üblich,scheint mir aber,wenn man schon PRIMÄR-Direktionen verwenden will,das "naturgemässe Verfahren,das die erwähnten Unsicherheiten (s. oben ) umgeht.
+2. Das "AR-SYSTEM" von  C.O.E.CARTER  (s.SYMBOLISCHE DIREKTIONEN  Urania, Blaue Reihe 3 ).Ich habe es,aufgrund meiner Überlegungen etwas abgewandelt: Bei den Planeten wird der AR-Abstand ausgewertet,wie dies CARTER schildert. Bei AC und Zwischenhäusern wird die entsprechende AO ausgewertet.Beim MC ist dies natürlich mit der ARMC identisch. Meine bisherigen Erfahrungen mit diesem System sind eher besser als mit den "klassischen" Primär-Direktionen entsprechend der Darstellung bei KÜHR .
+
+Der AR- bzw. AO- Abstand wird nach einem wählbaren Schlüssel in Zeit umgerechnet. Der naturgemäße SCHLÜSSEL (=JAHRE/GRAD ) für die Umrechnung des BOGENS in ZEIT ist in beiden Fällen der NAIBOD-Schlüssel.Die "Gleichung ist hier:
 
 ```text
              1 TÄGLICHER STERNZEIT-FORTSCHRITT = 1 JAHR "

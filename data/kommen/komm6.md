@@ -8,30 +8,27 @@ Sie könen zwischen einer GRAPHIK-, einer TABELLEN-Ausgabe mit PLANETEN und und 
 
 Abkürzungen:
 
-```text
-LJ = Lebensjahr    MO  = Monat dezimal.   PL = Ausgelöster Planet
-ART= Art der Auslösung:
-D : DIREKTE Auslösung des betr.Planeten durch "Überlaufen".
-P : Auslösung als "PHASEN-HERRSCHER"
-P2/P3: Auslösung des event. 2./3.Phasenherrschers.,
-Bei der Graphik steht der aufwärts weisende Pfeil für die Richtung im Uhr-
-zeigersinn = "RECHTS" ,der abwärtsweisende für die Gegenrichtung = "LINKS"
-Bei der TABELLE stehen unter dem PHASEN-HERRSCHER oder direkt ausgelösten
-Planeten die über ASPEKT oder SPIEGELUNG an den Kardinal-Achsen indirekt
-ausgelösten Planeten mit dem entsprechenden Aspekt-Symbol,bei Spiegelung
-mit "S" gekennzeichnet.
-Bei der Datums-Ausgabe gibt das Programm auch die Tage aus,die aber nur als
-Anhaltspunkte zu verstehen sind.,
-Bei SEPTAREN bitte immer die Datums-Ausgabe wählen,da die LJ/MO -Ausgabe
-hier zu grob ist !!,
-Die Reihenfolge in der TABELLE entspricht der Folge des "Angestoßen-Werdens"
-Beim Durchlauf durch das Horoskop,wobei der bzw.die Phasenherrscher zuerst
-kommen.Die Reihenfolge der Planeten entspricht der Positions-Tabelle in
-EPHEMERIDE KOORDINATEN-Tabelle.
-Mondknoten(DR,DS),AS,MC und die Kardinal-Punkte AR,CN,LI,CP ( 0 AR,0 CN usw.)
-sind als "Planeten" in dieser Folge mitgezählt.
+- LJ = Lebensjahr
+- MO = Monat dezimal.
+- PL = Ausgelöster Planet
+- ART = Art der Auslösung:
+  - D : DIREKTE Auslösung des betr.Planeten durch "Überlaufen".
+  - P : Auslösung als "PHASEN-HERRSCHER"
+  - P2/P3: Auslösung des event. 2./3.Phasenherrschers.,
+
+Bei der Graphik steht der aufwärts weisende Pfeil für die Richtung im Uhrzeigersinn = "RECHTS" ,der abwärtsweisende für die Gegenrichtung = "LINKS"
+
+Bei der TABELLE stehen unter dem PHASEN-HERRSCHER oder direkt ausgelösten Planeten die über ASPEKT oder SPIEGELUNG an den Kardinal-Achsen indirekt ausgelösten Planeten mit dem entsprechenden Aspekt-Symbol,bei Spiegelung mit "S" gekennzeichnet.
+
+Bei der Datums-Ausgabe gibt das Programm auch die Tage aus,die aber nur als Anhaltspunkte zu verstehen sind.,
+
+Bei SEPTAREN bitte immer die Datums-Ausgabe wählen,da die LJ/MO -Ausgabe hier zu grob ist !!,
+
+Die Reihenfolge in der TABELLE entspricht der Folge des "Angestoßen-Werdens" Beim Durchlauf durch das Horoskop,wobei der bzw.die Phasenherrscher zuerst kommen.Die Reihenfolge der Planeten entspricht der Positions-Tabelle in EPHEMERIDE KOORDINATEN-Tabelle.
+
+Mondknoten(DR,DS),AS,MC und die Kardinal-Punkte AR,CN,LI,CP ( 0 AR,0 CN usw.) sind als "Planeten" in dieser Folge mitgezählt.
+
 Bei KARDINALPUNKTEN werden aber nur die DIREKTEN Auslösungen registriert.
-```
 
 Bei der GRAPHIK- ( = HOROSKOP ) -Darstellung ist links im Bild die Zeit-Achse ( von unten nach oben ) für EINE PHASE dargestellt.Links dieser Achse sind die direkten und Phasen-Auslösungen zu sehen,rechts davon die über Aspekt oder Spiegelung ( S ) indirekt ausgelösten Planeten.Ganz rechts ist noch der auslösende Planet vermerkt mit dem Aspekt-Symbol.Der (die) PHASEN-HERRSCHER ist (sind) INVERS dargestellt,falls er nicht gleichzeitig direkt angetroffen wird.
 

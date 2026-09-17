@@ -22,11 +22,7 @@ ACHTUNG !!
 
 Hier können Sie Datensätze aus der DEMO-Datei oder von Ihnen selbst angelegten Dateien holen ( siehe unten ) oder in andere Dateien abspeichern oder nicht mehr benötigte Datensätze löschen.
 
-Die Daten einiger Prominenter sind in der \DEMO.DAT auf Ihrer Programm-Disk gespeichert (ohne Gewähr!) Diese Daten können Sie verwenden um sich mit der Programm-Bedienung vertraut zu machen.Die MC-Werte dieser Daten wurden oft dem Buch 'CIRCELS' entnommen (JAN CAMPHERBEEG AMSTERDAM, ISBN
-
-906378044) und mit dem Menü-Punkt KORREKTUR in UT umgesetzt.Bei Großstädten
-
-wurde dabei immer die Ortsmitte angenommen,was in der Regel nur genähert gilt.
+Die Daten einiger Prominenter sind in der \DEMO.DAT auf Ihrer Programm-Disk gespeichert (ohne Gewähr!) Diese Daten können Sie verwenden um sich mit der Programm-Bedienung vertraut zu machen.Die MC-Werte dieser Daten wurden oft dem Buch 'CIRCELS' entnommen (JAN CAMPHERBEEG AMSTERDAM, ISBN 906378044) und mit dem Menü-Punkt KORREKTUR in UT umgesetzt.Bei Großstädten wurde dabei immer die Ortsmitte angenommen,was in der Regel nur genähert gilt.
 
 Das Anwählen eines Datensatzes zum Holen oder Überschreiben geschieht mit der Maus,indem die betreffende Zeile markiert wird.
 
@@ -111,22 +107,10 @@ Gebräuchliche Abkürzungen für die näherliegenden Zonenzeiten sind:
 
 ```text
        MEZ  = MITTEL-europäische Zeit          ZZD = -1
-```
-
-```text
        WEZ  = WEST - europäische Zeit          ZZD = 0
             = UT = GMT
-```
-
-```text
        OEZ  = OST -  europäische Zeit          ZZD = -2
-```
-
-```text
        DSZ  = Deutsche SOMMER-Zeit             ZZD = -2
-```
-
-```text
        DDSZ = Doppelte Deutsche SOMMER-Zeit    ZZD = -3
 ```
 
@@ -145,9 +129,7 @@ Für Daten ab 1810 ( Deutschland ) aufwärts ist zumindest zu vermuten,daß
 ```text
 die MITTLERE Ortszeit gemeint ist,kurz    LMT = Local Mean Time
                                       oder MOZ = Mittlere Ortszeit.
-```
 
-```text
 Entsprechend                              LTT = Local True Time .
                                       oder WOZ = WAHRE Ortszeit.
 ```
@@ -186,9 +168,7 @@ Wenn Sie viele Horoskope durchmustern wollen ohne die Eingabe zu füllen merken 
 
 Wollen Sie einen Datensatz übernehmen müssen Sie direckt nach dem Aufrufen der Datei entweder einen Doppelklick auf die betreffende Zeile ausführen oder nach Markieren des oder der Datensätze "WAHL-ENDE" anklicken !
 
-```text
-Sie können auch,wenn Sie viele Horoskope durchmustern wollen,eine        "auswertefähige Datei" mit dem Modul "STATISTIK" erstellen ( in der Rubrik        "EPHEMERIDE" ).Hier können Sie dann mit unterschiedlichen Kriterien und      Bedingungen die Ausgabeliste erstellen und jeweils durch Anmerken eines      Datensatzes das jeweilige Horoskop ansehen.
-```
+Sie können auch,wenn Sie viele Horoskope durchmustern wollen,eine "auswertefähige Datei" mit dem Modul "STATISTIK" erstellen ( in der Rubrik "EPHEMERIDE" ).Hier können Sie dann mit unterschiedlichen Kriterien und Bedingungen die Ausgabeliste erstellen und jeweils durch Anmerken eines Datensatzes das jeweilige Horoskop ansehen.
 
 Ein Datensatz ist für weitere Menü-Punkte solange gültig,als nicht ein anderer Datensatz angewählt wird,auf eine Ergebnis-Ebene übergegangen ( z.B. SOLAR ),neu eingegeben oder rückgesetzt wird.
 
