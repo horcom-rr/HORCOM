@@ -23,6 +23,7 @@
 #include <QHeaderView>
 #include <QInputDialog>
 #include <QLabel>
+#include <QLineEdit>
 #include <QListWidget>
 #include <QMenuBar>
 #include <QMessageBox>
@@ -215,6 +216,12 @@ void MainWindow::build_ui() {
   input_dock->setFeatures(QDockWidget::DockWidgetMovable);
   auto* form_host = new QWidget(input_dock);
   auto* form = new QFormLayout(form_host);
+  // the person stands first like on his parameter screen, edits land
+  // in the record and on the sheet
+  given_ = new QLineEdit(form_host);
+  surname_ = new QLineEdit(form_host);
+  form->addRow(tr("Vorname"), given_);
+  form->addRow(tr("Name"), surname_);
   date_ = new QDateEdit(QDate(1992, 10, 13), form_host);
   date_->setCalendarPopup(true);
   date_->setDisplayFormat("dd.MM.yyyy");
@@ -720,6 +727,20 @@ void MainWindow::build_ui() {
   });
   help->addAction(tr("Über HORCOM"), this, &MainWindow::about);
 
+  // name edits land in the record, the banner and the sheet corner
+  const auto apply_name = [this]() {
+    const std::string given = given_->text().trimmed().toStdString();
+    const std::string surname = surname_->text().trimmed().toStdString();
+    if (given == record_.given && surname == record_.surname) {
+      return;
+    }
+    record_.given = given;
+    record_.surname = surname;
+    refresh_record_label();
+    recompute();
+  };
+  connect(given_, &QLineEdit::editingFinished, this, apply_name);
+  connect(surname_, &QLineEdit::editingFinished, this, apply_name);
   // recompute on every change like the original recalculated per screen
   connect(date_, &QDateEdit::dateChanged, this, &MainWindow::recompute);
   connect(time_, &QTimeEdit::timeChanged, this, &MainWindow::recompute);
@@ -1107,6 +1128,8 @@ void MainWindow::open_place() {
   if (const auto to_ut = r.zone_to_ut()) {
     zone_->setValue(-*to_ut);
   }
+  // the new place belongs on the sheet, not only its coordinates
+  record_.place = dialog.chosen_name().toStdString();
   recompute();
 }
 
@@ -3719,6 +3742,9 @@ void MainWindow::apply_record(const AafRecord& r) {
 }
 
 void MainWindow::refresh_record_label() {
+  // the panel name fields mirror the record without firing edits back
+  given_->setText(QString::fromStdString(record_.given).trimmed());
+  surname_->setText(QString::fromStdString(record_.surname).trimmed());
   const QDate d = date_->date();
   record_label_ = QString("%1 %2   %3.%4.%5")
                       .arg(QString::fromStdString(record_.surname), QString::fromStdString(record_.given))

@@ -165,6 +165,10 @@ void PlaceDialog::refresh() {
   table_->resizeColumnToContents(0);
 }
 
+QString PlaceDialog::chosen_name() const {
+  return display_name(chosen_, chosen_.zone_to_ut().has_value());
+}
+
 void PlaceDialog::accept_row(int row) {
   if (row < 0 || row >= table_->rowCount()) {
     return;

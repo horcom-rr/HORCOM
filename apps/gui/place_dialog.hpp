@@ -34,6 +34,9 @@ class PlaceDialog : public QDialog {
   /// @return the accepted place, valid after exec returns accepted
   [[nodiscard]] const PlaceRecord& chosen() const { return chosen_; }
 
+  /// @return the accepted place name without the trailing zone letters
+  [[nodiscard]] QString chosen_name() const;
+
  private:
   void scan_directory();
   void load_current_file();

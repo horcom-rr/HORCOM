@@ -27,6 +27,7 @@ class QTime;
 class QTimer;
 class QDoubleSpinBox;
 class QLabel;
+class QLineEdit;
 class QTableWidget;
 class QTimeEdit;
 
@@ -179,6 +180,8 @@ class MainWindow : public QMainWindow {
   bool chords_set_ = false;
   WheelWidget* wheel_ = nullptr;
   Banner* banner_ = nullptr;
+  QLineEdit* given_ = nullptr;
+  QLineEdit* surname_ = nullptr;
   QDateEdit* date_ = nullptr;
   QTimeEdit* time_ = nullptr;
   QDoubleSpinBox* zone_ = nullptr;
