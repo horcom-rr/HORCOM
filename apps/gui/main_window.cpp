@@ -661,12 +661,33 @@ void MainWindow::build_ui() {
     QSettings settings;
     const int s = std::clamp(scale, theme::kTextScaleMin, theme::kTextScaleMax);
     settings.setValue(theme::kTextScaleKey, s);
-    qApp->setStyleSheet(theme::stylesheet(s));
+    theme::apply(s, theme::dark_theme());
   };
   const auto scale_now = []() { return QSettings().value(theme::kTextScaleKey, theme::kTextScaleNormal).toInt(); };
   view->addAction(tr("Schrift größer"), QKeySequence::ZoomIn, this, [set_scale, scale_now]() { set_scale(scale_now() + theme::kTextScaleStep); });
   view->addAction(tr("Schrift kleiner"), QKeySequence::ZoomOut, this, [set_scale, scale_now]() { set_scale(scale_now() - theme::kTextScaleStep); });
   view->addAction(tr("Normale Schrift"), QKeySequence(Qt::CTRL | Qt::Key_0), this, [set_scale]() { set_scale(theme::kTextScaleNormal); });
+  view->addSeparator();
+  // the two dresses of the shell, black on white like his working
+  // screens or the night sky of his splash
+  QMenu* colors = view->addMenu(tr("Farben"));
+  auto* theme_group = new QActionGroup(colors);
+  const auto set_dark = [this, scale_now](bool dark) {
+    QSettings().setValue(theme::kDarkKey, dark);
+    theme::apply(scale_now(), dark);
+    wheel_->update();
+    recompute();
+  };
+  auto* light_action = colors->addAction(tr("Schwarz auf Weiß"));
+  light_action->setCheckable(true);
+  light_action->setActionGroup(theme_group);
+  light_action->setChecked(!theme::dark_theme());
+  connect(light_action, &QAction::triggered, this, [set_dark]() { set_dark(false); });
+  auto* dark_action = colors->addAction(tr("Nachthimmel"));
+  dark_action->setCheckable(true);
+  dark_action->setActionGroup(theme_group);
+  dark_action->setChecked(theme::dark_theme());
+  connect(dark_action, &QAction::triggered, this, [set_dark]() { set_dark(true); });
   view->addSeparator();
   view->addAction(tr("Planeten-Auswahl…"), this, &MainWindow::planet_selection);
   view->addSeparator();
@@ -861,7 +882,7 @@ void MainWindow::recompute() {
       // the comparison list of a12asp with his one degree transit orb
       // rule, running body, separation, radix body
       const std::vector<CrossAspectHit> cross = scan_aspects_between(chart, tchart, aspect_settings_, true);
-      cross_text = tr("<span style='color:#FFFF00'>TRANSITE</span>&nbsp; ");
+      cross_text = theme::heading_span(tr("TRANSITE")) + "&nbsp; ";
       cross_text += cross.empty() ? tr("keine") : cross_hits_text(cross);
     }
   } else if (mundane) {
@@ -952,14 +973,14 @@ void MainWindow::recompute() {
       opt.dial = true;
       opt.center_label = "90\xC2\xB0- KREIS";
       show_wheel(build_double_wheel(d1, d2, s, da, opt));
-      cross_text = tr("<span style='color:#FFFF00'>VERGLEICH 90°</span>&nbsp; ");
+      cross_text = theme::heading_span(tr("VERGLEICH 90°")) + "&nbsp; ";
       cross_text += cross.empty() ? tr("keine") : cross_hits_text(cross);
       banner_->set_record(QString::fromUtf8("90° %1 × %2").arg(mine, partner_name_));
     } else {
       // the a12 double wheel, the partner outside at full scale
       show_wheel(build_double_wheel(chart, *partner_chart_, s, aspects, wopt));
       const std::vector<CrossAspectHit> cross = scan_aspects_between(chart, *partner_chart_, aspect_settings_, false);
-      cross_text = tr("<span style='color:#FFFF00'>VERGLEICH</span>&nbsp; ");
+      cross_text = theme::heading_span(tr("VERGLEICH")) + "&nbsp; ";
       cross_text += cross.empty() ? tr("keine") : cross_hits_text(cross);
       banner_->set_record(QString("%1 × %2").arg(mine, partner_name_));
     }
@@ -1057,12 +1078,11 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
   if (!helio && chart.b[body::kSun].valid && chart.b[body::kMoon].valid) {
     const double d = norm_rad(chart.b[body::kMoon].el - chart.b[body::kSun].el) * kRadToDeg;
     const double pct = (180.0 - std::abs(d - 180.0)) / 180.0 * kPercent;
-    phase_text = tr("<br><span style='color:#FFFF00'>MONDPHASE</span>&nbsp; %1° (%2%)")
-                     .arg(d, 0, 'f', 0)
-                     .arg(pct, 0, 'f', 0);
+    phase_text = "<br>" + theme::heading_span(tr("MONDPHASE")) +
+                 tr("&nbsp; %1° (%2%)").arg(d, 0, 'f', 0).arg(pct, 0, 'f', 0);
   }
-  aspects_label_->setText(tr("<span style='color:#FFFF00'>ASPEKTE</span>&nbsp; "
-                             "konj %1  opp %2  trigon %3  quadrat %4  sextil %5")
+  aspects_label_->setText(theme::heading_span(tr("ASPEKTE")) +
+                          tr("&nbsp; konj %1  opp %2  trigon %3  quadrat %4  sextil %5")
                               .arg(aspects.zh[1])
                               .arg(aspects.zh[2])
                               .arg(aspects.zh[3])

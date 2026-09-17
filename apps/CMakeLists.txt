@@ -61,7 +61,7 @@ if(Qt6_FOUND)
   qt_add_resources(horcom_gui "identity"
     PREFIX "/"
     BASE ${CMAKE_SOURCE_DIR}/assets
-    FILES ${CMAKE_SOURCE_DIR}/assets/logo.svg ${CMAKE_SOURCE_DIR}/assets/arrow-up.svg ${CMAKE_SOURCE_DIR}/assets/arrow-down.svg ${CMAKE_SOURCE_DIR}/assets/arrow-up-dim.svg ${CMAKE_SOURCE_DIR}/assets/arrow-down-dim.svg ${CMAKE_SOURCE_DIR}/assets/arrow-left.svg ${CMAKE_SOURCE_DIR}/assets/arrow-right.svg
+    FILES ${CMAKE_SOURCE_DIR}/assets/logo.svg ${CMAKE_SOURCE_DIR}/assets/arrow-up.svg ${CMAKE_SOURCE_DIR}/assets/arrow-down.svg ${CMAKE_SOURCE_DIR}/assets/arrow-up-dim.svg ${CMAKE_SOURCE_DIR}/assets/arrow-down-dim.svg ${CMAKE_SOURCE_DIR}/assets/arrow-left.svg ${CMAKE_SOURCE_DIR}/assets/arrow-right.svg ${CMAKE_SOURCE_DIR}/assets/arrow-up-ink.svg ${CMAKE_SOURCE_DIR}/assets/arrow-down-ink.svg ${CMAKE_SOURCE_DIR}/assets/arrow-up-faint.svg ${CMAKE_SOURCE_DIR}/assets/arrow-down-faint.svg ${CMAKE_SOURCE_DIR}/assets/arrow-left-ink.svg ${CMAKE_SOURCE_DIR}/assets/arrow-right-ink.svg
   )
   # Robert Rettig's own symbol drawings from symbbmp, the large variant
   file(GLOB HORCOM_SYMB ${CMAKE_SOURCE_DIR}/assets/symb/*.png)

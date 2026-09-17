@@ -24,6 +24,7 @@
 #include "horcom/chart/bodies.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
+#include "theme.hpp"
 
 namespace horcom {
 
@@ -337,8 +338,8 @@ void StatistDialog::apply_condition() {
                            .arg(set_.records.size()));
   if (res.distribution[0] > 0) {
     const bool houses = q.window == StatWindow::kInHouse;
-    QString text = houses ? tr("<span style='color:#FFFF00'>HÄUSER</span>&nbsp; ")
-                          : tr("<span style='color:#FFFF00'>ZEICHEN</span>&nbsp; ");
+    QString text = houses ? theme::heading_span(tr("HÄUSER")) + "&nbsp; "
+                          : theme::heading_span(tr("ZEICHEN")) + "&nbsp; ";
     for (int i = 1; i <= 12; ++i) {
       if (i > 1) {
         text += "  ";
@@ -384,7 +385,7 @@ void StatistDialog::refresh_distribution() {
     ++bins[static_cast<std::size_t>(sign)];
     ++have;
   }
-  QString text = tr("<span style='color:#FFFF00'>ZEICHEN</span>&nbsp; ");
+  QString text = theme::heading_span(tr("ZEICHEN")) + "&nbsp; ";
   for (int i = 0; i < 12; ++i) {
     if (i > 0) {
       text += "  ";

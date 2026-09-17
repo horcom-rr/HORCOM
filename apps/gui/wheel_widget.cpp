@@ -12,6 +12,7 @@
 #include <cmath>
 
 #include "painter.hpp"
+#include "theme.hpp"
 
 namespace horcom {
 
@@ -29,8 +30,9 @@ void WheelWidget::paintEvent(QPaintEvent* /*event*/) {
   QPainter p(this);
   p.setRenderHint(QPainter::Antialiasing, true);
   p.setRenderHint(QPainter::TextAntialiasing, true);
-  // the dark desk of the theme
-  p.fillRect(rect(), QColor(0x10, 0x17, 0x2B));
+  // the desk of the active theme behind the paper
+  const bool dark = theme::dark_now();
+  p.fillRect(rect(), theme::desk_color(dark));
   if (classic_.items.empty()) {
     return;
   }
@@ -61,7 +63,7 @@ void WheelWidget::paintEvent(QPaintEvent* /*event*/) {
     p.drawRoundedRect(paper.adjusted(-i, -i + 2.0, i, i + 2.0), 10, 10);
   }
   p.setBrush(QColor(0xFC, 0xFA, 0xF4));
-  p.setPen(QPen(QColor(0x23, 0x2D, 0x4A), 1.0));
+  p.setPen(QPen(theme::paper_edge_color(dark), 1.0));
   p.drawRoundedRect(paper, 8, 8);
 
   p.translate(ox, oy);

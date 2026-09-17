@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "horcom/chart/bodies.hpp"
+#include "theme.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
 
@@ -178,7 +179,7 @@ void AspektariumDialog::rebuild() {
     legend_->setItem(t - 1, 2, new QTableWidgetItem(QString::fromUtf8("%1\xC2\xB0").arg(dd * kRadToDeg, 0, 'f', 1)));
   }
 
-  QString wtext = tr("<span style='color:#FFFF00'>Planeten-Gewichtung</span>&nbsp; ");
+  QString wtext = theme::heading_span(tr("Planeten-Gewichtung")) + "&nbsp; ";
   for (int i = 0; i < n; ++i) {
     const int slot = shown[static_cast<std::size_t>(i)];
     if (slot > body::kMc) {

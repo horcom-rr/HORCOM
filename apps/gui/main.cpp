@@ -6,6 +6,7 @@
 #include <QCoreApplication>
 #include <QDate>
 #include <QDir>
+#include <QFile>
 #include <QLibraryInfo>
 #include <QLocale>
 #include <QMessageBox>
@@ -52,9 +53,10 @@ int main(int argc, char** argv) {
   QApplication app(argc, argv);
   QApplication::setApplicationName("horcom");
   QApplication::setOrganizationName("horcom");
-  // the remembered text scale of the Ansicht menu
-  app.setStyleSheet(horcom::theme::stylesheet(
-      QSettings().value(horcom::theme::kTextScaleKey, horcom::theme::kTextScaleNormal).toInt()));
+  // the remembered text scale and theme of the Ansicht menu, black on
+  // white unless the night theme was chosen
+  horcom::theme::apply(QSettings().value(horcom::theme::kTextScaleKey, horcom::theme::kTextScaleNormal).toInt(),
+                       horcom::theme::dark_theme());
   const QStringList args = QApplication::arguments();
 
   // German is the native language of the program, every other locale
@@ -77,6 +79,16 @@ int main(int argc, char** argv) {
   if (german && qt_translator.load(QLocale(QLocale::German), "qtbase", "_",
                                    QLibraryInfo::path(QLibraryInfo::TranslationsPath))) {
     QApplication::installTranslator(&qt_translator);
+  }
+
+  // --dump-qss FILE writes the resolved stylesheet, the theme check of
+  // the shot hook family
+  const int dump_qss = args.indexOf("--dump-qss");
+  if (dump_qss >= 0 && dump_qss + 1 < args.size()) {
+    QFile f(args[dump_qss + 1]);
+    if (f.open(QIODevice::WriteOnly)) {
+      f.write(app.styleSheet().toUtf8());
+    }
   }
 
   const std::filesystem::path data = find_data_dir();
