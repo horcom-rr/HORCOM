@@ -137,12 +137,15 @@ QString degs(double rad) {
 
 // his coordinate screen paints only the sign glyph of a position in
 // its element colour, the numbers stay ink
+//RR zeich_col, Feuer, Erde, Luft, Wasser. Wasser asked for RGB(0,255,255),
+// pure cyan drowns on a modern white panel, so it rides slightly darker
 QColor element_color(int sign, bool bright) {
-  static const QColor kSoft[4] = {QColor(0xC0, 0x30, 0x20), QColor(0x7A, 0x5F, 0x00),
-                                  QColor(0x0F, 0x7A, 0x8A), QColor(0x20, 0x48, 0xC0)};
+  static const QColor kOriginal[4] = {QColor(0xFF, 0x00, 0x00), QColor(0x80, 0x80, 0x00),
+                                      QColor(0x00, 0x80, 0x80), QColor(0x00, 0xC8, 0xC8)};
+  // the night dress needs lighter shades, a rewrite addition
   static const QColor kBright[4] = {QColor(0xFF, 0x8A, 0x70), QColor(0xD9, 0xB8, 0x4D),
-                                    QColor(0x6F, 0xD0, 0xDC), QColor(0x7F, 0xA0, 0xFF)};
-  return (bright ? kBright : kSoft)[((sign % 12) + 12) % 4];
+                                    QColor(0x6F, 0xD0, 0xDC), QColor(0x00, 0xE8, 0xE8)};
+  return (bright ? kBright : kOriginal)[((sign % 12) + 12) % 4];
 }
 
 // the sign index rides the item so the delegate can colour the glyph
@@ -201,9 +204,21 @@ class ZodiacDelegate final : public QStyledItemDelegate {
     painter->setPen(ink);
     painter->drawText(x, y, pre);
     x += fm.horizontalAdvance(pre);
-    painter->setPen(element_color(stored - 1, dark || selected));
-    painter->drawText(x, y, glyph);
-    x += fm.horizontalAdvance(glyph);
+    const QColor col = element_color(stored - 1, dark || selected);
+    // his coordinate screen put the fat sprite into the cell, tinted
+    // by zeich_col, the font glyph stays as the fallback
+    const QImage img = glyph_sprite(glyph, static_cast<Rgb>(col.rgb() & 0xFFFFFF));
+    if (!img.isNull()) {
+      const int side = std::min(r.height() - 2, fm.height() + 2);
+      const QRect cell(x, r.y() + (r.height() - side) / 2, side, side);
+      painter->setRenderHint(QPainter::SmoothPixmapTransform, true);
+      painter->drawImage(cell, img);
+      x += side + fm.horizontalAdvance(' ');
+    } else {
+      painter->setPen(col);
+      painter->drawText(x, y, glyph);
+      x += fm.horizontalAdvance(glyph);
+    }
     painter->setPen(ink);
     painter->drawText(x, y, post);
     painter->restore();
@@ -498,16 +513,16 @@ void MainWindow::build_ui() {
     KommenDialog dialog(data_dir_ / "kommen", this);
     dialog.exec();
   });
-  ueber->addAction(tr("Über HORCOM"), this, &MainWindow::about);
+  ueber->addAction(tr("ÜBER HORCOM"), this, &MainWindow::about);
   //RR DATEN-DATEI EIN-AUSGABE
   file->addAction(tr("DATEN-DATEI EIN-AUSGABE…"), QKeySequence::Open, this, &MainWindow::data_file_io);
   //RR NEU-EINGABE von DATENSÄTZEN
   file->addAction(tr("NEU-EINGABE von DATENSÄTZEN…"), QKeySequence::New, this, &MainWindow::new_records_entry);
   //RR AKTUELLEN Datensatz EINTRAGEN ?
   file->addAction(tr("AKTUELLEN Datensatz EINTRAGEN…"), QKeySequence::Save, this, &MainWindow::save_record);
-  file->addAction(tr("Datensatz bearbeiten…"), QKeySequence(Qt::CTRL | Qt::Key_D), this, &MainWindow::edit_record);
+  file->addAction(tr("DATENSATZ BEARBEITEN…"), QKeySequence(Qt::CTRL | Qt::Key_D), this, &MainWindow::edit_record);
   //RR ORTS-DATEIEN : HOLEN - EINTRAGEN - LÖSCHEN
-  file->addAction(tr("ORTS-DATEIEN / Ort suchen…"), QKeySequence(Qt::CTRL | Qt::Key_L), this, &MainWindow::open_place);
+  file->addAction(tr("ORTS-DATEIEN / ORT SUCHEN…"), QKeySequence(Qt::CTRL | Qt::Key_L), this, &MainWindow::open_place);
   //RR RADIX-DATEN: SATZ1 bis SATZ5, the loaded slots stay visible in
   // the menu and the checked one is the chart on the wheel
   file->addSection(tr("RADIX-DATEN:"));
@@ -566,12 +581,12 @@ void MainWindow::build_ui() {
   file->addAction(tr("AUFRÄUMEN / RÜCKSETZEN"), this, &MainWindow::clear_slots);
   file->addSeparator();
   //RR LETZTES BILD ZEIGEN / bzw.SPEICHERN, the export half of his menu
-  file->addAction(tr("Horoskop als SVG…"), this, &MainWindow::export_svg);
+  file->addAction(tr("HOROSKOP als SVG SPEICHERN…"), this, &MainWindow::export_svg);
   //RR DRUCKER-GRAPHIK, the druck_graph_ein world over one shared painter
-  file->addAction(tr("Horoskop als PDF…"), this, &MainWindow::export_pdf);
-  file->addAction(tr("Drucken…"), QKeySequence::Print, this, &MainWindow::print_chart);
+  file->addAction(tr("HOROSKOP als PDF SPEICHERN…"), this, &MainWindow::export_pdf);
+  file->addAction(tr("DRUCKEN…"), QKeySequence::Print, this, &MainWindow::print_chart);
   file->addSeparator();
-  file->addAction(tr("Beenden"), QKeySequence::Quit, this, &QWidget::close);
+  file->addAction(tr("BEENDEN"), QKeySequence::Quit, this, &QWidget::close);
   // EPHEMERIDE in the order of his menu tree
   //RR VORGABEN EPHEMERIDE ÄNDERN
   ephem->addAction(tr("VORGABEN EPHEMERIDE ÄNDERN…"), this, &MainWindow::vorgaben_ephemeride);
@@ -597,7 +612,7 @@ void MainWindow::build_ui() {
   //RR STATISTIK
   ephem->addAction(tr("STATISTIK…"), this, &MainWindow::open_statistics);
   ephem->addAction(tr("AUSWERTEFÄHIGE DATEI ERSTELLEN…"), this, &MainWindow::create_statistics);
-  ephem->addAction(tr("Histogramme…"), this, &MainWindow::histogram_view);
+  ephem->addAction(tr("HISTOGRAMME…"), this, &MainWindow::histogram_view);
   ephem->addSeparator();
   //RR GRAD-LISTE
   ephem->addAction(tr("GRAD-LISTE…"), this, &MainWindow::degree_list);
@@ -626,8 +641,8 @@ void MainWindow::build_ui() {
   ausw->addAction(tr("LUNAR…"), this, &MainWindow::lunar_chart);
   ausw->addAction(tr("PLANETAR…"), this, &MainWindow::planetar_chart);
   ausw->addAction(tr("PERSONAR…"), this, &MainWindow::personar_chart);
-  ausw->addAction(tr("Solar-Liste…"), this, [this]() { return_list(false); });
-  ausw->addAction(tr("Lunar-Liste…"), this, [this]() { return_list(true); });
+  ausw->addAction(tr("SOLAR-LISTE…"), this, [this]() { return_list(false); });
+  ausw->addAction(tr("LUNAR-LISTE…"), this, [this]() { return_list(true); });
   ausw->addSeparator();
   //RR TAGES-HOR. / PROGRESS.- HOR.
   ausw->addAction(tr("TAGES-HOROSKOP…"), this, &MainWindow::day_chart);
@@ -635,7 +650,7 @@ void MainWindow::build_ui() {
   ausw->addSeparator();
   //RR MÜNCHNER RHYTHMENLEHRE
   ausw->addAction(tr("MÜNCHNER RHYTHMENLEHRE…"), this, &MainWindow::rhythm_table);
-  ausw->addAction(tr("Grad-Datum-Liste…"), this, &MainWindow::degree_date_list);
+  ausw->addAction(tr("GRAD-DATUM-LISTE…"), this, &MainWindow::degree_date_list);
   //RR SEKUNDÄR-DIREKTION / DYNAMOGRAMM
   ausw->addAction(tr("SEKUNDÄR-DIREKTION / DYNAMOGRAMM…"), this, &MainWindow::dynamogram_view);
   //RR SYMB. DIREKTIONEN
@@ -646,7 +661,7 @@ void MainWindow::build_ui() {
     DirectionListDialog dialog(*last_chart_, make_context(), this);
     dialog.exec();
   });
-  ausw->addAction(tr("Linear-Graphik…"), this, &MainWindow::linear_graph);
+  ausw->addAction(tr("LINEAR-GRAPHIK…"), this, &MainWindow::linear_graph);
   //RR TRANSITE
   ausw->addAction(tr("TRANSIT-LISTE…"), this, &MainWindow::transit_list);
   // DIVERSES in the order of his menu tree
@@ -942,7 +957,7 @@ void MainWindow::build_ui() {
     }
   });
   // the text scale of the shell, the wheel keeps its own canvas scale
-  QMenu* view = menuBar()->addMenu(tr("&Ansicht"));
+  QMenu* view = menuBar()->addMenu(tr("ANSICH&T"));
   const auto set_scale = [](int scale) {
     QSettings settings;
     const int s = std::clamp(scale, theme::kTextScaleMin, theme::kTextScaleMax);
@@ -950,13 +965,13 @@ void MainWindow::build_ui() {
     theme::apply(s, theme::dark_theme());
   };
   const auto scale_now = []() { return QSettings().value(theme::kTextScaleKey, theme::kTextScaleNormal).toInt(); };
-  view->addAction(tr("Schrift größer"), QKeySequence::ZoomIn, this, [set_scale, scale_now]() { set_scale(scale_now() + theme::kTextScaleStep); });
-  view->addAction(tr("Schrift kleiner"), QKeySequence::ZoomOut, this, [set_scale, scale_now]() { set_scale(scale_now() - theme::kTextScaleStep); });
-  view->addAction(tr("Normale Schrift"), QKeySequence(Qt::CTRL | Qt::Key_0), this, [set_scale]() { set_scale(theme::kTextScaleNormal); });
+  view->addAction(tr("SCHRIFT GRÖßER"), QKeySequence::ZoomIn, this, [set_scale, scale_now]() { set_scale(scale_now() + theme::kTextScaleStep); });
+  view->addAction(tr("SCHRIFT KLEINER"), QKeySequence::ZoomOut, this, [set_scale, scale_now]() { set_scale(scale_now() - theme::kTextScaleStep); });
+  view->addAction(tr("NORMALE SCHRIFT"), QKeySequence(Qt::CTRL | Qt::Key_0), this, [set_scale]() { set_scale(theme::kTextScaleNormal); });
   view->addSeparator();
   // the two dresses of the shell, black on white like his working
   // screens or the night sky of his splash
-  QMenu* colors = view->addMenu(tr("Farben"));
+  QMenu* colors = view->addMenu(tr("FARBEN"));
   auto* theme_group = new QActionGroup(colors);
   const auto set_dark = [this, scale_now](bool dark) {
     QSettings().setValue(theme::kDarkKey, dark);
@@ -965,21 +980,21 @@ void MainWindow::build_ui() {
     banner_->update();
     recompute();
   };
-  auto* light_action = colors->addAction(tr("Schwarz auf Weiß"));
+  auto* light_action = colors->addAction(tr("SCHWARZ auf WEIß"));
   light_action->setCheckable(true);
   light_action->setActionGroup(theme_group);
   light_action->setChecked(!theme::dark_theme());
   connect(light_action, &QAction::triggered, this, [set_dark]() { set_dark(false); });
-  auto* dark_action = colors->addAction(tr("Nachthimmel"));
+  auto* dark_action = colors->addAction(tr("NACHTHIMMEL"));
   dark_action->setCheckable(true);
   dark_action->setActionGroup(theme_group);
   dark_action->setChecked(theme::dark_theme());
   connect(dark_action, &QAction::triggered, this, [set_dark]() { set_dark(true); });
   view->addSeparator();
-  view->addAction(tr("Planeten-Auswahl…"), this, &MainWindow::planet_selection);
+  view->addAction(tr("PLANETEN-AUSWAHL…"), this, &MainWindow::planet_selection);
   view->addSeparator();
   // the language survives in the settings and applies on the next start
-  QMenu* language = view->addMenu(tr("Sprache / Language"));
+  QMenu* language = view->addMenu(tr("SPRACHE / LANGUAGE"));
   auto* lang_group = new QActionGroup(language);
   const QString current = QSettings().value("language").toString();
   const auto add_lang = [this, language, lang_group, current](const QString& label, const QString& code) {
@@ -995,9 +1010,9 @@ void MainWindow::build_ui() {
     });
     return a;
   };
-  add_lang(tr("Automatisch (Systemsprache)"), QString());
-  add_lang("Deutsch", "de");
-  add_lang("English", "en");
+  add_lang(tr("AUTOMATISCH ( SYSTEMSPRACHE )"), QString());
+  add_lang("DEUTSCH", "de");
+  add_lang("ENGLISH", "en");
 
   // name edits land in the record, the banner and the sheet corner
   const auto apply_name = [this]() {

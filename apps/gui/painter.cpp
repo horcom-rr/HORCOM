@@ -189,6 +189,14 @@ void paint_display_list(QPainter& p, const DisplayList& dl) {
   }
 }
 
+QImage glyph_sprite(const QString& glyph, Rgb color) {
+  const auto stem = sprite_stems().find(glyph);
+  if (stem == sprite_stems().end()) {
+    return {};
+  }
+  return sprite(*stem, color);
+}
+
 GlyphImageResolver svg_sprite_resolver() {
   return [](const std::string& glyph, Rgb color) -> std::string {
     const auto stem = sprite_stems().find(QString::fromStdString(glyph));

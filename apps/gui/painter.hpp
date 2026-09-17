@@ -4,7 +4,9 @@
 
 #pragma once
 
+#include <QImage>
 #include <QRectF>
+#include <QString>
 
 #include "horcom/render/svg.hpp"
 #include "horcom/render/wheel.hpp"
@@ -34,5 +36,13 @@ void paint_fitted(QPainter& p, const DisplayList& dl, const QRectF& target);
 ///
 /// @return the hook for to_svg, empty results fall back to the font
 [[nodiscard]] GlyphImageResolver svg_sprite_resolver();
+
+/// One of his symbbmp sprites tinted in a colour, for the tables that
+/// paint glyphs like the original coordinate screen did.
+///
+/// @param glyph the unicode glyph or text tag a display list would use
+/// @param color the tint, black keeps the sprite as drawn
+/// @return the sprite image, null when no sprite exists for the glyph
+[[nodiscard]] QImage glyph_sprite(const QString& glyph, Rgb color);
 
 }  // namespace horcom
