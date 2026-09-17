@@ -129,6 +129,23 @@ QString degs(double rad) {
   return QString::asprintf("%+9.4f", rad * kRadToDeg);
 }
 
+// his coordinate screen paints the sign of every position in its
+// element colour, here as readable text shades per theme
+QColor element_color(double rad, bool dark) {
+  const int sign = static_cast<int>(norm_deg(rad * kRadToDeg) / kDegPerSign) % 12;
+  static const QColor kLight[4] = {QColor(0xC0, 0x30, 0x20), QColor(0x7A, 0x5F, 0x00),
+                                   QColor(0x0F, 0x7A, 0x8A), QColor(0x20, 0x48, 0xC0)};
+  static const QColor kDark[4] = {QColor(0xFF, 0x8A, 0x70), QColor(0xD9, 0xB8, 0x4D),
+                                  QColor(0x6F, 0xD0, 0xDC), QColor(0x7F, 0xA0, 0xFF)};
+  return (dark ? kDark : kLight)[sign % 4];
+}
+
+QTableWidgetItem* zodiac_item(double rad) {
+  auto* item = new QTableWidgetItem(zodiac(rad));
+  item->setForeground(element_color(rad, theme::dark_now()));
+  return item;
+}
+
 // the comparison list body, running body, separation, radix body
 QString cross_hits_text(const std::vector<CrossAspectHit>& hits) {
   QString out;
@@ -749,6 +766,7 @@ void MainWindow::build_ui() {
     QSettings().setValue(theme::kDarkKey, dark);
     theme::apply(scale_now(), dark);
     wheel_->update();
+    banner_->update();
     recompute();
   };
   auto* light_action = colors->addAction(tr("Schwarz auf Weiß"));
@@ -1270,7 +1288,7 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
       continue;
     }
     const bool angle_slot = slot == body::kAscendant || slot == body::kMc;
-    bodies_->setItem(row, 0, new QTableWidgetItem(zodiac(b.el)));
+    bodies_->setItem(row, 0, zodiac_item(b.el));
     if (!angle_slot) {
       bodies_->setItem(row, 1, new QTableWidgetItem(degs(b.eb)));
       bodies_->setItem(row, 2, new QTableWidgetItem(degs(b.de)));
@@ -1284,10 +1302,10 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
       //RR die mittleren Planeten-KNOTEN und die PLANETEN-APSIDEN
       const PlanetPoints pts = planet_points(chart, slot, current_settings());
       if (pts.ok) {
-        bodies_->setItem(row, 6, new QTableWidgetItem(zodiac(pts.node)));
-        bodies_->setItem(row, 7, new QTableWidgetItem(zodiac(pts.node_south)));
-        bodies_->setItem(row, 8, new QTableWidgetItem(zodiac(pts.perihelion)));
-        bodies_->setItem(row, 9, new QTableWidgetItem(zodiac(pts.aphelion)));
+        bodies_->setItem(row, 6, zodiac_item(pts.node));
+        bodies_->setItem(row, 7, zodiac_item(pts.node_south));
+        bodies_->setItem(row, 8, zodiac_item(pts.perihelion));
+        bodies_->setItem(row, 9, zodiac_item(pts.aphelion));
       }
       auto* retro = new QTableWidgetItem(b.tb < 0.0 ? "R" : "");
       retro->setForeground(QColor(0xE8, 0x5D, 0x4E));
@@ -1315,7 +1333,8 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects) {
   // bes111 lists no cusps in the hrg mode
   for (int i = 1; i <= 12; ++i) {
     cusps_->setItem(i - 1, 0,
-                    new QTableWidgetItem(helio ? QString() : zodiac(chart.houses.cusp[static_cast<std::size_t>(i)])));
+                    helio ? new QTableWidgetItem(QString())
+                          : zodiac_item(chart.houses.cusp[static_cast<std::size_t>(i)]));
   }
   //RR die MONDPHASE ... ist die ekliptikale Längendifferenz MOND-SONNE
   // with his percent figure, full moon one hundred, new moon zero
@@ -2791,7 +2810,7 @@ void MainWindow::linear_graph() {
     opt.sign_lines = zeichen->isChecked();
     opt.with_houses = houses->isChecked();
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    view->set_display_list(build_linear_graph(radix, opt, make_context()));
+    view->set_plain_list(build_linear_graph(radix, opt, make_context()));
     QApplication::restoreOverrideCursor();
   };
   connect(kind, &QComboBox::currentIndexChanged, &dialog, draw);
@@ -2886,7 +2905,7 @@ void MainWindow::dynamogram_view() {
     };
     curve(d.mood, 0xB8860B);
     curve(d.existential, 0xC03020);
-    graph->set_display_list(dl);
+    graph->set_plain_list(dl);
   };
   connect(run, &QPushButton::clicked, &dialog, fill);
   auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);

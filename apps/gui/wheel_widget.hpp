@@ -23,6 +23,11 @@ class WheelWidget : public QWidget {
   /// centred on a square sheet, the classic sheet stays for export.
   void set_display_list(DisplayList dl);
 
+  /// Replaces the drawing with a plain canvas, drawn as delivered.
+  /// The graph views use this, the wheel centring would push their
+  /// axes off the paper.
+  void set_plain_list(DisplayList dl);
+
   /// @return the classic sheet drawing, the print and PDF paths read it
   [[nodiscard]] const DisplayList& display_list() const { return classic_; }
 
@@ -38,6 +43,7 @@ class WheelWidget : public QWidget {
   DisplayList classic_;
   DisplayList dl_;       // the centred screen view of classic_
   double sheet_w_ = 0.0;  // the sheet width dl_ was built for
+  bool plain_ = false;    // draw classic_ as delivered, no centring
   double zoom_ = 1.0;
   QPointF pan_;
   QPointF drag_start_;

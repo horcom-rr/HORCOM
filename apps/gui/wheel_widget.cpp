@@ -22,6 +22,14 @@ WheelWidget::WheelWidget(QWidget* parent) : QWidget(parent) {
 
 void WheelWidget::set_display_list(DisplayList dl) {
   classic_ = std::move(dl);
+  plain_ = false;
+  sheet_w_ = 0.0;
+  update();
+}
+
+void WheelWidget::set_plain_list(DisplayList dl) {
+  classic_ = std::move(dl);
+  plain_ = true;
   sheet_w_ = 0.0;
   update();
 }
@@ -36,13 +44,18 @@ void WheelWidget::paintEvent(QPaintEvent* /*event*/) {
   if (classic_.items.empty()) {
     return;
   }
-  // the sheet follows the view's aspect so the paper meets the panels
-  const double margin0 = 14.0;
-  const double aspect = std::max(0.1, (width() - 2.0 * margin0) / std::max(1.0, height() - 2.0 * margin0));
-  const double want = std::clamp(kCanvasHeight * aspect, 480.0, 820.0);
-  if (std::abs(want - sheet_w_) > 1.0) {
-    sheet_w_ = want;
-    dl_ = centered_sheet(classic_, sheet_w_);
+  // the sheet follows the view's aspect so the paper meets the panels,
+  // a plain canvas keeps its own frame
+  if (plain_) {
+    dl_ = classic_;
+  } else {
+    const double margin0 = 14.0;
+    const double aspect = std::max(0.1, (width() - 2.0 * margin0) / std::max(1.0, height() - 2.0 * margin0));
+    const double want = std::clamp(kCanvasHeight * aspect, 480.0, 820.0);
+    if (std::abs(want - sheet_w_) > 1.0) {
+      sheet_w_ = want;
+      dl_ = centered_sheet(classic_, sheet_w_);
+    }
   }
   // the view the mouse built, pan then zoom about the origin
   p.translate(pan_);
