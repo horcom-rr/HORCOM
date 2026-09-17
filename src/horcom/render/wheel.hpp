@@ -121,6 +121,12 @@ struct WheelOptions {
   bool invert_apogee = false;
   /// print the degree within sign under each glyph, the original pziff
   bool degree_numbers = true;
+  /// the own ring colours of hor_farb, index 1 fire to 4 water, a zero
+  /// keeps the built in shade, index 0 unused
+  std::array<Rgb, 5> ring_colors{};
+  /// the colour of the outer symbols on double and transit wheels, the
+  /// original hard&, 1 red, 2 black, 3 blue, black is his default
+  int outer_color = 2;
 };
 
 /// Builds the display list of one chart wheel.
@@ -212,6 +218,22 @@ void add_classic_text(DisplayList& dl, const Chart& chart, const ChartSettings& 
 /// @param center_x the mode line rides the wheel centre
 /// @param right_x the left edge of the moment block
 void add_corner_text(DisplayList& dl, const ClassicSheetText& txt, double left_x, double center_x, double right_x);
+
+/// The DIN A4 print page of the original a11 in moda 3, the wheel over
+/// the bes_big table boxes on a 640 by 980 portrait page. Ported from
+/// bes1_big, bes_big_plan, bes_big_asp, bes_big_haus, bes_big_elem,
+/// bes_big_kafige and bes_big_halbs in the order the original drew them.
+///
+/// @param chart     the computed chart
+/// @param s         its settings
+/// @param aspects   the aspect scan of the chart
+/// @param midpoints the halbs1 scan for the Halbsummen box
+/// @param txt       the corner texts of the sheet
+/// @param opt       wheel options, the scale is set inside
+/// @return the page as one display list, 640 wide and 980 tall
+[[nodiscard]] DisplayList a4_print_sheet(const Chart& chart, const ChartSettings& s, const AspectResult& aspects,
+                                         const MidpointResult& midpoints, const ClassicSheetText& txt,
+                                         const WheelOptions& opt);
 
 /// The unicode glyph of a body slot, his two letter tag where none
 /// exists, shared by every drawing that stamps bodies.

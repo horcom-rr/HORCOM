@@ -451,6 +451,12 @@ int main(int argc, char** argv) {
     window.export_pdf_to(args[shot_pdf + 1]);
     return 0;
   }
+  // --shot-pdf-a4 FILE writes the big DIN A4 page with the bes_big tables
+  const int shot_pdf_a4 = args.indexOf("--shot-pdf-a4");
+  if (shot_pdf_a4 >= 0 && shot_pdf_a4 + 1 < args.size()) {
+    window.export_pdf_to(args[shot_pdf_a4 + 1], true);
+    return 0;
+  }
   // --shot-svg FILE does the same for the SVG export
   const int shot_svg = args.indexOf("--shot-svg");
   if (shot_svg >= 0 && shot_svg + 1 < args.size()) {

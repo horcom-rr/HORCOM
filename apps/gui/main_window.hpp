@@ -94,7 +94,7 @@ class MainWindow : public QMainWindow {
   ///
   /// @param path the target file
   /// @return true when the page was written
-  bool export_pdf_to(const QString& path);
+  bool export_pdf_to(const QString& path, bool big = false);
 
   /// Writes the classic sheet as SVG with his sprites embedded, the
   /// file half of the SVG export dialog.
@@ -200,6 +200,8 @@ class MainWindow : public QMainWindow {
   void show_wheel(DisplayList dl);
   [[nodiscard]] ClassicSheetText classic_sheet_text() const;
   [[nodiscard]] DisplayList classic_export_list() const;
+  [[nodiscard]] DisplayList a4_export_list() const;
+  int ask_print_format();
   void fill_tables(const Chart& chart, const AspectResult& aspects);
   [[nodiscard]] ChartInput current_input() const;
   [[nodiscard]] ChartSettings current_settings() const;
@@ -229,11 +231,18 @@ class MainWindow : public QMainWindow {
   // the VORGABEN EPHEMERIDE ÄNDERN chain and the HÄUSERSYSTEM box
   void vorgaben_ephemeride();
   void choose_house_system();
+  // the F9 double print of mehrf_aus, two captured sheets on one page
+  void double_print();
+  // the Parameter - Einstellungen = VORGABEN overview of his main screen
+  void vorgaben_overview();
   [[nodiscard]] std::optional<AafRecord> choose_record(const QString& title);
   [[nodiscard]] std::optional<AafRecord> choose_record_from_file(const QString& title);
   [[nodiscard]] ChartInput record_input(const AafRecord& r) const;
   [[nodiscard]] ChartRecord dat_from_record(const AafRecord& r) const;
   [[nodiscard]] AafRecord panel_record() const;
+  /// @return the panel date, years before Christ ride the astronomical count
+  [[nodiscard]] QDate panel_date() const;
+  void set_panel_date(const QDate& d);
   bool set_partner(const AafRecord& r);
   QString record_label_;
   AafRecord record_;
@@ -252,6 +261,16 @@ class MainWindow : public QMainWindow {
   /// which slot family holds the panel, false radix, true solar
   bool active_is_solar_ = false;
   int active_solar_ = -1;
+  /// the slot the running clock feeds, his zeuhr, -1 when none
+  int uhr_slot_ = -1;
+  /// the two captured sheets of the F9 double print, his mehrf buffers
+  std::vector<DisplayList> double_buffer_;
+  /// the own ring colours of hor_farb, zero keeps the built in shade
+  std::array<Rgb, 5> ring_colors_{};
+  /// the outer symbol colour of the double wheels, his hard&
+  int outer_color_ = 2;
+  /// the capture hook switches the clock without the takeover question
+  bool clock_scripted_ = false;
 
   VsopTables vsop_;
   Ephemerides eph_;
@@ -271,7 +290,8 @@ class MainWindow : public QMainWindow {
   Banner* banner_ = nullptr;
   QLineEdit* given_ = nullptr;
   QLineEdit* surname_ = nullptr;
-  QDateEdit* date_ = nullptr;
+  /// the date as text like his TT MM JJJJ row, vC marks years BC
+  QLineEdit* date_ = nullptr;
   QTimeEdit* time_ = nullptr;
   QDoubleSpinBox* zone_ = nullptr;
   QDoubleSpinBox* lon_ = nullptr;

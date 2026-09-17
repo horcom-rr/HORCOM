@@ -41,8 +41,9 @@ first. On top of it sit <b>Zurück</b> and <b>Vor</b>, the walk through the
 panel history. Every settled change counts as one step, a jump to a
 Solar, a loaded record or a slipped field alike, so Zurück doubles as
 the undo key (Alt+Links or Strg+Z, forward Alt+Rechts or Strg+Y). Type Vorname and Name, they land in the record, on the banner
-and on the sheet corner of the wheel. Then a birth date
-and clock time, then the time zone in hours east of Greenwich, the
+and on the sheet corner of the wheel. Then a birth date as
+TT.MM.JJJJ, years before Christ with a vC after the year like his
+record list showed them, and a clock time, then the time zone in hours east of Greenwich, the
 little <code>…</code> button beside it opens Robert's zone name catalogue when
 you only know the zone by name. Longitude and latitude take decimal
 degrees, east and north positive, and <b>ORTS-DATEIEN / Ort suchen</b> in the EIN-AUSG. menu
@@ -136,9 +137,11 @@ EPHEMERIDE menu computes a whole collection into a research dataset.
 The Transite switch lays the sky of the transit moment as an outer
 ring over the radix, with the running aspects listed under the wheel.
 <b>Transit-Liste</b> scans a whole date range for exact transit events and
-<b>Ingresse</b> tables the sign entries of the running bodies. <b>Uhr</b> turns
+<b>Ingresse</b> tables the sign entries of the running bodies. <b>UHR</b> turns
 the chart into his running clock, redrawn every fifteen seconds for
-the present moment at the panel's place.
+the present moment at the panel's place, and on request the running
+clock takes over a RADIX slot as a record that ticks along, his
+zeuhr, though as the original warned it is not recommended.
 </p>
 
 <h2>Returns</h2>
@@ -255,10 +258,18 @@ survived the previous ones, and the record list filters to the hits.
 
 <h2>Output</h2>
 <p>
-<b>Horoskop als SVG</b> writes the wheel as a vector file, <b>Horoskop als
-PDF</b> writes an A4 landscape page, and <b>Drucken</b> (Ctrl+P) sends
-whatever the wheel currently shows to a printer, transits, dial and
-comparison included.
+<b>HOROSKOP als SVG SPEICHERN</b> writes the wheel as a vector file.
+<b>HOROSKOP als PDF SPEICHERN</b> and <b>DRUCKEN</b> (Ctrl+P) first ask
+his DRUCKER-GRAPHIK question, DIN A5 or DIN A4. A5 is the classic
+landscape sheet, the wheel with the margin table. A4 is the big
+upright page of the original, the wheel over the bes_big boxes,
+positions with velocity and the p and w marks, the aspect list with
+the mirror contacts, the house cusps, the Halbsummen in their three
+families and the sign quality and element counts with the little
+bars. <b>F9</b> activates the DOPPEL-AUSDRUCK, press it once to store
+the current sheet, set up the second horoscope, press it again and
+both print half size on one page like his mehrf buffers. Transits,
+dial and comparison print like they show.
 </p>
 
 <h2>Comfort</h2>

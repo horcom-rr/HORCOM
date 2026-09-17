@@ -175,7 +175,9 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
     sec.r2 = km * kSignOuter;
     sec.a1 = a0;
     sec.a2 = a0 + span;
-    sec.fill = kElementColor[(j - 1) % 4];
+    //RR eigfarb!, own ring colours from hor_farb outrank the shades
+    const std::size_t elem = static_cast<std::size_t>((j - 1) % 4);
+    sec.fill = opt.ring_colors[elem + 1] != 0 ? opt.ring_colors[elem + 1] : kElementColor[elem];
     sec.color = 0x000000;
     add(sec);
   }
@@ -583,6 +585,12 @@ static void draw_outer_bodies(DisplayList& dl, const Chart& chart, double fza, d
     p.y1 = g.y;
     p.size = kGlyphSize;
     p.text = kBodyGlyph[si];
+    //RR hard&, ÄUßERE SYMBOLE wahlweise ROT oder BLAU färben
+    if (opt.outer_color == 1) {
+      p.color = 0xFF0000;
+    } else if (opt.outer_color == 3) {
+      p.color = 0x0000FF;
+    }
     add(p);
   }
   for (int slot : slots) {
@@ -853,6 +861,311 @@ void add_corner_text(DisplayList& dl, const ClassicSheetText& txt, double left_x
   if (!txt.weekday.empty()) {
     text(right_x, 456.0, txt.weekday, Align::kRight);
   }
+}
+
+// ported from a11 in moda 3, the DIN A4 page, tables first and the
+// wheel over them, Reihenfolge wichtig wie im Original
+DisplayList a4_print_sheet(const Chart& chart, const ChartSettings& s, const AspectResult& aspects,
+                           const MidpointResult& midpoints, const ClassicSheetText& txt,
+                           const WheelOptions& opt) {
+  DisplayList dl;
+  dl.width = 640.0;
+  dl.height = 980.0;
+  auto add = [&](Primitive p) { dl.items.push_back(std::move(p)); };
+  auto text = [&](double x, double y, std::string str, double size = 9.5) {
+    Primitive p;
+    p.kind = Primitive::Kind::kText;
+    p.x1 = x;
+    p.y1 = y;
+    p.size = size;
+    p.align_left = true;
+    p.text = std::move(str);
+    add(p);
+  };
+  auto line = [&](double x1, double y1, double x2, double y2) {
+    add({Primitive::Kind::kLine, x1, y1, x2, y2, 0, 0, 0, 0, 0, 0x000000, 0xFFFFFF,
+         Primitive::Style::kSolid, 0.8});
+  };
+  auto box = [&](double x1, double y1, double x2, double y2) {
+    line(x1, y1, x2, y1);
+    line(x2, y1, x2, y2);
+    line(x2, y2, x1, y2);
+    line(x1, y2, x1, y1);
+  };
+  static constexpr const char* kSign3[12] = {"AR", "TA", "GM", "CN", "LE", "VI",
+                                             "LI", "SC", "SG", "CP", "AQ", "PS"};
+  const auto zodsec = [](double rad) {
+    const double deg = norm_deg(rad * kRadToDeg);
+    int sg = static_cast<int>(deg / 30.0);
+    const double in_sign = deg - sg * 30.0;
+    int total = static_cast<int>(in_sign * 3600.0 + 0.5);
+    if (total >= 30 * 3600) {
+      total = 0;
+      sg = (sg + 1) % 12;
+    }
+    char buf[24];
+    std::snprintf(buf, sizeof(buf), "%2d %s %2d'%2d\"", total / 3600, kSign3[sg], (total / 60) % 60,
+                  total % 60);
+    return std::string(buf);
+  };
+  const auto tag = [](int slot) {
+    const std::string_view v = body::kName[static_cast<std::size_t>(slot)];
+    return std::string(v.data(), v.size());
+  };
+
+  //RR boxn(1,1,639,979), the page frame
+  box(1.0, 1.0, 639.0, 979.0);
+
+  //RR bes1_big, the header block
+  const double header = 10.5;
+  if (!txt.name.empty()) {
+    text(16.0, 18.0, txt.name_label.empty() ? "Name:" : txt.name_label, header);
+    text(16.0, 30.0, txt.name, header);
+  }
+  text(240.0, 18.0, s.heliocentric ? "Heliozentr." : txt.stz, 9.5);
+  {
+    std::string hn(chart.houses.name.data(), chart.houses.name.size());
+    while (!hn.empty() && hn.back() == ' ') {
+      hn.pop_back();
+    }
+    text(240.0, 30.0, "RADIX, " + hn, 9.0);
+    text(240.0, 42.0, txt.mode, 9.0);
+  }
+  if (!s.heliocentric) {
+    text(16.0, 44.0, txt.place_label.empty() ? "Ort:" : txt.place_label, 9.0);
+    text(16.0, 56.0, txt.place, 9.0);
+    text(16.0, 68.0, txt.lon, 9.0);
+    text(16.0, 80.0, txt.lat, 9.0);
+  }
+  text(452.0, 18.0, txt.date, header);
+  text(452.0, 34.0, txt.ut, header);
+  text(452.0, 48.0, txt.weekday, 9.0);
+
+  // the sign counts of bes_big_kafige and bes_big_elem, plain body
+  // counts per quality and element, his pn weight table stays out here
+  {
+    int quality[3] = {0, 0, 0};
+    int element[4] = {0, 0, 0, 0};
+    for (int slot = 1; slot <= 14; ++slot) {
+      const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
+      if (!b.present || !b.valid) {
+        continue;
+      }
+      const int sg = static_cast<int>(norm_deg(b.el * kRadToDeg) / 30.0) % 12;
+      ++quality[sg % 3];
+      ++element[sg % 4];
+    }
+    //RR KARDINAL - FIX - GEMISCHT
+    double y = 100.0;
+    text(16.0, y, "Zeichen-Quali:", 8.5);
+    static constexpr const char* kQuali[3] = {"Kardinal", "Fix", "Gemischt"};
+    for (int i = 0; i < 3; ++i) {
+      y += 12.0;
+      char buf[24];
+      std::snprintf(buf, sizeof(buf), "%-8s %2d", kQuali[i], quality[i]);
+      text(16.0, y, buf, 8.5);
+    }
+    //RR Elemente F E L W with the little bars of elemhist1, the bars
+    // wear the strong zeich_col shades, not the ring fills
+    y = 470.0;
+    text(16.0, y, "Elemente:", 8.5);
+    static constexpr const char* kElemTag[4] = {"F", "E", "L", "W"};
+    static constexpr Rgb kBarColor[4] = {0xFF0000, 0x808000, 0x008080, 0x00C8C8};
+    for (int i = 0; i < 4; ++i) {
+      y += 12.0;
+      char buf[16];
+      std::snprintf(buf, sizeof(buf), "%s %2d", kElemTag[i], element[i]);
+      text(16.0, y, buf, 8.5);
+      Primitive bar;
+      bar.kind = Primitive::Kind::kRect;
+      bar.x1 = 40.0 + element[i] * 2.0;
+      bar.y1 = y - 3.0;
+      bar.r1 = element[i] * 2.0;
+      bar.r2 = 3.5;
+      bar.fill = kBarColor[i];
+      bar.color = kBarColor[i];
+      add(bar);
+    }
+  }
+
+  //RR bes_big_plan, the position list in its box
+  {
+    box(1.0, 590.0, 212.0, 960.0);
+    const char* mode = s.apparent == ApparentMode::kLightTime             ? "(App1)"
+                       : s.apparent == ApparentMode::kLightTimeAberration ? "(App2)"
+                                                                          : "(Wahr)";
+    text(18.0, 604.0, std::string("Ekl.L\xC3\xA4nge:") + mode + "   Vel.", 9.0);
+    double y = 604.0;
+    for (int slot = 1; slot < body::kSlotCount; ++slot) {
+      if (slot == body::kAscendant || slot == body::kMc) {
+        continue;
+      }
+      const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
+      if (!b.present || !b.valid) {
+        continue;
+      }
+      y += 15.0;
+      if (y > 950.0) {
+        //RR Nur MAXIMAL 12 ZUSATZ-Planeten hier darstellbar
+        text(18.0, y, "...", 9.0);
+        break;
+      }
+      //RR p bei Parallaxe, w wahrer, m mittlerer Wert
+      char mark = ' ';
+      if (slot <= 6 && s.topocentric_parallax) {
+        mark = 'p';
+      } else if (slot == body::kNodeAsc || slot == body::kNodeDesc) {
+        mark = s.true_node ? 'w' : 'm';
+      } else if (slot == body::kApogee) {
+        mark = s.true_apogee ? 'w' : 'm';
+      }
+      char buf[64];
+      if (b.tb != 0.0) {
+        std::snprintf(buf, sizeof(buf), "%-2s %s %c %6.1f", tag(slot).c_str(), zodsec(b.el).c_str(),
+                      mark, b.tb * kRadToDeg * 60.0);
+      } else {
+        std::snprintf(buf, sizeof(buf), "%-2s %s %c", tag(slot).c_str(), zodsec(b.el).c_str(), mark);
+      }
+      text(8.0, y, buf, 9.0);
+    }
+  }
+
+  //RR bes_big_asp, the aspect list and the Spiegelungen under it
+  {
+    box(212.0, 650.0, 386.0, 960.0);
+    static constexpr const char* kAspTag[13] = {"",    "kon", "opp", "tri", "qua", "qui", "sex",
+                                                "sep", "hqu", "nov", "dez", "elf", "qcx"};
+    double y = 664.0;
+    double x = 220.0;
+    text(x, y, "Aspekte:", 9.0);
+    for (const AspectHit& h : aspects.hits) {
+      if (h.n < 1 || h.n > 12) {
+        continue;
+      }
+      y += 12.0;
+      if (y > 920.0 && x < 300.0) {
+        // the second column of his 174 unit box
+        x = 302.0;
+        y = 676.0;
+      } else if (y > 920.0) {
+        text(x, y, "...", 9.0);
+        break;
+      }
+      char buf[24];
+      std::snprintf(buf, sizeof(buf), "%-2s %s %-2s", tag(h.t).c_str(), kAspTag[h.n],
+                    tag(h.w).c_str());
+      text(x, y, buf, 8.5);
+    }
+    //RR spieg1, the mirror contacts close the box
+    std::string mirrors;
+    for (const AspectHit& h : aspects.hits) {
+      if (h.n != 13) {
+        continue;
+      }
+      if (!mirrors.empty()) {
+        mirrors += "  ";
+      }
+      mirrors += tag(h.t) + "/" + tag(h.w);
+    }
+    if (!mirrors.empty()) {
+      line(212.0, 936.0, 386.0, 936.0);
+      text(220.0, 948.0,
+           (txt.mirror_label.empty() ? std::string("Spiegelung:") : txt.mirror_label) + " " +
+               mirrors.substr(0, 32),
+           8.0);
+    }
+  }
+
+  //RR bes_big_haus, the house cusp box
+  if (!s.heliocentric && chart.houses.ok) {
+    box(386.0, 655.0, 540.0, 960.0);
+    text(398.0, 669.0, "H\xC3\xA4userspitzen", 9.0);
+    std::string hn(chart.houses.name.data(), chart.houses.name.size());
+    while (!hn.empty() && hn.back() == ' ') {
+      hn.pop_back();
+    }
+    text(398.0, 681.0, "(" + hn + ")", 9.0);
+    double y = 686.0;
+    for (int i = 1; i <= 12; ++i) {
+      y += 16.0;
+      char head[8];
+      const char* h = i == 1 ? "AC " : i == 4 ? "IC " : i == 7 ? "DC " : i == 10 ? "MC " : nullptr;
+      if (h == nullptr) {
+        std::snprintf(head, sizeof(head), "H%-2d", i);
+        h = head;
+      }
+      text(398.0, y, std::string(h) + " " + zodsec(chart.houses.cusp[static_cast<std::size_t>(i)]),
+           9.0);
+    }
+  }
+
+  //RR bes_big_halbs, Direkt, Quadrat und Halbquad
+  {
+    box(540.0, 548.0, 639.0, 960.0);
+    double y = 562.0;
+    text(546.0, y, "Halbsummen", 8.5);
+    line(540.0, y + 3.0, 639.0, y + 3.0);
+    static constexpr int kFamily[3] = {1, 2, 4};
+    static constexpr const char* kFamilyName[3] = {"Direkt:", "Quadrat:", "Halbquad:"};
+    for (int f = 0; f < 3; ++f) {
+      y += 14.0;
+      if (y > 940.0) {
+        break;
+      }
+      text(546.0, y, kFamilyName[f], 8.5);
+      line(540.0, y + 3.0, 639.0, y + 3.0);
+      for (const MidpointHit& h : midpoints.hits) {
+        if (h.nh != kFamily[f]) {
+          continue;
+        }
+        y += 11.0;
+        if (y > 940.0) {
+          text(546.0, y, "...", 8.0);
+          break;
+        }
+        char buf[24];
+        std::snprintf(buf, sizeof(buf), "%s=%s/%s", tag(h.t).c_str(), tag(h.u).c_str(),
+                      tag(h.w).c_str());
+        text(546.0, y, buf, 8.0);
+      }
+      y += 4.0;
+    }
+  }
+
+  // the wheel over the tables, centred at 340 like amh& = bmh& = 340
+  {
+    WheelOptions wopt = opt;
+    //RR MUL km,1.48
+    wopt.scale = kKm * 1.48;
+    DisplayList wheel = build_wheel(chart, s, aspects, wopt);
+    const double dx = 340.0 - kCx;
+    const double dy = 340.0 - kCy;
+    for (Primitive p : wheel.items) {
+      if (p.anchor != Primitive::Anchor::kSheet) {
+        continue;
+      }
+      p.x1 += dx;
+      p.y1 += dy;
+      if (p.kind == Primitive::Kind::kLine) {
+        p.x2 += dx;
+        p.y2 += dy;
+      }
+      add(std::move(p));
+    }
+  }
+
+  //RR drad2, the credit line at the page foot
+  {
+    Primitive credit;
+    credit.kind = Primitive::Kind::kText;
+    credit.x1 = 320.0;
+    credit.y1 = 972.0;
+    credit.size = 7.0;
+    credit.color = 0x808080;
+    credit.text = "HORCOM \xC2\xB7 Robert Rettig \xC2\xB7 \xC2\xA9 Dominik Schwimmbeck";
+    add(std::move(credit));
+  }
+  return dl;
 }
 
 const char* body_glyph(int slot) {

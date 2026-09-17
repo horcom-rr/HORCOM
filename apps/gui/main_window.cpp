@@ -17,6 +17,7 @@
 #include <QDockWidget>
 #include <QDoubleSpinBox>
 #include <QFile>
+#include <QColorDialog>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFormLayout>
@@ -133,6 +134,17 @@ QString zodiac(double rad) {
 
 QString degs(double rad) {
   return QString::asprintf("%+9.4f", rad * kRadToDeg);
+}
+
+// QDate knows no year zero, the astronomical count of the original
+// does, jaa <= 0 stored years before Christ as 1 - historical year
+int astro_year(const QDate& d) {
+  const int y = d.year();
+  return y < 0 ? y + 1 : y;
+}
+
+int qdate_year(int astro) {
+  return astro <= 0 ? astro - 1 : astro;
 }
 
 // his coordinate screen paints only the sign glyph of a position in
@@ -296,6 +308,16 @@ MainWindow::MainWindow(VsopTables vsop, Ephemerides eph, std::filesystem::path d
 
 void MainWindow::build_ui() {
   setWindowTitle("HORCOM");
+  {
+    // the own colours of hor_farb and the hard& choice survive in the
+    // settings like his param_sp block
+    QSettings settings;
+    for (int i = 1; i <= 4; ++i) {
+      ring_colors_[static_cast<std::size_t>(i)] =
+          static_cast<Rgb>(settings.value(QString("view/ringColor%1").arg(i), 0).toUInt());
+    }
+    outer_color_ = settings.value("view/outerColor", 2).toInt();
+  }
   setWindowIcon(QIcon(":/logo.svg"));
 
   // the banner rides a locked toolbar so it spans the whole window
@@ -356,9 +378,11 @@ void MainWindow::build_ui() {
   surname_ = new QLineEdit(form_host);
   form->addRow(tr("Vorname"), given_);
   form->addRow(tr("Name"), surname_);
-  date_ = new QDateEdit(QDate(1992, 10, 13), form_host);
-  date_->setCalendarPopup(true);
-  date_->setDisplayFormat("dd.MM.yyyy");
+  // the original entered dates as plain TT MM JJJJ fields and a
+  // calendar widget cannot hold years before Christ, so the date is a
+  // text field, TT.MM.JJJJ, years BC with the vC of his chooser list
+  date_ = new QLineEdit("13.10.1992", form_host);
+  date_->setMaxLength(14);
   time_ = new QTimeEdit(QTime(3, 0), form_host);
   time_->setDisplayFormat("HH:mm:ss");
   // arrow keys and the mouse wheel step the fields, the tiny stepper
@@ -516,6 +540,9 @@ void MainWindow::build_ui() {
   };
   ueber->addAction(tr("EINFÜHRUNG / ERLÄUTERUNGEN…"), QKeySequence(Qt::Key_F1), this,
                    [erlaeuterung]() { erlaeuterung("komm1"); });
+  //RR F9 ( oder ALT + M ) = DOPPEL-AUSDRUCK AKTIVIEREN
+  ueber->addAction(tr("F9 = DOPPEL-AUSDRUCK AKTIVIEREN"), QKeySequence(Qt::Key_F9), this,
+                   &MainWindow::double_print);
   ueber->addAction(tr("ÜBER HORCOM"), this, &MainWindow::about);
   //RR DATEN-DATEI EIN-AUSGABE
   file->addAction(tr("DATEN-DATEI EIN-AUSGABE…"), QKeySequence::Open, this, &MainWindow::data_file_io);
@@ -692,8 +719,30 @@ void MainWindow::build_ui() {
   connect(clock_action_, &QAction::toggled, this, [this](bool on) {
     if (on) {
       clock_timer_->start();
+      //RR LAUFENDE UHR als DATENSATZ ÜBERNEHMEN ? Wird NICHT empfohlen !
+      if (!clock_scripted_) {
+        const int es = ChoiceDialog::ask(this, tr("UHR"),
+                                         {tr("LAUFENDE UHR als DATENSATZ ÜBERNEHMEN ?"),
+                                          tr("Wird NICHT empfohlen !")},
+                                         {tr("NEIN"), tr("ÜBERNEHMEN")}, 0);
+        if (es == 1) {
+          int slot = next_slot();
+          if (slot < 0) {
+            slot = 4;
+          }
+          AafRecord r = panel_record();
+          r.surname = "UHR";
+          r.given.clear();
+          //RR WIRD ALLE 15 SEK AKTUALISIERT !
+          r.comment = "WIRD ALLE 15 SEK AKTUALISIERT !";
+          set_slot(slot, r, false);
+          uhr_slot_ = slot;
+        }
+      }
+      clock_scripted_ = false;
     } else {
       clock_timer_->stop();
+      uhr_slot_ = -1;
       banner_->set_record(record_label_.trimmed());
     }
     recompute();
@@ -979,6 +1028,9 @@ void MainWindow::build_ui() {
     theme::apply(s, theme::dark_theme());
   };
   const auto scale_now = []() { return QSettings().value(theme::kTextScaleKey, theme::kTextScaleNormal).toInt(); };
+  //RR Parameter - Einstellungen = VORGABEN, his main screen panel
+  view->addAction(tr("VORGABEN-ÜBERSICHT…"), this, &MainWindow::vorgaben_overview);
+  view->addSeparator();
   view->addAction(tr("SCHRIFT GRÖßER"), QKeySequence::ZoomIn, this, [set_scale, scale_now]() { set_scale(scale_now() + theme::kTextScaleStep); });
   view->addAction(tr("SCHRIFT KLEINER"), QKeySequence::ZoomOut, this, [set_scale, scale_now]() { set_scale(scale_now() - theme::kTextScaleStep); });
   view->addAction(tr("NORMALE SCHRIFT"), QKeySequence(Qt::CTRL | Qt::Key_0), this, [set_scale]() { set_scale(theme::kTextScaleNormal); });
@@ -1004,6 +1056,46 @@ void MainWindow::build_ui() {
   dark_action->setActionGroup(theme_group);
   dark_action->setChecked(theme::dark_theme());
   connect(dark_action, &QAction::triggered, this, [set_dark]() { set_dark(true); });
+  colors->addSeparator();
+  //RR FARBEN für HOROSKOP - RING FESTLEGEN ! ( ANKLICKEN )
+  colors->addAction(tr("FARBEN für HOROSKOP-RING FESTLEGEN…"), this, [this]() {
+    for (;;) {
+      QStringList rows;
+      const char* labels[4] = {QT_TR_NOOP("FEUER - ZEICHEN"), QT_TR_NOOP("ERD   - ZEICHEN"),
+                               QT_TR_NOOP("LUFT  - ZEICHEN"), QT_TR_NOOP("WASSER- ZEICHEN")};
+      for (int i = 1; i <= 4; ++i) {
+        const Rgb c = ring_colors_[static_cast<std::size_t>(i)];
+        rows << QString("%1 >   %2").arg(tr(labels[i - 1]),
+                                         c != 0 ? QString("( RGB-COLOR : %1 )").arg(c, 6, 16, QChar('0'))
+                                                : tr("( VORGABE )"));
+      }
+      rows << tr("FARBEN NICHT ÄNDERN") << tr("EXIT");
+      const int es = ChoiceDialog::ask(this, tr("FARBEN für HOROSKOP - RING FESTLEGEN ! ( ANKLICKEN )"),
+                                       {}, rows, 5);
+      if (es >= 0 && es <= 3) {
+        const Rgb have = ring_colors_[static_cast<std::size_t>(es + 1)];
+        const QColor start = have != 0 ? QColor((have >> 16) & 0xFF, (have >> 8) & 0xFF, have & 0xFF)
+                                       : QColor(Qt::white);
+        const QColor chosen = QColorDialog::getColor(start, this, tr(labels[es]));
+        if (chosen.isValid()) {
+          ring_colors_[static_cast<std::size_t>(es + 1)] = static_cast<Rgb>(chosen.rgb() & 0xFFFFFF);
+          QSettings().setValue(QString("view/ringColor%1").arg(es + 1),
+                               static_cast<uint>(ring_colors_[static_cast<std::size_t>(es + 1)]));
+          recompute();
+        }
+      } else if (es == 4) {
+        //RR zurück zu seinen Vorgabe-Farben
+        ring_colors_.fill(0);
+        QSettings settings;
+        for (int i = 1; i <= 4; ++i) {
+          settings.remove(QString("view/ringColor%1").arg(i));
+        }
+        recompute();
+      } else {
+        return;
+      }
+    }
+  });
   view->addSeparator();
   view->addAction(tr("PLANETEN-AUSWAHL…"), this, &MainWindow::planet_selection);
   view->addSeparator();
@@ -1043,7 +1135,7 @@ void MainWindow::build_ui() {
   connect(given_, &QLineEdit::editingFinished, this, apply_name);
   connect(surname_, &QLineEdit::editingFinished, this, apply_name);
   // recompute on every change like the original recalculated per screen
-  connect(date_, &QDateEdit::dateChanged, this, &MainWindow::recompute);
+  connect(date_, &QLineEdit::editingFinished, this, &MainWindow::recompute);
   connect(time_, &QTimeEdit::timeChanged, this, &MainWindow::recompute);
   connect(zone_, &QDoubleSpinBox::valueChanged, this, &MainWindow::recompute);
   connect(lon_, &QDoubleSpinBox::valueChanged, this, &MainWindow::recompute);
@@ -1064,9 +1156,9 @@ void MainWindow::build_ui() {
 
 ChartInput MainWindow::current_input() const {
   ChartInput in;
-  const QDate d = date_->date();
+  const QDate d = panel_date();
   const QTime t = time_->time();
-  CalendarDate local{d.day(), d.month(), d.year(), static_cast<double>(t.hour()),
+  CalendarDate local{d.day(), d.month(), astro_year(d), static_cast<double>(t.hour()),
                      t.minute() + t.second() / 60.0};
   // zone hours east of Greenwich lead back to UT by subtraction
   const double jd_ut = julian_day(local) - zone_->value() / 24.0;
@@ -1124,7 +1216,7 @@ MainWindow::PanelState MainWindow::panel_state() const {
   PanelState s;
   s.given = given_->text();
   s.surname = surname_->text();
-  s.date = date_->date();
+  s.date = panel_date();
   s.time = time_->time();
   s.zone = zone_->value();
   s.lon = lon_->value();
@@ -1163,7 +1255,7 @@ void MainWindow::restore_state(const PanelState& s) {
     const QSignalBlocker b14(transit_on_);
     const QSignalBlocker b15(tdate_);
     const QSignalBlocker b16(ttime_);
-    date_->setDate(s.date);
+    set_panel_date(s.date);
     time_->setTime(s.time);
     zone_->setValue(s.zone);
     lon_->setValue(s.lon);
@@ -1275,6 +1367,17 @@ void MainWindow::recompute() {
                   now.time().minute() + now.time().second() / 60.0};
     in.lon_deg_east = lon_->value();
     in.lat_deg = lat_->value();
+    //RR zeuhr, the taken over clock record ticks along
+    if (uhr_slot_ >= 0 && slots_[static_cast<std::size_t>(uhr_slot_)]) {
+      AafRecord& r = *slots_[static_cast<std::size_t>(uhr_slot_)];
+      r.day = in.date_ut.day;
+      r.month = in.date_ut.month;
+      r.year = in.date_ut.year;
+      r.hour = static_cast<int>(in.date_ut.hour);
+      r.minute = static_cast<int>(in.date_ut.minute);
+      r.second = static_cast<int>((in.date_ut.minute - r.minute) * 60.0 + 0.5);
+      r.zone = "00hE00:00";
+    }
   } else {
     in = current_input();
   }
@@ -1313,6 +1416,8 @@ void MainWindow::recompute() {
 
   // the chart data block for the left margin of the paper, like bes11
   WheelOptions wopt;
+  wopt.ring_colors = ring_colors_;
+  wopt.outer_color = outer_color_;
   wopt.emphasis = emphasis_;
   if (chords_set_) {
     wopt.chord_divisor = chords_;
@@ -1636,7 +1741,7 @@ void MainWindow::apply_moment(double jd_ut, const QString& label, bool solar_slo
   const QSignalBlocker b1(date_);
   const QSignalBlocker b2(time_);
   const QSignalBlocker b3(zone_);
-  date_->setDate(QDate(d.year, d.month, d.day));
+  set_panel_date(QDate(qdate_year(d.year), d.month, d.day));
   time_->setTime(QTime(seconds / 3600, (seconds / 60) % 60, seconds % 60));
   // the found moment is Universal Time
   zone_->setValue(0.0);
@@ -1662,6 +1767,7 @@ void MainWindow::show_solar(int year) {
 }
 
 void MainWindow::show_clock() {
+  clock_scripted_ = true;
   clock_action_->setChecked(true);
 }
 
@@ -2237,7 +2343,14 @@ void MainWindow::orb_settings() {
   appa->addItem(tr("Apparent 2 (mit Aberration)"), 2);
   appa->addItem(tr("Wahre (geometrische)"), 3);
   appa->setCurrentIndex(std::clamp(konsta_.appa, 1, 3) - 1);
+  //RR Bei DOPPELKREIS für ÄUßERE SYMBOLE Die FARBE FESTLEGEN !
+  auto* outer = new QComboBox(&dialog);
+  outer->addItem(tr("ROT"), 1);
+  outer->addItem(tr("SCHWARZ"), 2);
+  outer->addItem(tr("BLAU"), 3);
+  outer->setCurrentIndex(std::clamp(outer_color_, 1, 3) - 1);
   form->addRow(tr("Längen-Modus"), appa);
+  form->addRow(tr("Äußere Symbole (Doppelkreis)"), outer);
   form->addRow(tr("Orbis-Faktor"), orb);
   form->addRow(tr("Maximaler Teiler"), divisors);
   form->addRow(equal);
@@ -2259,6 +2372,34 @@ void MainWindow::orb_settings() {
                           2 * weights->frameWidth() + weights->horizontalScrollBar()->sizeHint().height());
   auto* wlabel = new QLabel(tr("Planeten-Gewichte in Prozent, 0 schaltet einen Punkt stumm."), &dialog);
   wlabel->setWordWrap(true);
+  //RR ORBES der ASPEKTE EINZELN VORGEBEN ?, the orbe row of orbis_asp,
+  // his default is ORB = 12°/TEILER, mirror and midpoints behind it
+  auto* orbs = new QTableWidget(1, 14, &dialog);
+  QStringList orb_heads;
+  for (int i = 1; i <= 12; ++i) {
+    orb_heads << QString::number(i);
+  }
+  orb_heads << tr("Spiegel") << tr("Halbs.");
+  orbs->setHorizontalHeaderLabels(orb_heads);
+  orbs->verticalHeader()->setVisible(false);
+  {
+    AspectSettings shown = aspect_settings_;
+    if (shown.orbe[1] == 0.0) {
+      shown.preset_equal_orbs();
+    }
+    for (int i = 1; i <= 14; ++i) {
+      orbs->setItem(0, i - 1,
+                    new QTableWidgetItem(QString::number(shown.orbe[static_cast<std::size_t>(i)] * kRadToDeg,
+                                                         'g', 4)));
+    }
+  }
+  orbs->resizeColumnsToContents();
+  orbs->setFixedHeight(orbs->horizontalHeader()->sizeHint().height() + orbs->rowHeight(0) +
+                       2 * orbs->frameWidth() + orbs->horizontalScrollBar()->sizeHint().height());
+  auto* olabel = new QLabel(tr("Aspekt-Orbes in Grad je Teiler, selbst definiert. Sie wirken, wenn "
+                               "'Orbes gleicher Wahrscheinlichkeit' eingeschaltet ist."),
+                            &dialog);
+  olabel->setWordWrap(true);
   auto* save = new QCheckBox(tr("Als konsta.int neben den Daten speichern"), &dialog);
   auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
   connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
@@ -2266,6 +2407,8 @@ void MainWindow::orb_settings() {
   v->addLayout(form);
   v->addWidget(weights);
   v->addWidget(wlabel);
+  v->addWidget(orbs);
+  v->addWidget(olabel);
   v->addWidget(save);
   v->addWidget(buttons);
   if (dialog.exec() != QDialog::Accepted) {
@@ -2275,7 +2418,15 @@ void MainWindow::orb_settings() {
   aspect_settings_.divisors = divisors->value();
   aspect_settings_.equal_probability = equal->isChecked();
   if (aspect_settings_.equal_probability) {
+    // the edited row wins over the preset, empty cells keep the preset
     aspect_settings_.preset_equal_orbs();
+    for (int i = 1; i <= 14; ++i) {
+      bool ok = false;
+      const double deg = orbs->item(0, i - 1)->text().replace(',', '.').toDouble(&ok);
+      if (ok && deg > 0.0 && deg <= 30.0) {
+        aspect_settings_.orbe[static_cast<std::size_t>(i)] = deg * kDegToRad;
+      }
+    }
   }
   for (int slot = 1; slot <= 14; ++slot) {
     bool ok = false;
@@ -2285,6 +2436,8 @@ void MainWindow::orb_settings() {
     }
   }
   fixpunkt_ = fix_on->isChecked() ? fix_deg->value() * kDegToRad : -1.0;
+  outer_color_ = outer->currentData().toInt();
+  QSettings().setValue("view/outerColor", outer_color_);
   konsta_.appa = appa->currentData().toInt();
   konsta_.appa_name = konsta_.appa == 1 ? "App.1" : (konsta_.appa == 2 ? "App.2" : "Wahre");
   if (save->isChecked()) {
@@ -3184,7 +3337,7 @@ void MainWindow::rise_set() {
   dialog.setWindowTitle(tr("Aufgang, Meridian-Durchgang, Untergang"));
   auto* v = new QVBoxLayout(&dialog);
   auto* top = new QHBoxLayout();
-  auto* when = new QDateEdit(date_->date(), &dialog);
+  auto* when = new QDateEdit(panel_date(), &dialog);
   when->setCalendarPopup(true);
   when->setDisplayFormat("dd.MM.yyyy");
   auto* mode = new QComboBox(&dialog);
@@ -3250,7 +3403,7 @@ void MainWindow::eclipse_table() {
   dialog.setWindowTitle(tr("Neumond, Vollmond und Finsternisse"));
   auto* v = new QVBoxLayout(&dialog);
   auto* top = new QHBoxLayout();
-  auto* when = new QDateEdit(date_->date(), &dialog);
+  auto* when = new QDateEdit(panel_date(), &dialog);
   when->setCalendarPopup(true);
   when->setDisplayFormat("dd.MM.yyyy");
   auto* run = new QPushButton(tr("Rechnen"), &dialog);
@@ -3624,7 +3777,7 @@ void MainWindow::septar_chart() {
   const int fa = unit->currentData().toInt();
   const int sen = static_cast<int>(std::trunc(age->value() / vp / fa)) + 1;
   const SearchContext ctx = make_context();
-  const int year = date_->date().year() + sen - 1;
+  const int year = astro_year(panel_date()) + sen - 1;
   const LongitudeCrossing hit = solar_return(ctx.base.date_ut, last_chart_->b[body::kSun].el, year, ctx);
   if (!hit.ok) {
     banner_->set_record(tr("Kein Septar gefunden"));
@@ -3955,7 +4108,7 @@ void MainWindow::ingress_table() {
 
 void MainWindow::combin_chart() {
   const auto r = choose_record(tr("Combin-Datensatz wählen"));
-  if (!r || (r->year < 1 && r->jd <= 0.0)) {
+  if (!r || (r->day <= 0 && r->jd <= 0.0)) {
     return;
   }
   // the a14 mean of moment and place lands in the panel as one chart
@@ -4272,6 +4425,7 @@ void MainWindow::clear_slots() {
   active_slot_ = -1;
   active_solar_ = -1;
   active_is_solar_ = false;
+  uhr_slot_ = -1;
   update_slot_actions();
   update_solar_actions();
   reset_views();
@@ -4396,6 +4550,117 @@ void MainWindow::vorgaben_ephemeride() {
         return;
     }
   }
+}
+
+// ported from mehrf_aus and mehrf_a, F9 captures the sheet twice and
+// prints both half size on one page
+void MainWindow::double_print() {
+  if (double_buffer_.size() < 2) {
+    double_buffer_.push_back(classic_export_list());
+  }
+  if (double_buffer_.size() < 2) {
+    QMessageBox::information(this, tr("DOPPEL-AUSDRUCK"),
+                             tr("1. BILD GESPEICHERT !\nZweites Horoskop einstellen, dann wieder F9."));
+    return;
+  }
+  //RR WEITER = DRUCKEN | DOPPELBILD - SPEICHER LÖSCHEN
+  const int es = ChoiceDialog::ask(this, tr("DOPPELBILD AUSDRUCKEN"), {},
+                                   {tr("WEITER = DRUCKEN"), tr("DOPPELBILD - SPEICHER LÖSCHEN"),
+                                    tr("ABBRUCH")});
+  if (es == 1) {
+    double_buffer_.clear();
+    return;
+  }
+  if (es != 0) {
+    return;
+  }
+  QPrinter printer;
+  printer.setPageOrientation(QPageLayout::Landscape);
+  QPrintDialog dialog(&printer, this);
+  if (dialog.exec() != QDialog::Accepted) {
+    return;
+  }
+  QPainter p(&printer);
+  const QRectF page = printer.pageRect(QPrinter::DevicePixel);
+  //RR mehrf_a, zwei Halbbilder nebeneinander auf einer Seite
+  const QRectF left(page.x(), page.y(), page.width() / 2.0, page.height());
+  const QRectF right(page.x() + page.width() / 2.0, page.y(), page.width() / 2.0, page.height());
+  paint_fitted(p, double_buffer_[0], left);
+  paint_fitted(p, double_buffer_[1], right);
+  double_buffer_.clear();
+}
+
+// ported from mainkont, the parameter panel of his main screen as one
+// overview box, every line a live value
+void MainWindow::vorgaben_overview() {
+  QDialog dialog(this);
+  //RR Parameter - Einstellungen = VORGABEN
+  dialog.setWindowTitle(tr("Parameter - Einstellungen = VORGABEN"));
+  auto* row = new QHBoxLayout(&dialog);
+  row->setContentsMargins(18, 16, 18, 16);
+  row->setSpacing(28);
+  const auto head = [](const QString& s) { return theme::heading_span(s) + "<br>"; };
+  const ClassicSheetText sheet = classic_sheet_text();
+  const ChartSettings s = current_settings();
+  QString left;
+  left += head(tr("Name :")) + QString::fromStdString(sheet.name).toHtmlEscaped() + "<br>";
+  left += head(tr("Ort :")) + QString::fromStdString(sheet.place).toHtmlEscaped() + "<br>";
+  left += QString::fromStdString(sheet.lon).toHtmlEscaped() + "<br>" +
+          QString::fromStdString(sheet.lat).toHtmlEscaped() + "<br><br>";
+  left += QString::fromStdString(sheet.date).toHtmlEscaped() + "<br>" +
+          QString::fromStdString(sheet.ut).toHtmlEscaped() + "<br><br>";
+  if (!record_.comment.empty()) {
+    left += head(tr("BEM:")) + QString::fromStdString(record_.comment).toHtmlEscaped() + "<br><br>";
+  }
+  left += head(tr("HÄUSER : %1").arg(houses_->currentText()));
+  left += "<br>" + head(QString::fromStdString(sheet.mode));
+  //RR Ebene : RADIX
+  left += head(tr("Ebene : %1").arg(clock_action_ != nullptr && clock_action_->isChecked() ? "UHR" : "RADIX"));
+  QString mid;
+  mid += head(tr("PARAM. Ephemeride:"));
+  mid += tr("Ekl.Länge: %1").arg(QString::fromStdString(konsta_.appa_name.empty() ? "App.1" : konsta_.appa_name)) + "<br>";
+  mid += (parallax_->isChecked() ? tr("Mit Parallaxe") : tr("Ohne Parallaxe")) + QString("<br>");
+  mid += (true_node_->isChecked() ? tr("Wahrer Mondknoten") : tr("Mittl. Mondknoten")) + QString("<br>");
+  mid += (true_apogee_->isChecked() ? tr("Wahres Apogäum") : tr("Mittl. Apogäum")) + QString("<br><br>");
+  QStringList extra;
+  if (extras_->isChecked()) {
+    extra << "CH QU XE";
+  }
+  if (hamburg_->isChecked()) {
+    extra << tr("HAMBURGER");
+  }
+  if (apogee_show_->isChecked()) {
+    extra << "AG";
+  }
+  mid += head(tr("Zusatz-Plan:")) + (extra.isEmpty() ? tr("KEINE") : extra.join("  ")) + "<br><br>";
+  mid += head(tr("PARAM. Horoskop:"));
+  mid += tr("Orbis-Faktor = %1").arg(aspect_settings_.orb) + "<br>";
+  mid += (aspect_settings_.equal_probability ? tr("Aspekt-Orbes : Selbst definiert")
+                                             : tr("Orbes nach HORCOM-Zählung")) + QString("<br>");
+  mid += tr("Max. Teiler : %1").arg(aspect_settings_.divisors) + "<br>";
+  //RR Beginn Horoskop : Aszendent
+  mid += tr("Beginn Horoskop : Aszendent") + QString("<br>");
+  mid += (fixpunkt_ >= 0.0 ? tr("Fixpunkt : %1°").arg(fixpunkt_ * kRadToDeg, 0, 'f', 2)
+                           : tr("Kein Fixpunkt")) + QString("<br>");
+  mid += (konsta_.entf == 1 ? tr("Entfernungen : prozentual") : tr("Entfernungen : absolut in AE"));
+  QString right;
+  right += head(tr("Daten-Datei:"));
+  if (data_file_.isEmpty()) {
+    right += tr("keine") + QString("<br>");
+  } else {
+    right += QFileInfo(data_file_).fileName().toHtmlEscaped() + "<br>";
+    right += tr("Anzahl Dats.: %1").arg(data_count_) + "<br>";
+  }
+  right += "<br>" + head(tr("Auflösung:"));
+  right += QString("X:Y = %1: %2").arg(width()).arg(height()) + "<br><br>";
+  right += head(tr("Farbe :")) + (theme::dark_now() ? tr("Nachthimmel") : tr("Weiß"));
+  for (const QString& text : {left, mid, right}) {
+    auto* label = new QLabel(text, &dialog);
+    label->setTextFormat(Qt::RichText);
+    label->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    row->addWidget(label, 1);
+  }
+  dialog.exec();
 }
 
 // ported from hausw
@@ -4708,7 +4973,8 @@ ChartInput MainWindow::record_input(const AafRecord& r) const {
 }
 
 bool MainWindow::set_partner(const AafRecord& r) {
-  if (r.year < 1 && r.jd <= 0.0) {
+  // an empty record has no day, years before Christ are welcome
+  if (r.day <= 0 && r.jd <= 0.0) {
     return false;
   }
   const ChartInput pin = record_input(r);
@@ -4788,11 +5054,6 @@ void MainWindow::preset_chart(const AafRecord& r, bool parallax, bool true_node)
 }
 
 void MainWindow::apply_record(const AafRecord& r, bool claim_slot) {
-  if (r.year < 1) {
-    QMessageBox::information(this, "HORCOM",
-                             tr("Jahre vor 1 n.Chr. berechnet derzeit nur das Kommandozeilenwerkzeug."));
-    return;
-  }
   record_ = r;
   // whatever becomes current also lives in a slot like his SATZ arrays,
   // a reactivated SOLAR snapshot leaves the radix slots untouched
@@ -4810,7 +5071,7 @@ void MainWindow::apply_record(const AafRecord& r, bool claim_slot) {
   const QSignalBlocker b3(zone_);
   const QSignalBlocker b4(lon_);
   const QSignalBlocker b5(lat_);
-  date_->setDate(QDate(r.year, r.month, r.day));
+  set_panel_date(QDate(qdate_year(r.year), r.month, r.day));
   time_->setTime(QTime(r.hour, r.minute, r.second));
   // zone strings like 01hE00:00 mean the clock is zone time, east leads
   double zone_hours = 0.0;
@@ -4831,12 +5092,15 @@ void MainWindow::refresh_record_label() {
   // the panel name fields mirror the record without firing edits back
   given_->setText(QString::fromStdString(record_.given).trimmed());
   surname_->setText(QString::fromStdString(record_.surname).trimmed());
-  const QDate d = date_->date();
+  const QDate d = panel_date();
+  const int astro = astro_year(d);
+  //RR vC, die historische Zählung der Datensatz-Liste
+  const QString year = astro > 0 ? QString::number(astro) : QString("%1 vC").arg(1 - astro);
   record_label_ = QString("%1 %2   %3.%4.%5")
                       .arg(QString::fromStdString(record_.surname), QString::fromStdString(record_.given))
                       .arg(d.day(), 2, 10, QChar('0'))
                       .arg(d.month(), 2, 10, QChar('0'))
-                      .arg(d.year());
+                      .arg(year);
   banner_->set_record(record_label_.trimmed());
 }
 
@@ -4855,11 +5119,6 @@ void MainWindow::open_statistics() {
     return;
   }
   const StatRecord& r = *dialog.chosen();
-  if (r.year < 1) {
-    QMessageBox::information(this, "HORCOM",
-                             tr("Jahre vor 1 n.Chr. berechnet derzeit nur das Kommandozeilenwerkzeug."));
-    return;
-  }
   // the store keeps the clock as the original computed it, treated as UT
   record_ = AafRecord{};
   record_.surname = r.name;
@@ -4869,7 +5128,7 @@ void MainWindow::open_statistics() {
   const QSignalBlocker b3(zone_);
   const QSignalBlocker b4(lon_);
   const QSignalBlocker b5(lat_);
-  date_->setDate(QDate(r.year, r.month, r.day));
+  set_panel_date(QDate(qdate_year(r.year), r.month, r.day));
   int seconds = static_cast<int>((r.hour * 60.0 + r.minute) * 60.0 + 0.5);
   if (seconds >= kSecondsPerDay) {
     seconds = kSecondsPerDay - 1;
@@ -4903,15 +5162,49 @@ void MainWindow::edit_record() {
   refresh_record_label();
 }
 
+//RR TT MM JJJJ und WENN V.CHR., 'V' EINGEBEN, the text field reads
+// both the vC marker and a signed astronomical year
+QDate MainWindow::panel_date() const {
+  const QString raw = date_->text().trimmed();
+  QString head = raw;
+  bool bc = false;
+  const qsizetype v = raw.indexOf('v', 0, Qt::CaseInsensitive);
+  if (v > 0) {
+    bc = true;
+    head = raw.left(v).trimmed();
+  }
+  const QStringList f = head.split('.', Qt::SkipEmptyParts);
+  if (f.size() != 3) {
+    return {};
+  }
+  int year = f[2].trimmed().toInt();
+  if (bc && year > 0) {
+    //RR 'V' macht aus dem historischen Jahr die astronomische Zählung
+    year = 1 - year;
+  }
+  return QDate(qdate_year(year), f[1].trimmed().toInt(), f[0].trimmed().toInt());
+}
+
+void MainWindow::set_panel_date(const QDate& d) {
+  const QSignalBlocker block(date_);
+  const int astro = astro_year(d);
+  if (astro > 0) {
+    date_->setText(QString::asprintf("%02d.%02d.%04d", d.day(), d.month(), astro));
+  } else {
+    //RR vC wie in seiner Datensatz-Liste
+    date_->setText(QString::asprintf("%02d.%02d.%d vC", d.day(), d.month(), 1 - astro));
+  }
+}
+
 // the record carries the person, the panel rules the moment and the
 // coordinates, the clock stays civil with the zone beside it
 AafRecord MainWindow::panel_record() const {
   AafRecord r = record_;
-  const QDate d = date_->date();
+  const QDate d = panel_date();
   const QTime t = time_->time();
   r.day = d.day();
   r.month = d.month();
-  r.year = d.year();
+  r.year = astro_year(d);
   r.hour = t.hour();
   r.minute = t.minute();
   r.second = t.second();
@@ -5094,15 +5387,40 @@ bool MainWindow::export_svg_to(const QString& path) {
   return true;
 }
 
-bool MainWindow::export_pdf_to(const QString& path) {
-  const DisplayList dl = classic_export_list();
+// builds the a11 A4 page over the current chart, the bes_big tables
+// and the wheel, empty when no chart is up
+DisplayList MainWindow::a4_export_list() const {
+  if (!last_chart_ || !last_aspects_) {
+    return {};
+  }
+  const MidpointResult mids = scan_midpoints(*last_chart_, current_settings(), aspect_settings_);
+  WheelOptions opt;
+  opt.ring_colors = ring_colors_;
+  opt.outer_color = outer_color_;
+  opt.heliocentric = current_settings().heliocentric;
+  opt.emphasis = emphasis_;
+  if (chords_set_) {
+    opt.chord_divisor = chords_;
+  }
+  return a4_print_sheet(*last_chart_, current_settings(), *last_aspects_, mids, classic_sheet_text(), opt);
+}
+
+//RR DRUCKER-GRAPHIK DIN A5 ? oder DIN A4 ?, the druck_graph_ein choice
+int MainWindow::ask_print_format() {
+  return ChoiceDialog::ask(this, tr("AUSGABE als DRUCKER-GRAPHIK ?"), {},
+                           {tr("DRUCKER-GRAPHIK  DIN A5 ?"), tr("DRUCKER-GRAPHIK  DIN A4 ?"),
+                            tr("ABBRUCH")});
+}
+
+bool MainWindow::export_pdf_to(const QString& path, bool big) {
+  const DisplayList dl = big ? a4_export_list() : classic_export_list();
   if (dl.items.empty()) {
     return false;
   }
   QPdfWriter writer(path);
   writer.setPageSize(QPageSize(QPageSize::A4));
-  //RR DIN A4, the wheel canvas lies landscape
-  writer.setPageOrientation(QPageLayout::Landscape);
+  //RR DIN A4 stands upright, the A5 wheel canvas lies landscape
+  writer.setPageOrientation(big ? QPageLayout::Portrait : QPageLayout::Landscape);
   writer.setResolution(300);
   writer.setTitle("HORCOM");
   QPainter p(&writer);
@@ -5115,22 +5433,30 @@ bool MainWindow::export_pdf_to(const QString& path) {
 }
 
 void MainWindow::export_pdf() {
+  const int format = ask_print_format();
+  if (format != 0 && format != 1) {
+    return;
+  }
   const QString path = QFileDialog::getSaveFileName(this, tr("Horoskop als PDF"), "horoskop.pdf", tr("PDF (*.pdf)"));
   if (path.isEmpty()) {
     return;
   }
-  if (!export_pdf_to(path)) {
+  if (!export_pdf_to(path, format == 1)) {
     QMessageBox::warning(this, "HORCOM", tr("Die PDF-Datei ließ sich nicht schreiben."));
   }
 }
 
 void MainWindow::print_chart() {
-  const DisplayList dl = classic_export_list();
+  const int format = ask_print_format();
+  if (format != 0 && format != 1) {
+    return;
+  }
+  const DisplayList dl = format == 1 ? a4_export_list() : classic_export_list();
   if (dl.items.empty()) {
     return;
   }
   QPrinter printer(QPrinter::HighResolution);
-  printer.setPageOrientation(QPageLayout::Landscape);
+  printer.setPageOrientation(format == 1 ? QPageLayout::Portrait : QPageLayout::Landscape);
   QPrintDialog dialog(&printer, this);
   //RR AUSGABE auf BILDSCHIRM oder als DRUCKER-GRAPHIK ?
   dialog.setWindowTitle(tr("Horoskop drucken"));
