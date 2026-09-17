@@ -967,7 +967,7 @@ DisplayList a4_print_sheet(const Chart& chart, const ChartSettings& s, const Asp
     }
     //RR Elemente F E L W with the little bars of elemhist1, the bars
     // wear the strong zeich_col shades, not the ring fills
-    y = 470.0;
+    y = 490.0;
     text(16.0, y, "Elemente:", 8.5);
     static constexpr const char* kElemTag[4] = {"F", "E", "L", "W"};
     static constexpr Rgb kBarColor[4] = {0xFF0000, 0x808000, 0x008080, 0x00C8C8};
@@ -988,14 +988,14 @@ DisplayList a4_print_sheet(const Chart& chart, const ChartSettings& s, const Asp
     }
   }
 
-  //RR bes_big_plan, the position list in its box
+  //RR bes_big_plan, the position list in its box, @boxn(1,610,212,960)
   {
-    box(1.0, 590.0, 212.0, 960.0);
+    box(1.0, 610.0, 212.0, 960.0);
     const char* mode = s.apparent == ApparentMode::kLightTime             ? "(App1)"
                        : s.apparent == ApparentMode::kLightTimeAberration ? "(App2)"
                                                                           : "(Wahr)";
-    text(18.0, 604.0, std::string("Ekl.L\xC3\xA4nge:") + mode + "   Vel.", 9.0);
-    double y = 604.0;
+    text(18.0, 624.0, std::string("Ekl.L\xC3\xA4nge:") + mode + "   Vel.", 9.0);
+    double y = 624.0;
     for (int slot = 1; slot < body::kSlotCount; ++slot) {
       if (slot == body::kAscendant || slot == body::kMc) {
         continue;
@@ -1154,7 +1154,8 @@ DisplayList a4_print_sheet(const Chart& chart, const ChartSettings& s, const Asp
     }
   }
 
-  //RR drad2, the credit line at the page foot
+  //RR drad2, the credit line at the page foot with its separator box
+  line(1.0, 960.0, 639.0, 960.0);
   {
     Primitive credit;
     credit.kind = Primitive::Kind::kText;

@@ -58,6 +58,8 @@ class AafMaskDialog : public QDialog {
   QLineEdit* lon_deg_ = nullptr;
   QLineEdit* lon_min_ = nullptr;
   QLineEdit* lon_sec_ = nullptr;
+  QLineEdit* jd_ = nullptr;
+  double jd_seed_ = 0.0;
   QLineEdit* zone_ = nullptr;
   QLineEdit* dst_ = nullptr;
   QPlainTextEdit* com_ = nullptr;

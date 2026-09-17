@@ -87,7 +87,13 @@ AafMaskDialog::AafMaskDialog(AafRecord record, std::filesystem::path kommen, QWi
   //RR Standarddaten AAF-B
   auto* b = new QGroupBox(tr("Standarddaten AAF-B"), this);
   auto* bg = new QGridLayout(b);
-  bg->addWidget(new QLabel(tr("Breite  N/S grd min sek"), b), 0, 0);
+  //RR Juldatum, a typed value takes priority over date and time
+  bg->addWidget(new QLabel(tr("Juldatum"), b), 0, 0);
+  jd_seed_ = base_.jd;
+  jd_ = new QLineEdit(base_.jd > 0.0 ? QString::number(base_.jd, 'f', 5) : QString(), b);
+  jd_->setFixedWidth(160);
+  bg->addWidget(jd_, 0, 1);
+  bg->addWidget(new QLabel(tr("Breite  N/S grd min sek"), b), 1, 0);
   auto* breite = new QHBoxLayout();
   lat_ns_ = box(b, QChar(base_.lat_ns), 1, 0);
   lat_deg_ = box(b, QString::number(base_.lat_deg), 2, 89);
@@ -97,8 +103,8 @@ AafMaskDialog::AafMaskDialog(AafRecord record, std::filesystem::path kommen, QWi
     breite->addWidget(e);
   }
   breite->addStretch(1);
-  bg->addLayout(breite, 0, 1);
-  bg->addWidget(new QLabel(tr("Länge  E/W grd min sek"), b), 1, 0);
+  bg->addLayout(breite, 1, 1);
+  bg->addWidget(new QLabel(tr("Länge  E/W grd min sek"), b), 2, 0);
   auto* laenge = new QHBoxLayout();
   lon_ew_ = box(b, QChar(base_.lon_ew), 1, 0);
   lon_deg_ = box(b, QString::number(base_.lon_deg), 3, 180);
@@ -108,8 +114,8 @@ AafMaskDialog::AafMaskDialog(AafRecord record, std::filesystem::path kommen, QWi
     laenge->addWidget(e);
   }
   laenge->addStretch(1);
-  bg->addLayout(laenge, 1, 1);
-  bg->addWidget(new QLabel(tr("Zone (ZZD)"), b), 2, 0);
+  bg->addLayout(laenge, 2, 1);
+  bg->addWidget(new QLabel(tr("Zone (ZZD)"), b), 3, 0);
   auto* zonrow = new QHBoxLayout();
   //RR the AAF zone string, like 01hE00:00, east leads with its letter
   zone_ = new QLineEdit(QString::fromStdString(base_.zone), b);
@@ -119,7 +125,7 @@ AafMaskDialog::AafMaskDialog(AafRecord record, std::filesystem::path kommen, QWi
   dst_ = box(b, QString::fromStdString(base_.dst), 1, 0);
   zonrow->addWidget(dst_);
   zonrow->addStretch(1);
-  bg->addLayout(zonrow, 2, 1);
+  bg->addLayout(zonrow, 3, 1);
   v->addWidget(b);
 
   //RR Zusatzdaten AAF-C
@@ -216,6 +222,14 @@ AafRecord AafMaskDialog::record() const {
   if (r.day != base_.day || r.month != base_.month || r.year != base_.year || r.hour != base_.hour ||
       r.minute != base_.minute || r.second != base_.second) {
     r.jd = 0.0;
+  }
+  //RR ed$(11), a typed Juldatum takes priority over the clock fields
+  const QString jd_text = jd_->text().trimmed();
+  if (!jd_text.isEmpty()) {
+    const double typed = jd_text.toDouble();
+    if (typed > 0.0 && typed != jd_seed_) {
+      r.jd = typed;
+    }
   }
   return r;
 }
