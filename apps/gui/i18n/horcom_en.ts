@@ -337,14 +337,14 @@ KURZANL5.TXT) into the folder:
     <message>
         <location filename="../main_window.cpp" line="295" />
         <location filename="../main_window.cpp" line="1242" />
-        <location filename="../main_window.cpp" line="4205" />
+        <location filename="../main_window.cpp" line="4212" />
         <source>Heliozentrisch</source>
         <translation>Heliocentric</translation>
     </message>
     <message>
         <location filename="../main_window.cpp" line="296" />
         <location filename="../main_window.cpp" line="3770" />
-        <location filename="../main_window.cpp" line="4242" />
+        <location filename="../main_window.cpp" line="4249" />
         <source>Datum</source>
         <translation>Date</translation>
     </message>
@@ -853,7 +853,7 @@ KURZANL5.TXT) into the folder:
     </message>
     <message>
         <location filename="../main_window.cpp" line="794" />
-        <location filename="../main_window.cpp" line="4337" />
+        <location filename="../main_window.cpp" line="4344" />
         <source>Über HORCOM</source>
         <translation>About HORCOM</translation>
     </message>
@@ -2068,7 +2068,7 @@ The age point for the chart date stands at %2 = %3°</translation>
         <translation type="vanished">MIDPOINTS</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4338" />
+        <location filename="../main_window.cpp" line="4345" />
         <source>&lt;b&gt;horcom&lt;/b&gt;&lt;br&gt;Die C++ Neufassung von HORCOM,&lt;br&gt;geschrieben von Robert Rettig, 1989 bis 2010.&lt;br&gt;&lt;br&gt;Im Andenken an Robert Rettig, der all dies zuerst gebaut hat.&lt;br&gt;&lt;br&gt;In C++ neu geschrieben und betreut von Dominik Schwimmbeck.&lt;br&gt;GPL-3.0-or-later</source>
         <translation>&lt;b&gt;horcom&lt;/b&gt;&lt;br&gt;The C++ rewrite of HORCOM,&lt;br&gt;written by Robert Rettig, 1989 to 2010.&lt;br&gt;&lt;br&gt;In memory of Robert Rettig, who built all of this first.&lt;br&gt;&lt;br&gt;Rewritten in C++ and maintained by Dominik Schwimmbeck.&lt;br&gt;GPL-3.0-or-later</translation>
     </message>
@@ -2205,37 +2205,37 @@ The language applies from the next start.</translation>
         <translation>HORCOM data (*.dat);;AAF (*.aaf)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4223" />
+        <location filename="../main_window.cpp" line="4230" />
         <source>Sonntag</source>
         <translation>Sunday</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4223" />
+        <location filename="../main_window.cpp" line="4230" />
         <source>Montag</source>
         <translation>Monday</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4224" />
+        <location filename="../main_window.cpp" line="4231" />
         <source>Dienstag</source>
         <translation>Tuesday</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4224" />
+        <location filename="../main_window.cpp" line="4231" />
         <source>Mittwoch</source>
         <translation>Wednesday</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4225" />
+        <location filename="../main_window.cpp" line="4232" />
         <source>Donnerstag</source>
         <translation>Thursday</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4225" />
+        <location filename="../main_window.cpp" line="4232" />
         <source>Freitag</source>
         <translation>Friday</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4226" />
+        <location filename="../main_window.cpp" line="4233" />
         <source>Samstag</source>
         <translation>Saturday</translation>
     </message>
@@ -2463,92 +2463,98 @@ The language applies from the next start.</translation>
         <translation>Overwrite</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4178" />
+        <location filename="../main_window.cpp" line="4164" />
+        <location filename="../main_window.cpp" line="4176" />
+        <source>Die Sammlung ließ sich nicht lesen, nichts geschrieben.</source>
+        <translation>The collection could not be read, nothing was written.</translation>
+    </message>
+    <message>
+        <location filename="../main_window.cpp" line="4185" />
         <source>Speichern fehlgeschlagen.</source>
         <translation>Saving failed.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4208" />
+        <location filename="../main_window.cpp" line="4215" />
         <source>Topozentrisch</source>
         <translation>Topocentric</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4208" />
+        <location filename="../main_window.cpp" line="4215" />
         <source>Geozentrisch</source>
         <translation>Geocentric</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4211" />
+        <location filename="../main_window.cpp" line="4218" />
         <source>Name:</source>
         <translation>Name:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4212" />
+        <location filename="../main_window.cpp" line="4219" />
         <source>Ort:</source>
         <translation>Place:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4213" />
+        <location filename="../main_window.cpp" line="4220" />
         <source>Länge:</source>
         <translation>Long.:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4214" />
+        <location filename="../main_window.cpp" line="4221" />
         <source>Häusersp.</source>
         <translation>Houses</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4215" />
+        <location filename="../main_window.cpp" line="4222" />
         <source>Spiegelung:</source>
         <translation>Mirror:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4219" />
+        <location filename="../main_window.cpp" line="4226" />
         <source>STZ</source>
         <translation>ST</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4240" />
+        <location filename="../main_window.cpp" line="4247" />
         <source>Lä:</source>
         <translation>Lon:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4241" />
+        <location filename="../main_window.cpp" line="4248" />
         <source>Br:</source>
         <translation>Lat:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4267" />
+        <location filename="../main_window.cpp" line="4274" />
         <source>Horoskop als SVG</source>
         <translation>Chart as SVG</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4267" />
+        <location filename="../main_window.cpp" line="4274" />
         <source>SVG (*.svg)</source>
         <translation>SVG (*.svg)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4305" />
+        <location filename="../main_window.cpp" line="4312" />
         <source>Horoskop als PDF</source>
         <translation>Chart as PDF</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4305" />
+        <location filename="../main_window.cpp" line="4312" />
         <source>PDF (*.pdf)</source>
         <translation>PDF (*.pdf)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4310" />
+        <location filename="../main_window.cpp" line="4317" />
         <source>Die PDF-Datei ließ sich nicht schreiben.</source>
         <translation>The PDF file could not be written.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4323" />
+        <location filename="../main_window.cpp" line="4330" />
         <source>Horoskop drucken</source>
         <translation>Print chart</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4329" />
+        <location filename="../main_window.cpp" line="4336" />
         <source>Der Drucker nahm die Seite nicht an.</source>
         <translation>The printer did not accept the page.</translation>
     </message>

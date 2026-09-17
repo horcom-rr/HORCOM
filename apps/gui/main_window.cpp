@@ -4158,19 +4158,26 @@ void MainWindow::save_record() {
   if (aaf) {
     std::vector<AafRecord> records{r};
     if (append) {
-      if (const auto existing = read_aaf(path.toStdWString())) {
-        records = *existing;
-        records.push_back(r);
+      const auto existing = read_aaf(path.toStdWString());
+      if (!existing) {
+        // never overwrite a collection that would not read back
+        QMessageBox::warning(this, "HORCOM", tr("Die Sammlung ließ sich nicht lesen, nichts geschrieben."));
+        return;
       }
+      records = *existing;
+      records.push_back(r);
     }
     ok = write_aaf(path.toStdWString(), records);
   } else {
     std::vector<ChartRecord> records{dat_from_record(r)};
     if (append) {
-      if (const auto existing = read_chart_file(path.toStdWString())) {
-        records = *existing;
-        records.push_back(dat_from_record(r));
+      const auto existing = read_chart_file(path.toStdWString());
+      if (!existing) {
+        QMessageBox::warning(this, "HORCOM", tr("Die Sammlung ließ sich nicht lesen, nichts geschrieben."));
+        return;
       }
+      records = *existing;
+      records.push_back(dat_from_record(r));
     }
     ok = write_chart_file(path.toStdWString(), records);
   }
