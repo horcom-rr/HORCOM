@@ -359,7 +359,7 @@ void MainWindow::build_ui() {
   file->addAction(tr("Datensätze öffnen…"), QKeySequence::Open, this, &MainWindow::open_records);
   file->addAction(tr("Datensatz bearbeiten…"), QKeySequence(Qt::CTRL | Qt::Key_D), this, &MainWindow::edit_record);
   file->addAction(tr("Ort suchen…"), QKeySequence(Qt::CTRL | Qt::Key_L), this, &MainWindow::open_place);
-  file->addAction(tr("Als AAF speichern…"), QKeySequence::Save, this, &MainWindow::save_aaf);
+  file->addAction(tr("Datensatz speichern…"), QKeySequence::Save, this, &MainWindow::save_record);
   file->addAction(tr("Horoskop als SVG…"), this, &MainWindow::export_svg);
   //RR DRUCKER-GRAPHIK, the druck_graph_ein world over one shared painter
   file->addAction(tr("Horoskop als PDF…"), this, &MainWindow::export_pdf);
@@ -1585,21 +1585,9 @@ void MainWindow::aaf_to_dat() {
     return;
   }
   std::vector<ChartRecord> out;
+  out.reserve(records->size());
   for (const AafRecord& r : *records) {
-    const ChartInput in = record_input(r);
-    ChartRecord c;
-    c.day = in.date_ut.day;
-    c.month = in.date_ut.month;
-    c.year = in.date_ut.year;
-    c.hour = in.date_ut.hour;
-    c.minute = in.date_ut.minute;
-    c.lon = in.lon_deg_east;
-    c.lat = in.lat_deg;
-    c.name = r.surname.empty() ? r.given : r.surname + " " + r.given;
-    c.place = r.place;
-    //RR die Zeichenfolge "(JULIAN.)" wird unter BEMERKG. gespeichert
-    c.remark = r.calendar == Calendar::kJulian ? "(JULIAN.) " + r.comment : r.comment;
-    out.push_back(std::move(c));
+    out.push_back(dat_from_record(r));
   }
   if (!write_chart_file(std::filesystem::path(target.toStdWString()), out)) {
     QMessageBox::warning(this, "HORCOM", tr("Die HORCOM-Datei ließ sich nicht schreiben."));
@@ -3546,20 +3534,67 @@ std::optional<AafRecord> MainWindow::choose_record(const QString& title) {
   QDialog dialog(this);
   dialog.setWindowTitle(title);
   auto* v = new QVBoxLayout(&dialog);
+  //RR ALPHABETISCH, GEBURTSTAG, DATUM, the sort menu of his record screen
+  auto* order_row = new QHBoxLayout();
+  auto* order = new QComboBox(&dialog);
+  order->addItem(tr("Reihenfolge der Datei"), 0);
+  order->addItem(tr("Alphabetisch (Name, Vorname)"), 1);
+  order->addItem(tr("Alphabetisch (Vorname)"), 2);
+  order->addItem(tr("Geburtstag (Tag und Monat)"), 3);
+  order->addItem(tr("Datum"), 4);
+  order_row->addWidget(new QLabel(tr("Sortierung"), &dialog));
+  order_row->addWidget(order, 1);
   auto* list = new QListWidget(&dialog);
-  for (const AafRecord& r : records) {
-    list->addItem(QString("%1 %2   %3.%4.%5   %6")
-                      .arg(QString::fromStdString(r.surname), QString::fromStdString(r.given))
-                      .arg(r.day, 2, 10, QChar('0'))
-                      .arg(r.month, 2, 10, QChar('0'))
-                      .arg(r.year)
-                      .arg(QString::fromStdString(r.place)));
-  }
-  //RR das LÖSCHEN nicht mehr benötigter Datensätze
   list->setSelectionMode(QAbstractItemView::ExtendedSelection);
+  // every row keeps its file index, sorting only rearranges the view
+  const auto rebuild = [&records, list, order]() {
+    std::vector<std::size_t> idx(records.size());
+    for (std::size_t i = 0; i < idx.size(); ++i) {
+      idx[i] = i;
+    }
+    const int mode = order->currentData().toInt();
+    const auto alpha = [&records](std::size_t i, bool given_first) {
+      const AafRecord& r = records[i];
+      const std::string key = given_first ? r.given + " " + r.surname : r.surname + " " + r.given;
+      return QString::fromStdString(key).trimmed().toLower();
+    };
+    if (mode == 1 || mode == 2) {
+      std::stable_sort(idx.begin(), idx.end(), [&alpha, mode](std::size_t a, std::size_t b) {
+        return alpha(a, mode == 2) < alpha(b, mode == 2);
+      });
+    } else if (mode == 3) {
+      std::stable_sort(idx.begin(), idx.end(), [&records](std::size_t a, std::size_t b) {
+        return records[a].month * 100 + records[a].day < records[b].month * 100 + records[b].day;
+      });
+    } else if (mode == 4) {
+      std::stable_sort(idx.begin(), idx.end(), [&records](std::size_t a, std::size_t b) {
+        const AafRecord& ra = records[a];
+        const AafRecord& rb = records[b];
+        return (ra.year * 100 + ra.month) * 100 + ra.day < (rb.year * 100 + rb.month) * 100 + rb.day;
+      });
+    }
+    list->clear();
+    for (const std::size_t i : idx) {
+      const AafRecord& r = records[i];
+      auto* item = new QListWidgetItem(QString("%1 %2   %3.%4.%5   %6")
+                                           .arg(QString::fromStdString(r.surname), QString::fromStdString(r.given))
+                                           .arg(r.day, 2, 10, QChar('0'))
+                                           .arg(r.month, 2, 10, QChar('0'))
+                                           .arg(r.year)
+                                           .arg(QString::fromStdString(r.place)));
+      item->setData(Qt::UserRole, static_cast<qulonglong>(i));
+      list->addItem(item);
+    }
+    if (list->count() > 0) {
+      list->setCurrentRow(0);
+    }
+  };
+  connect(order, &QComboBox::currentIndexChanged, &dialog, rebuild);
+  rebuild();
+  //RR das LÖSCHEN nicht mehr benötigter Datensätze
   auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
   auto* erase = buttons->addButton(tr("Löschen"), QDialogButtonBox::ActionRole);
-  connect(erase, &QPushButton::clicked, &dialog, [this, &records, list, path]() {
+  connect(erase, &QPushButton::clicked, &dialog, [this, &records, list, path, rebuild]() {
     QList<QListWidgetItem*> sel = list->selectedItems();
     if (sel.isEmpty()) {
       return;
@@ -3568,35 +3603,23 @@ std::optional<AafRecord> MainWindow::choose_record(const QString& title) {
         QMessageBox::Yes) {
       return;
     }
-    std::vector<int> rows;
+    std::vector<std::size_t> rows;
     for (QListWidgetItem* item : sel) {
-      rows.push_back(list->row(item));
+      rows.push_back(item->data(Qt::UserRole).toULongLong());
     }
-    std::sort(rows.begin(), rows.end(), std::greater<int>());
-    for (int r : rows) {
-      records.erase(records.begin() + r);
-      delete list->takeItem(r);
+    std::sort(rows.begin(), rows.end(), std::greater<std::size_t>());
+    for (const std::size_t r : rows) {
+      records.erase(records.begin() + static_cast<std::ptrdiff_t>(r));
     }
+    rebuild();
     bool ok = false;
     if (path.endsWith(".aaf", Qt::CaseInsensitive)) {
       ok = write_aaf(std::filesystem::path(path.toStdWString()), records);
     } else {
       std::vector<ChartRecord> out;
+      out.reserve(records.size());
       for (const AafRecord& a : records) {
-        const ChartInput in = record_input(a);
-        ChartRecord c;
-        c.day = in.date_ut.day;
-        c.month = in.date_ut.month;
-        c.year = in.date_ut.year;
-        c.hour = in.date_ut.hour;
-        c.minute = in.date_ut.minute;
-        c.lon = in.lon_deg_east;
-        c.lat = in.lat_deg;
-        c.name = a.surname.empty() ? a.given : a.surname + " " + a.given;
-        c.place = a.place;
-        // the remark came through unchanged, the calendar flag included
-        c.remark = a.comment;
-        out.push_back(std::move(c));
+        out.push_back(dat_from_record(a));
       }
       ok = write_chart_file(std::filesystem::path(path.toStdWString()), out);
     }
@@ -3607,13 +3630,35 @@ std::optional<AafRecord> MainWindow::choose_record(const QString& title) {
   connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
   connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
   connect(list, &QListWidget::itemDoubleClicked, &dialog, &QDialog::accept);
+  v->addLayout(order_row);
   v->addWidget(list, 1);
   v->addWidget(buttons);
-  dialog.resize(560, 420);
-  if (dialog.exec() == QDialog::Accepted && list->currentRow() >= 0 && !records.empty()) {
-    return records[static_cast<std::size_t>(list->currentRow())];
+  dialog.resize(560, 440);
+  if (dialog.exec() == QDialog::Accepted && list->currentItem() != nullptr && !records.empty()) {
+    return records[list->currentItem()->data(Qt::UserRole).toULongLong()];
   }
   return std::nullopt;
+}
+
+// one 128 byte record from the exchange form, shared by the delete
+// path, the converter and the save dialog, the DAT clock is UT
+ChartRecord MainWindow::dat_from_record(const AafRecord& r) const {
+  const ChartInput in = record_input(r);
+  ChartRecord c;
+  c.day = in.date_ut.day;
+  c.month = in.date_ut.month;
+  c.year = in.date_ut.year;
+  c.hour = in.date_ut.hour;
+  c.minute = in.date_ut.minute;
+  c.lon = in.lon_deg_east;
+  c.lat = in.lat_deg;
+  c.name = r.surname.empty() ? r.given : r.surname + " " + r.given;
+  c.place = r.place;
+  //RR die Zeichenfolge "(JULIAN.)" wird unter BEMERKG. gespeichert
+  c.remark = (r.calendar == Calendar::kJulian && r.comment.find("(JULIAN.)") == std::string::npos)
+                 ? "(JULIAN.) " + r.comment
+                 : r.comment;
+  return c;
 }
 
 ChartInput MainWindow::record_input(const AafRecord& r) const {
@@ -3817,14 +3862,9 @@ void MainWindow::edit_record() {
   refresh_record_label();
 }
 
-void MainWindow::save_aaf() {
-  const QString path = QFileDialog::getSaveFileName(this, tr("Als AAF speichern"), "chart.aaf",
-                                                    tr("AAF (*.aaf)"), nullptr, QFileDialog::DontConfirmOverwrite);
-  if (path.isEmpty()) {
-    return;
-  }
-  // the record carries the person, the panel rules the moment and the
-  // coordinates, the clock stays civil with the zone beside it
+// the record carries the person, the panel rules the moment and the
+// coordinates, the clock stays civil with the zone beside it
+AafRecord MainWindow::panel_record() const {
   AafRecord r = record_;
   const QDate d = date_->date();
   const QTime t = time_->time();
@@ -3843,26 +3883,59 @@ void MainWindow::save_aaf() {
   to_dms(lon_->value(), r.lon_deg, r.lon_min, r.lon_sec);
   r.lon_ew = lon_->value() < 0 ? 'W' : 'E';
   r.jd = julian_day(current_input().date_ut);
-  std::vector<AafRecord> records{r};
+  return r;
+}
+
+//RR AKTUELLEN Datensatz EINTRAGEN ?, the save half of his DATEN-DATEI
+// EIN-AUSGABE, an existing collection grows, a new name starts one
+void MainWindow::save_record() {
+  QString name = QString::fromStdString(record_.surname).trimmed().toLower().replace(' ', '_');
+  if (name.isEmpty()) {
+    name = "horoskope";
+  }
+  const QString path = QFileDialog::getSaveFileName(this, tr("Datensatz speichern"), name + ".dat",
+                                                    tr("HORCOM Daten (*.dat);;AAF (*.aaf)"), nullptr,
+                                                    QFileDialog::DontConfirmOverwrite);
+  if (path.isEmpty()) {
+    return;
+  }
+  const AafRecord r = panel_record();
+  const bool aaf = path.endsWith(".aaf", Qt::CaseInsensitive);
+  bool append = false;
   if (QFile::exists(path)) {
     QMessageBox ask(this);
     ask.setWindowTitle("HORCOM");
     ask.setText(tr("Die Datei gibt es schon. Datensatz an die Sammlung anhängen?"));
-    auto* append = ask.addButton(tr("Anhängen"), QMessageBox::AcceptRole);
+    auto* append_button = ask.addButton(tr("Anhängen"), QMessageBox::AcceptRole);
     ask.addButton(tr("Überschreiben"), QMessageBox::DestructiveRole);
     auto* cancel = ask.addButton(QMessageBox::Cancel);
     ask.exec();
     if (ask.clickedButton() == cancel) {
       return;
     }
-    if (ask.clickedButton() == append) {
+    append = ask.clickedButton() == append_button;
+  }
+  bool ok = false;
+  if (aaf) {
+    std::vector<AafRecord> records{r};
+    if (append) {
       if (const auto existing = read_aaf(path.toStdWString())) {
         records = *existing;
         records.push_back(r);
       }
     }
+    ok = write_aaf(path.toStdWString(), records);
+  } else {
+    std::vector<ChartRecord> records{dat_from_record(r)};
+    if (append) {
+      if (const auto existing = read_chart_file(path.toStdWString())) {
+        records = *existing;
+        records.push_back(dat_from_record(r));
+      }
+    }
+    ok = write_chart_file(path.toStdWString(), records);
   }
-  if (!write_aaf(path.toStdWString(), records)) {
+  if (!ok) {
     QMessageBox::warning(this, "HORCOM", tr("Speichern fehlgeschlagen."));
   }
 }

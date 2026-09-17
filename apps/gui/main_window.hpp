@@ -137,7 +137,7 @@ class MainWindow : public QMainWindow {
   void transit_list();
   void ingress_table();
   void combin_chart();
-  void save_aaf();
+  void save_record();
   void export_svg();
   void print_chart();
   void export_pdf();
@@ -160,6 +160,8 @@ class MainWindow : public QMainWindow {
   [[nodiscard]] SearchContext make_context() const;
   [[nodiscard]] std::optional<AafRecord> choose_record(const QString& title);
   [[nodiscard]] ChartInput record_input(const AafRecord& r) const;
+  [[nodiscard]] ChartRecord dat_from_record(const AafRecord& r) const;
+  [[nodiscard]] AafRecord panel_record() const;
   bool set_partner(const AafRecord& r);
   QString record_label_;
   AafRecord record_;
