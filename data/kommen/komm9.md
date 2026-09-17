@@ -141,6 +141,8 @@ Ergebnisse,wie SOLARE usw. werden nach 30 Sek. gelöscht,da ja die Uhr weiter l�
 
 ## AR-DE aus EL-EB  und  EL-EB aus AR-DE
 
+*Anmerkung der Neufassung, in dieser Version sind diese Umrechnungen, ebenso LT aus UT, UT aus LT und die WINKEL-ZEIT-UMRECHNUNG, unter EPHEMERIDE im Punkt UMRECHNUNGEN ( ET, UT, JD, WINKEL ) zusammengefasst.*
+
 Dienen der Umwandlung eklipt. Koordinaten in äquat. Koordinaten und umgekehrt.
 
 LT aus UT ermittelt Orts-Zeit aus UT "UT aus LT" hat die umgekehrte Funktion.

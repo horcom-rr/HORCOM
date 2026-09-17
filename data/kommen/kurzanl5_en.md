@@ -54,6 +54,8 @@ After these necessary intermediate remarks, you can now do something new, e.g. l
 
 For this you go into the category "AUSWERTUNG" and then into the line "SOLAR-SEPTAR-LUNAR-PLANETARE-PERSONARE" and press RETURN, whereby "SOLAR-HOROSKOP" is chosen.
 
+*Note of this edition, in this version SOLAR, SEPTAR, LUNAR, PLANETAR and PERSONAR stand as separate menu entries under AUSWERTUNG, one click on SOLAR is enough.*
+
 After entering place and time via corresponding queries, after some computation time (it is computed very exactly with iteration) the SOLAR appears directly.
 
 Now you are no longer in the "RADIX LEVEL" but in the "SOLAR LEVEL", from which not all programs are any longer meaningful and are therefore partly switched inactive. The check mark in the category "EIN-AUSG." in the menu now also no longer stands under "RADIX-DATEN" but under "SOLAR.....-DATEN". So that you again have all programs available, you go back into the RADIX LEVEL by clicking, under RADIX-DATEN, the record that interests you. It then again has the check mark placed before it. Now look, in all peace, at the program titles under EPHEMERIDE, HOROSKOPE, AUSWERTUNG and DIVERSES exactly, so that you see what top-level headings there are.
@@ -87,6 +89,8 @@ If you want to overwrite already filled fields, always first delete these fields
 At the place you can define a PREFERRED PLACE, mostly probably your place of residence.
 
 Places that you might need again later you can enter into PLACE FILES and fetch again when needed.
+
+*Note of this edition, in this version places are searched and fetched from the PLACE FILES, entering your own places into a place file is not yet included.*
 
 PLACE files for most European countries are located on the system disc.
 

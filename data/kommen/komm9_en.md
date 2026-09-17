@@ -123,6 +123,8 @@ Results such as SOLARE etc. are deleted after 30 sec., since the clock keeps run
 
 ## AR-DE aus EL-EB  und  EL-EB aus AR-DE
 
+*Note of this edition, in this version these conversions, together with LT aus UT, UT aus LT and the WINKEL-ZEIT UMRECHNUNG, are gathered under EPHEMERIDE in the entry UMRECHNUNGEN ( ET, UT, JD, WINKEL ).*
+
 Serve for converting ecliptic coordinates into equatorial coordinates and vice versa.
 
 "LT aus UT" determines local time from UT; "UT aus LT" has the reverse function.

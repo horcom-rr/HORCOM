@@ -54,6 +54,8 @@ Nach diesen notwendigen Zwischenbemerkungen können Sie nun etwas neues machen,z
 
 Dazu gehen Sie in die Rubrik "AUSWERTUNG" und dann in die Zeile "SOLAR-SEPTAR-LUNAR-PLANETARE-PERSONARE" und drücken RETURN womit "SOLAR-HOROSKOP" gewählt ist.
 
+*Anmerkung der Neufassung, in dieser Version stehen SOLAR, SEPTAR, LUNAR, PLANETAR und PERSONAR als einzelne Menüpunkte unter AUSWERTUNG, ein Klick auf SOLAR genügt.*
+
 Nach Eingabe von Ort und Zeit über entsprechende Abfragen erscheint nach etwas Rechenzeit ( es wird sehr genau mit Iteration gerechnet ) direkt das SOLAR.
 
 Nun sind Sie nicht mehr in der "RADIX-EBENE" sondern in der "SOLAR-EBENE" von der aus nicht mehr alle Programme sinnvoll und daher teilweise inaktiv geschaltet sind.Das Häkchen in der Rubrik "EIN-AUSG." im Menü steht nun auch nicht mehr unter "RADIX-DATEN" sondern unter "SOLAR.....-DATEN" . Damit Sie wieder alle Programme zur Verfügung haben,gehen Sie wieder in die RADIX-EBENE indem Sie unter RADIX-DATEN den Sie interessierenden Datensatz anklicken.Der hat dann wieder das Häkchen vorangestellt. Schauen Sie sich nun in aller Ruhe die Programm-Titel unter EPHEMERIDE HOROSKOPE,AUSWERTUNG und DIVERSES genau an,damit Sie sehen was es an Oberbegriffen gibt.
@@ -87,6 +89,8 @@ Wollen Sie bereits gefüllte Felder überschreiben,immer vorher mit "ENTF" oder 
 Beim Ort können Sie einen VORZUGS-ORT festlegen,meist wohl Ihren Wohnort.
 
 Orte,die Sie eventuell später wieder brauchen,können Sie in ORTS-DATEIEN eingeben und bei Bedarf wieder holen.
+
+*Anmerkung der Neufassung, in dieser Version werden Orte aus den ORTS-DATEIEN gesucht und geholt, das Anlegen eigener Orte in eine Orts-Datei ist noch nicht enthalten.*
 
 ORTS-Dateien für die meisten europäischen Länder befinden sich auf der System-Disc.
 
