@@ -4,9 +4,12 @@
 
 #pragma once
 
+#include <QDate>
 #include <QMainWindow>
+#include <QTime>
 #include <filesystem>
 #include <optional>
+#include <vector>
 
 #include "horcom/chart/aspects.hpp"
 #include "horcom/chart/chart.hpp"
@@ -148,7 +151,49 @@ class MainWindow : public QMainWindow {
   void about();
 
  private:
+  /// One remembered step of the Eingabe panel, the Zurück and Vor
+  /// buttons walk these.
+  struct PanelState {
+    QString given;
+    QString surname;
+    QDate date;
+    QTime time;
+    double zone = 0.0;
+    double lon = 0.0;
+    double lat = 0.0;
+    int houses = 0;
+    bool parallax = false;
+    bool extras = false;
+    bool hamburg = false;
+    bool apogee = false;
+    bool true_node = false;
+    bool true_apogee = false;
+    bool helio = false;
+    bool transit_on = false;
+    QDate tdate;
+    QTime ttime;
+    AafRecord record;
+
+    bool operator==(const PanelState& o) const {
+      return given == o.given && surname == o.surname && date == o.date && time == o.time &&
+             zone == o.zone && lon == o.lon && lat == o.lat && houses == o.houses &&
+             parallax == o.parallax && extras == o.extras && hamburg == o.hamburg &&
+             apogee == o.apogee && true_node == o.true_node && true_apogee == o.true_apogee &&
+             helio == o.helio && transit_on == o.transit_on && tdate == o.tdate &&
+             ttime == o.ttime && record.surname == o.record.surname &&
+             record.given == o.record.given && record.place == o.record.place &&
+             record.comment == o.record.comment;
+    }
+  };
+
   void build_ui();
+  [[nodiscard]] PanelState panel_state() const;
+  void restore_state(const PanelState& s);
+  void track_history();
+  void flush_history();
+  void history_back();
+  void history_forward();
+  void update_history_actions();
   void wander_dialog(bool place);
   void return_list(bool lunar);
   void show_wheel(DisplayList dl);
@@ -233,6 +278,16 @@ class MainWindow : public QMainWindow {
   std::optional<Chart> partner_chart_;
   ChartInput partner_input_;
   QString partner_name_;
+  // the panel history, every settled change one step, capped in depth
+  std::vector<PanelState> back_;
+  std::vector<PanelState> forward_;
+  std::optional<PanelState> pending_;
+  PanelState current_state_;
+  bool state_init_ = false;
+  bool restoring_ = false;
+  QTimer* history_timer_ = nullptr;
+  QAction* back_action_ = nullptr;
+  QAction* forward_action_ = nullptr;
   QTableWidget* bodies_ = nullptr;
   QTableWidget* cusps_ = nullptr;
   QLabel* aspects_label_ = nullptr;

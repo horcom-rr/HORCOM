@@ -4,6 +4,7 @@
 
 #include "main_window.hpp"
 
+#include <QAction>
 #include <QActionGroup>
 #include <QApplication>
 #include <QScreen>
@@ -93,6 +94,11 @@ constexpr const char* kSignTag[12] = {"AR", "TA", "GM", "CN", "LE", "VI", "LI", 
 
 //RR Bei Uhr alle 15 sek neu
 constexpr int kClockRedrawMs = 15000;
+
+// a burst of edits settles into one history step after this pause
+constexpr int kHistorySettleMs = 800;
+// the panel history keeps this many steps
+constexpr std::size_t kHistoryDepth = 200;
 
 // splits decimal degrees into the AAF degree minute second fields
 void to_dms(double value, int& deg, int& min, int& sec) {
@@ -216,6 +222,32 @@ void MainWindow::build_ui() {
   input_dock->setFeatures(QDockWidget::DockWidgetMovable);
   auto* form_host = new QWidget(input_dock);
   auto* form = new QFormLayout(form_host);
+  // Zurück walks to the previous step, every settled panel change one
+  // step, Vor brings it back, so Zurück doubles as the undo key
+  back_action_ = new QAction(tr("◀ Zurück"), this);
+  back_action_->setShortcuts({QKeySequence::Back, QKeySequence::Undo});
+  back_action_->setToolTip(tr("Zum vorhergehenden Schritt (Alt+Links oder Strg+Z)"));
+  connect(back_action_, &QAction::triggered, this, &MainWindow::history_back);
+  addAction(back_action_);
+  forward_action_ = new QAction(tr("Vor ▶"), this);
+  forward_action_->setShortcuts({QKeySequence::Forward, QKeySequence::Redo});
+  forward_action_->setToolTip(tr("Schritt wiederherstellen (Alt+Rechts oder Strg+Y)"));
+  connect(forward_action_, &QAction::triggered, this, &MainWindow::history_forward);
+  addAction(forward_action_);
+  auto* nav_row = new QHBoxLayout();
+  auto* back_button = new QToolButton(form_host);
+  back_button->setDefaultAction(back_action_);
+  auto* forward_button = new QToolButton(form_host);
+  forward_button->setDefaultAction(forward_action_);
+  nav_row->addWidget(back_button);
+  nav_row->addWidget(forward_button);
+  nav_row->addStretch(1);
+  form->addRow(nav_row);
+  history_timer_ = new QTimer(this);
+  history_timer_->setSingleShot(true);
+  history_timer_->setInterval(kHistorySettleMs);
+  connect(history_timer_, &QTimer::timeout, this, &MainWindow::flush_history);
+  update_history_actions();
   // the person stands first like on his parameter screen, edits land
   // in the record and on the sheet
   given_ = new QLineEdit(form_host);
@@ -818,7 +850,139 @@ ChartSettings MainWindow::current_settings() const {
   return s;
 }
 
+MainWindow::PanelState MainWindow::panel_state() const {
+  PanelState s;
+  s.given = given_->text();
+  s.surname = surname_->text();
+  s.date = date_->date();
+  s.time = time_->time();
+  s.zone = zone_->value();
+  s.lon = lon_->value();
+  s.lat = lat_->value();
+  s.houses = houses_->currentIndex();
+  s.parallax = parallax_->isChecked();
+  s.extras = extras_->isChecked();
+  s.hamburg = hamburg_->isChecked();
+  s.apogee = apogee_show_->isChecked();
+  s.true_node = true_node_->isChecked();
+  s.true_apogee = true_apogee_->isChecked();
+  s.helio = helio_->isChecked();
+  s.transit_on = transit_on_->isChecked();
+  s.tdate = tdate_->date();
+  s.ttime = ttime_->time();
+  s.record = record_;
+  return s;
+}
+
+void MainWindow::restore_state(const PanelState& s) {
+  restoring_ = true;
+  {
+    const QSignalBlocker b1(date_);
+    const QSignalBlocker b2(time_);
+    const QSignalBlocker b3(zone_);
+    const QSignalBlocker b4(lon_);
+    const QSignalBlocker b5(lat_);
+    const QSignalBlocker b6(houses_);
+    const QSignalBlocker b7(parallax_);
+    const QSignalBlocker b8(extras_);
+    const QSignalBlocker b9(hamburg_);
+    const QSignalBlocker b10(apogee_show_);
+    const QSignalBlocker b11(true_node_);
+    const QSignalBlocker b12(true_apogee_);
+    const QSignalBlocker b13(helio_);
+    const QSignalBlocker b14(transit_on_);
+    const QSignalBlocker b15(tdate_);
+    const QSignalBlocker b16(ttime_);
+    date_->setDate(s.date);
+    time_->setTime(s.time);
+    zone_->setValue(s.zone);
+    lon_->setValue(s.lon);
+    lat_->setValue(s.lat);
+    houses_->setCurrentIndex(s.houses);
+    parallax_->setChecked(s.parallax);
+    extras_->setChecked(s.extras);
+    hamburg_->setChecked(s.hamburg);
+    apogee_show_->setChecked(s.apogee);
+    true_node_->setChecked(s.true_node);
+    true_apogee_->setChecked(s.true_apogee);
+    helio_->setChecked(s.helio);
+    transit_on_->setChecked(s.transit_on);
+    tdate_->setDate(s.tdate);
+    ttime_->setTime(s.ttime);
+    tdate_->setEnabled(s.transit_on);
+    ttime_->setEnabled(s.transit_on);
+  }
+  record_ = s.record;
+  current_state_ = s;
+  state_init_ = true;
+  recompute();
+  refresh_record_label();
+  restoring_ = false;
+  update_history_actions();
+}
+
+void MainWindow::track_history() {
+  if (restoring_) {
+    return;
+  }
+  const PanelState now = panel_state();
+  if (state_init_ && !(now == current_state_)) {
+    if (!pending_) {
+      pending_ = current_state_;
+      forward_.clear();
+    }
+    history_timer_->start();
+  }
+  current_state_ = now;
+  state_init_ = true;
+  update_history_actions();
+}
+
+void MainWindow::flush_history() {
+  history_timer_->stop();
+  if (!pending_) {
+    return;
+  }
+  back_.push_back(*pending_);
+  pending_.reset();
+  if (back_.size() > kHistoryDepth) {
+    back_.erase(back_.begin());
+  }
+  update_history_actions();
+}
+
+void MainWindow::history_back() {
+  flush_history();
+  if (back_.empty()) {
+    return;
+  }
+  forward_.push_back(panel_state());
+  const PanelState s = back_.back();
+  back_.pop_back();
+  restore_state(s);
+}
+
+void MainWindow::history_forward() {
+  flush_history();
+  if (forward_.empty()) {
+    return;
+  }
+  back_.push_back(panel_state());
+  const PanelState s = forward_.back();
+  forward_.pop_back();
+  restore_state(s);
+}
+
+void MainWindow::update_history_actions() {
+  if (back_action_ == nullptr || forward_action_ == nullptr) {
+    return;
+  }
+  back_action_->setEnabled(!back_.empty() || pending_.has_value());
+  forward_action_->setEnabled(!forward_.empty());
+}
+
 void MainWindow::recompute() {
+  track_history();
   // the running clock chart shows the moment itself, the panel keeps
   // its radix untouched
   const bool clock = clock_action_ != nullptr && clock_action_->isChecked();
