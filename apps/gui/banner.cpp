@@ -8,6 +8,8 @@
 #include <QLinearGradient>
 #include <QPainter>
 
+#include "theme.hpp"
+
 namespace horcom {
 
 namespace {
@@ -52,18 +54,23 @@ void Banner::paintEvent(QPaintEvent* /*event*/) {
   QPainter p(this);
   p.setRenderHint(QPainter::Antialiasing, true);
 
-  // the night sky
-  QLinearGradient sky(0, 0, 0, height());
-  sky.setColorAt(0.0, QColor(0x0B, 0x11, 0x23));
-  sky.setColorAt(0.7, QColor(0x15, 0x1E, 0x3A));
-  sky.setColorAt(1.0, QColor(0x10, 0x17, 0x2B));
-  p.fillRect(rect(), sky);
-  for (const Star& s : kStars) {
-    QColor c = s.warm == 1 ? QColor(0xFF, 0xE9, 0xB0) : s.warm == 2 ? QColor(0xCF, 0xE4, 0xFF) : QColor(0xFF, 0xFF, 0xFF);
-    c.setAlphaF(0.55 + 0.35 * (s.r > 1.0));
-    p.setPen(Qt::NoPen);
-    p.setBrush(c);
-    p.drawEllipse(QPointF(s.x * width(), s.y * height()), s.r, s.r);
+  // the night sky at night, plain paper on the white theme
+  const bool dark = theme::dark_now();
+  if (dark) {
+    QLinearGradient sky(0, 0, 0, height());
+    sky.setColorAt(0.0, QColor(0x0B, 0x11, 0x23));
+    sky.setColorAt(0.7, QColor(0x15, 0x1E, 0x3A));
+    sky.setColorAt(1.0, QColor(0x10, 0x17, 0x2B));
+    p.fillRect(rect(), sky);
+    for (const Star& s : kStars) {
+      QColor c = s.warm == 1 ? QColor(0xFF, 0xE9, 0xB0) : s.warm == 2 ? QColor(0xCF, 0xE4, 0xFF) : QColor(0xFF, 0xFF, 0xFF);
+      c.setAlphaF(0.55 + 0.35 * (s.r > 1.0));
+      p.setPen(Qt::NoPen);
+      p.setBrush(c);
+      p.drawEllipse(QPointF(s.x * width(), s.y * height()), s.r, s.r);
+    }
+  } else {
+    p.fillRect(rect(), QColor(0xF3, 0xF0, 0xE7));
   }
 
   // the logo and the name
@@ -75,7 +82,7 @@ void Banner::paintEvent(QPaintEvent* /*event*/) {
   title.setBold(true);
   title.setLetterSpacing(QFont::AbsoluteSpacing, 7.0);
   p.setFont(title);
-  p.setPen(QColor(0xFF, 0xFF, 0x00));
+  p.setPen(dark ? QColor(0xFF, 0xFF, 0x00) : QColor(0x00, 0x00, 0x00));
   p.drawText(QRect(66, 0, 260, height()), Qt::AlignVCenter | Qt::AlignLeft, "HORCOM");
 
   // the record, spoken on the green of his main menu panel
@@ -102,10 +109,10 @@ void Banner::paintEvent(QPaintEvent* /*event*/) {
   mono.setPixelSize(12);
   mono.setBold(true);
   p.setFont(mono);
-  p.setPen(QColor(0xE9, 0xE5, 0xD9));
+  p.setPen(dark ? QColor(0xE9, 0xE5, 0xD9) : QColor(0x00, 0x00, 0x00));
   p.drawText(QRect(0, 0, width() - 16, height()), Qt::AlignVCenter | Qt::AlignRight, info_);
 
-  p.setPen(QColor(0x23, 0x2D, 0x4A));
+  p.setPen(theme::paper_edge_color(dark));
   p.drawLine(0, height() - 1, width(), height() - 1);
 }
 
