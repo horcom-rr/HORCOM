@@ -11,6 +11,7 @@
 #include "horcom/chart/transit_search.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
+#include "horcom/time/sidereal.hpp"
 
 using namespace horcom;
 
@@ -274,6 +275,57 @@ TEST_CASE("the sun rises and sets on the solstice clock") {
   CHECK(set.hour * 60.0 + set.minute == doctest::Approx(19.0 * 60 + 17).epsilon(0.02));
   const CalendarDate noon = calendar_date(rs.jd_transit_ut);
   CHECK(noon.hour * 60.0 + noon.minute == doctest::Approx(11.0 * 60 + 15).epsilon(0.02));
+}
+
+TEST_CASE("the moon's clock closes on its own standard altitude") {
+  // the moon's depth once took asin of one over the distance in AU,
+  // far outside the domain, and the panel parallax rode into the
+  // coordinates on top. This pins the auf_unt behaviour, geocentric
+  // positions with the pm(2) standard altitude.
+  const SearchContext ctx = context();
+  const double jd0 = julian_day({21, 6, 2000, 12, 0.0});
+  const RiseSet rs = rise_transit_set(jd0, body::kMoon, false, ctx);
+  REQUIRE(rs.ok);
+  const double jde = std::floor(jd0 - 0.5) + 0.5;
+  for (const double jd : {rs.jd_rise_ut, rs.jd_transit_ut, rs.jd_set_ut}) {
+    CHECK(jd >= jde);
+    CHECK(jd < jde + 1.0);
+  }
+  // the geocentric moon at each found moment, altitude and hour angle
+  struct Sky {
+    double h_deg;
+    double h0_deg;
+    double hg_deg;
+  };
+  const auto sky = [&](double jd) {
+    ChartInput in = ctx.base;
+    in.date_ut = calendar_date(jd);
+    ChartSettings s = ctx.settings;
+    s.topocentric_parallax = false;
+    s.apparent = ApparentMode::kLightTime;
+    const Chart c = compute_chart(in, s, vsop(), eph());
+    REQUIRE(c.ok);
+    const double theta = gmst0_hours(jde) * kDegPerHour + 360.985647 * (jd - jde);
+    double hg = theta + ctx.base.lon_deg_east - norm_rad(c.b[body::kMoon].ar) * kRadToDeg;
+    hg = norm_deg(hg);
+    if (hg > 180.0) {
+      hg -= 360.0;
+    }
+    const double phi = ctx.base.lat_deg * kDegToRad;
+    const double de = c.b[body::kMoon].de;
+    const double h = std::asin(std::sin(phi) * std::sin(de) +
+                               std::cos(phi) * std::cos(hg * kDegToRad) * std::cos(de));
+    return Sky{h * kRadToDeg, 0.7275 * c.moon.parallax * kRadToDeg - 0.56666666, hg};
+  };
+  const Sky rise = sky(rs.jd_rise_ut);
+  CHECK(std::abs(rise.h_deg - rise.h0_deg) < 0.1);
+  const Sky set = sky(rs.jd_set_ut);
+  CHECK(std::abs(set.h_deg - set.h0_deg) < 0.1);
+  const Sky noon = sky(rs.jd_transit_ut);
+  CHECK(std::abs(noon.hg_deg) < 0.1);
+  // his standard depth stays close to the 0.125 start value he notes
+  CHECK(rise.h0_deg > 0.0);
+  CHECK(rise.h0_deg < 0.3);
 }
 
 TEST_CASE("the dynamogram sums arcs into its two curves") {

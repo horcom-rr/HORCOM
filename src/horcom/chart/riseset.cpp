@@ -58,9 +58,8 @@ DayPos position_at(double jd_ut, int slot, bool true_position, const SearchConte
     //RR GRAD
     out.h0 = -0.8333333;
   } else if (slot == body::kMoon) {
-    // the moon's depth follows its parallax of the moment
-    const double par = std::asin(1.0 / c.moon.r);
-    out.h0 = 0.7275 * par * kRadToDeg - 0.56666666;
+    //RR hh0 = 0.7275 * pm(2) * up - 0.56666666
+    out.h0 = 0.7275 * c.moon.parallax * kRadToDeg - 0.56666666;
   } else {
     out.h0 = -0.566667;
   }
@@ -70,8 +69,16 @@ DayPos position_at(double jd_ut, int slot, bool true_position, const SearchConte
 }  // namespace
 
 // ported from HORCOM auf_unt with auf_unt2 and auf_2
-RiseSet rise_transit_set(double jd_day_ut, int slot, bool true_position, const SearchContext& ctx) {
+RiseSet rise_transit_set(double jd_day_ut, int slot, bool true_position, const SearchContext& in_ctx) {
   RiseSet out;
+  //RR par = 2 //ohne Par.
+  // auf_unt forces its own modes, geocentric positions whatever the
+  // panel says, hrg! = 0, and appa& = 1 apparent or 3 true, the
+  // standard altitude carries the parallax instead
+  SearchContext ctx = in_ctx;
+  ctx.settings.topocentric_parallax = false;
+  ctx.settings.heliocentric = false;
+  ctx.settings.apparent = true_position ? ApparentMode::kTrue : ApparentMode::kLightTime;
   const double jde = std::floor(jd_day_ut - 0.5) + 0.5;
   const double lat = ctx.base.lat_deg;
   const double lon = ctx.base.lon_deg_east;
