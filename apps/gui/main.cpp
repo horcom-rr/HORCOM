@@ -21,6 +21,7 @@
 #include <QDateEdit>
 #include <QTranslator>
 
+#include "aaf_mask_dialog.hpp"
 #include "aspektarium_dialog.hpp"
 #include "choice_dialog.hpp"
 #include "kommen_dialog.hpp"
@@ -286,6 +287,34 @@ int main(int argc, char** argv) {
     horcom::RecordMaskDialog dialog(r, "EINGABE- und ANZEIGE-BOX | RADIX NR.1",
                                     horcom::RecordMaskDialog::Mode::kShow);
     dialog.grab().save(args[shot_mask + 1]);
+    return 0;
+  }
+  const int shot_aaf = args.indexOf("--shot-aaf");
+  if (shot_aaf >= 0 && shot_aaf + 1 < args.size()) {
+    horcom::AafRecord r;
+    r.surname = "MOZART";
+    r.given = "WOLFGANG AMADEUS";
+    r.sex = "m";
+    r.day = 27;
+    r.month = 1;
+    r.year = 1756;
+    r.hour = 19;
+    r.minute = 0;
+    r.second = 1;
+    r.place = "SALZBURG";
+    r.country = "A";
+    r.lat_deg = 47;
+    r.lat_min = 47;
+    r.lat_sec = 48;
+    r.lon_deg = 13;
+    r.lon_min = 3;
+    r.zone = "01hE00:00";
+    r.comment = "KORRIGIERT: 20H08 =19H UT";
+    r.source = "Pratl, Astro-Databank";
+    r.quality = "AA";
+    r.catchword = "Komponist";
+    horcom::AafMaskDialog dialog(r, data / "kommen");
+    dialog.grab().save(args[shot_aaf + 1]);
     return 0;
   }
   const int shot_kommen = args.indexOf("--shot-kommen");

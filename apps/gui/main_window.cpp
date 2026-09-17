@@ -81,6 +81,7 @@
 #include "horcom/data/statist.hpp"
 #include "horcom/render/linear.hpp"
 #include "horcom/render/svg.hpp"
+#include "aaf_mask_dialog.hpp"
 #include "choice_dialog.hpp"
 #include "horcom/data/record_order.hpp"
 #include "place_dialog.hpp"
@@ -4721,7 +4722,7 @@ void MainWindow::fetch_from_file() {
     }
     //RR EINGABE- und ANZEIGE-BOX | RADIX NR.n
     RecordMaskDialog mask((*records)[i], tr("EINGABE- und ANZEIGE-BOX | RADIX NR.%1").arg(slot + 1),
-                          RecordMaskDialog::Mode::kShow, this);
+                          RecordMaskDialog::Mode::kShow, data_dir_ / "kommen", this);
     if (mask.exec() != QDialog::Accepted) {
       continue;
     }
@@ -4855,12 +4856,34 @@ void MainWindow::new_records_entry() {
       }
       slot = 4;
     }
-    RecordMaskDialog mask(panel_record(), tr("EINGABE- und ANZEIGE-BOX | RADIX NR.%1").arg(slot + 1),
-                          RecordMaskDialog::Mode::kEntry, this);
-    if (mask.exec() != QDialog::Accepted) {
+    //RR a3, In welchem Daten-FORMAT EINGEBEN ?, the choice offered when
+    // an AAFDATEN folder is present, else the plain HORCOM box
+    int format = 0;
+    if (std::filesystem::exists(data_dir_.parent_path() / "aafdaten") ||
+        std::filesystem::exists(data_dir_ / "aafdaten")) {
+      format = ChoiceDialog::ask(this, tr("In welchem Daten-FORMAT EINGEBEN ?"), {},
+                                 {tr("HORCOM - Format"), tr("AAF-Format"), tr("ABBRUCH")});
+      if (format != 0 && format != 1) {
+        break;
+      }
+    }
+    std::optional<AafRecord> got;
+    if (format == 1) {
+      AafMaskDialog mask(panel_record(), data_dir_ / "kommen", this);
+      if (mask.exec() == QDialog::Accepted) {
+        got = mask.record();
+      }
+    } else {
+      RecordMaskDialog mask(panel_record(), tr("EINGABE- und ANZEIGE-BOX | RADIX NR.%1").arg(slot + 1),
+                            RecordMaskDialog::Mode::kEntry, data_dir_ / "kommen", this);
+      if (mask.exec() == QDialog::Accepted) {
+        got = mask.record();
+      }
+    }
+    if (!got) {
       break;
     }
-    set_slot(slot, mask.record(), true);
+    set_slot(slot, *got, true);
     entered = true;
     //RR WEITEREN Datensatz NEU EINGEBEN ?
     const int more = ChoiceDialog::ask(this, tr("NEU-EINGABE"), {tr("WEITEREN Datensatz NEU EINGEBEN ?")},
@@ -5154,17 +5177,14 @@ void MainWindow::open_aspektarium() {
   dialog.exec();
 }
 
+// ported from the Datensatz ÄNDERN button of aaf_box, the richer AAF
+// mask edits the whole record, all fields including the AAF extras
 void MainWindow::edit_record() {
-  std::vector<GermanCountry> countries;
-  if (const auto c = load_german_countries(data_dir_ / "laender.int")) {
-    countries = *c;
-  }
-  RecordDialog dialog(record_, countries, this);
+  AafMaskDialog dialog(panel_record(), data_dir_ / "kommen", this);
   if (dialog.exec() != QDialog::Accepted) {
     return;
   }
-  record_ = dialog.record();
-  refresh_record_label();
+  apply_record(dialog.record());
 }
 
 //RR TT MM JJJJ und WENN V.CHR., 'V' EINGEBEN, the text field reads

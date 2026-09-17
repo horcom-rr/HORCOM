@@ -13,6 +13,8 @@
 #include <QVBoxLayout>
 #include <cstdlib>
 
+#include "aaf_mask_dialog.hpp"
+
 namespace horcom {
 
 namespace {
@@ -30,8 +32,9 @@ QLineEdit* small_box(QWidget* parent, const QString& text, int chars, int max_va
 
 }  // namespace
 
-RecordMaskDialog::RecordMaskDialog(AafRecord record, const QString& title, Mode mode, QWidget* parent)
-    : QDialog(parent), base_(std::move(record)) {
+RecordMaskDialog::RecordMaskDialog(AafRecord record, const QString& title, Mode mode,
+                                   std::filesystem::path kommen, QWidget* parent)
+    : QDialog(parent), base_(std::move(record)), kommen_(std::move(kommen)) {
   //RR EINGABE- und ANZEIGE-BOX
   setWindowTitle(title);
   auto* v = new QVBoxLayout(this);
@@ -123,19 +126,43 @@ RecordMaskDialog::RecordMaskDialog(AafRecord record, const QString& title, Mode 
   row5->addWidget(ok);
   v->addLayout(row5);
 
+  auto* row6 = new QHBoxLayout();
+  //RR AAF - Format, the button that switches into the richer AAF box
+  if (!kommen_.empty()) {
+    auto* aaf = new QPushButton(tr("AAF-Format"), this);
+    connect(aaf, &QPushButton::clicked, this, &RecordMaskDialog::open_aaf_box);
+    row6->addWidget(aaf);
+  }
+  row6->addStretch(1);
   if (mode == Mode::kEntry) {
-    auto* row6 = new QHBoxLayout();
     auto* cancel = new QPushButton(tr("ABBRUCH"), this);
     connect(cancel, &QPushButton::clicked, this, &QDialog::reject);
     row6->addWidget(cancel);
-    row6->addStretch(1);
+  }
+  if (!kommen_.empty() || mode == Mode::kEntry) {
     v->addLayout(row6);
   }
   resize(760, 0);
   name_->setFocus();
 }
 
+// ported from the AAF-Format button of eing_box, it carries the current
+// fields into the richer AAF box, an accept there fills this box and
+// closes it so the fetch or entry flow takes the AAF edited record
+void RecordMaskDialog::open_aaf_box() {
+  AafMaskDialog dialog(record(), kommen_, this);
+  if (dialog.exec() != QDialog::Accepted) {
+    return;
+  }
+  aaf_result_ = dialog.record();
+  accept();
+}
+
 AafRecord RecordMaskDialog::record() const {
+  // the AAF box, when used, supplied the whole record already
+  if (aaf_result_) {
+    return *aaf_result_;
+  }
   AafRecord r = base_;
   const QString name = name_->text().trimmed();
   if (name != joined_name_) {

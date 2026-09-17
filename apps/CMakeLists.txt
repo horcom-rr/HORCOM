@@ -35,6 +35,8 @@ if(Qt6_FOUND)
     gui/kommen_dialog.hpp
     gui/aspektarium_dialog.cpp
     gui/aspektarium_dialog.hpp
+    gui/aaf_mask_dialog.cpp
+    gui/aaf_mask_dialog.hpp
     gui/banner.cpp
     gui/banner.hpp
     gui/choice_dialog.cpp

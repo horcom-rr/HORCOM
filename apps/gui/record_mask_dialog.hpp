@@ -5,6 +5,8 @@
 #pragma once
 
 #include <QDialog>
+#include <filesystem>
+#include <optional>
 
 #include "horcom/data/aaf.hpp"
 
@@ -30,13 +32,21 @@ class RecordMaskDialog : public QDialog {
 
   /// @param record the record shown and edited
   /// @param title  the window title, RADIX NR.n while fetching
-  RecordMaskDialog(AafRecord record, const QString& title, Mode mode, QWidget* parent = nullptr);
+  /// @param kommen the commentary folder, the AAF box opens its help
+  ///               there, empty hides the AAF-Format button
+  RecordMaskDialog(AafRecord record, const QString& title, Mode mode,
+                   std::filesystem::path kommen = {}, QWidget* parent = nullptr);
 
   /// @return the record with every edited field applied
   [[nodiscard]] AafRecord record() const;
 
  private:
+  void open_aaf_box();
+
   AafRecord base_;
+  std::filesystem::path kommen_;
+  // set when the AAF box supplied the record, record() returns it whole
+  std::optional<AafRecord> aaf_result_;
   QString joined_name_;
   QLineEdit* name_ = nullptr;
   QLineEdit* place_ = nullptr;
