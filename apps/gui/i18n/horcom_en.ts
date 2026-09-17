@@ -337,14 +337,14 @@ KURZANL5.TXT) into the folder:
     <message>
         <location filename="../main_window.cpp" line="295" />
         <location filename="../main_window.cpp" line="1242" />
-        <location filename="../main_window.cpp" line="4196" />
+        <location filename="../main_window.cpp" line="4205" />
         <source>Heliozentrisch</source>
         <translation>Heliocentric</translation>
     </message>
     <message>
         <location filename="../main_window.cpp" line="296" />
-        <location filename="../main_window.cpp" line="3768" />
-        <location filename="../main_window.cpp" line="4233" />
+        <location filename="../main_window.cpp" line="3770" />
+        <location filename="../main_window.cpp" line="4242" />
         <source>Datum</source>
         <translation>Date</translation>
     </message>
@@ -853,7 +853,7 @@ KURZANL5.TXT) into the folder:
     </message>
     <message>
         <location filename="../main_window.cpp" line="794" />
-        <location filename="../main_window.cpp" line="4328" />
+        <location filename="../main_window.cpp" line="4337" />
         <source>Über HORCOM</source>
         <translation>About HORCOM</translation>
     </message>
@@ -1449,7 +1449,7 @@ KURZANL5.TXT) into the folder:
     </message>
     <message>
         <location filename="../main_window.cpp" line="1848" />
-        <location filename="../main_window.cpp" line="3851" />
+        <location filename="../main_window.cpp" line="3860" />
         <source>Die Datei ließ sich nicht schreiben.</source>
         <translation>The file could not be written.</translation>
     </message>
@@ -2023,37 +2023,35 @@ The age point for the chart date stands at %2 = %3°</translation>
         <translation>Septar</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3764" />
+        <location filename="../main_window.cpp" line="3765" />
         <source>Reihenfolge der Datei</source>
         <translation>File order</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3765" />
         <source>Alphabetisch (Name, Vorname)</source>
-        <translation>Alphabetical (name, first name)</translation>
+        <translation type="vanished">Alphabetical (name, first name)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3766" />
         <source>Alphabetisch (Vorname)</source>
-        <translation>Alphabetical (first name)</translation>
+        <translation type="vanished">Alphabetical (first name)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3767" />
+        <location filename="../main_window.cpp" line="3769" />
         <source>Geburtstag (Tag und Monat)</source>
         <translation>Birthday (day and month)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3769" />
+        <location filename="../main_window.cpp" line="3771" />
         <source>Sortierung</source>
         <translation>Sort order</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3820" />
+        <location filename="../main_window.cpp" line="3829" />
         <source>Löschen</source>
         <translation>Delete</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3826" />
+        <location filename="../main_window.cpp" line="3835" />
         <source>%1 Datensätze aus der Datei löschen?</source>
         <translation>Delete %1 records from the file?</translation>
     </message>
@@ -2070,7 +2068,7 @@ The age point for the chart date stands at %2 = %3°</translation>
         <translation type="vanished">MIDPOINTS</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4329" />
+        <location filename="../main_window.cpp" line="4338" />
         <source>&lt;b&gt;horcom&lt;/b&gt;&lt;br&gt;Die C++ Neufassung von HORCOM,&lt;br&gt;geschrieben von Robert Rettig, 1989 bis 2010.&lt;br&gt;&lt;br&gt;Im Andenken an Robert Rettig, der all dies zuerst gebaut hat.&lt;br&gt;&lt;br&gt;In C++ neu geschrieben und betreut von Dominik Schwimmbeck.&lt;br&gt;GPL-3.0-or-later</source>
         <translation>&lt;b&gt;horcom&lt;/b&gt;&lt;br&gt;The C++ rewrite of HORCOM,&lt;br&gt;written by Robert Rettig, 1989 to 2010.&lt;br&gt;&lt;br&gt;In memory of Robert Rettig, who built all of this first.&lt;br&gt;&lt;br&gt;Rewritten in C++ and maintained by Dominik Schwimmbeck.&lt;br&gt;GPL-3.0-or-later</translation>
     </message>
@@ -2182,47 +2180,62 @@ The language applies from the next start.</translation>
         <translation>He&amp;lp</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4126" />
+        <location filename="../main_window.cpp" line="3766" />
+        <source>Alphabetisch (1., 2. und 3. Name)</source>
+        <translation>Alphabetical (1st, 2nd and 3rd name)</translation>
+    </message>
+    <message>
+        <location filename="../main_window.cpp" line="3767" />
+        <source>Alphabetisch (2. und 3. Name)</source>
+        <translation>Alphabetical (2nd and 3rd name)</translation>
+    </message>
+    <message>
+        <location filename="../main_window.cpp" line="3768" />
+        <source>Alphabetisch (nur 3. Name)</source>
+        <translation>Alphabetical (3rd name only)</translation>
+    </message>
+    <message>
+        <location filename="../main_window.cpp" line="4135" />
         <source>Datensatz speichern</source>
         <translation>Save record</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4127" />
+        <location filename="../main_window.cpp" line="4136" />
         <source>HORCOM Daten (*.dat);;AAF (*.aaf)</source>
         <translation>HORCOM data (*.dat);;AAF (*.aaf)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4214" />
+        <location filename="../main_window.cpp" line="4223" />
         <source>Sonntag</source>
         <translation>Sunday</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4214" />
+        <location filename="../main_window.cpp" line="4223" />
         <source>Montag</source>
         <translation>Monday</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4215" />
+        <location filename="../main_window.cpp" line="4224" />
         <source>Dienstag</source>
         <translation>Tuesday</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4215" />
+        <location filename="../main_window.cpp" line="4224" />
         <source>Mittwoch</source>
         <translation>Wednesday</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4216" />
+        <location filename="../main_window.cpp" line="4225" />
         <source>Donnerstag</source>
         <translation>Thursday</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4216" />
+        <location filename="../main_window.cpp" line="4225" />
         <source>Freitag</source>
         <translation>Friday</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4217" />
+        <location filename="../main_window.cpp" line="4226" />
         <source>Samstag</source>
         <translation>Saturday</translation>
     </message>
@@ -2406,23 +2419,23 @@ The language applies from the next start.</translation>
         <translation>Choose a record</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3993" />
-        <location filename="../main_window.cpp" line="4049" />
+        <location filename="../main_window.cpp" line="4002" />
+        <location filename="../main_window.cpp" line="4058" />
         <source>Jahre vor 1 n.Chr. berechnet derzeit nur das Kommandozeilenwerkzeug.</source>
         <translation>Years before 1 AD are currently computed only by the command line tool.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4033" />
+        <location filename="../main_window.cpp" line="4042" />
         <source>Statistik-Datei öffnen</source>
         <translation>Open statistics file</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4034" />
+        <location filename="../main_window.cpp" line="4043" />
         <source>HORCOM Statistik (*.STA *.sta)</source>
         <translation>HORCOM statistics (*.STA *.sta)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4040" />
+        <location filename="../main_window.cpp" line="4049" />
         <source>Die Statistik-Datei ließ sich nicht laden, fehlt die .PAR daneben?</source>
         <translation>The statistics file did not load, is its .PAR missing beside it?</translation>
     </message>
@@ -2435,107 +2448,107 @@ The language applies from the next start.</translation>
         <translation type="vanished">AAF (*.aaf)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4138" />
+        <location filename="../main_window.cpp" line="4147" />
         <source>Die Datei gibt es schon. Datensatz an die Sammlung anhängen?</source>
         <translation>The file already exists. Append the record to the collection?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4139" />
+        <location filename="../main_window.cpp" line="4148" />
         <source>Anhängen</source>
         <translation>Append</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4140" />
+        <location filename="../main_window.cpp" line="4149" />
         <source>Überschreiben</source>
         <translation>Overwrite</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4169" />
+        <location filename="../main_window.cpp" line="4178" />
         <source>Speichern fehlgeschlagen.</source>
         <translation>Saving failed.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4199" />
+        <location filename="../main_window.cpp" line="4208" />
         <source>Topozentrisch</source>
         <translation>Topocentric</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4199" />
+        <location filename="../main_window.cpp" line="4208" />
         <source>Geozentrisch</source>
         <translation>Geocentric</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4202" />
+        <location filename="../main_window.cpp" line="4211" />
         <source>Name:</source>
         <translation>Name:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4203" />
+        <location filename="../main_window.cpp" line="4212" />
         <source>Ort:</source>
         <translation>Place:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4204" />
+        <location filename="../main_window.cpp" line="4213" />
         <source>Länge:</source>
         <translation>Long.:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4205" />
+        <location filename="../main_window.cpp" line="4214" />
         <source>Häusersp.</source>
         <translation>Houses</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4206" />
+        <location filename="../main_window.cpp" line="4215" />
         <source>Spiegelung:</source>
         <translation>Mirror:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4210" />
+        <location filename="../main_window.cpp" line="4219" />
         <source>STZ</source>
         <translation>ST</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4231" />
+        <location filename="../main_window.cpp" line="4240" />
         <source>Lä:</source>
         <translation>Lon:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4232" />
+        <location filename="../main_window.cpp" line="4241" />
         <source>Br:</source>
         <translation>Lat:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4258" />
+        <location filename="../main_window.cpp" line="4267" />
         <source>Horoskop als SVG</source>
         <translation>Chart as SVG</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4258" />
+        <location filename="../main_window.cpp" line="4267" />
         <source>SVG (*.svg)</source>
         <translation>SVG (*.svg)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4296" />
+        <location filename="../main_window.cpp" line="4305" />
         <source>Horoskop als PDF</source>
         <translation>Chart as PDF</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4296" />
+        <location filename="../main_window.cpp" line="4305" />
         <source>PDF (*.pdf)</source>
         <translation>PDF (*.pdf)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4301" />
+        <location filename="../main_window.cpp" line="4310" />
         <source>Die PDF-Datei ließ sich nicht schreiben.</source>
         <translation>The PDF file could not be written.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4314" />
+        <location filename="../main_window.cpp" line="4323" />
         <source>Horoskop drucken</source>
         <translation>Print chart</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4320" />
+        <location filename="../main_window.cpp" line="4329" />
         <source>Der Drucker nahm die Seite nicht an.</source>
         <translation>The printer did not accept the page.</translation>
     </message>

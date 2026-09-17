@@ -3758,14 +3758,16 @@ std::optional<AafRecord> MainWindow::choose_record(const QString& title) {
   QDialog dialog(this);
   dialog.setWindowTitle(title);
   auto* v = new QVBoxLayout(&dialog);
-  //RR ALPHABETISCH, GEBURTSTAG, DATUM, the sort menu of his record screen
+  //RR ALPHABETISCH: 1.,2.und 3.NAME | 2.und 3.NAME | nur 3.NAME |
+  //RR GEBURTSTAG | DATUM, the sort dialog of his record screen
   auto* order_row = new QHBoxLayout();
   auto* order = new QComboBox(&dialog);
   order->addItem(tr("Reihenfolge der Datei"), 0);
-  order->addItem(tr("Alphabetisch (Name, Vorname)"), 1);
-  order->addItem(tr("Alphabetisch (Vorname)"), 2);
-  order->addItem(tr("Geburtstag (Tag und Monat)"), 3);
-  order->addItem(tr("Datum"), 4);
+  order->addItem(tr("Alphabetisch (1., 2. und 3. Name)"), 1);
+  order->addItem(tr("Alphabetisch (2. und 3. Name)"), 2);
+  order->addItem(tr("Alphabetisch (nur 3. Name)"), 3);
+  order->addItem(tr("Geburtstag (Tag und Monat)"), 4);
+  order->addItem(tr("Datum"), 5);
   order_row->addWidget(new QLabel(tr("Sortierung"), &dialog));
   order_row->addWidget(order, 1);
   auto* list = new QListWidget(&dialog);
@@ -3777,20 +3779,27 @@ std::optional<AafRecord> MainWindow::choose_record(const QString& title) {
       idx[i] = i;
     }
     const int mode = order->currentData().toInt();
-    const auto alpha = [&records](std::size_t i, bool given_first) {
+    // the name of his mask is one field of words, the alphabetical
+    // modes start the key at the first, second or third word
+    const auto alpha = [&records](std::size_t i, int skip) {
       const AafRecord& r = records[i];
-      const std::string key = given_first ? r.given + " " + r.surname : r.surname + " " + r.given;
-      return QString::fromStdString(key).trimmed().toLower();
+      const QString whole = QString::fromStdString(r.surname + " " + r.given).simplified().toLower();
+      const QStringList words = whole.split(' ', Qt::SkipEmptyParts);
+      QStringList rest;
+      for (qsizetype w = skip; w < words.size(); ++w) {
+        rest << words[w];
+      }
+      return rest.join(' ');
     };
-    if (mode == 1 || mode == 2) {
+    if (mode >= 1 && mode <= 3) {
       std::stable_sort(idx.begin(), idx.end(), [&alpha, mode](std::size_t a, std::size_t b) {
-        return alpha(a, mode == 2) < alpha(b, mode == 2);
+        return alpha(a, mode - 1) < alpha(b, mode - 1);
       });
-    } else if (mode == 3) {
+    } else if (mode == 4) {
       std::stable_sort(idx.begin(), idx.end(), [&records](std::size_t a, std::size_t b) {
         return records[a].month * 100 + records[a].day < records[b].month * 100 + records[b].day;
       });
-    } else if (mode == 4) {
+    } else if (mode == 5) {
       std::stable_sort(idx.begin(), idx.end(), [&records](std::size_t a, std::size_t b) {
         const AafRecord& ra = records[a];
         const AafRecord& rb = records[b];
