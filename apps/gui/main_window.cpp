@@ -473,10 +473,15 @@ void MainWindow::build_ui() {
     }
     const auto r = choose_record(tr("Vergleichs-Datensatz wählen"));
     if (!r || !set_partner(*r)) {
+      // a silent uncheck looked like nothing happened, say why
+      if (r) {
+        QMessageBox::warning(this, "HORCOM", tr("Der gewählte Datensatz ließ sich nicht berechnen."));
+      }
       const QSignalBlocker block(compare_action_);
       compare_action_->setChecked(false);
       return;
     }
+    claim_wheel();
     recompute();
   });
   //RR 90°-KREIS, the second mode of the a12 double wheel
@@ -490,6 +495,9 @@ void MainWindow::build_ui() {
         dial_action_->setChecked(false);
         return;
       }
+    }
+    if (on) {
+      claim_wheel();
     }
     recompute();
   });
@@ -516,6 +524,7 @@ void MainWindow::build_ui() {
     harm_new_mc_ = QMessageBox::question(this, tr("Harmonic"),
                                          tr("Häuser aufgrund des neuen MC neu berechnen?\n(Nein behandelt sie wie Planeten, der Standard.)"),
                                          QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes;
+    claim_wheel();
     recompute();
   });
   // the six age directed outer wheels of the original MULTI menu
@@ -591,6 +600,7 @@ void MainWindow::build_ui() {
       multi_ref_.body = id;
     }
     multi_new_mc_ = hneu->isChecked();
+    claim_wheel();
     recompute();
   });
   // the composite over the same partner, house mode from his profile
@@ -600,10 +610,16 @@ void MainWindow::build_ui() {
     if (on && !partner_chart_) {
       const auto r = choose_record(tr("Vergleichs-Datensatz wählen"));
       if (!r || !set_partner(*r)) {
+        if (r) {
+          QMessageBox::warning(this, "HORCOM", tr("Der gewählte Datensatz ließ sich nicht berechnen."));
+        }
         const QSignalBlocker block(composite_action_);
         composite_action_->setChecked(false);
         return;
       }
+    }
+    if (on) {
+      claim_wheel();
     }
     recompute();
     if (!on && !partner_chart_) {
@@ -681,12 +697,16 @@ void MainWindow::build_ui() {
       vary_sum_ += dir_vary_;
       ++vary_count_;
     }
+    claim_wheel();
     recompute();
   });
   // the horm 2 view, semi arc house space instead of the ecliptic
   mundane_action_ = horo->addAction(tr("Mundan"));
   mundane_action_->setCheckable(true);
   connect(mundane_action_, &QAction::toggled, this, [this](bool on) {
+    if (on) {
+      claim_wheel();
+    }
     recompute();
     if (!on) {
       banner_->set_record(record_label_.trimmed());
@@ -848,6 +868,21 @@ ChartSettings MainWindow::current_settings() const {
   }
   s.extra_bodies = extras_->isChecked() || hamburg_->isChecked() || apogee_show_->isChecked();
   return s;
+}
+
+// the transit ring and the clock rank first in the drawing ladder, a
+// special view switching on must take the wheel from them or nothing
+// visibly changes
+void MainWindow::claim_wheel() {
+  if (clock_action_ != nullptr && clock_action_->isChecked()) {
+    clock_action_->setChecked(false);
+  }
+  if (transit_on_ != nullptr && transit_on_->isChecked()) {
+    const QSignalBlocker block(transit_on_);
+    transit_on_->setChecked(false);
+    tdate_->setEnabled(false);
+    ttime_->setEnabled(false);
+  }
 }
 
 MainWindow::PanelState MainWindow::panel_state() const {

@@ -187,6 +187,7 @@ class MainWindow : public QMainWindow {
   };
 
   void build_ui();
+  void claim_wheel();
   [[nodiscard]] PanelState panel_state() const;
   void restore_state(const PanelState& s);
   void track_history();
