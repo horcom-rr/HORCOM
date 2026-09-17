@@ -154,38 +154,45 @@ std::vector<StarRow> fixed_stars(const Chart& chart, double orb) {
     row.br = ec.lat;
     row.ar = ar;
     row.de = de;
-    // the aspect windows of stelk, two degrees times the orb for the
-    // conjunction, halved, quartered and thirded down the row
-    const double h = 2.0 * kDegToRad * orb;
-    for (int k = 0; k < body::kSlotCount; ++k) {
-      if (k == body::kNodeDesc) {
-        continue;
-      }
-      const BodyState& b = chart.b[static_cast<std::size_t>(k)];
-      if (!b.present || !b.valid) {
-        continue;
-      }
-      const double p = b.el;
-      const double ca = norm_rad(row.la - p);
-      const double cb = norm_rad(row.la + kPi - p);
-      const double cc = norm_rad(row.la + kPi / 2.0 - p);
-      const double cd = norm_rad(row.la + 3.0 * kPi / 2.0 - p);
-      const double ce = norm_rad(row.la + 2.0 * kPi / 3.0 - p);
-      const double cf = norm_rad(row.la + 4.0 * kPi / 3.0 - p);
-      if (ca > 0.0 && (ca < h || ca > kTwoPi - h)) {
-        row.aspects.emplace_back(k, 'K');
-      }
-      if (cb > 0.0 && cb < h / 2.0) {
-        row.aspects.emplace_back(k, 'O');
-      }
-      if ((cc > 0.0 && cc < h / 4.0) || (cd > 0.0 && cd < h / 4.0)) {
-        row.aspects.emplace_back(k, 'Q');
-      }
-      if ((ce > 0.0 && ce < h / 3.0) || (cf > 0.0 && cf < h / 3.0)) {
-        row.aspects.emplace_back(k, 'T');
-      }
-    }
+    row.aspects = point_aspects(chart, row.la, orb);
     out.push_back(std::move(row));
+  }
+  return out;
+}
+
+// ported from HORCOM stelk
+std::vector<std::pair<int, char>> point_aspects(const Chart& chart, double la, double orb) {
+  std::vector<std::pair<int, char>> out;
+  // the aspect windows of stelk, two degrees times the orb for the
+  // conjunction, halved, quartered and thirded down the row
+  const double h = 2.0 * kDegToRad * orb;
+  for (int k = 0; k < body::kSlotCount; ++k) {
+    if (k == body::kNodeDesc) {
+      continue;
+    }
+    const BodyState& b = chart.b[static_cast<std::size_t>(k)];
+    if (!b.present || !b.valid) {
+      continue;
+    }
+    const double p = b.el;
+    const double ca = norm_rad(la - p);
+    const double cb = norm_rad(la + kPi - p);
+    const double cc = norm_rad(la + kPi / 2.0 - p);
+    const double cd = norm_rad(la + 3.0 * kPi / 2.0 - p);
+    const double ce = norm_rad(la + 2.0 * kPi / 3.0 - p);
+    const double cf = norm_rad(la + 4.0 * kPi / 3.0 - p);
+    if (ca > 0.0 && (ca < h || ca > kTwoPi - h)) {
+      out.emplace_back(k, 'K');
+    }
+    if (cb > 0.0 && cb < h / 2.0) {
+      out.emplace_back(k, 'O');
+    }
+    if ((cc > 0.0 && cc < h / 4.0) || (cd > 0.0 && cd < h / 4.0)) {
+      out.emplace_back(k, 'Q');
+    }
+    if ((ce > 0.0 && ce < h / 3.0) || (cf > 0.0 && cf < h / 3.0)) {
+      out.emplace_back(k, 'T');
+    }
   }
   return out;
 }

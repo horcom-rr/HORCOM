@@ -46,4 +46,14 @@ struct StarRow {
 /// @return the sixty two stars in his screen order
 [[nodiscard]] std::vector<StarRow> fixed_stars(const Chart& chart, double orb);
 
+/// The aspect scan of HORCOM stelk over one ecliptic longitude,
+/// conjunction, opposition, square and trine against every present
+/// body except the descending node, the sensitive points use it too.
+///
+/// @param chart the computed chart
+/// @param la    the point's ecliptic longitude, radians
+/// @param orb   the orb factor, windows like fixed_stars
+/// @return per hit the body slot and his letter K O Q T
+[[nodiscard]] std::vector<std::pair<int, char>> point_aspects(const Chart& chart, double la, double orb);
+
 }  // namespace horcom

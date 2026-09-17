@@ -36,6 +36,8 @@
 #include <QPrinter>
 #include <QPushButton>
 #include <QScrollBar>
+#include <QStyle>
+#include <QStyledItemDelegate>
 #include <QSettings>
 #include <QTableWidget>
 #include <QTimeEdit>
@@ -129,22 +131,80 @@ QString degs(double rad) {
   return QString::asprintf("%+9.4f", rad * kRadToDeg);
 }
 
-// his coordinate screen paints the sign of every position in its
-// element colour, here as readable text shades per theme
-QColor element_color(double rad, bool dark) {
-  const int sign = static_cast<int>(norm_deg(rad * kRadToDeg) / kDegPerSign) % 12;
-  static const QColor kLight[4] = {QColor(0xC0, 0x30, 0x20), QColor(0x7A, 0x5F, 0x00),
-                                   QColor(0x0F, 0x7A, 0x8A), QColor(0x20, 0x48, 0xC0)};
-  static const QColor kDark[4] = {QColor(0xFF, 0x8A, 0x70), QColor(0xD9, 0xB8, 0x4D),
-                                  QColor(0x6F, 0xD0, 0xDC), QColor(0x7F, 0xA0, 0xFF)};
-  return (dark ? kDark : kLight)[sign % 4];
+// his coordinate screen paints only the sign glyph of a position in
+// its element colour, the numbers stay ink
+QColor element_color(int sign, bool bright) {
+  static const QColor kSoft[4] = {QColor(0xC0, 0x30, 0x20), QColor(0x7A, 0x5F, 0x00),
+                                  QColor(0x0F, 0x7A, 0x8A), QColor(0x20, 0x48, 0xC0)};
+  static const QColor kBright[4] = {QColor(0xFF, 0x8A, 0x70), QColor(0xD9, 0xB8, 0x4D),
+                                    QColor(0x6F, 0xD0, 0xDC), QColor(0x7F, 0xA0, 0xFF)};
+  return (bright ? kBright : kSoft)[((sign % 12) + 12) % 4];
 }
 
+// the sign index rides the item so the delegate can colour the glyph
+constexpr int kSignRole = Qt::UserRole + 7;
+
 QTableWidgetItem* zodiac_item(double rad) {
-  auto* item = new QTableWidgetItem(zodiac(rad));
-  item->setForeground(element_color(rad, theme::dark_now()));
+  const double deg = norm_deg(rad * kRadToDeg);
+  const int sign = static_cast<int>(deg / kDegPerSign);
+  const double in_sign = deg - sign * kDegPerSign;
+  const int total = static_cast<int>(in_sign * 3600.0 + 0.5);
+  auto* item = new QTableWidgetItem(QString::asprintf("%2d ", total / 3600) +
+                                    QString::fromUtf8(sign_glyph(sign % 12)) +
+                                    QString::asprintf(" %02d'%02d\"", (total / 60) % 60, total % 60));
+  item->setData(kSignRole, sign % 12 + 1);
   return item;
 }
+
+/// Paints the zodiac cells of the main tables, only the sign glyph in
+/// his element colour like the original coordinate screen.
+class ZodiacDelegate final : public QStyledItemDelegate {
+ public:
+  using QStyledItemDelegate::QStyledItemDelegate;
+
+  void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
+    const int stored = index.data(kSignRole).toInt();
+    if (stored <= 0) {
+      QStyledItemDelegate::paint(painter, option, index);
+      return;
+    }
+    QStyleOptionViewItem opt = option;
+    initStyleOption(&opt, index);
+    const QString text = opt.text;
+    const QString glyph = QString::fromUtf8(sign_glyph(stored - 1));
+    const qsizetype at = text.indexOf(glyph);
+    if (at < 0) {
+      QStyledItemDelegate::paint(painter, option, index);
+      return;
+    }
+    opt.text.clear();
+    QStyle* style = opt.widget != nullptr ? opt.widget->style() : QApplication::style();
+    style->drawControl(QStyle::CE_ItemViewItem, &opt, painter, opt.widget);
+    const bool dark = theme::dark_now();
+    const bool selected = (opt.state & QStyle::State_Selected) != 0;
+    // on the black selection band of the paper theme the bright
+    // shades stay readable
+    const QColor ink = dark ? QColor(0xE9, 0xE5, 0xD9)
+                            : (selected ? QColor(0xFF, 0xFF, 0xFF) : QColor(0x00, 0x00, 0x00));
+    QRect r = style->subElementRect(QStyle::SE_ItemViewItemText, &opt, opt.widget);
+    painter->save();
+    painter->setFont(opt.font);
+    const QFontMetrics fm(opt.font);
+    int x = r.x();
+    const int y = r.y() + (r.height() + fm.ascent() - fm.descent()) / 2;
+    const QString pre = text.left(at);
+    const QString post = text.mid(at + glyph.size());
+    painter->setPen(ink);
+    painter->drawText(x, y, pre);
+    x += fm.horizontalAdvance(pre);
+    painter->setPen(element_color(stored - 1, dark || selected));
+    painter->drawText(x, y, glyph);
+    x += fm.horizontalAdvance(glyph);
+    painter->setPen(ink);
+    painter->drawText(x, y, post);
+    painter->restore();
+  }
+};
 
 // the comparison list body, running body, separation, radix body
 QString cross_hits_text(const std::vector<CrossAspectHit>& hits) {
@@ -386,6 +446,7 @@ void MainWindow::build_ui() {
   bodies_->horizontalHeader()->setStretchLastSection(true);
   bodies_->verticalHeader()->setDefaultSectionSize(18);
   bodies_->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  bodies_->setItemDelegate(new ZodiacDelegate(bodies_));
   body_dock->setWidget(bodies_);
   addDockWidget(Qt::RightDockWidgetArea, body_dock);
 
@@ -397,6 +458,7 @@ void MainWindow::build_ui() {
   cusps_->horizontalHeader()->setStretchLastSection(true);
   cusps_->verticalHeader()->setDefaultSectionSize(18);
   cusps_->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  cusps_->setItemDelegate(new ZodiacDelegate(cusps_));
   aspects_label_ = new QLabel(cusp_host);
   aspects_label_->setWordWrap(true);
   aspects_label_->setObjectName("aspectsLine");
@@ -1504,9 +1566,18 @@ void MainWindow::fixed_star_table() {
   table->verticalHeader()->setVisible(false);
   table->verticalHeader()->setDefaultSectionSize(20);
   table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  const bool dark = theme::dark_now();
+  // an aspected star wears his cyan band on the name like the original
+  const QColor band = dark ? QColor(0x14, 0x50, 0x58) : QColor(0x8F, 0xE8, 0xE8);
+  const QColor band_ink = dark ? QColor(0xC9, 0xF2, 0xF2) : QColor(0x00, 0x00, 0x00);
   for (int i = 0; i < static_cast<int>(rows.size()); ++i) {
     const StarRow& r = rows[static_cast<std::size_t>(i)];
-    table->setItem(i, 0, new QTableWidgetItem(QString::fromUtf8(r.name.data(), static_cast<int>(r.name.size()))));
+    auto* name_item = new QTableWidgetItem(QString::fromUtf8(r.name.data(), static_cast<int>(r.name.size())));
+    if (!r.aspects.empty()) {
+      name_item->setBackground(band);
+      name_item->setForeground(band_ink);
+    }
+    table->setItem(i, 0, name_item);
     table->setItem(i, 1, new QTableWidgetItem(zodiac(r.la)));
     QString asp;
     for (const auto& [slot, kind] : r.aspects) {
@@ -1554,25 +1625,50 @@ void MainWindow::arabic_table() {
   top->addWidget(new QLabel(tr("Formel"), this));
   top->addWidget(mode);
   top->addStretch(1);
-  auto* table = new QTableWidget(0, 4, &dialog);
-  table->setHorizontalHeaderLabels({tr("Punkt"), tr("Länge"), tr("Formel"), tr("Bemerkung")});
+  //RR Name | Formel | Länge | Aspekte | Bemerkungen, his column order
+  auto* table = new QTableWidget(0, 5, &dialog);
+  table->setHorizontalHeaderLabels({tr("Punkt"), tr("Formel"), tr("Länge"), tr("Aspekte"), tr("Bemerkung")});
   table->horizontalHeader()->setStretchLastSection(true);
   table->verticalHeader()->setVisible(false);
   table->verticalHeader()->setDefaultSectionSize(20);
   table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  table->setItemDelegate(new ZodiacDelegate(table));
   const Chart chart = *last_chart_;
   const std::filesystem::path own = data_dir_;
-  const auto fill = [table, chart, own, mode]() {
+  const double orb = aspect_settings_.orb;
+  const auto fill = [table, chart, own, mode, orb]() {
     const std::vector<ArabicPart> parts =
         arabic_parts(chart, static_cast<ArabicFormula>(mode->currentData().toInt()), own);
     table->setRowCount(0);
+    const bool dark = theme::dark_now();
+    // a point with aspects wears his cyan band on name and formula
+    const QColor band = dark ? QColor(0x14, 0x50, 0x58) : QColor(0x8F, 0xE8, 0xE8);
+    const QColor band_ink = dark ? QColor(0xC9, 0xF2, 0xF2) : QColor(0x00, 0x00, 0x00);
     for (const ArabicPart& p : parts) {
       const int row = table->rowCount();
       table->insertRow(row);
-      table->setItem(row, 0, new QTableWidgetItem(QString::fromUtf8(p.name.c_str())));
-      table->setItem(row, 1, new QTableWidgetItem(zodiac(p.la)));
-      table->setItem(row, 2, new QTableWidgetItem(QString::fromUtf8(p.formula.c_str())));
-      table->setItem(row, 3, new QTableWidgetItem(QString::fromUtf8(p.remark.c_str())));
+      auto* name = new QTableWidgetItem(QString::fromUtf8(p.name.c_str()));
+      auto* formula = new QTableWidgetItem(QString::fromUtf8(p.formula.c_str()));
+      table->setItem(row, 0, name);
+      table->setItem(row, 1, formula);
+      table->setItem(row, 2, zodiac_item(p.la));
+      QString asp;
+      for (const auto& [slot, kind] : point_aspects(chart, p.la, orb)) {
+        if (!asp.isEmpty()) {
+          asp += "  ";
+        }
+        asp += QString::fromUtf8(body::kName[static_cast<std::size_t>(slot)].data(),
+                                 static_cast<int>(body::kName[static_cast<std::size_t>(slot)].size())) +
+               " " + QChar(kind);
+      }
+      table->setItem(row, 3, new QTableWidgetItem(asp));
+      if (!asp.isEmpty()) {
+        for (QTableWidgetItem* item : {name, formula}) {
+          item->setBackground(band);
+          item->setForeground(band_ink);
+        }
+      }
+      table->setItem(row, 4, new QTableWidgetItem(QString::fromUtf8(p.remark.c_str())));
     }
     table->resizeColumnsToContents();
   };
@@ -1583,7 +1679,7 @@ void MainWindow::arabic_table() {
   v->addLayout(top);
   v->addWidget(table, 1);
   v->addWidget(buttons);
-  dialog.resize(680, 640);
+  dialog.resize(860, 640);
   dialog.exec();
 }
 
