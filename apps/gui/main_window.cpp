@@ -1227,9 +1227,11 @@ ChartSettings MainWindow::current_settings() const {
   s.heliocentric = helio_ != nullptr && helio_->isChecked();
   // the panel rows rule the nk table. The real extras are CH QU XE
   // like his own final profile, the Hamburg factors and the AG display
-  // switch separately
+  // switch separately. Either black moon checkbox raises the same body,
+  // the mean or the true one, s.true_apogee then rules the formula
+  const bool apogee_on = apogee_show_->isChecked() || true_apogee_->isChecked();
   s.nk = {};
-  if (apogee_show_->isChecked()) {
+  if (apogee_on) {
     s.nk[1] = body::kApogee;
   }
   if (extras_->isChecked()) {
@@ -1242,7 +1244,7 @@ ChartSettings MainWindow::current_settings() const {
       s.nk[static_cast<std::size_t>(i)] = 18 + i;
     }
   }
-  s.extra_bodies = extras_->isChecked() || hamburg_->isChecked() || apogee_show_->isChecked();
+  s.extra_bodies = extras_->isChecked() || hamburg_->isChecked() || apogee_on;
   return s;
 }
 
@@ -2729,7 +2731,8 @@ void MainWindow::rhythm_table() {
     opt.begin_house = begin->value();
     opt.leftward = direction->currentData().toInt() == 1;
     opt.sextile = sextile->isChecked();
-    opt.apogee_opposite = apogee_show_ != nullptr && apogee_show_->isChecked();
+    opt.apogee_opposite = (apogee_show_ != nullptr && apogee_show_->isChecked()) ||
+                          (true_apogee_ != nullptr && true_apogee_->isChecked());
     if (sp_mode->currentData().toInt() == 1) {
       opt.special = sp_deg->value() * kDegToRad;
     } else if (sp_mode->currentData().toInt() == 2) {
@@ -4610,7 +4613,7 @@ void MainWindow::vorgaben_ephemeride() {
         if (hamburg_->isChecked()) {
           chosen << tr("HAMBURGER PLANETEN");
         }
-        if (apogee_show_->isChecked()) {
+        if (apogee_show_->isChecked() || true_apogee_->isChecked()) {
           chosen << "AG";
         }
         const int es = ChoiceDialog::ask(this, tr("AUSWAHL"),
@@ -4623,6 +4626,7 @@ void MainWindow::vorgaben_ephemeride() {
           extras_->setChecked(false);
           hamburg_->setChecked(false);
           apogee_show_->setChecked(false);
+          true_apogee_->setChecked(false);
         }
         break;
       }
@@ -4745,7 +4749,7 @@ void MainWindow::vorgaben_overview() {
   if (hamburg_->isChecked()) {
     extra << tr("HAMBURGER");
   }
-  if (apogee_show_->isChecked()) {
+  if (apogee_show_->isChecked() || true_apogee_->isChecked()) {
     extra << "AG";
   }
   mid += head(tr("Zusatz-Plan:")) + (extra.isEmpty() ? tr("KEINE") : extra.join("  ")) + "<br><br>";
