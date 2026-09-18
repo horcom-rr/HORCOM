@@ -5,6 +5,7 @@
 #include "record_list_dialog.hpp"
 
 #include <QHBoxLayout>
+#include <QItemSelectionModel>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
@@ -89,9 +90,15 @@ RecordListDialog::RecordListDialog(const std::vector<AafRecord>& records, const 
     item->setData(Qt::UserRole, static_cast<qulonglong>(i));
   }
   if (list_->count() > 0) {
-    list_->setCurrentRow(0);
     if (mode_ == Mode::kSingle) {
+      list_->setCurrentRow(0);
       picked_ = {list_->item(0)->data(Qt::UserRole).toULongLong()};
+    } else {
+      // in multi-selection mode setCurrentRow would also select row 0,
+      // and the first click on it would then toggle the selection off,
+      // making row 0 look inert. Keep the first row as the current one
+      // for keyboard navigation but leave every row unselected on entry
+      list_->setCurrentItem(list_->item(0), QItemSelectionModel::NoUpdate);
     }
   }
   v->addWidget(list_, 1);

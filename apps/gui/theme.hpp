@@ -140,6 +140,7 @@ QDockWidget {
   background: @base@;
   font-family: "Courier New", monospace;
   font-size: @12px@;
+  font-weight: bold;
   letter-spacing: 2px;
   text-transform: uppercase;
 }
@@ -147,6 +148,23 @@ QDockWidget::title {
   background: @headBg@;
   border: 1px solid @edge@;
   padding: 5px 10px;
+  font-weight: bold;
+}
+QGroupBox {
+  font-weight: bold;
+  border: 1px solid @edge@;
+  border-radius: 5px;
+  margin-top: 12px;
+  padding: 6px 8px 6px 8px;
+}
+QGroupBox::title {
+  subcontrol-origin: margin;
+  subcontrol-position: top left;
+  left: 10px;
+  padding: 0 4px;
+  background: @base@;
+  color: @headInk@;
+  font-weight: bold;
 }
 QTableWidget {
   background: @field@;
@@ -362,6 +380,20 @@ QListWidget {
   background: @field@;
   border: 1px solid @edge@;
   font-family: "Courier New", monospace;
+}
+/* the record chooser needs picks to stand out at a glance, his yellow
+   label box against black is the strongest paper theme highlight, and
+   at night the same yellow pops on the sky blue */
+QListWidget::item:selected {
+  background: @checkBg@;
+  color: #000000;
+}
+QListWidget::item:selected:!active {
+  background: @checkBg@;
+  color: #000000;
+}
+QListWidget::item:hover {
+  background: @grid@;
 }
 QTextBrowser, QTextEdit, QPlainTextEdit {
   background: @field@;
