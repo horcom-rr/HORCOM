@@ -1167,7 +1167,18 @@ void MainWindow::build_ui() {
     recompute();
   });
   // recompute on every change like the original recalculated per screen
-  connect(date_, &QLineEdit::editingFinished, this, &MainWindow::recompute);
+  // the free text date needs a small settle window, editingFinished
+  // only fires on Enter or focus out, without this the wheel keeps the
+  // old date until the user leaves the field
+  date_timer_ = new QTimer(this);
+  date_timer_->setSingleShot(true);
+  date_timer_->setInterval(500);
+  connect(date_timer_, &QTimer::timeout, this, &MainWindow::recompute);
+  connect(date_, &QLineEdit::textEdited, this, [this](const QString&) { date_timer_->start(); });
+  connect(date_, &QLineEdit::editingFinished, this, [this]() {
+    date_timer_->stop();
+    recompute();
+  });
   connect(time_, &QTimeEdit::timeChanged, this, &MainWindow::recompute);
   connect(zone_, &QDoubleSpinBox::valueChanged, this, &MainWindow::recompute);
   connect(lon_, &QDoubleSpinBox::valueChanged, this, &MainWindow::recompute);
@@ -4242,69 +4253,86 @@ void MainWindow::pick_zone() {
 // ported from a2dat and a2fdat, the FILESELECT into the file hub. One
 // action per visit like the original, the file stays bound afterwards
 void MainWindow::data_file_io() {
-  QString start = data_file_;
-  if (start.isEmpty()) {
-    start = QString::fromStdWString((data_dir_ / "spezial").wstring());
-  }
-  //RR FILESELECT hrc$+"\SPEZIAL\*.DAT", a fresh name starts a new file
-  const QString path = QFileDialog::getSaveFileName(
-      this, tr("Daten-Datei wählen oder neu anlegen"), start,
-      tr("HORCOM Daten-Dateien (*.DAT *.dat);;AAF (*.AAF *.aaf)"), nullptr,
-      QFileDialog::DontConfirmOverwrite);
-  if (path.isEmpty()) {
-    return;
-  }
-  std::filesystem::path dat(path.toStdWString());
-  if (path.endsWith(".aaf", Qt::CaseInsensitive)) {
-    //RR Die parallele HORCOM-Datei GLEICHEN NAMENS dient als Pilot
-    const std::filesystem::path aaf = dat;
-    dat = dat_twin_path(aaf);
-    if (!std::filesystem::exists(dat) && std::filesystem::exists(aaf)) {
-      const auto records = read_aaf(aaf);
-      if (records && !records->empty()) {
-        std::vector<ChartRecord> out;
-        out.reserve(records->size());
-        for (const AafRecord& a : *records) {
-          out.push_back(dat_from_record(a));
-        }
-        write_chart_file(dat, out);
+  // once a working Daten-Datei is bound the menu goes straight to the
+  // hub, one file per session as the original demanded. Only an unbound
+  // slot or an explicit ANDERE DATEI opens the picker, that spared the
+  // tester the impression that the program keeps asking to save
+  bool need_pick = data_file_.isEmpty() ||
+                   !std::filesystem::exists(std::filesystem::path(data_file_.toStdWString()));
+  while (true) {
+    if (need_pick) {
+      QString start = data_file_;
+      if (start.isEmpty()) {
+        start = QString::fromStdWString((data_dir_ / "spezial").wstring());
       }
+      //RR FILESELECT hrc$+"\SPEZIAL\*.DAT", a fresh name starts a new file
+      const QString path = QFileDialog::getSaveFileName(
+          this, tr("Daten-Datei wählen oder neu anlegen"), start,
+          tr("HORCOM Daten-Dateien (*.DAT *.dat);;AAF (*.AAF *.aaf)"), nullptr,
+          QFileDialog::DontConfirmOverwrite);
+      if (path.isEmpty()) {
+        return;
+      }
+      std::filesystem::path dat(path.toStdWString());
+      if (path.endsWith(".aaf", Qt::CaseInsensitive)) {
+        //RR Die parallele HORCOM-Datei GLEICHEN NAMENS dient als Pilot
+        const std::filesystem::path aaf = dat;
+        dat = dat_twin_path(aaf);
+        if (!std::filesystem::exists(dat) && std::filesystem::exists(aaf)) {
+          const auto records = read_aaf(aaf);
+          if (records && !records->empty()) {
+            std::vector<ChartRecord> out;
+            out.reserve(records->size());
+            for (const AafRecord& a : *records) {
+              out.push_back(dat_from_record(a));
+            }
+            write_chart_file(dat, out);
+          }
+        }
+      }
+      if (!std::filesystem::exists(dat)) {
+        //RR Neue Datei, the current record becomes its first entry
+        if (!write_chart_file(dat, {dat_from_record(panel_record())})) {
+          QMessageBox::warning(this, "HORCOM", tr("Die Datei ließ sich nicht anlegen."));
+          return;
+        }
+        QMessageBox::information(
+            this, "HORCOM",
+            tr("NEUE DATEN-DATEI %1 !").arg(QString::fromStdWString(dat.filename().wstring())));
+      }
+      bind_data_file(QString::fromStdWString(dat.wstring()));
+      need_pick = false;
     }
-  }
-  if (!std::filesystem::exists(dat)) {
-    //RR Neue Datei, the current record becomes its first entry
-    if (!write_chart_file(dat, {dat_from_record(panel_record())})) {
-      QMessageBox::warning(this, "HORCOM", tr("Die Datei ließ sich nicht anlegen."));
-      return;
+    const QString label = QFileInfo(data_file_).fileName();
+    //RR the hub of a2fdat, one question per box, ANDERE DATEI added so
+    // the working file can be swapped without leaving the hub
+    const int action = ChoiceDialog::ask(this, tr("DATEI : %1").arg(label), {},
+                                         {tr("Datensätze HOLEN ?"), tr("AKTUELLEN Datensatz EINTRAGEN ?"),
+                                          tr("Datensätze LÖSCHEN ?"), tr("Datei TRIMMEN ?"),
+                                          tr("Datei MINIMIEREN ?"), tr("ANDERE DATEI wählen…"),
+                                          tr("ABBRUCH")});
+    switch (action) {
+      case 0:
+        fetch_from_file();
+        return;
+      case 1:
+        save_record();
+        return;
+      case 2:
+        delete_from_file();
+        return;
+      case 3:
+        tidy_data_file(false);
+        return;
+      case 4:
+        tidy_data_file(true);
+        return;
+      case 5:
+        need_pick = true;
+        continue;
+      default:
+        return;
     }
-    QMessageBox::information(this, "HORCOM",
-                             tr("NEUE DATEN-DATEI %1 !").arg(QString::fromStdWString(dat.filename().wstring())));
-  }
-  bind_data_file(QString::fromStdWString(dat.wstring()));
-  const QString label = QFileInfo(data_file_).fileName();
-  //RR the hub of a2fdat, one question per box
-  const int action = ChoiceDialog::ask(this, tr("DATEI : %1").arg(label), {},
-                                       {tr("Datensätze HOLEN ?"), tr("AKTUELLEN Datensatz EINTRAGEN ?"),
-                                        tr("Datensätze LÖSCHEN ?"), tr("Datei TRIMMEN ?"),
-                                        tr("Datei MINIMIEREN ?"), tr("ABBRUCH")});
-  switch (action) {
-    case 0:
-      fetch_from_file();
-      break;
-    case 1:
-      save_record();
-      break;
-    case 2:
-      delete_from_file();
-      break;
-    case 3:
-      tidy_data_file(false);
-      break;
-    case 4:
-      tidy_data_file(true);
-      break;
-    default:
-      break;
   }
 }
 

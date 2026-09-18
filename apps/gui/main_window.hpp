@@ -297,6 +297,10 @@ class MainWindow : public QMainWindow {
   QLineEdit* place_field_ = nullptr;
   /// the date as text like his TT MM JJJJ row, vC marks years BC
   QLineEdit* date_ = nullptr;
+  /// the settle timer of the free text date field, a fresh date triggers
+  /// a recompute a short pause after typing stops, so the user does not
+  /// need to leave the field for the chart to catch up
+  QTimer* date_timer_ = nullptr;
   QTimeEdit* time_ = nullptr;
   QDoubleSpinBox* zone_ = nullptr;
   QDoubleSpinBox* lon_ = nullptr;
