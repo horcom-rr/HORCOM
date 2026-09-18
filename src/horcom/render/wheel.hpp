@@ -202,6 +202,12 @@ struct ClassicSheetText {
   std::string len_header;    ///< Länge:, the mode tag joins it
   std::string houses_header; ///< Häusersp.
   std::string mirror_label;  ///< Spiegelung:
+  // the paired-chart lines for Composit, Combin and Doppelkreis, they
+  // only render when populated. The `pair_kind` labels the block, e.g.
+  // "COMPOSIT" or "COMBIN", and each pair line carries a self contained
+  // Name  Datum  Uhrzeit  Ort caption
+  std::string pair_kind;                 ///< Composit, Combin, Doppel-Kreis
+  std::vector<std::string> pair_lines;   ///< two or three ready lines
 };
 
 /// Writes the classic screen sheet of the original around a wheel

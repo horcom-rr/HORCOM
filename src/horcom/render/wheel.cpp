@@ -43,8 +43,10 @@ constexpr double kMarkInset = 3.0;
 constexpr double kMarkOutset = 5.0;
 constexpr double kLabelSize = 10.0;
 // his screen drew rings, cusp lines and ticks two pixels wide on a
-// 624 pixel radius, about 0.6 units here
+// 624 pixel radius, about 0.6 units here. Achsen zeichnet er über
+// DEFLINE 0,2 dicker als das Grundraster
 constexpr double kThinLine = 0.6;
+constexpr double kAxisLine = 1.3;
 
 // the paper of the sheet, the cutouts under the glyphs wear it
 constexpr Rgb kPaper = kPaperColor;
@@ -247,7 +249,7 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
       const double w = wheel_angle(chart.houses.cusp[static_cast<std::size_t>(dial_axes[a])], fza);
       const Pt p1 = at(w, kAspectRing);
       const Pt p2 = at(w, kAxisEnd);
-      add({Primitive::Kind::kLine, p1.x, p1.y, p2.x, p2.y, 0, 0, 0, 0, 0, 0x000000, 0xFFFFFF, Primitive::Style::kSolid, 1.3});
+      add({Primitive::Kind::kLine, p1.x, p1.y, p2.x, p2.y, 0, 0, 0, 0, 0, 0x000000, 0xFFFFFF, Primitive::Style::kSolid, kAxisLine});
       const Pt pl = at(w, kAxisLabel);
       Primitive t;
       t.kind = Primitive::Kind::kText;
@@ -266,7 +268,7 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
       const double w = wheel_angle(cusp, fza);
       const Pt p1 = at(w, kAspectRing);
       const Pt p2 = at(w, kAxisEnd);
-      add({Primitive::Kind::kLine, p1.x, p1.y, p2.x, p2.y, 0, 0, 0, 0, 0, 0x000000, 0xFFFFFF, Primitive::Style::kSolid, 1.3});
+      add({Primitive::Kind::kLine, p1.x, p1.y, p2.x, p2.y, 0, 0, 0, 0, 0, 0x000000, 0xFFFFFF, Primitive::Style::kSolid, kAxisLine});
       const Pt pl = at(w, kAxisLabel);
       Primitive t;
       t.kind = Primitive::Kind::kText;
@@ -637,24 +639,71 @@ DisplayList build_double_wheel(const Chart& inner, const Chart& outer, const Cha
     return Pt{kCx + kKm * r * std::cos(-w), kCy + kKm * r * std::sin(-w)};
   };
   const double fza = opt.heliocentric ? 0.0 : inner.houses.angles.ac;
-  // the second chart's house lines draw over the shared ring like the
-  // original's second horg11 pass, without a second set of labels
-  if (!opt.heliocentric && s.houses != HouseSystem::kNone) {
-    for (int a : {1, 4, 7, 10}) {
+  //RR Äussere Häuser, horg11mult zieht die Häuser-Speichen des zweiten
+  // Horoskops in einem eigenen Aussenband vom Zeichenrand r3 bis zum
+  // äusseren Umgrenzungskreis r4, Achsen dick (DEFLINE 0,2) und
+  // Zwischenspitzen dünn (DEFLINE 0,1), horg11mult_1 setzt die
+  // Beschriftungen AC IC DC MC und 2..12 gerade ausserhalb r4.
+  // Robert nutzte auf seinem 640x480 Feld r4=235, unsere Compare-Achse
+  // ist enger, kAxisLabel=208 trägt die Achsen des inneren Horoskops
+  // und kCompareGlyphRing=204 die Planeten des äusseren, das Aussenband
+  // beginnt daher erst hinter den Glyphen des äusseren Horoskops und
+  // endet auf dem Umgrenzungskreis, so kreuzen die Speichen keine
+  // Symbole und wirken wie die kurzen Aussenstriche gebräuchlicher
+  // Doppelkreis-Zeichnungen
+  constexpr double kOuterCuspInner = kCompareGlyphRing + kGlyphSize / 2.0 + 1.0;
+  constexpr double kOuterCuspOuter = 220.0;
+  constexpr double kOuterCuspLabel = 230.0;
+  //RR IF hrg! = 0 && haw& < 9, horg11mult zeichnet gar nichts wenn
+  // die Dial-Ansicht läuft oder das Häuser-System stumm ist, so bleibt
+  // der 90°-Kreis frei von der Umgrenzungslinie und den Achsen-Labels
+  if (!opt.heliocentric && !opt.dial && s.houses != HouseSystem::kNone) {
+    // äusserer Umgrenzungskreis
+    Primitive ring;
+    ring.kind = Primitive::Kind::kCircle;
+    ring.x1 = kCx;
+    ring.y1 = kCy;
+    ring.r1 = kKm * kOuterCuspOuter;
+    ring.width = kThinLine;
+    add(ring);
+    static constexpr int kAxes[4] = {1, 4, 7, 10};
+    static constexpr const char* kOuterAxis[4] = {"AC", "IC", "DC", "MC"};
+    for (int a_idx = 0; a_idx < 4; ++a_idx) {
+      const int a = kAxes[a_idx];
       const double w = wheel_angle(outer.houses.cusp[static_cast<std::size_t>(a)], fza);
-      const Pt p1 = at(w, kAspectRing);
-      const Pt p2 = at(w, kAxisEnd);
-      add({Primitive::Kind::kLine, p1.x, p1.y, p2.x, p2.y, 0, 0, 0, 0, 0, 0x000000, 0xFFFFFF, Primitive::Style::kSolid, 1.3});
+      const Pt p1 = at(w, kOuterCuspInner);
+      const Pt p2 = at(w, kOuterCuspOuter);
+      add({Primitive::Kind::kLine, p1.x, p1.y, p2.x, p2.y, 0, 0, 0, 0, 0, 0x000000, 0xFFFFFF,
+           Primitive::Style::kSolid, kAxisLine});
+      const Pt pl = at(w, kOuterCuspLabel);
+      Primitive t;
+      t.kind = Primitive::Kind::kText;
+      t.x1 = pl.x;
+      t.y1 = pl.y;
+      t.size = kLabelSize;
+      t.text = kOuterAxis[a_idx];
+      add(t);
     }
-  }
-  if (!opt.heliocentric && !opt.dial && !(s.houses == HouseSystem::kAcMcOnly || s.houses == HouseSystem::kNone)) {
-    for (int i : {2, 3, 5, 6, 8, 9, 11, 12}) {
-      const double w = wheel_angle(outer.houses.cusp[static_cast<std::size_t>(i)], fza);
-      const Pt p1 = at(w, kAspectRing);
-      const Pt p2 = at(w, kSignInner);
-      Primitive hl{Primitive::Kind::kLine, p1.x, p1.y, p2.x, p2.y};
-      hl.width = kThinLine;
-      add(hl);
+    // die Zwischenspitzen fallen weg wenn nur AC/MC gefragt sind
+    if (s.houses != HouseSystem::kAcMcOnly) {
+      static constexpr int kMid[8] = {2, 3, 5, 6, 8, 9, 11, 12};
+      for (int idx = 0; idx < 8; ++idx) {
+        const int i = kMid[idx];
+        const double w = wheel_angle(outer.houses.cusp[static_cast<std::size_t>(i)], fza);
+        const Pt p1 = at(w, kOuterCuspInner);
+        const Pt p2 = at(w, kOuterCuspOuter);
+        Primitive hl{Primitive::Kind::kLine, p1.x, p1.y, p2.x, p2.y};
+        hl.width = kThinLine;
+        add(hl);
+        const Pt pl = at(w, kOuterCuspLabel);
+        Primitive t;
+        t.kind = Primitive::Kind::kText;
+        t.x1 = pl.x;
+        t.y1 = pl.y;
+        t.size = kNumberSize;
+        t.text = std::to_string(i);
+        add(t);
+      }
     }
   }
   draw_outer_bodies(dl, outer, fza, kKm, kCompareMarkRing, kCompareGlyphRing, opt);
@@ -860,6 +909,23 @@ void add_corner_text(DisplayList& dl, const ClassicSheetText& txt, double left_x
   }
   if (!txt.weekday.empty()) {
     text(right_x, 456.0, txt.weekday, Align::kRight);
+  }
+  // the paired charts of composit, combin and doppelkreis carry a short
+  // block at the top of the sheet, so the reader sees both sources at a
+  // glance. The block sits under the primary name line
+  if (!txt.pair_lines.empty()) {
+    double y = 42.0;
+    if (!txt.pair_kind.empty()) {
+      text(left_x, y, txt.pair_kind);
+      y += 12.0;
+    }
+    for (const auto& line : txt.pair_lines) {
+      if (line.empty()) {
+        continue;
+      }
+      text(left_x, y, line);
+      y += 12.0;
+    }
   }
 }
 
