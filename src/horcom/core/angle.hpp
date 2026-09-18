@@ -36,7 +36,7 @@ namespace horcom {
 
 /// DEFFN wz(x) = x - 30 * FIX(x / 30), degree within the zodiac sign
 [[nodiscard]] inline double deg_in_sign(double x) noexcept {
-  return x - 30.0 * std::trunc(x / 30.0);
+  return x - kDegPerSign * std::trunc(x / kDegPerSign);
 }
 
 /// The original FUNCTION atn, the program's quadrant correct arctangent.

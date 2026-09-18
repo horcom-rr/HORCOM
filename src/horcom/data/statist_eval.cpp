@@ -252,7 +252,7 @@ struct Eval {
     }
     for (int n = q.asp_low; n <= q.asp_high; ++n) {
       const double pn = kTwoPi / n;
-      const double dd = a.equal_probability ? a.orb * a.orbe[static_cast<std::size_t>(n)] : a.orb * pn / 30.0;
+      const double dd = a.equal_probability ? a.orb * a.orbe[static_cast<std::size_t>(n)] : a.orb * pn / kDefaultOrbDivisor;
       const double dds = three ? orbis_discr3(o1, o2, o3, dd) : orbis_discr2(o1, o2, dd);
       bed_asp(i, dds, pn, n, w3, fa);
     }

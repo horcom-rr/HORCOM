@@ -129,7 +129,7 @@ DisplayList build_linear_graph(const Chart& radix, const LinearOptions& opt, con
   // dashed sign boundaries, only meaningful when nothing folds
   if (opt.sign_lines && opt.base_angle_deg >= 360.0 - kEps) {
     for (int i = 0; i < 12; ++i) {
-      const double y = fold_y(i * 30.0);
+      const double y = fold_y(i * kDegPerSign);
       line(kLineLeft, y, kLineRight, y, 0x0000FF, 1.0, Primitive::Style::kDashed);
       glyph(kSignCol + 16, down ? y + 15 : y - 15, 10, sign_glyph(down ? i : (i + 11) % 12), kDim);
     }

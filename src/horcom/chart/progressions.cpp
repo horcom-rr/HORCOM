@@ -104,7 +104,7 @@ ProgressedMoment progressed_moment(const Chart& radix, double jd_event_ut, Progr
     case ProgressionMode::kHouseRotation: {
       // the birth sidereal time advanced by one day's rotation surplus
       // per year of life, then turned back into a clock, his hd_hs
-      const double hs = radix.hs + 0.98565 * j / 15.0;
+      const double hs = radix.hs + 0.98565 * j / kDegPerHour;
       const double d0 = std::trunc(radix.jd_ut + j) + 0.5;
       double hd = 0.0;
       for (int i = 0; i < 8; ++i) {

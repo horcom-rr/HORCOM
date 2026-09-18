@@ -173,7 +173,7 @@ void AspektariumDialog::rebuild() {
   for (int t = 1; t <= a.divisors; ++t) {
     const double pn = kTwoPi / t;
     //RR ORBES nach HORCOM- Zählung, oder selbst definiert
-    const double dd = a.equal_probability ? a.orb * a.orbe[static_cast<std::size_t>(t)] : a.orb * pn / 30.0;
+    const double dd = a.equal_probability ? a.orb * a.orbe[static_cast<std::size_t>(t)] : a.orb * pn / kDefaultOrbDivisor;
     legend_->setItem(t - 1, 0, new QTableWidgetItem(QString::number(t)));
     legend_->setItem(t - 1, 1, new QTableWidgetItem(QString::fromUtf8("%1\xC2\xB0").arg(360.0 / t, 0, 'f', 1)));
     legend_->setItem(t - 1, 2, new QTableWidgetItem(QString::fromUtf8("%1\xC2\xB0").arg(dd * kRadToDeg, 0, 'f', 1)));
