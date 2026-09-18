@@ -996,7 +996,9 @@ DisplayList a4_print_sheet(const Chart& chart, const ChartSettings& s, const Asp
       bar(70.0, y, quality[i] / qmax, 0x606060);
     }
     //RR Elemente F E L W with the bars of elemhist1, the strong zeich_col
-    // shades, scaled to the element max
+    // shades scaled to the element max. Wasser asked for RGB(0,255,255),
+    // pure cyan drowns on a modern white page so it rides slightly darker
+    // in step with element_color of the coordinate table
     const double emax = std::max({element[0], element[1], element[2], element[3], 1.0});
     y = 490.0;
     text(16.0, y, "Elemente:", 8.5);

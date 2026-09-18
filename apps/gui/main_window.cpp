@@ -1169,11 +1169,17 @@ void MainWindow::build_ui() {
   // recompute on every change like the original recalculated per screen
   // the free text date needs a small settle window, editingFinished
   // only fires on Enter or focus out, without this the wheel keeps the
-  // old date until the user leaves the field
+  // old date until the user leaves the field. The timer only fires
+  // when the field parses as a complete TT.MM.JJJJ, half typed dates
+  // wait for their last digit
   date_timer_ = new QTimer(this);
   date_timer_->setSingleShot(true);
   date_timer_->setInterval(500);
-  connect(date_timer_, &QTimer::timeout, this, &MainWindow::recompute);
+  connect(date_timer_, &QTimer::timeout, this, [this]() {
+    if (panel_date().isValid()) {
+      recompute();
+    }
+  });
   connect(date_, &QLineEdit::textEdited, this, [this](const QString&) { date_timer_->start(); });
   connect(date_, &QLineEdit::editingFinished, this, [this]() {
     date_timer_->stop();
@@ -5335,12 +5341,9 @@ void MainWindow::set_panel_date(const QDate& d) {
 // coordinates, the clock stays civil with the zone beside it
 AafRecord MainWindow::panel_record() const {
   AafRecord r = record_;
-  // a mid-typed place field is picked up too, so a save reflects what
-  // the panel actually shows
-  const QString place = place_field_->text().trimmed();
-  if (!place.isEmpty() || !r.place.empty()) {
-    r.place = place.toStdString();
-  }
+  // the panel is the source of truth for a save, a mid-typed place is
+  // picked up here without needing a commit first
+  r.place = place_field_->text().trimmed().toStdString();
   const QDate d = panel_date();
   const QTime t = time_->time();
   r.day = d.day();
