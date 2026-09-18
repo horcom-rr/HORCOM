@@ -420,9 +420,9 @@ void MainWindow::build_ui() {
   // Hamburg factors sit on their own rows as the author's family
   // wished, the AG display beside them
   //RR Zusatz-Planeten CH QU XE des Originals, jetzt um die realen
-  // Kleinplaneten und den Kometen Halley erweitert. Der Text bleibt
-  // kompakt, die Zeile trägt außerdem einen Tooltip mit der Aufzählung
-  extras_ = new QCheckBox(tr("Zusatz-Planeten (CH, CE PA JN VS, QU HL PH DA NS XE)"), form_host);
+  // Kleinplaneten und den Kometen Halley erweitert. Der Tooltip
+  // trägt die Aufzählung
+  extras_ = new QCheckBox(tr("Zusatz-Planeten"), form_host);
   extras_->setToolTip(tr("Chiron, die Kleinplaneten Ceres, Pallas, Juno, Vesta,"
                          " Quaoar, Komet Halley, Pholus, Damokles, Nessus und Xena"));
   hamburg_ = new QCheckBox(tr("Hamburger Planeten"), form_host);
