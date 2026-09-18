@@ -157,6 +157,7 @@ class MainWindow : public QMainWindow {
   struct PanelState {
     QString given;
     QString surname;
+    QString place;
     QDate date;
     QTime time;
     double zone = 0.0;
@@ -176,12 +177,12 @@ class MainWindow : public QMainWindow {
     AafRecord record;
 
     bool operator==(const PanelState& o) const {
-      return given == o.given && surname == o.surname && date == o.date && time == o.time &&
-             zone == o.zone && lon == o.lon && lat == o.lat && houses == o.houses &&
-             parallax == o.parallax && extras == o.extras && hamburg == o.hamburg &&
-             apogee == o.apogee && true_node == o.true_node && true_apogee == o.true_apogee &&
-             helio == o.helio && transit_on == o.transit_on && tdate == o.tdate &&
-             ttime == o.ttime && record.surname == o.record.surname &&
+      return given == o.given && surname == o.surname && place == o.place && date == o.date &&
+             time == o.time && zone == o.zone && lon == o.lon && lat == o.lat &&
+             houses == o.houses && parallax == o.parallax && extras == o.extras &&
+             hamburg == o.hamburg && apogee == o.apogee && true_node == o.true_node &&
+             true_apogee == o.true_apogee && helio == o.helio && transit_on == o.transit_on &&
+             tdate == o.tdate && ttime == o.ttime && record.surname == o.record.surname &&
              record.given == o.record.given && record.place == o.record.place &&
              record.comment == o.record.comment;
     }
@@ -291,6 +292,9 @@ class MainWindow : public QMainWindow {
   Banner* banner_ = nullptr;
   QLineEdit* given_ = nullptr;
   QLineEdit* surname_ = nullptr;
+  /// the place-name field, the same textual Ortsname the record and
+  /// the sheet carry, edits here land in record_.place
+  QLineEdit* place_field_ = nullptr;
   /// the date as text like his TT MM JJJJ row, vC marks years BC
   QLineEdit* date_ = nullptr;
   QTimeEdit* time_ = nullptr;

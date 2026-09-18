@@ -380,6 +380,11 @@ void MainWindow::build_ui() {
   surname_ = new QLineEdit(form_host);
   form->addRow(tr("Vorname"), given_);
   form->addRow(tr("Name"), surname_);
+  // the place name of the record, the same field the sheet corner
+  // carries. ORTS-DATEIEN / ORT SUCHEN fills it too, edits here reach
+  // the sheet on the next recompute
+  place_field_ = new QLineEdit(form_host);
+  form->addRow(tr("Ortsname"), place_field_);
   // the original entered dates as plain TT MM JJJJ fields and a
   // calendar widget cannot hold years before Christ, so the date is a
   // text field, TT.MM.JJJJ, years BC with the vC of his chooser list
@@ -416,9 +421,12 @@ void MainWindow::build_ui() {
   // wished, the AG display beside them
   extras_ = new QCheckBox(tr("Zusatz-Planeten CH QU XE"), form_host);
   hamburg_ = new QCheckBox(tr("Hamburger Planeten"), form_host);
-  apogee_show_ = new QCheckBox(tr("Apogäum (Schwarzer Mond)"), form_host);
+  //RR Apogäum, but the tester's family calls the two by their working
+  // names, mean and true black moon, one row above the other so the
+  // reader sees the same body twice with two conventions
+  apogee_show_ = new QCheckBox(tr("Mittlerer Schwarzer Mond"), form_host);
   true_node_ = new QCheckBox(tr("Wahrer Mondknoten"), form_host);
-  true_apogee_ = new QCheckBox(tr("Wahres Apogäum"), form_host);
+  true_apogee_ = new QCheckBox(tr("Wahrer Schwarzer Mond"), form_host);
   //RR HELIOZENTRISCH
   helio_ = new QCheckBox(tr("Heliozentrisch"), form_host);
   form->addRow(tr("Datum"), date_);
@@ -441,9 +449,11 @@ void MainWindow::build_ui() {
   form->addRow(parallax_);
   form->addRow(extras_);
   form->addRow(hamburg_);
+  // the two black moon rows sit together, mean above true, so the same
+  // body reads twice under two conventions as the tester's family use it
   form->addRow(apogee_show_);
-  form->addRow(true_node_);
   form->addRow(true_apogee_);
+  form->addRow(true_node_);
   form->addRow(helio_);
   // the transit moment enters as Greenwich time like the original a20
   transit_on_ = new QCheckBox(tr("Transite"), form_host);
@@ -485,8 +495,11 @@ void MainWindow::build_ui() {
     lat_->setValue(home->lat);
   }
 
-  // the result docks
-  auto* body_dock = new QDockWidget(tr("Koordinaten"), this);
+  // the result docks. Both stay always visible like the parameter and
+  // result screens of the original, the close button would only hide
+  // them without a way back
+  auto* body_dock = new QDockWidget(tr("Planeten-Koordinaten"), this);
+  body_dock->setFeatures(QDockWidget::DockWidgetMovable);
   bodies_ = new QTableWidget(0, 11, body_dock);
   //RR Spalte A ( = Acceleratio ) enthält das Vorzeichen der Beschleunigung
   // and ENTF carries the mutual distance in AU, then the mean node and
@@ -501,11 +514,14 @@ void MainWindow::build_ui() {
   body_dock->setWidget(bodies_);
   addDockWidget(Qt::RightDockWidgetArea, body_dock);
 
-  auto* cusp_dock = new QDockWidget(tr("Häuser"), this);
+  auto* cusp_dock = new QDockWidget(tr("Häuser-Spitzen"), this);
+  cusp_dock->setFeatures(QDockWidget::DockWidgetMovable);
   auto* cusp_host = new QWidget(cusp_dock);
   auto* cusp_layout = new QVBoxLayout(cusp_host);
   cusps_ = new QTableWidget(12, 1, cusp_host);
-  cusps_->setHorizontalHeaderLabels({tr("Spitze")});
+  // the dock title already reads Häuser-Spitzen, a one-column header
+  // would only echo it
+  cusps_->horizontalHeader()->setVisible(false);
   cusps_->horizontalHeader()->setStretchLastSection(true);
   cusps_->verticalHeader()->setDefaultSectionSize(18);
   cusps_->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -1141,6 +1157,15 @@ void MainWindow::build_ui() {
   };
   connect(given_, &QLineEdit::editingFinished, this, apply_name);
   connect(surname_, &QLineEdit::editingFinished, this, apply_name);
+  // the place text edits reach the record, ORTS-DATEIEN sets it too
+  connect(place_field_, &QLineEdit::editingFinished, this, [this]() {
+    const std::string place = place_field_->text().trimmed().toStdString();
+    if (place == record_.place) {
+      return;
+    }
+    record_.place = place;
+    recompute();
+  });
   // recompute on every change like the original recalculated per screen
   connect(date_, &QLineEdit::editingFinished, this, &MainWindow::recompute);
   connect(time_, &QTimeEdit::timeChanged, this, &MainWindow::recompute);
@@ -1223,6 +1248,7 @@ MainWindow::PanelState MainWindow::panel_state() const {
   PanelState s;
   s.given = given_->text();
   s.surname = surname_->text();
+  s.place = place_field_->text();
   s.date = panel_date();
   s.time = time_->time();
   s.zone = zone_->value();
@@ -1246,6 +1272,9 @@ MainWindow::PanelState MainWindow::panel_state() const {
 void MainWindow::restore_state(const PanelState& s) {
   restoring_ = true;
   {
+    const QSignalBlocker b0a(given_);
+    const QSignalBlocker b0b(surname_);
+    const QSignalBlocker b0c(place_field_);
     const QSignalBlocker b1(date_);
     const QSignalBlocker b2(time_);
     const QSignalBlocker b3(zone_);
@@ -1262,6 +1291,9 @@ void MainWindow::restore_state(const PanelState& s) {
     const QSignalBlocker b14(transit_on_);
     const QSignalBlocker b15(tdate_);
     const QSignalBlocker b16(ttime_);
+    given_->setText(s.given);
+    surname_->setText(s.surname);
+    place_field_->setText(s.place);
     set_panel_date(s.date);
     time_->setTime(s.time);
     zone_->setValue(s.zone);
@@ -1749,6 +1781,10 @@ void MainWindow::open_place() {
   }
   // the new place belongs on the sheet, not only its coordinates
   record_.place = dialog.chosen_name().toStdString();
+  {
+    const QSignalBlocker bp(place_field_);
+    place_field_->setText(QString::fromStdString(record_.place));
+  }
   recompute();
 }
 
@@ -5158,8 +5194,14 @@ void MainWindow::apply_record(const AafRecord& r, bool claim_slot) {
 
 void MainWindow::refresh_record_label() {
   // the panel name fields mirror the record without firing edits back
-  given_->setText(QString::fromStdString(record_.given).trimmed());
-  surname_->setText(QString::fromStdString(record_.surname).trimmed());
+  {
+    const QSignalBlocker bg(given_);
+    const QSignalBlocker bs(surname_);
+    const QSignalBlocker bp(place_field_);
+    given_->setText(QString::fromStdString(record_.given).trimmed());
+    surname_->setText(QString::fromStdString(record_.surname).trimmed());
+    place_field_->setText(QString::fromStdString(record_.place).trimmed());
+  }
   const QDate d = panel_date();
   const int astro = astro_year(d);
   //RR vC, die historische Zählung der Datensatz-Liste
@@ -5265,6 +5307,12 @@ void MainWindow::set_panel_date(const QDate& d) {
 // coordinates, the clock stays civil with the zone beside it
 AafRecord MainWindow::panel_record() const {
   AafRecord r = record_;
+  // a mid-typed place field is picked up too, so a save reflects what
+  // the panel actually shows
+  const QString place = place_field_->text().trimmed();
+  if (!place.isEmpty() || !r.place.empty()) {
+    r.place = place.toStdString();
+  }
   const QDate d = panel_date();
   const QTime t = time_->time();
   r.day = d.day();
