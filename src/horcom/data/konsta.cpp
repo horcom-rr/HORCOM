@@ -92,7 +92,11 @@ Konsta robert_profile() {
   k.stzw = 1;
   k.erase_ = 1;
   k.fixpunkt = 2;
-  k.or_weight = {100, 150, 150, 1,   100, 100, 100, 100, 100, 100, 100, 100, 100, 150,
+  //RR Sonne, Mond und die Achsen (AC, MC) tragen 150, jede andere Wirkstelle 100
+  // die Zeichen-Slots 15..18 (Widder, Krebs, Waage, Steinbock) stehen leer wie
+  // in KONSTA5P.INT und KONSTA8P.INT. KONSTA7P.INT hatte für Merkur den Wert 1
+  // hinterlegt, das war ein versehentlich gespeicherter Testwert, hier zurück auf 100
+  k.or_weight = {100, 150, 150, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 150,
                  150, 100, 0,   0,   0,   100, 100, 100, 100, 100, 100, 100, 100, 100,
                  100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100};
   k.orb_text = {"",      " 5.40", " 6.80", " 3.10", " 3.00", " 1.60", " 2.60", " 1.00",

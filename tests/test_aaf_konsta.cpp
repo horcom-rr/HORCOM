@@ -96,7 +96,10 @@ TEST_CASE("his profile carries Robert Rettig's switches and round trips") {
   CHECK(a.orbe[1] == doctest::Approx(5.40 * kDegToRad));
   CHECK(a.orbe[11] == doctest::Approx(0.60 * kDegToRad));
   CHECK(a.weight[1] == 150);
-  CHECK(a.weight[3] == 1);
+  // Merkur trägt jetzt wieder 100 statt der versehentlich in KONSTA7P.INT
+  // stehen gebliebenen 1, so wie es die weiteren Fassungen KONSTA5P.INT
+  // und KONSTA8P.INT ohnehin vorgaben
+  CHECK(a.weight[3] == 100);
   const Konsta back = parse_konsta(format_konsta(k));
   CHECK(format_konsta(back) == format_konsta(k));
 }
