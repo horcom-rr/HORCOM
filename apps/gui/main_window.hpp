@@ -307,6 +307,7 @@ class MainWindow : public QMainWindow {
   QDoubleSpinBox* lat_ = nullptr;
   QComboBox* houses_ = nullptr;
   QDockWidget* body_dock_ = nullptr;
+  QDockWidget* cusp_dock_ = nullptr;
   bool dock_sized_ = false;
   QCheckBox* parallax_ = nullptr;
   /// the real extra bodies CH QU XE of his own final profile
@@ -345,6 +346,11 @@ class MainWindow : public QMainWindow {
   std::optional<Chart> partner_chart_;
   ChartInput partner_input_;
   QString partner_name_;
+  QString partner_place_;
+  // the combin source memory, so the wheel can name both parents plus
+  // the calculated mid moment as the tester wants. Empty means no combin
+  QString combin_kind_;
+  std::vector<std::string> combin_pair_lines_;
   // the panel history, every settled change one step, capped in depth
   std::vector<PanelState> back_;
   std::vector<PanelState> forward_;

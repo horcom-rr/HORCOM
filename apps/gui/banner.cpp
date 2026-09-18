@@ -85,17 +85,20 @@ void Banner::paintEvent(QPaintEvent* /*event*/) {
   p.setPen(dark ? QColor(0xFF, 0xFF, 0x00) : QColor(0x00, 0x00, 0x00));
   p.drawText(QRect(66, 0, 260, height()), Qt::AlignVCenter | Qt::AlignLeft, "HORCOM");
 
-  // the record, spoken on the green of his main menu panel
+  // the record, spoken on the green of his main menu panel. Der Name
+  // trägt jetzt fett und etwas größer, damit die Überschrift oben in
+  // der Mitte klar ins Auge sticht
   if (!record_.isEmpty()) {
     QFont rec("Courier New");
     rec.setStyleHint(QFont::Monospace);
-    rec.setPixelSize(12);
+    rec.setPixelSize(15);
     rec.setBold(true);
     p.setFont(rec);
     const QFontMetrics fm(rec);
-    const int w = fm.horizontalAdvance(record_) + 24;
+    const int w = fm.horizontalAdvance(record_) + 28;
+    const int h = fm.height() + 8;
     // left of the true centre so the box stays clear of the epoch line
-    const QRect box((width() - w) / 2 - 60, (height() - 24) / 2, w, 24);
+    const QRect box((width() - w) / 2 - 60, (height() - h) / 2, w, h);
     p.setPen(Qt::NoPen);
     p.setBrush(QColor(0xC0, 0xDC, 0xC0));
     p.drawRoundedRect(box, 5, 5);

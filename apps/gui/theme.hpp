@@ -485,9 +485,13 @@ inline bool dark_now() {
 /// @param text the heading, already translated
 /// @return the rich text span for a QLabel
 inline QString heading_span(const QString& text) {
+  // Die Titel der Abteilungen tragen jetzt fett und etwas größer, wie der
+  // Tester es sich für seine Kurs-Kärtchen wünscht. Dunkler Modus lässt
+  // die gelbe Schrift auf schwarzem Grund stehen, der weiße Modus hält
+  // die gelbe Bandfarbe des Originals
   return dark_now()
-             ? QString("<span style='color:#FFFF00'>%1</span>").arg(text)
-             : QString("<span style='background-color:#FFFF00;color:#000000'>&nbsp;%1&nbsp;</span>").arg(text);
+             ? QString("<span style='color:#FFFF00;font-weight:bold;font-size:110%'>%1</span>").arg(text)
+             : QString("<span style='background-color:#FFFF00;color:#000000;font-weight:bold;font-size:110%'>&nbsp;%1&nbsp;</span>").arg(text);
 }
 
 }  // namespace horcom::theme

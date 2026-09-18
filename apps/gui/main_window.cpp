@@ -419,7 +419,12 @@ void MainWindow::build_ui() {
   // off at startup like the original klpl!, the real extras and the
   // Hamburg factors sit on their own rows as the author's family
   // wished, the AG display beside them
-  extras_ = new QCheckBox(tr("Zusatz-Planeten CH QU XE"), form_host);
+  //RR Zusatz-Planeten CH QU XE des Originals, jetzt um die realen
+  // Kleinplaneten und den Kometen Halley erweitert. Der Text bleibt
+  // kompakt, die Zeile trägt außerdem einen Tooltip mit der Aufzählung
+  extras_ = new QCheckBox(tr("Zusatz-Planeten (CH, CE PA JN VS, QU HL PH DA NS XE)"), form_host);
+  extras_->setToolTip(tr("Chiron, die Kleinplaneten Ceres, Pallas, Juno, Vesta,"
+                         " Quaoar, Komet Halley, Pholus, Damokles, Nessus und Xena"));
   hamburg_ = new QCheckBox(tr("Hamburger Planeten"), form_host);
   //RR Apogäum, but the tester's family calls the two by their working
   // names, mean and true black moon, one row above the other so the
@@ -495,11 +500,13 @@ void MainWindow::build_ui() {
     lat_->setValue(home->lat);
   }
 
-  // the result docks. Both stay always visible like the parameter and
-  // result screens of the original, the close button would only hide
-  // them without a way back
+  // the result docks. Each carries the X close button of Qt, plus a
+  // toggle action wired into the EPHEMERIDE menu below, so the tester
+  // can click a dock away and pull it back through the menu the way he
+  // did before
   auto* body_dock = new QDockWidget(tr("Planeten-Koordinaten"), this);
-  body_dock->setFeatures(QDockWidget::DockWidgetMovable);
+  body_dock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetClosable |
+                         QDockWidget::DockWidgetFloatable);
   bodies_ = new QTableWidget(0, 11, body_dock);
   //RR Spalte A ( = Acceleratio ) enthält das Vorzeichen der Beschleunigung
   // and ENTF carries the mutual distance in AU, then the mean node and
@@ -515,7 +522,8 @@ void MainWindow::build_ui() {
   addDockWidget(Qt::RightDockWidgetArea, body_dock);
 
   auto* cusp_dock = new QDockWidget(tr("Häuser-Spitzen"), this);
-  cusp_dock->setFeatures(QDockWidget::DockWidgetMovable);
+  cusp_dock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetClosable |
+                         QDockWidget::DockWidgetFloatable);
   auto* cusp_host = new QWidget(cusp_dock);
   auto* cusp_layout = new QVBoxLayout(cusp_host);
   cusps_ = new QTableWidget(12, 1, cusp_host);
@@ -539,6 +547,7 @@ void MainWindow::build_ui() {
   // the first table fill sizes the dock so the core columns close
   // flush, the remaining columns stay a scroll away
   body_dock_ = body_dock;
+  cusp_dock_ = cusp_dock;
   resizeDocks({body_dock, cusp_dock}, {420, 420}, Qt::Horizontal);
 
   // the menu bar of the original, ÜBER HORCOM first, then his five
@@ -644,19 +653,37 @@ void MainWindow::build_ui() {
   // EPHEMERIDE in the order of his menu tree
   //RR VORGABEN EPHEMERIDE ÄNDERN
   ephem->addAction(tr("VORGABEN EPHEMERIDE ÄNDERN…"), this, &MainWindow::vorgaben_ephemeride);
-  //RR PLANETEN-KOORDINATEN
+  //RR PLANETEN-KOORDINATEN, the menu entry toggles the coord dock the
+  // way the original entry brought it back
   ephem->addAction(tr("PLANETEN-KOORDINATEN"), this, [this]() {
     if (body_dock_ != nullptr) {
-      body_dock_->show();
-      body_dock_->raise();
+      const bool bring_back = !body_dock_->isVisible();
+      body_dock_->setVisible(bring_back);
+      if (bring_back) {
+        body_dock_->raise();
+      }
     }
   });
-  //RR ZUSATZ-PLANETEN-KOORDINATEN
+  //RR ZUSATZ-PLANETEN-KOORDINATEN, the entry pulls in every real extra
+  // body the tester listed (Kleinplaneten, Kometen, Planetoiden) and
+  // opens the dock so the table stands ready
   ephem->addAction(tr("ZUSATZ-PLANETEN-KOORDINATEN"), this, [this]() {
     extras_->setChecked(true);
     if (body_dock_ != nullptr) {
-      body_dock_->show();
+      body_dock_->setVisible(true);
       body_dock_->raise();
+    }
+  });
+  //RR HÄUSER-SPITZEN, the second result dock. The original had no
+  // separate entry because his houses screen never left the sheet,
+  // here the tester wants the same click-away and reopen path
+  ephem->addAction(tr("HÄUSER-SPITZEN"), this, [this]() {
+    if (cusp_dock_ != nullptr) {
+      const bool bring_back = !cusp_dock_->isVisible();
+      cusp_dock_->setVisible(bring_back);
+      if (bring_back) {
+        cusp_dock_->raise();
+      }
     }
   });
   //RR HELIOZENTRISCHE VERSION EIN/AUS
@@ -1235,8 +1262,20 @@ ChartSettings MainWindow::current_settings() const {
     s.nk[1] = body::kApogee;
   }
   if (extras_->isChecked()) {
+    //RR ausser CH QU XE trägt die Zusatz-Auswahl jetzt die echten
+    // Kleinplaneten (Ceres, Pallas, Juno, Vesta) und die realen
+    // Planetoiden Halley (Komet), Pholus, Damokles und Nessus. TP und
+    // GL bleiben rechnerische Punkte und stehen weiterhin außen vor
     s.nk[2] = body::kChiron;
+    s.nk[5] = body::kCeres;
+    s.nk[6] = body::kPallas;
+    s.nk[7] = body::kJuno;
+    s.nk[8] = body::kVesta;
     s.nk[17] = body::kQuaoar;
+    s.nk[18] = body::kHalley;
+    s.nk[19] = body::kPholus;
+    s.nk[20] = body::kDamokles;
+    s.nk[21] = body::kNessus;
     s.nk[22] = body::kXena;
   }
   if (hamburg_->isChecked()) {
@@ -1477,6 +1516,12 @@ void MainWindow::recompute() {
   wopt.ring_colors = ring_colors_;
   wopt.outer_color = outer_color_;
   wopt.emphasis = emphasis_;
+  //RR das F rot färben, damit der eingegebene Fixpunkt auf dem Rad
+  // sofort ins Auge sticht, wie der Tester es sich für diesen Punkt
+  // wünscht
+  if (fixpunkt_ >= 0.0 && !s.heliocentric && wopt.emphasis[0] == 0) {
+    wopt.emphasis[0] = 1;
+  }
   if (chords_set_) {
     wopt.chord_divisor = chords_;
   }
@@ -2024,6 +2069,15 @@ void MainWindow::arabic_table() {
   mode->addItem(tr("Immer als Nacht-Geburt"), 3);
   top->addWidget(new QLabel(tr("Formel"), this));
   top->addWidget(mode);
+  //RR die Liste der Punkte lässt sich jetzt nach Namen oder nach dem
+  // Tierkreisgrad sortieren, so wie es der Tester wünscht
+  auto* sort_by = new QComboBox(&dialog);
+  sort_by->addItem(tr("Reihenfolge des Originals"), 0);
+  sort_by->addItem(tr("Nach Namen"), 1);
+  sort_by->addItem(tr("Nach Tierkreisgrad"), 2);
+  top->addSpacing(20);
+  top->addWidget(new QLabel(tr("Sortierung"), this));
+  top->addWidget(sort_by);
   top->addStretch(1);
   //RR Name | Formel | Länge | Aspekte | Bemerkungen, his column order
   auto* table = new QTableWidget(0, 5, &dialog);
@@ -2036,9 +2090,18 @@ void MainWindow::arabic_table() {
   const Chart chart = *last_chart_;
   const std::filesystem::path own = data_dir_;
   const double orb = aspect_settings_.orb;
-  const auto fill = [table, chart, own, mode, orb]() {
-    const std::vector<ArabicPart> parts =
+  const auto fill = [table, chart, own, mode, sort_by, orb]() {
+    std::vector<ArabicPart> parts =
         arabic_parts(chart, static_cast<ArabicFormula>(mode->currentData().toInt()), own);
+    const int sort_mode = sort_by->currentData().toInt();
+    if (sort_mode == 1) {
+      std::sort(parts.begin(), parts.end(), [](const ArabicPart& a, const ArabicPart& b) {
+        return QString::fromUtf8(a.name.c_str()).localeAwareCompare(QString::fromUtf8(b.name.c_str())) < 0;
+      });
+    } else if (sort_mode == 2) {
+      std::sort(parts.begin(), parts.end(),
+                [](const ArabicPart& a, const ArabicPart& b) { return a.la < b.la; });
+    }
     table->setRowCount(0);
     const bool dark = theme::dark_now();
     // a point with aspects wears his cyan band on name and formula
@@ -2073,6 +2136,7 @@ void MainWindow::arabic_table() {
     table->resizeColumnsToContents();
   };
   connect(mode, &QComboBox::currentIndexChanged, &dialog, fill);
+  connect(sort_by, &QComboBox::currentIndexChanged, &dialog, fill);
   fill();
   auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
   connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
@@ -2088,19 +2152,23 @@ void MainWindow::midpoint_tree() {
     return;
   }
   QDialog dialog(this);
-  //RR HALBSUMMEN
+  //RR HALBSUMMEN, halbs_dial trägt Direkt, Quadrat und Halbquad in drei
+  // Listen nebeneinander und darunter die Einzelzahlen + Summe. Die
+  // eigene Tabelle oben behält den Punkt-Blick nach dem 45°-Dial
   dialog.setWindowTitle(tr("Halbsummen-Bäume"));
   auto* v = new QVBoxLayout(&dialog);
   const Chart& chart = *last_chart_;
-  const MidpointResult mid = scan_midpoints(chart, current_settings(), aspect_settings_, true);
-  auto* table = new QTableWidget(0, 4, &dialog);
+  //RR halbs1 läuft die drei Halbsummen-Pässe nh=1,2,4 (Direkt, Quadrat,
+  // Halbquad). Der Achtelkreis-Pass nh=8 gehört zum 45°-Dial und wird
+  // hier nicht angezeigt, das spart einen Durchlauf pro Punkt-Tripel
+  const MidpointResult mid = scan_midpoints(chart, current_settings(), aspect_settings_, false);
+  auto* table = new QTableWidget(0, 3, &dialog);
   //RR 45°-Dial, die Sortierung über 8 mal die Länge
-  table->setHorizontalHeaderLabels({tr("Punkt"), tr("Länge"), QString::fromUtf8("45°-Dial"), tr("Halbsummen auf dem Punkt")});
+  table->setHorizontalHeaderLabels({tr("Punkt"), tr("Länge"), QString::fromUtf8("45°-Dial")});
   table->horizontalHeader()->setStretchLastSection(true);
   table->verticalHeader()->setVisible(false);
   table->verticalHeader()->setDefaultSectionSize(20);
   table->setEditTriggers(QAbstractItemView::NoEditTriggers);
-  static constexpr const char* kLevel[9] = {"", "360", "180", "", "90", "", "", "", "45"};
   for (int slot = 1; slot < body::kSlotCount; ++slot) {
     const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
     if (!b.present || !b.valid || slot == body::kNodeDesc) {
@@ -2133,35 +2201,55 @@ void MainWindow::midpoint_tree() {
       }
     }
     table->setItem(row, 2, dial_item);
-    QString contacts;
-    for (const MidpointHit& h : mid.hits) {
-      if (h.t != slot) {
-        continue;
-      }
-      if (!contacts.isEmpty()) {
-        contacts += ",  ";
-      }
-      contacts += QString("%1/%2 (%3°)")
-                      .arg(QString::fromUtf8(body::kName[static_cast<std::size_t>(h.u)].data(),
-                                             static_cast<int>(body::kName[static_cast<std::size_t>(h.u)].size())),
-                           QString::fromUtf8(body::kName[static_cast<std::size_t>(h.w)].data(),
-                                             static_cast<int>(body::kName[static_cast<std::size_t>(h.w)].size())),
-                           QString(kLevel[h.nh]));
-    }
-    table->setItem(row, 3, new QTableWidgetItem(contacts));
   }
   table->resizeColumnsToContents();
-  auto* counts = new QLabel(tr("Direkt %1,  Quadrat %2,  Halbquadrat %3")
-                                .arg(mid.direct)
-                                .arg(mid.square)
-                                .arg(mid.semi),
-                            &dialog);
+
+  //RR die drei Listen nebeneinander, th1$/th2$/th3$, wie halbs_dial die
+  // drei "listbox" Controls 100/101/102 setzt. Jede Zeile ist eine
+  // Halbsumme u/w = t, wie halbsa sie in seine th-Arrays schrieb
+  const auto body_name = [](int slot) {
+    return QString::fromUtf8(body::kName[static_cast<std::size_t>(slot)].data(),
+                             static_cast<int>(body::kName[static_cast<std::size_t>(slot)].size()));
+  };
+  const auto fill_list = [&](QListWidget* list, int want_nh) {
+    for (const MidpointHit& h : mid.hits) {
+      if (h.nh != want_nh) {
+        continue;
+      }
+      list->addItem(QString("%1/%2 = %3").arg(body_name(h.u), body_name(h.w), body_name(h.t)));
+    }
+  };
+  auto* lists_host = new QWidget(&dialog);
+  auto* lists = new QHBoxLayout(lists_host);
+  lists->setContentsMargins(0, 0, 0, 0);
+  const auto build_column = [&](const QString& heading, int want_nh, int count) {
+    auto* col_host = new QWidget(lists_host);
+    auto* col = new QVBoxLayout(col_host);
+    col->setContentsMargins(0, 0, 0, 0);
+    auto* head = new QLabel(theme::heading_span(heading), col_host);
+    head->setTextFormat(Qt::RichText);
+    auto* box = new QListWidget(col_host);
+    box->setAlternatingRowColors(true);
+    fill_list(box, want_nh);
+    auto* n = new QLabel(QString(" = %1").arg(count), col_host);
+    col->addWidget(head);
+    col->addWidget(box, 1);
+    col->addWidget(n);
+    lists->addWidget(col_host, 1);
+  };
+  //RR Direkt = 0° und 180°, Quadrat = 90°, Halbquad = 45° und 135°
+  build_column(tr("Direkt"), 1, mid.direct);
+  build_column(tr("Quadrat"), 2, mid.square);
+  build_column(tr("Halbquad"), 4, mid.semi);
+
+  auto* total = new QLabel(tr("Summe = %1").arg(mid.direct + mid.square + mid.semi), &dialog);
   auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
   connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
   v->addWidget(table, 1);
-  v->addWidget(counts);
+  v->addWidget(lists_host, 2);
+  v->addWidget(total);
   v->addWidget(buttons);
-  dialog.resize(820, 640);
+  dialog.resize(880, 720);
   dialog.exec();
 }
 
@@ -2468,6 +2556,13 @@ void MainWindow::orb_settings() {
   }
   weights->setHorizontalHeaderLabels(heads);
   weights->verticalHeader()->setVisible(false);
+  //RR die Planeten-Kürzel oberhalb der Prozente stehen fett und etwas
+  // größer, damit die Zuordnung Wert zu Wirkstelle auf den ersten Blick
+  // steht, wie sich der Tester das für seine Kurse wünscht
+  QFont head_font = weights->horizontalHeader()->font();
+  head_font.setBold(true);
+  head_font.setPointSizeF(head_font.pointSizeF() + 1.0);
+  weights->horizontalHeader()->setFont(head_font);
   weights->resizeColumnsToContents();
   weights->setFixedHeight(weights->horizontalHeader()->sizeHint().height() + weights->rowHeight(0) +
                           2 * weights->frameWidth() + weights->horizontalScrollBar()->sizeHint().height());
@@ -2562,10 +2657,14 @@ void MainWindow::degree_list() {
     return;
   }
   QDialog dialog(this);
-  //RR GRAD-LISTE
+  //RR GRAD-LISTE, wie im Original steigend nach ekliptikaler Länge, jetzt
+  // trägt sie auf Wunsch auch die Halbsummen aller wirkenden Planetenpaare,
+  // wie es die Urfassung tat
   dialog.setWindowTitle(tr("Grad-Liste"));
   auto* v = new QVBoxLayout(&dialog);
   auto* with_houses = new QCheckBox(tr("Zwischen-Häuser hinzunehmen"), &dialog);
+  auto* with_halbs = new QCheckBox(tr("Halbsummen hinzunehmen"), &dialog);
+  with_halbs->setChecked(true);
   auto* table = new QTableWidget(0, 3, &dialog);
   table->setHorizontalHeaderLabels({tr("Grad"), tr("Punkt"), tr("Zeichen")});
   table->horizontalHeader()->setStretchLastSection(true);
@@ -2573,19 +2672,49 @@ void MainWindow::degree_list() {
   table->verticalHeader()->setDefaultSectionSize(20);
   table->setEditTriggers(QAbstractItemView::NoEditTriggers);
   const Chart chart = *last_chart_;
-  const auto fill = [table, chart, with_houses]() {
+  const auto fill = [table, chart, with_houses, with_halbs]() {
     std::vector<std::pair<double, QString>> rows;
+    std::vector<int> present;
     for (int slot = 0; slot < body::kSlotCount; ++slot) {
       const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
       if (b.present && b.valid && b.el > kEps) {
         rows.emplace_back(b.el, QString::fromUtf8(body::kName[static_cast<std::size_t>(slot)].data(),
                                                   static_cast<int>(body::kName[static_cast<std::size_t>(slot)].size())));
+        present.push_back(slot);
       }
     }
     if (with_houses->isChecked()) {
       for (int h = 1; h <= 12; ++h) {
         if (chart.houses.cusp[static_cast<std::size_t>(h)] > 0.0) {
           rows.emplace_back(chart.houses.cusp[static_cast<std::size_t>(h)], QString("H%1").arg(h));
+        }
+      }
+    }
+    if (with_halbs->isChecked()) {
+      //RR die Halbsummen tragen den kürzeren der beiden Bögen zwischen
+      // zwei Punkten, springt der Bogen über 180 Grad läuft der
+      // Mittelpunkt durch das entgegengesetzte Zeichen
+      for (std::size_t i = 0; i < present.size(); ++i) {
+        const int a = present[i];
+        // Halbsummen sind unabhängig von der Reihenfolge, nur i < j
+        for (std::size_t j = i + 1; j < present.size(); ++j) {
+          const int b = present[j];
+          if ((a == body::kNodeAsc && b == body::kNodeDesc) ||
+              (a == body::kNodeDesc && b == body::kNodeAsc)) {
+            continue;
+          }
+          const double la = chart.b[static_cast<std::size_t>(a)].el;
+          const double lb = chart.b[static_cast<std::size_t>(b)].el;
+          double m = 0.5 * (la + lb);
+          if (std::abs(la - lb) > kPi) {
+            m = norm_rad(m + kPi);
+          }
+          const QString name = QString("%1/%2")
+                                    .arg(QString::fromUtf8(body::kName[static_cast<std::size_t>(a)].data(),
+                                                           static_cast<int>(body::kName[static_cast<std::size_t>(a)].size())))
+                                    .arg(QString::fromUtf8(body::kName[static_cast<std::size_t>(b)].data(),
+                                                           static_cast<int>(body::kName[static_cast<std::size_t>(b)].size())));
+          rows.emplace_back(m, name);
         }
       }
     }
@@ -2600,13 +2729,15 @@ void MainWindow::degree_list() {
     }
   };
   connect(with_houses, &QCheckBox::toggled, &dialog, fill);
+  connect(with_halbs, &QCheckBox::toggled, &dialog, fill);
   fill();
   auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
   connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
   v->addWidget(with_houses);
+  v->addWidget(with_halbs);
   v->addWidget(table, 1);
   v->addWidget(buttons);
-  dialog.resize(380, 560);
+  dialog.resize(380, 620);
   dialog.exec();
 }
 
@@ -3072,6 +3203,12 @@ void MainWindow::histogram_view() {
       }
       return s;
     };
+    //RR die Element-Reihen tragen die Balkenfarbe des Originals aus
+    // elemhist1, Feuer rot, Erde oliv, Luft petrol, Wasser cyan. Die
+    // Qualitäts-Reihen (Kardinal, Fix, Gemischt) bleiben grau wie beim
+    // A4-Druck. Nur der Balken-Anteil der Zelle wird eingefärbt, die
+    // Zahl links vom Balken behält die Schrift-Farbe des Themes
+    static constexpr QRgb kBarColorRgb[4] = {0xFFFF0000, 0xFF808000, 0xFF008080, 0xFF00C8C8};
     const char* names[7] = {"Feuer", "Erde", "Luft", "Wasser", "Kardinal", "Fix", "Gemeinschaftlich"};
     for (int r = 0; r < 7; ++r) {
       table->setItem(r, 0, new QTableWidgetItem(tr(names[r])));
@@ -3079,8 +3216,15 @@ void MainWindow::histogram_view() {
       const int idx = element ? r + 1 : r - 3;
       const int sign = element ? h.element_sign[static_cast<std::size_t>(idx)] : h.quality_sign[static_cast<std::size_t>(idx)];
       const int house = element ? h.element_house[static_cast<std::size_t>(idx)] : h.quality_house[static_cast<std::size_t>(idx)];
-      table->setItem(r, 1, new QTableWidgetItem(bar(sign)));
-      table->setItem(r, 2, new QTableWidgetItem(h.houses_counted ? bar(house) : tr("-")));
+      auto* sign_item = new QTableWidgetItem(bar(sign));
+      auto* house_item = new QTableWidgetItem(h.houses_counted ? bar(house) : tr("-"));
+      if (element) {
+        const QColor col = QColor::fromRgba(kBarColorRgb[r]);
+        sign_item->setForeground(col);
+        house_item->setForeground(col);
+      }
+      table->setItem(r, 1, sign_item);
+      table->setItem(r, 2, house_item);
     }
     table->resizeColumnsToContents();
   };
@@ -3736,10 +3880,15 @@ void MainWindow::converters() {
   jd_in->setDecimals(5);
   jd_in->setValue(kJdJ2000);
   auto* jd_out = new QLabel(&dialog);
+  //RR Auréas-Zählung, die französische Ephemeride nutzt Tage seit dem
+  // 1.1.1900 (12h UT), so dass J2000.0 auf 36525 fällt, wie es der
+  // Tester im Sinn hat
+  auto* aureas_out = new QLabel(&dialog);
   form->addRow(tr("Julianisches Datum"), jd_in);
   form->addRow(tr("ergibt (UT)"), jd_out);
+  form->addRow(tr("Auréas-Zählung (Tage seit 1.1.1900)"), aureas_out);
   const Calendar cal = current_settings().calendar;
-  const auto jd_update = [jd_in, jd_out, cal]() {
+  const auto jd_update = [jd_in, jd_out, aureas_out, cal]() {
     const CalendarDate d = calendar_date(jd_in->value(), cal);
     int seconds = static_cast<int>((d.hour * 60.0 + d.minute) * 60.0 + 0.5);
     if (seconds >= kSecondsPerDay) {
@@ -3747,6 +3896,9 @@ void MainWindow::converters() {
     }
     jd_out->setText(QString::asprintf("%02d.%02d.%d  %02d:%02d:%02d", d.day, d.month, d.year, seconds / 3600,
                                       (seconds / 60) % 60, seconds % 60));
+    //RR Auréas rechnet vom mittleren Beginn des Jahres 1900 aus, JD
+    // 2415020.0 ist der Referenztag. Beispiel: J2000.0 liegt bei 36525
+    aureas_out->setText(QString::number(jd_in->value() - kJdEpoch1900, 'f', 4));
   };
   connect(jd_in, &QDoubleSpinBox::valueChanged, &dialog, jd_update);
   jd_update();
@@ -4214,7 +4366,9 @@ void MainWindow::combin_chart() {
     return;
   }
   // the a14 mean of moment and place lands in the panel as one chart
-  const ChartInput mixed = combin_input({current_input(), record_input(*r)}, current_settings().calendar);
+  const ChartInput first = current_input();
+  const ChartInput second = record_input(*r);
+  const ChartInput mixed = combin_input({first, second}, current_settings().calendar);
   const QSignalBlocker b1(lon_);
   const QSignalBlocker b2(lat_);
   lon_->setValue(mixed.lon_deg_east);
@@ -4223,8 +4377,29 @@ void MainWindow::combin_chart() {
   if (mine.isEmpty()) {
     mine = "RADIX";
   }
+  QString hers = QString::fromStdString(r->surname).trimmed();
+  if (hers.isEmpty()) {
+    hers = QString::fromStdString(r->given).trimmed();
+  }
+  //RR Combin, der Zeit-Mittelwert zweier Horoskope. Der Tester wünscht
+  // die Namen und Zeitdaten beider Herkunftshoroskope plus den
+  // ermittelten Mittelpunkt gemeinsam am Sheet
+  combin_kind_ = tr("COMBIN:");
+  combin_pair_lines_.clear();
+  const auto compose = [](const QString& who, const CalendarDate& d) {
+    int s = static_cast<int>((d.hour * 60.0 + d.minute) * 60.0 + 0.5);
+    if (s >= kSecondsPerDay) {
+      s = kSecondsPerDay - 1;
+    }
+    return QString::asprintf("%s   %02d.%02d.%d  UT %02d:%02d:%02d", who.toUtf8().constData(), d.day,
+                             d.month, d.year, s / 3600, (s / 60) % 60, s % 60)
+        .toStdString();
+  };
+  combin_pair_lines_.push_back(compose(tr("Hor 1: ") + mine, first.date_ut));
+  combin_pair_lines_.push_back(compose(tr("Hor 2: ") + hers, second.date_ut));
+  combin_pair_lines_.push_back(compose(tr("Combin ") + tr("(Mittel)"), mixed.date_ut));
   apply_moment(julian_day(mixed.date_ut, current_settings().calendar),
-               QString("COMBIN %1-%2").arg(mine, QString::fromStdString(r->surname).trimmed()));
+               QString("COMBIN %1-%2").arg(mine, hers));
 }
 
 void MainWindow::show_transits(const QDate& date, const QTime& time) {
@@ -4744,7 +4919,7 @@ void MainWindow::vorgaben_overview() {
   mid += (true_apogee_->isChecked() ? tr("Wahres Apogäum") : tr("Mittl. Apogäum")) + QString("<br><br>");
   QStringList extra;
   if (extras_->isChecked()) {
-    extra << "CH QU XE";
+    extra << "CH  CE PA JN VS  QU HL PH DA NS XE";
   }
   if (hamburg_->isChecked()) {
     extra << tr("HAMBURGER");
@@ -5130,6 +5305,7 @@ bool MainWindow::set_partner(const AafRecord& r) {
   if (partner_name_.isEmpty()) {
     partner_name_ = QString::fromStdString(r.given).trimmed();
   }
+  partner_place_ = QString::fromStdString(r.place).trimmed();
   return true;
 }
 
@@ -5197,6 +5373,11 @@ void MainWindow::preset_chart(const AafRecord& r, bool parallax, bool true_node)
 
 void MainWindow::apply_record(const AafRecord& r, bool claim_slot) {
   record_ = r;
+  //RR beim Wechsel auf ein Radix-Horoskop fällt die Combin-Erinnerung
+  // weg, die Herkunftszeilen sollen nicht in fremden Zeichnungen
+  // stehenbleiben
+  combin_kind_.clear();
+  combin_pair_lines_.clear();
   // whatever becomes current also lives in a slot like his SATZ arrays,
   // a reactivated SOLAR snapshot leaves the radix slots untouched
   if (claim_slot) {
@@ -5501,6 +5682,43 @@ ClassicSheetText MainWindow::classic_sheet_text() const {
     sec = kSecondsPerDay - 1;
   }
   t.ut = QString::asprintf("UT:%3dh %2dm %2ds", sec / 3600, (sec / 60) % 60, sec % 60).toStdString();
+  // the composit and combin blocks share the top-left of the sheet with
+  // the primary name line. Composit reads from the live partner state,
+  // combin from its own saved memory so both parents plus the mid
+  // moment stay visible
+  if (composite_action_ != nullptr && composite_action_->isChecked() && partner_chart_) {
+    //RR die Kopfzeile des Composit trägt seit dem Original die gewählte
+    // Häusersystem-Methode, so behält der Leser die Rechenwahl vor Augen
+    const QString comp_head = konsta_.comp_mstz
+                                  ? tr("COMPOSIT — Häuser: Mittel der Sternzeiten")
+                                  : (konsta_.comp_hand ? tr("COMPOSIT — Häuser: nach Robert Hand")
+                                                       : tr("COMPOSIT — Häuser: ab MC-Halbsumme schematisch"));
+    t.pair_kind = comp_head.toStdString();
+    const auto compose = [](const QString& who, const CalendarDate& d) {
+      int s = static_cast<int>((d.hour * 60.0 + d.minute) * 60.0 + 0.5);
+      if (s >= kSecondsPerDay) {
+        s = kSecondsPerDay - 1;
+      }
+      return QString::asprintf("%s   %02d.%02d.%d  UT %02d:%02d:%02d", who.toUtf8().constData(), d.day,
+                               d.month, d.year, s / 3600, (s / 60) % 60, s % 60)
+          .toStdString();
+    };
+    QString hor1 = QString("%1 %2")
+                       .arg(QString::fromStdString(record_.surname), QString::fromStdString(record_.given))
+                       .trimmed();
+    if (hor1.isEmpty()) {
+      hor1 = tr("Hor 1");
+    }
+    QString hor2 = partner_name_;
+    if (hor2.isEmpty()) {
+      hor2 = tr("Hor 2");
+    }
+    t.pair_lines.push_back(compose(tr("Hor 1: ") + hor1, in.date_ut));
+    t.pair_lines.push_back(compose(tr("Hor 2: ") + hor2, partner_input_.date_ut));
+  } else if (!combin_pair_lines_.empty()) {
+    t.pair_kind = combin_kind_.toStdString();
+    t.pair_lines = combin_pair_lines_;
+  }
   return t;
 }
 
