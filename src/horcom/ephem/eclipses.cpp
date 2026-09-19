@@ -15,9 +15,6 @@ namespace horcom {
 
 namespace {
 
-/// minutes of one day, the delta T conversion of the results
-constexpr double kMinutesPerDay = 1440.0;
-
 // the shared lunation arguments, the original finst_0
 struct LunationArgs {
   double jde = 0.0;  // mean syzygy in dynamical time

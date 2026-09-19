@@ -108,7 +108,7 @@ ProgressedMoment progressed_moment(const Chart& radix, double jd_event_ut, Progr
       const double d0 = std::trunc(radix.jd_ut + j) + 0.5;
       double hd = 0.0;
       for (int i = 0; i < 8; ++i) {
-        const double jd = d0 + hd / 24.0;
+        const double jd = d0 + hd / kHoursPerDay;
         const CalendarDate date = calendar_date(jd, ctx.settings.calendar);
         const SunMoonState smo = somo(time_arguments(jd), date);
         double h0 = gmst0_hours(jd);
@@ -120,7 +120,7 @@ ProgressedMoment progressed_moment(const Chart& radix, double jd_event_ut, Progr
         }
         hd = next;
       }
-      out.jd_ut = clamp_to_day(d0 + hd / 24.0, jdp);
+      out.jd_ut = clamp_to_day(d0 + hd / kHoursPerDay, jdp);
       out.ok = true;
       break;
     }

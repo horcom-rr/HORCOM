@@ -64,9 +64,9 @@ double julian_day(const CalendarDate& d, Calendar cal) {
 
   double jd = 0.0;
   if (y < 0.0) {
-    jd = fix(365.25 * y - 0.75) + fix(30.6001 * (m + 1.0)) + d.day + d.hour / 24.0 + d.minute / 1440.0 + 1720994.5 + b;
+    jd = fix(365.25 * y - 0.75) + fix(30.6001 * (m + 1.0)) + d.day + d.hour / kHoursPerDay + d.minute / kMinutesPerDay + 1720994.5 + b;
   } else {
-    jd = fix(365.25 * y) + fix(30.6001 * (m + 1.0)) + d.day + d.hour / 24.0 + d.minute / 1440.0 + 1720994.5 + b;
+    jd = fix(365.25 * y) + fix(30.6001 * (m + 1.0)) + d.day + d.hour / kHoursPerDay + d.minute / kMinutesPerDay + 1720994.5 + b;
   }
   return jd;
 }
@@ -95,9 +95,9 @@ CalendarDate calendar_date(double jd, Calendar cal) {
 
   CalendarDate out;
   out.day = static_cast<int>(fix(g));
-  out.hour = fix(frac(g) * 24.0);
+  out.hour = fix(frac(g) * kHoursPerDay);
   // the kk guard here is commented out in the original and stays out
-  out.minute = 60.0 * frac(frac(g) * 24.0);
+  out.minute = 60.0 * frac(frac(g) * kHoursPerDay);
   if (e < 13.5) {
     out.month = static_cast<int>(e - 1.0);
   }

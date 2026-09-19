@@ -51,6 +51,14 @@ inline constexpr double kSolarToSiderealRate = 1.002737908;
 inline constexpr double kDegPerHour = 15.0;
 inline constexpr double kDegPerSign = 30.0;
 
+/// civil hours of one solar day, the divisor from clock hours to day
+/// fraction that the panel, the transits and the progressions all lean on
+inline constexpr double kHoursPerDay = 24.0;
+
+/// civil minutes of one solar day, one over this converts minute-of-day
+/// to day fraction, the second half of Robert Rettig's julian_day formula
+inline constexpr double kMinutesPerDay = 1440.0;
+
 /// per body orb weights and house orb percentages count in percent
 inline constexpr double kPercent = 100.0;
 
