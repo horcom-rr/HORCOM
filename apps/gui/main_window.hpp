@@ -8,6 +8,7 @@
 #include <QMainWindow>
 #include <QTime>
 #include <filesystem>
+#include <functional>
 #include <optional>
 #include <vector>
 
@@ -316,8 +317,18 @@ class MainWindow : public QMainWindow {
   QTimer* date_timer_ = nullptr;
   QTimeEdit* time_ = nullptr;
   QDoubleSpinBox* zone_ = nullptr;
+  /// the hidden double coordinate, the source of truth every calc and
+  /// file path already reads through lon_/lat_->value()
   QDoubleSpinBox* lon_ = nullptr;
   QDoubleSpinBox* lat_ = nullptr;
+  /// pulls the DMS boxes back in sync with the hidden double when a
+  /// caller sets lon_/lat_ under a QSignalBlocker
+  std::function<void()> refresh_lon_dms_;
+  std::function<void()> refresh_lat_dms_;
+  void sync_coord_boxes() {
+    if (refresh_lon_dms_) refresh_lon_dms_();
+    if (refresh_lat_dms_) refresh_lat_dms_();
+  }
   QComboBox* houses_ = nullptr;
   QDockWidget* body_dock_ = nullptr;
   QDockWidget* cusp_dock_ = nullptr;

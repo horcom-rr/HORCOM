@@ -24,6 +24,8 @@
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QInputDialog>
+#include <QIntValidator>
+#include <QDoubleValidator>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
@@ -125,6 +127,46 @@ void to_dms(double value, int& deg, int& min, int& sec) {
     min -= 60;
     ++deg;
   }
+}
+
+// the fractional variant, seconds carry the double's precision so the
+// panel does not throw away the accuracy the place file already knows
+void to_dms_frac(double value, int& deg, int& min, double& sec) {
+  const double a = std::abs(value);
+  deg = static_cast<int>(a);
+  const double rem = (a - deg) * 60.0;
+  min = static_cast<int>(rem);
+  sec = (rem - min) * 60.0;
+  // guard the sexagesimal rollover a floating point round could produce
+  if (sec >= 60.0) {
+    sec -= 60.0;
+    ++min;
+  }
+  if (min >= 60) {
+    min -= 60;
+    ++deg;
+  }
+}
+
+// Robert Rettig's coordinate rows use four small boxes ° ' " plus a
+// hemisphere letter, the record mask carries the same idiom. The
+// seconds field takes decimals so the panel keeps the sub-arcsecond
+// precision the double coordinate carries, integer seconds would drop
+// the last ~30 m of accuracy the place file already knows
+QLineEdit* dms_box(QWidget* parent, int chars, int max_value, bool decimals = false) {
+  auto* e = new QLineEdit(parent);
+  e->setAlignment(Qt::AlignRight);
+  e->setMaxLength(chars);
+  e->setFixedWidth(20 + 10 * chars);
+  if (decimals) {
+    auto* v = new QDoubleValidator(0.0, static_cast<double>(max_value + 1), 3, e);
+    v->setNotation(QDoubleValidator::StandardNotation);
+    v->setLocale(QLocale::c());
+    e->setValidator(v);
+  } else if (max_value > 0) {
+    e->setValidator(new QIntValidator(0, max_value, e));
+  }
+  return e;
 }
 
 QString zodiac(double rad) {
@@ -423,16 +465,119 @@ void MainWindow::build_ui() {
   zone_->setSingleStep(0.5);
   zone_->setValue(0.0);
   zone_->setButtonSymbols(QAbstractSpinBox::NoButtons);
+  //RR die geographische Länge und Breite tragen wieder seine Grad-Minute-
+  // Sekunde-Boxen wie im EINGABE-Kasten, die Datei- und Rechenschicht
+  // spricht dahinter unverändert Dezimalgrad
+  //RR the double coordinate stays IEEE double, decimals ten mean the
+  // spin box does not round the value away, sub-arcsecond precision
+  // from the place file rides all the way to the DMS boxes and back
   lon_ = new QDoubleSpinBox(form_host);
   lon_->setRange(-180.0, 180.0);
-  lon_->setDecimals(4);
+  lon_->setDecimals(10);
   lon_->setValue(11.3244);
   lon_->setButtonSymbols(QAbstractSpinBox::NoButtons);
+  lon_->setVisible(false);
   lat_ = new QDoubleSpinBox(form_host);
   lat_->setRange(-89.99, 89.99);
-  lat_->setDecimals(4);
+  lat_->setDecimals(10);
   lat_->setValue(48.1742);
   lat_->setButtonSymbols(QAbstractSpinBox::NoButtons);
+  lat_->setVisible(false);
+  // Länge visible row, deg ° min ' sec " + O/W letter
+  auto* lon_row = new QWidget(form_host);
+  auto* lon_lay = new QHBoxLayout(lon_row);
+  lon_lay->setContentsMargins(0, 0, 0, 0);
+  lon_lay->setSpacing(2);
+  auto* lon_deg = dms_box(lon_row, 3, 180);
+  auto* lon_min = dms_box(lon_row, 2, 59);
+  // the seconds field takes decimals so the panel does not lose the
+  // sub-arcsecond precision the place file carries as a double
+  auto* lon_sec = dms_box(lon_row, 6, 59, true);
+  auto* lon_hemi = dms_box(lon_row, 1, 0);
+  lon_lay->addWidget(lon_deg);
+  lon_lay->addWidget(new QLabel(QStringLiteral("°"), lon_row));
+  lon_lay->addWidget(lon_min);
+  lon_lay->addWidget(new QLabel(QStringLiteral("'"), lon_row));
+  lon_lay->addWidget(lon_sec);
+  lon_lay->addWidget(new QLabel(QStringLiteral("\""), lon_row));
+  lon_lay->addSpacing(6);
+  lon_lay->addWidget(lon_hemi);
+  lon_lay->addStretch(1);
+  auto* lat_row = new QWidget(form_host);
+  auto* lat_lay = new QHBoxLayout(lat_row);
+  lat_lay->setContentsMargins(0, 0, 0, 0);
+  lat_lay->setSpacing(2);
+  auto* lat_deg = dms_box(lat_row, 2, 89);
+  auto* lat_min = dms_box(lat_row, 2, 59);
+  auto* lat_sec = dms_box(lat_row, 6, 59, true);
+  auto* lat_hemi = dms_box(lat_row, 1, 0);
+  lat_lay->addWidget(lat_deg);
+  lat_lay->addWidget(new QLabel(QStringLiteral("°"), lat_row));
+  lat_lay->addWidget(lat_min);
+  lat_lay->addWidget(new QLabel(QStringLiteral("'"), lat_row));
+  lat_lay->addWidget(lat_sec);
+  lat_lay->addWidget(new QLabel(QStringLiteral("\""), lat_row));
+  lat_lay->addSpacing(6);
+  lat_lay->addWidget(lat_hemi);
+  lat_lay->addStretch(1);
+  // pull the current value from the hidden spinbox and write it back
+  // whenever a DMS box loses focus, the spinbox valueChanged signal then
+  // fires the recompute connect set up further down. The seconds text
+  // carries three decimals so the double precision from the place file
+  // survives the round trip through the panel
+  auto format_sec = [](double s) {
+    QString t = QString::number(s, 'f', 3);
+    // trim trailing zeros so a whole arc-second reads plain
+    while (t.contains(QLatin1Char('.')) && (t.endsWith(QLatin1Char('0')) || t.endsWith(QLatin1Char('.')))) {
+      t.chop(1);
+    }
+    return t;
+  };
+  auto refresh_lon = [lon_deg, lon_min, lon_sec, lon_hemi, format_sec, this]() {
+    int d = 0, m = 0;
+    double s = 0.0;
+    to_dms_frac(lon_->value(), d, m, s);
+    lon_deg->setText(QString::number(d));
+    lon_min->setText(QString::number(m));
+    lon_sec->setText(format_sec(s));
+    lon_hemi->setText(lon_->value() < 0.0 ? QStringLiteral("W") : QStringLiteral("E"));
+  };
+  auto refresh_lat = [lat_deg, lat_min, lat_sec, lat_hemi, format_sec, this]() {
+    int d = 0, m = 0;
+    double s = 0.0;
+    to_dms_frac(lat_->value(), d, m, s);
+    lat_deg->setText(QString::number(d));
+    lat_min->setText(QString::number(m));
+    lat_sec->setText(format_sec(s));
+    lat_hemi->setText(lat_->value() < 0.0 ? QStringLiteral("S") : QStringLiteral("N"));
+  };
+  auto commit_lon = [lon_deg, lon_min, lon_sec, lon_hemi, this]() {
+    const double v = lon_deg->text().toInt() + lon_min->text().toInt() / 60.0 +
+                     lon_sec->text().toDouble() / 3600.0;
+    const QString h = lon_hemi->text().trimmed().toUpper();
+    lon_->setValue(h == "W" ? -v : v);
+  };
+  auto commit_lat = [lat_deg, lat_min, lat_sec, lat_hemi, this]() {
+    const double v = lat_deg->text().toInt() + lat_min->text().toInt() / 60.0 +
+                     lat_sec->text().toDouble() / 3600.0;
+    const QString h = lat_hemi->text().trimmed().toUpper();
+    lat_->setValue(h == "S" ? -v : v);
+  };
+  for (auto* box : {lon_deg, lon_min, lon_sec, lon_hemi}) {
+    connect(box, &QLineEdit::editingFinished, this, commit_lon);
+  }
+  for (auto* box : {lat_deg, lat_min, lat_sec, lat_hemi}) {
+    connect(box, &QLineEdit::editingFinished, this, commit_lat);
+  }
+  connect(lon_, &QDoubleSpinBox::valueChanged, this, refresh_lon);
+  connect(lat_, &QDoubleSpinBox::valueChanged, this, refresh_lat);
+  // store the refresh entry points so callers that setValue under a
+  // signal blocker (apply_record, restore_state, open_place) can still
+  // pull the DMS boxes back in sync
+  refresh_lon_dms_ = refresh_lon;
+  refresh_lat_dms_ = refresh_lat;
+  refresh_lon();
+  refresh_lat();
   houses_ = new QComboBox(form_host);
   // his menu order in hausw
   houses_->addItems({"PLACIDUS", "TOPOZENTRISCH", "KOCH-GOH", "REGIOMONTANUS", "CAMPANUS",
@@ -538,8 +683,10 @@ void MainWindow::build_ui() {
   connect(zone_pick, &QToolButton::clicked, this, &MainWindow::pick_zone);
   form->addRow(tr("Zeit-Zone"), zone_row);
   form->addRow(sommer_row);
-  form->addRow(tr("Länge (Ost +)"), lon_);
-  form->addRow(tr("Breite (Nord +)"), lat_);
+  // the hidden lon_/lat_ spinboxes stay off the form, the DMS rows carry
+  // the visible entry and mirror the double back into them
+  form->addRow(tr("Länge (Ost +)"), lon_row);
+  form->addRow(tr("Breite (Nord +)"), lat_row);
   form->addRow(tr("Häuser"), houses_);
   form->addRow(parallax_);
   form->addRow(extras_);
@@ -1533,6 +1680,7 @@ void MainWindow::restore_state(const PanelState& s) {
     }
     lon_->setValue(s.lon);
     lat_->setValue(s.lat);
+    sync_coord_boxes();
     houses_->setCurrentIndex(s.houses);
     parallax_->setChecked(s.parallax);
     extras_->setChecked(s.extras);
@@ -2033,6 +2181,7 @@ void MainWindow::open_place() {
   const QSignalBlocker b3(zone_);
   lon_->setValue(r.lon);
   lat_->setValue(r.lat);
+  sync_coord_boxes();
   // the picker files store the step from zone time to UT, the panel
   // wants hours east
   if (const auto to_ut = r.zone_to_ut()) {
@@ -3691,6 +3840,7 @@ void MainWindow::wander_dialog(bool place) {
       const QSignalBlocker b2(lat_);
       lon_->setValue(lon_->value() + dir * mul * dlon->value());
       lat_->setValue(std::clamp(lat_->value() + dir * mul * dlat->value(), -89.9, 89.9));
+      sync_coord_boxes();
       recompute();
       banner_->set_record(tr("ORT-WANDERN"));
     } else {
@@ -4698,6 +4848,7 @@ void MainWindow::combin_chart() {
   const QSignalBlocker b2(lat_);
   lon_->setValue(mixed.lon_deg_east);
   lat_->setValue(mixed.lat_deg);
+  sync_coord_boxes();
   QString mine = QString::fromStdString(record_.surname).trimmed();
   if (mine.isEmpty()) {
     mine = "RADIX";
@@ -5752,6 +5903,7 @@ void MainWindow::apply_record(const AafRecord& r, bool claim_slot) {
   zone_->setValue(zone_hours);
   lon_->setValue(r.longitude());
   lat_->setValue(r.latitude());
+  sync_coord_boxes();
   recompute();
   refresh_record_label();
 }
@@ -5811,6 +5963,7 @@ void MainWindow::open_statistics() {
   zone_->setValue(0.0);
   lon_->setValue(r.lon);
   lat_->setValue(r.lat);
+  sync_coord_boxes();
   recompute();
   refresh_record_label();
 }
