@@ -176,6 +176,15 @@ QTableWidget {
   selection-background-color: @selBg@;
   selection-color: @selInk@;
 }
+/* Windows Qt styles ignore the widget-level selection-color and fall
+   back to the palette HighlightedText role, so on the black selection
+   band of the paper theme the row text vanishes. Pinning both colours
+   on the item pseudo-state paints them the same active or inactive. */
+QTableView::item:selected,
+QTableView::item:selected:!active {
+  background: @selBg@;
+  color: @selInk@;
+}
 QHeaderView {
   background: @field@;
 }
