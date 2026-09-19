@@ -3301,14 +3301,23 @@ void MainWindow::planet_selection() {
   auto* v = new QVBoxLayout(&dialog);
   auto* table = new QTableWidget(0, 3, &dialog);
   table->setHorizontalHeaderLabels({tr("Punkt"), tr("Zeigen"), tr("Rot")});
-  table->horizontalHeader()->setStretchLastSection(true);
   table->verticalHeader()->setVisible(false);
   table->verticalHeader()->setDefaultSectionSize(22);
-  // the Punkt column carries the longest tag "Hamburger Planeten", the
-  // two body tags SO..PL fit in half that space so a fixed width keeps
-  // the checkbox columns tidy
-  table->setColumnWidth(0, 170);
-  table->setColumnWidth(1, 80);
+  // clicks on the checkbox rows should never open an editor, the stock
+  // double-click edit trigger is what makes stock QTableWidgetItem
+  // checkboxes swallow rapid clicks
+  table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  table->setSelectionMode(QAbstractItemView::NoSelection);
+  // the Punkt column stretches to the dialog width, the two checkbox
+  // columns hug their indicator so no dead space rides beside the tick
+  auto* header = table->horizontalHeader();
+  header->setSectionResizeMode(0, QHeaderView::Stretch);
+  header->setSectionResizeMode(1, QHeaderView::Fixed);
+  header->setSectionResizeMode(2, QHeaderView::Fixed);
+  // wide enough for the German header text "Zeigen" without truncation
+  const int check_col_width = 68;
+  table->setColumnWidth(1, check_col_width);
+  table->setColumnWidth(2, check_col_width);
 
   // Section headers span the row like his group captions on the panel.
   // A body slot below the previous is off by default until the tester
@@ -3364,6 +3373,22 @@ void MainWindow::planet_selection() {
   // Poseidon, tragen im Panel nur einen Sammel-Knopf
   static const std::array<int, 8> kHamburger = {body::kCupido, body::kHades,   body::kZeus,     body::kKronos,
                                                 body::kApollon, body::kAdmetos, body::kVulkanus, body::kPoseidon};
+  // real QCheckBox widgets ride in the two checkbox columns so every
+  // click reaches a live indicator without a double-click swallow, and
+  // the yellow @checkBg@ shape from QCheckBox::indicator carries through
+  // to the table cells. A centred wrapper keeps the tick in the middle
+  // of the column without expanding the click target beyond the visible
+  // indicator
+  auto make_check_cell = [](QWidget* parent, bool on) {
+    auto* wrap = new QWidget(parent);
+    auto* lay = new QHBoxLayout(wrap);
+    lay->setContentsMargins(0, 0, 0, 0);
+    auto* box = new QCheckBox(wrap);
+    box->setChecked(on);
+    box->setFocusPolicy(Qt::NoFocus);
+    lay->addWidget(box, 0, Qt::AlignCenter);
+    return std::pair<QWidget*, QCheckBox*>{wrap, box};
+  };
   for (const Row& r : rows) {
     const int row = table->rowCount();
     table->insertRow(row);
@@ -3392,8 +3417,6 @@ void MainWindow::planet_selection() {
     name->setData(Qt::UserRole + 1, r.extra);
     name->setFlags(Qt::ItemIsEnabled);
     table->setItem(row, 0, name);
-    auto* shown = new QTableWidgetItem();
-    shown->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable);
     // the main planets read the emphasis, the extras additionally lean
     // on the per slot included flag so an off row leaves them
     // uncomputed like his nk zero. The Hamburger row's state derives
@@ -3412,10 +3435,11 @@ void MainWindow::planet_selection() {
         on = on && included_[static_cast<std::size_t>(slot)];
       }
     }
-    shown->setCheckState(on ? Qt::Checked : Qt::Unchecked);
-    table->setItem(row, 1, shown);
-    auto* red = new QTableWidgetItem();
-    red->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable);
+    auto [shown_cell, shown_box] = make_check_cell(table, on);
+    table->setCellWidget(row, 1, shown_cell);
+    // stash the checkbox pointer on the name item so the accept loop can
+    // read it back without another cellWidget lookup
+    name->setData(Qt::UserRole + 2, QVariant::fromValue<void*>(shown_box));
     bool red_on = false;
     if (slot == 0) {
       // Hamburger group red = any factor is red
@@ -3428,8 +3452,9 @@ void MainWindow::planet_selection() {
     } else {
       red_on = emphasis_[static_cast<std::size_t>(slot)] > 0;
     }
-    red->setCheckState(red_on ? Qt::Checked : Qt::Unchecked);
-    table->setItem(row, 2, red);
+    auto [red_cell, red_box] = make_check_cell(table, red_on);
+    table->setCellWidget(row, 2, red_cell);
+    name->setData(Qt::UserRole + 3, QVariant::fromValue<void*>(red_box));
   }
   auto* ruler = new QCheckBox(tr("Geburtsherrscher rot hervorheben"), &dialog);
   ruler->setChecked(ruler_red_);
@@ -3461,7 +3486,7 @@ void MainWindow::planet_selection() {
   v->addWidget(ruler);
   v->addLayout(chords_box);
   v->addWidget(buttons);
-  dialog.resize(480, 900);
+  dialog.resize(360, 900);
   if (dialog.exec() != QDialog::Accepted) {
     return;
   }
@@ -3472,8 +3497,10 @@ void MainWindow::planet_selection() {
     }
     const int slot = name->data(Qt::UserRole).toInt();
     const bool extra = name->data(Qt::UserRole + 1).toBool();
-    const bool zeigen = table->item(row, 1)->checkState() == Qt::Checked;
-    const bool rot = table->item(row, 2)->checkState() == Qt::Checked;
+    auto* shown_box = static_cast<QCheckBox*>(name->data(Qt::UserRole + 2).value<void*>());
+    auto* red_box = static_cast<QCheckBox*>(name->data(Qt::UserRole + 3).value<void*>());
+    const bool zeigen = shown_box != nullptr && shown_box->isChecked();
+    const bool rot = red_box != nullptr && red_box->isChecked();
     int e = 0;
     if (!zeigen) {
       e = -1;
