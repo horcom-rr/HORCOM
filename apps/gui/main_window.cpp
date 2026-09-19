@@ -616,6 +616,10 @@ void MainWindow::build_ui() {
   auto* node_mittel = new QRadioButton(tr("Mittlerer"), form_host);
   //RR Schwarzer Mond row, gleiche Struktur wie beim Mondknoten
   apogee_show_ = new QCheckBox(tr("Schwarzer Mond"), form_host);
+  // the panel switch owns AG's inclusion, the group slot mirrors it so the
+  // Planeten-Auswahl dialog shows AG checked when Schwarzer Mond is on
+  connect(apogee_show_, &QCheckBox::toggled, this,
+          [this](bool on) { included_[body::kApogee] = on; });
   auto* apogee_wahr = new QRadioButton(tr("Wahrer"), form_host);
   auto* apogee_mittel = new QRadioButton(tr("Mittlerer"), form_host);
   true_node_ = new QCheckBox(form_host);
@@ -1700,6 +1704,9 @@ void MainWindow::restore_state(const PanelState& s) {
       included_[static_cast<std::size_t>(slot)] = s.hamburg;
     }
     apogee_show_->setChecked(s.apogee);
+    // the toggled connect is blocked here so mirror the AG group slot by
+    // hand, the dialog picks stay in included_ between panel steps
+    included_[body::kApogee] = s.apogee;
     if (node_show_ != nullptr) {
       node_show_->setChecked(s.node_show);
     }
@@ -3472,6 +3479,12 @@ void MainWindow::planet_selection() {
       emphasis_[static_cast<std::size_t>(slot)] = e;
       if (extra) {
         included_[static_cast<std::size_t>(slot)] = zeigen;
+      }
+      // AG mirrors the panel Schwarzer Mond, so the two rows stay
+      // in step whichever screen the tester used to change it
+      if (slot == body::kApogee && apogee_show_ != nullptr) {
+        const QSignalBlocker b(apogee_show_);
+        apogee_show_->setChecked(zeigen);
       }
     }
   }
