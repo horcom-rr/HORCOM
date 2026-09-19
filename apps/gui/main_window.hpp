@@ -108,6 +108,11 @@ class MainWindow : public QMainWindow {
   /// the extra body picker.
   void open_planet_selection() { planet_selection(); }
 
+  /// Promotes the active derived chart into a fresh radix slot, the
+  /// capture hook's path into ERGEBNIS als RADIX. Bypasses the operator
+  /// warning so a scripted shot does not stall on a modal
+  void promote_result_to_radix_scripted();
+
  private slots:
   void recompute();
   void data_file_io();
@@ -150,6 +155,7 @@ class MainWindow : public QMainWindow {
   void transit_list();
   void ingress_table();
   void combin_chart();
+  void result_as_radix();
   void save_record();
   void export_svg();
   void print_chart();
@@ -273,6 +279,9 @@ class MainWindow : public QMainWindow {
   /// which slot family holds the panel, false radix, true solar
   bool active_is_solar_ = false;
   int active_solar_ = -1;
+  /// the ERGEBNIS als RADIX menu entry, only enabled while an active
+  /// solar/derived chart holds the panel
+  QAction* result_as_radix_action_ = nullptr;
   /// the slot the running clock feeds, his zeuhr, -1 when none
   int uhr_slot_ = -1;
   /// the two captured sheets of the F9 double print, his mehrf buffers

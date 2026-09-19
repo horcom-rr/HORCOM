@@ -1101,6 +1101,10 @@ void MainWindow::build_ui() {
   divers->addAction(tr("ORT-WANDERN…"), this, &MainWindow::place_wander);
   //RR GROßES ( = PLATONISCHES ) JAHR
   divers->addAction(tr("GROßES ( = PLATONISCHES ) JAHR…"), this, &MainWindow::great_year);
+  //RR ERGEBNIS als RADIX, das abgeleitete Horoskop wandert als eigen-
+  // ständiger RADIX-Satz ins EIN-AUSG.-Menü, wie sein erg_rad
+  result_as_radix_action_ = divers->addAction(tr("ERGEBNIS als RADIX…"), this, &MainWindow::result_as_radix);
+  result_as_radix_action_->setEnabled(false);
   divers->addAction(tr("ERLÄUTERUNG 9…"), this, [erlaeuterung]() { erlaeuterung("komm9"); });
   //RR ÄNDERUNGEN / HINWEISE / KURZANL.
   divers->addAction(tr("ÄNDERUNGEN / HINWEISE / KURZANL.…"), this, [erlaeuterung]() { erlaeuterung("aendlist"); });
@@ -5201,6 +5205,74 @@ void MainWindow::update_solar_actions() {
       a->setChecked(false);
     }
   }
+  // the ERGEBNIS als RADIX action rides on top of the active derived chart,
+  // it stays disabled while a radix drives the panel
+  if (result_as_radix_action_ != nullptr) {
+    const bool can_promote = active_is_solar_ && active_solar_ >= 0 &&
+                             solar_slots_[static_cast<std::size_t>(active_solar_)].has_value();
+    result_as_radix_action_->setEnabled(can_promote);
+  }
+}
+
+// ported from erg_rad, the abgeleitete Horoskop (Solar, Lunar, Tages-,
+// Progression, Direktion, Planetar, Personar, Septar) wandert als
+// eigenständiger RADIX-Satz ins EIN-AUSG.-Menü, sodass der Tester das
+// Ergebnis wie ein Geburtshoroskop weiter untersuchen kann. Robert öffnet
+// den Kasten mit seinem "Nur für GEÜBTE ! Das CHAOS DROHT !"-Hinweis
+void MainWindow::result_as_radix() {
+  if (!active_is_solar_ || active_solar_ < 0 ||
+      !solar_slots_[static_cast<std::size_t>(active_solar_)]) {
+    return;
+  }
+  const QMessageBox::StandardButton go = QMessageBox::warning(
+      this, tr("ERGEBNIS als RADIX"),
+      tr("Nur für GEÜBTE!\n\nDas CHAOS DROHT!\n\n"
+         "Das abgeleitete Horoskop wird als eigenständiger RADIX-Satz gespeichert."),
+      QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel);
+  if (go != QMessageBox::Ok) {
+    return;
+  }
+  promote_result_to_radix_scripted();
+}
+
+// the operator warning strips out, so the capture hook and later chained
+// workflows can promote without waiting on a modal
+void MainWindow::promote_result_to_radix_scripted() {
+  if (!active_is_solar_ || active_solar_ < 0 ||
+      !solar_slots_[static_cast<std::size_t>(active_solar_)]) {
+    return;
+  }
+  //RR sol$ + " ALS " + rd$, der bisherige sol$-Text markiert die Herkunft
+  // neben dem Namen. Der ausführliche Vermerk landet im COM-Feld, sodass
+  // Datei-Ausgänge die Herkunft mitführen ohne den Namen zu überladen
+  AafRecord r = *solar_slots_[static_cast<std::size_t>(active_solar_)];
+  const QString source = solar_labels_[static_cast<std::size_t>(active_solar_)].trimmed();
+  if (!source.isEmpty()) {
+    const QString original = QString::fromStdString(r.surname).trimmed();
+    const QString tag = QString("(%1)").arg(source);
+    if (original.isEmpty()) {
+      r.surname = tag.toStdString();
+    } else if (!original.contains(tag)) {
+      r.surname = QString("%1 %2").arg(original, tag).toStdString();
+    }
+    const QString origin = QString("ALS RADIX aus %1").arg(source);
+    const QString existing = QString::fromStdString(r.comment).trimmed();
+    if (existing.isEmpty()) {
+      r.comment = origin.toStdString();
+    } else if (!existing.contains(origin)) {
+      r.comment = QString("%1 | %2").arg(existing, origin).toStdString();
+    }
+  }
+  int idx = next_slot();
+  if (idx < 0) {
+    //RR ist kein Radix-Slot frei, tritt der fünfte zurück wie die
+    // Überschreib-Regel des Originals
+    idx = 4;
+  }
+  //RR set_slot ruft apply_record, das active_is_solar_ zurücksetzt und
+  // die Menü-Häkchen mit update_slot_actions / update_solar_actions
+  // wieder zieht. Das Rad rechnet dabei automatisch nach
+  set_slot(idx, r, true);
 }
 
 // the plain HOROSKOP - GRAPHIK entry, every special view steps aside

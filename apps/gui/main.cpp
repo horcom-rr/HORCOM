@@ -475,6 +475,15 @@ int main(int argc, char** argv) {
     shot = shot_directions;
     window.show_directions(horcom::julian_day({13, 10, 2026, 0, 0.0}), false);
   }
+  // --shot-erg-radix FILE runs a solar off the current chart then
+  // promotes the result via ERGEBNIS als RADIX, the capture hook for
+  // the DIVERSES entry
+  const int shot_erg = args.indexOf("--shot-erg-radix");
+  if (shot_erg >= 0 && shot_erg + 1 < args.size()) {
+    window.show_solar(QDate::currentDate().year());
+    window.promote_result_to_radix_scripted();
+    shot = shot_erg;
+  }
   // --shot-planet FILE opens the Planeten-Auswahl dialog and captures it
   const int shot_planet = args.indexOf("--shot-planet");
   if (shot_planet >= 0 && shot_planet + 1 < args.size()) {
