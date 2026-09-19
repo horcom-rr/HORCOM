@@ -36,6 +36,16 @@ inline constexpr int kCeres = 23;
 inline constexpr int kPallas = 24;
 inline constexpr int kJuno = 25;
 inline constexpr int kVesta = 26;
+// the eight Hamburger Faktoren, the Uranian school after Witte and
+// Sieggrün, slots follow the ps$ table of the original
+inline constexpr int kCupido = 27;
+inline constexpr int kHades = 28;
+inline constexpr int kZeus = 29;
+inline constexpr int kKronos = 30;
+inline constexpr int kApollon = 31;
+inline constexpr int kAdmetos = 32;
+inline constexpr int kVulkanus = 33;
+inline constexpr int kPoseidon = 34;
 inline constexpr int kQuaoar = 35;
 inline constexpr int kHalley = 36;
 inline constexpr int kPholus = 37;

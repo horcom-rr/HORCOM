@@ -37,6 +37,7 @@
 #include <QPrintDialog>
 #include <QPrinter>
 #include <QPushButton>
+#include <QRadioButton>
 #include <QScrollBar>
 #include <QStyle>
 #include <QStyledItemDelegate>
@@ -309,7 +310,16 @@ MainWindow::MainWindow(VsopTables vsop, Ephemerides eph, std::filesystem::path d
 }
 
 void MainWindow::build_ui() {
+  // the version stamped by CI (HORCOM_VERSION) rides in the title beside
+  // the name so a screenshot always says which build shot it, the
+  // tester's mockup carries the same three digit build tag
+#ifdef HORCOM_VERSION_STRING
+  const QString version = QStringLiteral(HORCOM_VERSION_STRING);
+  setWindowTitle(version.isEmpty() ? QStringLiteral("HORCOM")
+                                   : QStringLiteral("HORCOM  %1").arg(version));
+#else
   setWindowTitle("HORCOM");
+#endif
   {
     // the own colours of hor_farb and the hard& choice survive in the
     // settings like his param_sp block
@@ -382,9 +392,21 @@ void MainWindow::build_ui() {
   form->addRow(tr("Name"), surname_);
   // the place name of the record, the same field the sheet corner
   // carries. ORTS-DATEIEN / ORT SUCHEN fills it too, edits here reach
-  // the sheet on the next recompute
+  // the sheet on the next recompute. The picker beside it opens the
+  // same Orts-Dateien dialog the EIN-AUSG menu carries, one click into
+  // the catalogue from the panel like the tester wants
   place_field_ = new QLineEdit(form_host);
-  form->addRow(tr("Ortsname"), place_field_);
+  auto* place_row = new QWidget(form_host);
+  auto* place_lay = new QHBoxLayout(place_row);
+  place_lay->setContentsMargins(0, 0, 0, 0);
+  place_lay->setSpacing(4);
+  place_lay->addWidget(place_field_, 1);
+  auto* place_pick = new QToolButton(place_row);
+  place_pick->setText("…");
+  place_pick->setToolTip(tr("Orts-Dateien"));
+  place_lay->addWidget(place_pick);
+  connect(place_pick, &QToolButton::clicked, this, &MainWindow::open_place);
+  form->addRow(tr("Ortsname"), place_row);
   // the original entered dates as plain TT MM JJJJ fields and a
   // calendar widget cannot hold years before Christ, so the date is a
   // text field, TT.MM.JJJJ, years BC with the vC of his chooser list
@@ -416,25 +438,71 @@ void MainWindow::build_ui() {
   houses_->addItems({"PLACIDUS", "TOPOZENTRISCH", "KOCH-GOH", "REGIOMONTANUS", "CAMPANUS",
                      "ÄQUAL EKLIPTIKAL ab AC", "ÄQUAL n. VEHLOW", "NUR AC und MC", "KEINE"});
   parallax_ = new QCheckBox(tr("Parallaxe (topozentrisch)"), form_host);
-  // off at startup like the original klpl!, the real extras and the
-  // Hamburg factors sit on their own rows as the author's family
-  // wished, the AG display beside them
-  //RR Zusatz-Planeten CH QU XE des Originals, jetzt um die realen
-  // Kleinplaneten und den Kometen Halley erweitert. Der Tooltip
-  // trägt die Aufzählung
-  extras_ = new QCheckBox(tr("Zusatz-Planeten"), form_host);
-  extras_->setToolTip(tr("Chiron, die Kleinplaneten Ceres, Pallas, Juno, Vesta,"
-                         " Quaoar, Komet Halley, Pholus, Damokles, Nessus und Xena"));
+  // off at startup like the original klpl!, the real extras stay inline
+  // beside their label so the panel wears his three letters like the
+  // tester's mockup. The Hamburg factors and every other body group
+  // live behind Andere Elemente and reach the wheel through the
+  // Planeten-Auswahl dialog like his ANSICHT screen
+  //RR Zusatz-Planeten CH QU XE des Originals, die reine Namensauswahl
+  // seiner eigenen Endeinstellung
+  extras_ = new QCheckBox(tr("Zusatz-Planeten  CH  QU  XE"), form_host);
+  // the panel shortcut mirrors the CH QU XE flag in the per slot list
+  // so the Planeten-Auswahl dialog shows the same three checked
+  connect(extras_, &QCheckBox::toggled, this, [this](bool on) {
+    included_[body::kChiron] = on;
+    included_[body::kQuaoar] = on;
+    included_[body::kXena] = on;
+  });
   hamburg_ = new QCheckBox(tr("Hamburger Planeten"), form_host);
-  //RR Apogäum, but the tester's family calls the two by their working
-  // names, mean and true black moon, one row above the other so the
-  // reader sees the same body twice with two conventions
-  apogee_show_ = new QCheckBox(tr("Mittlerer Schwarzer Mond"), form_host);
-  true_node_ = new QCheckBox(tr("Wahrer Mondknoten"), form_host);
-  true_apogee_ = new QCheckBox(tr("Wahrer Schwarzer Mond"), form_host);
+  hamburg_->setVisible(false);
+  // the hidden Hamburger switch fans the eight factors when preset_extras
+  // asks for them, so the wheel and the Planeten-Auswahl agree
+  connect(hamburg_, &QCheckBox::toggled, this, [this](bool on) {
+    for (int slot : {body::kCupido, body::kHades, body::kZeus, body::kKronos, body::kApollon, body::kAdmetos,
+                     body::kVulkanus, body::kPoseidon}) {
+      included_[static_cast<std::size_t>(slot)] = on;
+    }
+  });
+  //RR Mondknoten row, DR und DS wahr wie die Familie ihn liest
+  node_show_ = new QCheckBox(tr("Mondknoten"), form_host);
+  node_show_->setChecked(true);
+  auto* node_wahr = new QRadioButton(tr("Wahrer"), form_host);
+  auto* node_mittel = new QRadioButton(tr("Mittlerer"), form_host);
+  //RR Schwarzer Mond row, gleiche Struktur wie beim Mondknoten
+  apogee_show_ = new QCheckBox(tr("Schwarzer Mond"), form_host);
+  auto* apogee_wahr = new QRadioButton(tr("Wahrer"), form_host);
+  auto* apogee_mittel = new QRadioButton(tr("Mittlerer"), form_host);
+  true_node_ = new QCheckBox(form_host);
+  true_node_->setVisible(false);
+  true_apogee_ = new QCheckBox(form_host);
+  true_apogee_->setVisible(false);
+  // radio buttons follow the two hidden checkboxes so the existing
+  // logic that reads true_node_->isChecked() and true_apogee_ stays
+  auto sync_node_radios = [node_wahr, node_mittel, this]() {
+    QSignalBlocker b1(node_wahr), b2(node_mittel);
+    const bool w = true_node_->isChecked();
+    node_wahr->setChecked(w);
+    node_mittel->setChecked(!w);
+  };
+  auto sync_apogee_radios = [apogee_wahr, apogee_mittel, this]() {
+    QSignalBlocker b1(apogee_wahr), b2(apogee_mittel);
+    const bool w = true_apogee_->isChecked();
+    apogee_wahr->setChecked(w);
+    apogee_mittel->setChecked(!w);
+  };
+  connect(node_wahr, &QRadioButton::toggled, this, [this](bool on) { true_node_->setChecked(on); });
+  connect(apogee_wahr, &QRadioButton::toggled, this, [this](bool on) { true_apogee_->setChecked(on); });
+  connect(true_node_, &QCheckBox::toggled, this, sync_node_radios);
+  connect(true_apogee_, &QCheckBox::toggled, this, sync_apogee_radios);
   //RR HELIOZENTRISCH
   helio_ = new QCheckBox(tr("Heliozentrisch"), form_host);
+  //RR SOMMERZEIT, ein Stunden Zuschlag zur Zone
+  sommerzeit_ = new QCheckBox(tr("Sommerzeit"), form_host);
   form->addRow(tr("Datum"), date_);
+  // the birth time reads as local clock, the zone plus Sommerzeit
+  // convert it to UT the moment the recompute runs; the tester's
+  // mockup wrote UT next to it to name the destination unit, not to
+  // ask the user to enter UT already
   form->addRow(tr("Zeit"), time_);
   // the zone field carries a picker into the zone name catalogue
   auto* zone_row = new QWidget(form_host);
@@ -447,19 +515,51 @@ void MainWindow::build_ui() {
   zone_pick->setToolTip(tr("Zeit-Zonen Katalog"));
   zone_lay->addWidget(zone_pick);
   connect(zone_pick, &QToolButton::clicked, this, &MainWindow::pick_zone);
-  form->addRow(tr("Zone (h östl.)"), zone_row);
+  form->addRow(tr("Zeit-Zone"), zone_row);
+  form->addRow(sommerzeit_);
   form->addRow(tr("Länge (Ost +)"), lon_);
   form->addRow(tr("Breite (Nord +)"), lat_);
   form->addRow(tr("Häuser"), houses_);
   form->addRow(parallax_);
   form->addRow(extras_);
-  form->addRow(hamburg_);
-  // the two black moon rows sit together, mean above true, so the same
-  // body reads twice under two conventions as the tester's family use it
-  form->addRow(apogee_show_);
-  form->addRow(true_apogee_);
-  form->addRow(true_node_);
+  // Mondknoten row, the two radio buttons ride beside the checkbox so
+  // the panel shows the choice inline like the tester's sketch
+  auto* node_row = new QWidget(form_host);
+  auto* node_lay = new QHBoxLayout(node_row);
+  node_lay->setContentsMargins(0, 0, 0, 0);
+  node_lay->setSpacing(8);
+  node_lay->addWidget(node_show_);
+  node_lay->addWidget(node_wahr);
+  node_lay->addWidget(node_mittel);
+  node_lay->addStretch(1);
+  form->addRow(node_row);
+  // Schwarzer Mond row, same layout as the Mondknoten row
+  auto* apogee_row = new QWidget(form_host);
+  auto* apogee_lay = new QHBoxLayout(apogee_row);
+  apogee_lay->setContentsMargins(0, 0, 0, 0);
+  apogee_lay->setSpacing(8);
+  apogee_lay->addWidget(apogee_show_);
+  apogee_lay->addWidget(apogee_wahr);
+  apogee_lay->addWidget(apogee_mittel);
+  apogee_lay->addStretch(1);
+  form->addRow(apogee_row);
+  // Andere Elemente row, the picker opens the Planeten-Auswahl dialog,
+  // the same screen the ANSICHT menu carries. From there the tester
+  // reaches the Asteroiden, die Planetoiden und die Hamburger Faktoren
+  auto* extra_row = new QWidget(form_host);
+  auto* extra_lay = new QHBoxLayout(extra_row);
+  extra_lay->setContentsMargins(0, 0, 0, 0);
+  extra_lay->setSpacing(4);
+  auto* extra_pick = new QToolButton(extra_row);
+  extra_pick->setText("…");
+  extra_pick->setToolTip(tr("Planeten-Auswahl"));
+  extra_lay->addWidget(extra_pick);
+  extra_lay->addStretch(1);
+  connect(extra_pick, &QToolButton::clicked, this, &MainWindow::planet_selection);
+  form->addRow(tr("Andere Elemente"), extra_row);
   form->addRow(helio_);
+  sync_node_radios();
+  sync_apogee_radios();
   // the transit moment enters as Greenwich time like the original a20
   transit_on_ = new QCheckBox(tr("Transite"), form_host);
   tdate_ = new QDateEdit(QDate::currentDate(), form_host);
@@ -486,8 +586,17 @@ void MainWindow::build_ui() {
   parallax_->setChecked(preset.topocentric_parallax);
   true_node_->setChecked(preset.true_node);
   true_apogee_->setChecked(preset.true_apogee);
-  // a konsta file may preselect extras through its nk table
-  extras_->setChecked(preset.nk[2] > 0 || preset.nk[17] > 0 || preset.nk[22] > 0);
+  // a konsta file may preselect extras through its nk table, the panel
+  // shortcut Zusatz-Planeten covers CH QU XE like his own final profile
+  // and stays on by default because the tester's family reads them as a
+  // baseline. Every other preset body lands in the per slot list
+  extras_->setChecked(true);
+  for (int i = 2; i <= 22; ++i) {
+    const int slot = preset.nk[static_cast<std::size_t>(i)];
+    if (slot > 0 && slot < body::kSlotCount) {
+      included_[static_cast<std::size_t>(slot)] = true;
+    }
+  }
   bool hamburg_on = false;
   for (int i = 9; i <= 16; ++i) {
     hamburg_on = hamburg_on || preset.nk[static_cast<std::size_t>(i)] > 0;
@@ -1217,7 +1326,8 @@ void MainWindow::build_ui() {
   connect(lon_, &QDoubleSpinBox::valueChanged, this, &MainWindow::recompute);
   connect(lat_, &QDoubleSpinBox::valueChanged, this, &MainWindow::recompute);
   connect(houses_, &QComboBox::currentIndexChanged, this, &MainWindow::recompute);
-  for (QCheckBox* box : {parallax_, extras_, hamburg_, apogee_show_, true_node_, true_apogee_, helio_}) {
+  for (QCheckBox* box :
+       {parallax_, extras_, hamburg_, apogee_show_, node_show_, true_node_, true_apogee_, helio_, sommerzeit_}) {
     connect(box, &QCheckBox::toggled, this, &MainWindow::recompute);
   }
   connect(transit_on_, &QCheckBox::toggled, this, [this](bool on) {
@@ -1236,8 +1346,11 @@ ChartInput MainWindow::current_input() const {
   const QTime t = time_->time();
   CalendarDate local{d.day(), d.month(), astro_year(d), static_cast<double>(t.hour()),
                      t.minute() + t.second() / 60.0};
-  // zone hours east of Greenwich lead back to UT by subtraction
-  const double jd_ut = julian_day(local) - zone_->value() / 24.0;
+  // zone hours east of Greenwich lead back to UT by subtraction. The
+  // Sommerzeit checkbox raises the zone by one hour like his
+  // ZONEN-Datei carried the summer shift
+  const double eff_zone = zone_->value() + (sommerzeit_ != nullptr && sommerzeit_->isChecked() ? 1.0 : 0.0);
+  const double jd_ut = julian_day(local) - eff_zone / 24.0;
   in.date_ut = calendar_date(jd_ut);
   in.lon_deg_east = lon_->value();
   in.lat_deg = lat_->value();
@@ -1252,38 +1365,73 @@ ChartSettings MainWindow::current_settings() const {
   s.true_node = true_node_->isChecked();
   s.true_apogee = true_apogee_->isChecked();
   s.heliocentric = helio_ != nullptr && helio_->isChecked();
-  // the panel rows rule the nk table. The real extras are CH QU XE
-  // like his own final profile, the Hamburg factors and the AG display
-  // switch separately. Either black moon checkbox raises the same body,
-  // the mean or the true one, s.true_apogee then rules the formula
-  const bool apogee_on = apogee_show_->isChecked() || true_apogee_->isChecked();
+  //RR die eigene Endeinstellung nannte CH QU XE als Zusatz-Planeten,
+  // der Panel-Schalter Zusatz-Planeten fährt die drei über included_
+  // ein, die Planeten-Auswahl trägt die restlichen Elemente einzeln bei.
+  // Die Radio-Wahl Wahrer/Mittlerer entscheidet nur die Formel, der
+  // Schwarzer-Mond-Kasten stellt AG überhaupt ein und aus
+  const bool apogee_on = apogee_show_->isChecked();
+  const auto want = [&](int slot) { return included_[static_cast<std::size_t>(slot)]; };
   s.nk = {};
   if (apogee_on) {
     s.nk[1] = body::kApogee;
   }
-  if (extras_->isChecked()) {
-    //RR ausser CH QU XE trägt die Zusatz-Auswahl jetzt die echten
-    // Kleinplaneten (Ceres, Pallas, Juno, Vesta) und die realen
-    // Planetoiden Halley (Komet), Pholus, Damokles und Nessus. TP und
-    // GL bleiben rechnerische Punkte und stehen weiterhin außen vor
+  if (want(body::kChiron)) {
     s.nk[2] = body::kChiron;
-    s.nk[5] = body::kCeres;
-    s.nk[6] = body::kPallas;
-    s.nk[7] = body::kJuno;
-    s.nk[8] = body::kVesta;
-    s.nk[17] = body::kQuaoar;
-    s.nk[18] = body::kHalley;
-    s.nk[19] = body::kPholus;
-    s.nk[20] = body::kDamokles;
-    s.nk[21] = body::kNessus;
-    s.nk[22] = body::kXena;
   }
-  if (hamburg_->isChecked()) {
-    for (int i = 9; i <= 16; ++i) {
-      s.nk[static_cast<std::size_t>(i)] = 18 + i;
+  if (want(body::kTranspluto)) {
+    s.nk[3] = body::kTranspluto;
+  }
+  if (want(body::kFortune)) {
+    s.nk[4] = body::kFortune;
+  }
+  if (want(body::kCeres)) {
+    s.nk[5] = body::kCeres;
+  }
+  if (want(body::kPallas)) {
+    s.nk[6] = body::kPallas;
+  }
+  if (want(body::kJuno)) {
+    s.nk[7] = body::kJuno;
+  }
+  if (want(body::kVesta)) {
+    s.nk[8] = body::kVesta;
+  }
+  // the Hamburger Faktoren travel through their own slots, the hidden
+  // hamburg_ shortcut fans them and the Planeten-Auswahl can opt any off
+  for (int i = 9; i <= 16; ++i) {
+    const int slot = 18 + i;
+    if (want(slot)) {
+      s.nk[static_cast<std::size_t>(i)] = slot;
     }
   }
-  s.extra_bodies = extras_->isChecked() || hamburg_->isChecked() || apogee_on;
+  if (want(body::kQuaoar)) {
+    s.nk[17] = body::kQuaoar;
+  }
+  if (want(body::kHalley)) {
+    s.nk[18] = body::kHalley;
+  }
+  if (want(body::kPholus)) {
+    s.nk[19] = body::kPholus;
+  }
+  if (want(body::kDamokles)) {
+    s.nk[20] = body::kDamokles;
+  }
+  if (want(body::kNessus)) {
+    s.nk[21] = body::kNessus;
+  }
+  if (want(body::kXena)) {
+    s.nk[22] = body::kXena;
+  }
+  // any nk slot filled marks the extras pass on
+  bool any = apogee_on;
+  for (int i = 2; i <= 22; ++i) {
+    if (s.nk[static_cast<std::size_t>(i)] > 0) {
+      any = true;
+      break;
+    }
+  }
+  s.extra_bodies = any;
   return s;
 }
 
@@ -1310,6 +1458,7 @@ MainWindow::PanelState MainWindow::panel_state() const {
   s.date = panel_date();
   s.time = time_->time();
   s.zone = zone_->value();
+  s.sommerzeit = sommerzeit_ != nullptr && sommerzeit_->isChecked();
   s.lon = lon_->value();
   s.lat = lat_->value();
   s.houses = houses_->currentIndex();
@@ -1317,6 +1466,7 @@ MainWindow::PanelState MainWindow::panel_state() const {
   s.extras = extras_->isChecked();
   s.hamburg = hamburg_->isChecked();
   s.apogee = apogee_show_->isChecked();
+  s.node_show = node_show_ != nullptr && node_show_->isChecked();
   s.true_node = true_node_->isChecked();
   s.true_apogee = true_apogee_->isChecked();
   s.helio = helio_->isChecked();
@@ -1336,6 +1486,7 @@ void MainWindow::restore_state(const PanelState& s) {
     const QSignalBlocker b1(date_);
     const QSignalBlocker b2(time_);
     const QSignalBlocker b3(zone_);
+    const QSignalBlocker b3s(sommerzeit_);
     const QSignalBlocker b4(lon_);
     const QSignalBlocker b5(lat_);
     const QSignalBlocker b6(houses_);
@@ -1343,6 +1494,7 @@ void MainWindow::restore_state(const PanelState& s) {
     const QSignalBlocker b8(extras_);
     const QSignalBlocker b9(hamburg_);
     const QSignalBlocker b10(apogee_show_);
+    const QSignalBlocker b10n(node_show_);
     const QSignalBlocker b11(true_node_);
     const QSignalBlocker b12(true_apogee_);
     const QSignalBlocker b13(helio_);
@@ -1355,6 +1507,9 @@ void MainWindow::restore_state(const PanelState& s) {
     set_panel_date(s.date);
     time_->setTime(s.time);
     zone_->setValue(s.zone);
+    if (sommerzeit_ != nullptr) {
+      sommerzeit_->setChecked(s.sommerzeit);
+    }
     lon_->setValue(s.lon);
     lat_->setValue(s.lat);
     houses_->setCurrentIndex(s.houses);
@@ -1362,6 +1517,9 @@ void MainWindow::restore_state(const PanelState& s) {
     extras_->setChecked(s.extras);
     hamburg_->setChecked(s.hamburg);
     apogee_show_->setChecked(s.apogee);
+    if (node_show_ != nullptr) {
+      node_show_->setChecked(s.node_show);
+    }
     true_node_->setChecked(s.true_node);
     true_apogee_->setChecked(s.true_apogee);
     helio_->setChecked(s.helio);
@@ -1521,6 +1679,12 @@ void MainWindow::recompute() {
   // wünscht
   if (fixpunkt_ >= 0.0 && !s.heliocentric && wopt.emphasis[0] == 0) {
     wopt.emphasis[0] = 1;
+  }
+  // the Mondknoten row hides DR and DS when unchecked, the panel switch
+  // rides on top of the Planeten-Auswahl markings
+  if (node_show_ != nullptr && !node_show_->isChecked()) {
+    wopt.emphasis[body::kNodeAsc] = -1;
+    wopt.emphasis[body::kNodeDesc] = -1;
   }
   if (chords_set_) {
     wopt.chord_divisor = chords_;
@@ -2921,7 +3085,10 @@ void MainWindow::rhythm_table() {
 }
 
 // ported from the right mouse selection of the chart screen, single
-// planets red or alone, the ruler highlight and the aspect line choice
+// planets red or alone, the ruler highlight and the aspect line choice.
+// The tester's PNG_02 mockup groups the rows by Zusatz, Asteroiden,
+// Planetoiden, Andere Elemente and the Hamburger Faktoren so every
+// extra body reaches the wheel from one screen
 void MainWindow::planet_selection() {
   QDialog dialog(this);
   dialog.setWindowTitle(tr("Planeten-Auswahl"));
@@ -2930,24 +3097,99 @@ void MainWindow::planet_selection() {
   table->setHorizontalHeaderLabels({tr("Punkt"), tr("Zeigen"), tr("Rot")});
   table->horizontalHeader()->setStretchLastSection(true);
   table->verticalHeader()->setVisible(false);
-  table->verticalHeader()->setDefaultSectionSize(20);
-  for (int slot = 0; slot < body::kSlotCount; ++slot) {
-    if (slot == body::kAscendant || slot == body::kMc || (slot >= 15 && slot <= 18)) {
-      continue;
-    }
-    if (!last_chart_ || !last_chart_->b[static_cast<std::size_t>(slot)].present) {
-      continue;
-    }
+  table->verticalHeader()->setDefaultSectionSize(22);
+
+  // Section headers span the row like his group captions on the panel.
+  // A body slot below the previous is off by default until the tester
+  // opts it in, the main planets are always included so they only carry
+  // the show and red switches. The kExtra flag marks slots whose
+  // include state flows into the settings (see current_settings)
+  struct Row {
+    int slot = -1;      // -1 means header
+    QString label;
+    bool extra = false;
+  };
+  const std::vector<Row> rows = {
+      {-1, tr("Hauptplaneten und Elemente"), false},
+      {body::kSun, {}, false},
+      {body::kMoon, {}, false},
+      {body::kMercury, {}, false},
+      {body::kVenus, {}, false},
+      {body::kMars, {}, false},
+      {body::kJupiter, {}, false},
+      {body::kSaturn, {}, false},
+      {body::kUranus, {}, false},
+      {body::kNeptune, {}, false},
+      {body::kPluto, {}, false},
+      {body::kNodeAsc, {}, false},
+      {body::kNodeDesc, {}, false},
+      {body::kApogee, {}, true},
+      {body::kChiron, {}, true},
+      {-1, tr("Zusatz-Planeten"), false},
+      {body::kQuaoar, {}, true},
+      {body::kXena, {}, true},
+      {-1, tr("Asteroiden"), false},
+      {body::kCeres, {}, true},
+      {body::kPallas, {}, true},
+      {body::kJuno, {}, true},
+      {body::kVesta, {}, true},
+      {-1, tr("Planetoiden"), false},
+      {body::kPholus, {}, true},
+      {body::kDamokles, {}, true},
+      {body::kNessus, {}, true},
+      {-1, tr("Andere Elemente"), false},
+      {body::kHalley, {}, true},
+      {body::kTranspluto, {}, true},
+      {body::kFortune, {}, true},
+      {-1, tr("Hamburger Planeten"), false},
+      {body::kCupido, {}, true},
+      {body::kHades, {}, true},
+      {body::kZeus, {}, true},
+      {body::kKronos, {}, true},
+      {body::kApollon, {}, true},
+      {body::kAdmetos, {}, true},
+      {body::kVulkanus, {}, true},
+      {body::kPoseidon, {}, true},
+  };
+  // his yellow @checkBg@ shade for the section headers, the same tone
+  // the dock titles carry
+  const QColor header_bg(0xFF, 0xFB, 0xC8);
+  const QColor header_fg(0x2E, 0x33, 0x38);
+  for (const Row& r : rows) {
     const int row = table->rowCount();
     table->insertRow(row);
-    auto* name = new QTableWidgetItem(QString::fromUtf8(body::kName[static_cast<std::size_t>(slot)].data(),
-                                                        static_cast<int>(body::kName[static_cast<std::size_t>(slot)].size())));
+    if (r.slot < 0) {
+      auto* head = new QTableWidgetItem(r.label);
+      head->setFlags(Qt::ItemIsEnabled);
+      QFont f = head->font();
+      f.setBold(true);
+      head->setFont(f);
+      head->setBackground(header_bg);
+      head->setForeground(header_fg);
+      table->setItem(row, 0, head);
+      table->setSpan(row, 0, 1, 3);
+      continue;
+    }
+    const int slot = r.slot;
+    const QString label =
+        r.label.isEmpty() ? QString::fromUtf8(body::kName[static_cast<std::size_t>(slot)].data(),
+                                              static_cast<int>(body::kName[static_cast<std::size_t>(slot)].size()))
+                          : r.label;
+    auto* name = new QTableWidgetItem(label);
     name->setData(Qt::UserRole, slot);
+    name->setData(Qt::UserRole + 1, r.extra);
     name->setFlags(Qt::ItemIsEnabled);
     table->setItem(row, 0, name);
     auto* shown = new QTableWidgetItem();
     shown->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable);
-    shown->setCheckState(emphasis_[static_cast<std::size_t>(slot)] < 0 ? Qt::Unchecked : Qt::Checked);
+    // the main planets read the emphasis, the extras additionally lean
+    // on the per slot included flag so an off row leaves them
+    // uncomputed like his nk zero
+    bool on = emphasis_[static_cast<std::size_t>(slot)] >= 0;
+    if (r.extra) {
+      on = on && included_[static_cast<std::size_t>(slot)];
+    }
+    shown->setCheckState(on ? Qt::Checked : Qt::Unchecked);
     table->setItem(row, 1, shown);
     auto* red = new QTableWidgetItem();
     red->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable);
@@ -2972,6 +3214,7 @@ void MainWindow::planet_selection() {
   auto* reset = buttons->addButton(tr("Zurücksetzen"), QDialogButtonBox::ResetRole);
   connect(reset, &QPushButton::clicked, &dialog, [this, &dialog]() {
     emphasis_.fill(0);
+    included_.fill(false);
     ruler_red_ = false;
     chords_set_ = false;
     dialog.reject();
@@ -2983,19 +3226,29 @@ void MainWindow::planet_selection() {
   v->addWidget(ruler);
   v->addLayout(chords_box);
   v->addWidget(buttons);
-  dialog.resize(420, 620);
+  dialog.resize(460, 720);
   if (dialog.exec() != QDialog::Accepted) {
     return;
   }
   for (int row = 0; row < table->rowCount(); ++row) {
-    const int slot = table->item(row, 0)->data(Qt::UserRole).toInt();
+    QTableWidgetItem* name = table->item(row, 0);
+    if (name == nullptr || name->data(Qt::UserRole).toInt() < 0) {
+      continue;
+    }
+    const int slot = name->data(Qt::UserRole).toInt();
+    const bool extra = name->data(Qt::UserRole + 1).toBool();
+    const bool zeigen = table->item(row, 1)->checkState() == Qt::Checked;
+    const bool rot = table->item(row, 2)->checkState() == Qt::Checked;
     int e = 0;
-    if (table->item(row, 1)->checkState() == Qt::Unchecked) {
+    if (!zeigen) {
       e = -1;
-    } else if (table->item(row, 2)->checkState() == Qt::Checked) {
+    } else if (rot) {
       e = 1;
     }
     emphasis_[static_cast<std::size_t>(slot)] = e;
+    if (extra) {
+      included_[static_cast<std::size_t>(slot)] = zeigen;
+    }
   }
   ruler_red_ = ruler->isChecked();
   chords_set_ = true;
@@ -4788,7 +5041,7 @@ void MainWindow::vorgaben_ephemeride() {
         if (hamburg_->isChecked()) {
           chosen << tr("HAMBURGER PLANETEN");
         }
-        if (apogee_show_->isChecked() || true_apogee_->isChecked()) {
+        if (apogee_show_->isChecked()) {
           chosen << "AG";
         }
         const int es = ChoiceDialog::ask(this, tr("AUSWAHL"),
@@ -4802,6 +5055,7 @@ void MainWindow::vorgaben_ephemeride() {
           hamburg_->setChecked(false);
           apogee_show_->setChecked(false);
           true_apogee_->setChecked(false);
+          included_.fill(false);
         }
         break;
       }
@@ -4919,13 +5173,25 @@ void MainWindow::vorgaben_overview() {
   mid += (true_apogee_->isChecked() ? tr("Wahres Apogäum") : tr("Mittl. Apogäum")) + QString("<br><br>");
   QStringList extra;
   if (extras_->isChecked()) {
-    extra << "CH  CE PA JN VS  QU HL PH DA NS XE";
+    extra << "CH  QU  XE";
   }
-  if (hamburg_->isChecked()) {
-    extra << tr("HAMBURGER");
-  }
-  if (apogee_show_->isChecked() || true_apogee_->isChecked()) {
+  if (apogee_show_->isChecked()) {
     extra << "AG";
+  }
+  // his Andere Elemente list, only body tags whose Planeten-Auswahl
+  // said include ride here, so the overview reads what the wheel does
+  QStringList andere;
+  for (int i = 2; i <= 22; ++i) {
+    const int slot = current_settings().nk[static_cast<std::size_t>(i)];
+    if (slot <= 0) continue;
+    if (slot == body::kChiron || slot == body::kQuaoar || slot == body::kXena || slot == body::kApogee) {
+      continue;
+    }
+    andere << QString::fromUtf8(body::kName[static_cast<std::size_t>(slot)].data(),
+                                static_cast<int>(body::kName[static_cast<std::size_t>(slot)].size()));
+  }
+  if (!andere.isEmpty()) {
+    extra << andere.join(" ");
   }
   mid += head(tr("Zusatz-Plan:")) + (extra.isEmpty() ? tr("KEINE") : extra.join("  ")) + "<br><br>";
   mid += head(tr("PARAM. Horoskop:"));
@@ -5363,6 +5629,14 @@ void MainWindow::preset_extras(bool real, bool hamburg, bool apogee) {
   extras_->setChecked(real);
   hamburg_->setChecked(hamburg);
   apogee_show_->setChecked(apogee);
+  // the capture hook's real switch means the whole grup of astronomically
+  // real bodies, not only the CH QU XE trio the panel checkbox names
+  if (real) {
+    for (int slot : {body::kChiron, body::kCeres, body::kPallas, body::kJuno, body::kVesta, body::kQuaoar,
+                     body::kHalley, body::kPholus, body::kDamokles, body::kNessus, body::kXena}) {
+      included_[static_cast<std::size_t>(slot)] = true;
+    }
+  }
 }
 
 void MainWindow::preset_chart(const AafRecord& r, bool parallax, bool true_node) {
@@ -5765,6 +6039,11 @@ DisplayList MainWindow::a4_export_list() const {
   opt.outer_color = outer_color_;
   opt.heliocentric = current_settings().heliocentric;
   opt.emphasis = emphasis_;
+  // the Mondknoten row on the panel drops DR and DS from the sheet too
+  if (node_show_ != nullptr && !node_show_->isChecked()) {
+    opt.emphasis[body::kNodeAsc] = -1;
+    opt.emphasis[body::kNodeDesc] = -1;
+  }
   if (chords_set_) {
     opt.chord_divisor = chords_;
   }

@@ -103,6 +103,10 @@ class MainWindow : public QMainWindow {
   /// @return true when the document was written
   bool export_svg_to(const QString& path);
 
+  /// Opens the Planeten-Auswahl dialog, the capture hook's path into
+  /// the extra body picker.
+  void open_planet_selection() { planet_selection(); }
+
  private slots:
   void recompute();
   void data_file_io();
@@ -161,6 +165,8 @@ class MainWindow : public QMainWindow {
     QDate date;
     QTime time;
     double zone = 0.0;
+    /// the Sommerzeit shift, one hour east added to the base zone
+    bool sommerzeit = false;
     double lon = 0.0;
     double lat = 0.0;
     int houses = 0;
@@ -168,6 +174,8 @@ class MainWindow : public QMainWindow {
     bool extras = false;
     bool hamburg = false;
     bool apogee = false;
+    /// the Mondknoten row of the panel, DR and DS drop off when off
+    bool node_show = true;
     bool true_node = false;
     bool true_apogee = false;
     bool helio = false;
@@ -178,9 +186,10 @@ class MainWindow : public QMainWindow {
 
     bool operator==(const PanelState& o) const {
       return given == o.given && surname == o.surname && place == o.place && date == o.date &&
-             time == o.time && zone == o.zone && lon == o.lon && lat == o.lat &&
-             houses == o.houses && parallax == o.parallax && extras == o.extras &&
-             hamburg == o.hamburg && apogee == o.apogee && true_node == o.true_node &&
+             time == o.time && zone == o.zone && sommerzeit == o.sommerzeit &&
+             lon == o.lon && lat == o.lat && houses == o.houses && parallax == o.parallax &&
+             extras == o.extras && hamburg == o.hamburg && apogee == o.apogee &&
+             node_show == o.node_show && true_node == o.true_node &&
              true_apogee == o.true_apogee && helio == o.helio && transit_on == o.transit_on &&
              tdate == o.tdate && ttime == o.ttime && record.surname == o.record.surname &&
              record.given == o.record.given && record.place == o.record.place &&
@@ -283,6 +292,10 @@ class MainWindow : public QMainWindow {
   double fixpunkt_ = -1.0;
   /// the planet selection of the wheel, 0 normal, 1 red, -1 hidden
   std::array<int, body::kSlotCount> emphasis_{};
+  /// which of the extra bodies flow into the calculation, driven by the
+  /// Planeten-Auswahl dialog. The main planets and the angles ignore this
+  /// switch, the Zusatz-Planeten and Andere Elemente rows carry it
+  std::array<bool, body::kSlotCount> included_{};
   /// mark the birth ruler red like his inverse highlight
   bool ruler_red_ = false;
   /// which divisors draw chords, edited in the Planeten-Auswahl
@@ -312,12 +325,21 @@ class MainWindow : public QMainWindow {
   QCheckBox* parallax_ = nullptr;
   /// the real extra bodies CH QU XE of his own final profile
   QCheckBox* extras_ = nullptr;
-  /// the hypothetical factors of the Hamburg school, their own row
+  /// the hypothetical factors of the Hamburg school, off the panel now,
+  /// picked through the Planeten-Auswahl dialog like the tester's mockup
   QCheckBox* hamburg_ = nullptr;
-  /// shows the Apogäum AG, the true Black Moon, on the wheel
+  /// shows the Apogäum AG, the true Black Moon, on the wheel. The row
+  /// pairs it with the wahr and mittel radio, the same Schwarzer Mond
+  /// choice his family drives from the panel
   QCheckBox* apogee_show_ = nullptr;
+  /// draws DR and DS at all, keeps the two nodes in the panel row where
+  /// the wahr and mittel radio picks the formula
+  QCheckBox* node_show_ = nullptr;
   QCheckBox* true_node_ = nullptr;
   QCheckBox* true_apogee_ = nullptr;
+  /// Sommerzeit hebt die Ereigniszeit um eine Stunde, der Zone wird der
+  /// Sommer-Zuschlag beim Rechnen aufaddiert wie in seiner ZONEN-Datei
+  QCheckBox* sommerzeit_ = nullptr;
   QCheckBox* helio_ = nullptr;
   QCheckBox* transit_on_ = nullptr;
   QDateEdit* tdate_ = nullptr;

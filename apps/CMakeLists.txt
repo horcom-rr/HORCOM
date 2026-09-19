@@ -79,6 +79,7 @@ if(Qt6_FOUND)
     FILES ${HORCOM_SYMB}
   )
   target_link_libraries(horcom_gui PRIVATE horcom Qt6::Widgets Qt6::Svg Qt6::PrintSupport)
+  target_compile_definitions(horcom_gui PRIVATE HORCOM_VERSION_STRING="${HORCOM_VERSION}")
   set_target_properties(horcom_gui PROPERTIES WIN32_EXECUTABLE ON)
   horcom_stamp(horcom_gui "HORCOM desktop shell" horcom_gui horcom_gui.exe)
   # German is the source language, English ships as a translation

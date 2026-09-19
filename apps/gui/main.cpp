@@ -475,6 +475,26 @@ int main(int argc, char** argv) {
     shot = shot_directions;
     window.show_directions(horcom::julian_day({13, 10, 2026, 0, 0.0}), false);
   }
+  // --shot-planet FILE opens the Planeten-Auswahl dialog and captures it
+  const int shot_planet = args.indexOf("--shot-planet");
+  if (shot_planet >= 0 && shot_planet + 1 < args.size()) {
+    window.showMinimized();
+    const QString target = args[shot_planet + 1];
+    QTimer::singleShot(400, [&window, target]() {
+      QTimer::singleShot(400, [target]() {
+        for (QWidget* w : QApplication::topLevelWidgets()) {
+          if (auto* d = qobject_cast<QDialog*>(w); d != nullptr && d->windowTitle().contains(QStringLiteral("Planeten"))) {
+            d->grab().save(target);
+            QApplication::quit();
+            return;
+          }
+        }
+        QApplication::quit();
+      });
+      window.open_planet_selection();
+    });
+    return QApplication::exec();
+  }
   // --shot-pdf FILE writes the current wheel as a PDF page and quits,
   // the headless check of the print path
   const int shot_pdf = args.indexOf("--shot-pdf");
