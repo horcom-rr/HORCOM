@@ -333,14 +333,14 @@ QCheckBox {
   spacing: 8px;
   padding: 2px 0;
 }
-QCheckBox::indicator {
+QCheckBox::indicator, QAbstractItemView::indicator {
   width: 15px;
   height: 15px;
   border: 1px solid @edge@;
   border-radius: 4px;
   background: @field@;
 }
-QCheckBox::indicator:checked {
+QCheckBox::indicator:checked, QAbstractItemView::indicator:checked {
   background: @checkBg@;
   border-color: @checkEdge@;
 }
