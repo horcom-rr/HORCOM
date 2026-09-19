@@ -669,6 +669,10 @@ void MainWindow::build_ui() {
   };
   connect(sommerzeit_, &QCheckBox::toggled, this, refresh_sommer);
   connect(zone_, &QDoubleSpinBox::valueChanged, this, refresh_sommer);
+  // callers that setChecked or setValue under a QSignalBlocker (restore_state,
+  // apply_record) run the label through this entry point so the hint stays
+  // in step with the two fields that feed it
+  refresh_sommer_effect_ = refresh_sommer;
   form->addRow(tr("Datum"), date_);
   // the birth time reads as local clock, the zone plus Sommerzeit
   // convert it to UT the moment the recompute runs; the tester's
@@ -1707,6 +1711,9 @@ void MainWindow::restore_state(const PanelState& s) {
     // the toggled connect is blocked here so mirror the AG group slot by
     // hand, the dialog picks stay in included_ between panel steps
     included_[body::kApogee] = s.apogee;
+    // the Sommerzeit hint reads zone_ and sommerzeit_, both blocked above,
+    // so pull the label through its refresh entry point by hand
+    if (refresh_sommer_effect_) refresh_sommer_effect_();
     if (node_show_ != nullptr) {
       node_show_->setChecked(s.node_show);
     }
@@ -2204,6 +2211,7 @@ void MainWindow::open_place() {
     const QSignalBlocker bp(place_field_);
     place_field_->setText(QString::fromStdString(record_.place));
   }
+  if (refresh_sommer_effect_) refresh_sommer_effect_();
   recompute();
 }
 
@@ -2246,6 +2254,7 @@ void MainWindow::apply_moment(double jd_ut, const QString& label, bool solar_slo
   time_->setTime(QTime(seconds / 3600, (seconds / 60) % 60, seconds % 60));
   // the found moment is Universal Time
   zone_->setValue(0.0);
+  if (refresh_sommer_effect_) refresh_sommer_effect_();
   recompute();
   banner_->set_record(label);
   //RR the ^ items of his menu write the result back into a SOLAR slot
@@ -3217,8 +3226,10 @@ void MainWindow::rhythm_table() {
     opt.begin_house = begin->value();
     opt.leftward = direction->currentData().toInt() == 1;
     opt.sextile = sextile->isChecked();
-    opt.apogee_opposite = (apogee_show_ != nullptr && apogee_show_->isChecked()) ||
-                          (true_apogee_ != nullptr && true_apogee_->isChecked());
+    //RR pl& = nk&(1) && apogw! — the opposite scan of the original fires only
+    // when the Wahres Apogäum formula is chosen, the mean apogee stays on its
+    // one direct point
+    opt.apogee_opposite = true_apogee_ != nullptr && true_apogee_->isChecked();
     if (sp_mode->currentData().toInt() == 1) {
       opt.special = sp_deg->value() * kDegToRad;
     } else if (sp_mode->currentData().toInt() == 2) {
@@ -4924,6 +4935,7 @@ void MainWindow::pick_zone() {
     // wants hours east
     zone_->setValue(-*z.to_ut_hours);
   }
+  if (refresh_sommer_effect_) refresh_sommer_effect_();
   recompute();
 }
 
@@ -5921,6 +5933,7 @@ void MainWindow::apply_record(const AafRecord& r, bool claim_slot) {
   lon_->setValue(r.longitude());
   lat_->setValue(r.latitude());
   sync_coord_boxes();
+  if (refresh_sommer_effect_) refresh_sommer_effect_();
   recompute();
   refresh_record_label();
 }
@@ -5981,6 +5994,7 @@ void MainWindow::open_statistics() {
   lon_->setValue(r.lon);
   lat_->setValue(r.lat);
   sync_coord_boxes();
+  if (refresh_sommer_effect_) refresh_sommer_effect_();
   recompute();
   refresh_record_label();
 }

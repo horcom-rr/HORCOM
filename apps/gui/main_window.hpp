@@ -329,6 +329,9 @@ class MainWindow : public QMainWindow {
     if (refresh_lon_dms_) refresh_lon_dms_();
     if (refresh_lat_dms_) refresh_lat_dms_();
   }
+  /// refreshes the wirksame Zeit-Zone hint beside the Sommerzeit checkbox,
+  /// callers that setChecked or setValue under a QSignalBlocker call it
+  std::function<void()> refresh_sommer_effect_;
   QComboBox* houses_ = nullptr;
   QDockWidget* body_dock_ = nullptr;
   QDockWidget* cusp_dock_ = nullptr;
