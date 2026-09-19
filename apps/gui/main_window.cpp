@@ -590,7 +590,7 @@ void MainWindow::build_ui() {
   // Planeten-Auswahl dialog like his ANSICHT screen
   //RR Zusatz-Planeten CH QU XE des Originals, die reine Namensauswahl
   // seiner eigenen Endeinstellung
-  extras_ = new QCheckBox(tr("Zusatz-Planeten  CH  QU  XE"), form_host);
+  extras_ = new QCheckBox(tr("Zusatz-Planeten CH QU XE"), form_host);
   // the panel shortcut mirrors the CH QU XE flag in the per slot list
   // so the Planeten-Auswahl dialog shows the same three checked
   connect(extras_, &QCheckBox::toggled, this, [this](bool on) {
