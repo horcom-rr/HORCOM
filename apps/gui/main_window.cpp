@@ -437,6 +437,8 @@ void MainWindow::build_ui() {
   // the sheet on the next recompute. The picker beside it opens the
   // same Orts-Dateien dialog the EIN-AUSG menu carries, one click into
   // the catalogue from the panel like the tester wants
+  // the place-name field is built here but added to the form further down,
+  // between Zeit and Zeit-Zone like the tester's mockup arranges it
   place_field_ = new QLineEdit(form_host);
   auto* place_row = new QWidget(form_host);
   auto* place_lay = new QHBoxLayout(place_row);
@@ -448,7 +450,6 @@ void MainWindow::build_ui() {
   place_pick->setToolTip(tr("Orts-Dateien"));
   place_lay->addWidget(place_pick);
   connect(place_pick, &QToolButton::clicked, this, &MainWindow::open_place);
-  form->addRow(tr("Ortsname"), place_row);
   // the original entered dates as plain TT MM JJJJ fields and a
   // calendar widget cannot hold years before Christ, so the date is a
   // text field, TT.MM.JJJJ, years BC with the vC of his chooser list
@@ -670,6 +671,9 @@ void MainWindow::build_ui() {
   // mockup wrote UT next to it to name the destination unit, not to
   // ask the user to enter UT already
   form->addRow(tr("Zeit"), time_);
+  // Ortsname sits between the clock time and the zone in his mockup,
+  // the ORT SUCHEN picker fills the zone and the coordinates below
+  form->addRow(tr("Ortsname"), place_row);
   // the zone field carries a picker into the zone name catalogue
   auto* zone_row = new QWidget(form_host);
   auto* zone_lay = new QHBoxLayout(zone_row);
