@@ -1024,6 +1024,10 @@ void MainWindow::build_ui() {
   ausw->addAction(tr("TAGES-HOROSKOP…"), this, &MainWindow::day_chart);
   //RR SEKUNDÄR-DIREKTION / DYNAMOGRAMM, tester keeps the short label
   ausw->addAction(tr("DYNAMOGRAMM…"), this, &MainWindow::dynamogram_view);
+  //RR PNG_01 trennt den Tages-/Dynamogramm-Block vom Münchner Block,
+  // ERLÄUTERUNG 5+6 gehören zur Rhythmenlehre und SEPTAR hängt hinten
+  // dran, weil Septare in dieselbe Schule fallen
+  ausw->addSeparator();
   //RR MÜNCHNER RHYTHMENLEHRE
   ausw->addAction(tr("MÜNCHNER RHYTHMENLEHRE…"), this, &MainWindow::rhythm_table);
   ausw->addAction(tr("ERLÄUTERUNG 5…"), this, [erlaeuterung]() { erlaeuterung("komm5"); });

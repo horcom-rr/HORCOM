@@ -906,7 +906,8 @@ void add_corner_text(DisplayList& dl, const ClassicSheetText& txt, double left_x
   }
   //RR PNG_00: der Kasten Ort steht rechts unten, darüber der Zeitpunkt.
   // So bleibt links unten Platz für die Composit/Combin/Doppelkreis-
-  // Mini-Tabelle, die vorher über den Radkreis stach
+  // Mini-Tabelle, die vorher über den Radkreis stach. Die Zeilen sitzen
+  // rechtsbündig am selben Rand wie die STZ-Angabe oben rechts
   text(right_x, 384.0, txt.place_label.empty() ? "Ort:" : txt.place_label, Align::kRight);
   if (!txt.place.empty()) {
     text(right_x, 396.0, txt.place, Align::kRight);

@@ -43,11 +43,11 @@ constexpr BodyEntry kBodies[] = {
     {"Uranus",  8,  1500},
     {"Neptun",  9,  1500},
     {"Pluto",  10,  1500},
-    {"CH",     20,  1800},
-    {"QU",     35,  1500},
-    {"XE",     40,  1500},
-    {"AC",     13,  1},
-    {"MC",     14,  1},
+    {"Chiron", 20,  1800},
+    {"Quaoar", 35,  1500},
+    {"Xena",   40,  1500},
+    {"Aszendent",    13,  1},
+    {"Medium Coeli", 14,  1},
 };
 
 constexpr const char* kSignName[12] = {"AR", "TA", "GM", "CN", "LE", "VI",
