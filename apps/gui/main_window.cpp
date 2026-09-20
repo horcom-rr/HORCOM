@@ -1017,6 +1017,9 @@ void MainWindow::build_ui() {
   ausw->addAction(tr("LUNAR-LISTE…"), this, [this]() { return_list(true); });
   ausw->addAction(tr("PLANETAR…"), this, &MainWindow::planetar_chart);
   ausw->addAction(tr("PERSONAR…"), this, &MainWindow::personar_chart);
+  //RR PNG_01 zieht unter PERSONAR eine dünne Trennlinie, oberhalb der
+  // Return-Charts, darunter der Tages-/Rhythmus-Block
+  ausw->addSeparator();
   //RR TAGES-HOR.
   ausw->addAction(tr("TAGES-HOROSKOP…"), this, &MainWindow::day_chart);
   //RR SEKUNDÄR-DIREKTION / DYNAMOGRAMM, tester keeps the short label
@@ -2308,17 +2311,22 @@ void MainWindow::solar_chart() {
   auto* choose_place = new QPushButton(tr("Ort wählen…"), &dialog);
   place_row->addWidget(place_label, 1);
   place_row->addWidget(choose_place);
-  //RR Pfeil-Tasten für andere Jahre bei gleichem Ort, sein alertbox
-  // FOLGENDES / VORHERGEHENDES Jahr
+  //RR das Jahr trägt seine eigenen Up/Down-Tasten. Die zusätzlichen
+  // benannten Action-Tasten Vorheriges Jahr / Nächstes Jahr wechseln
+  // das Jahr und rechnen das Solar sofort, seine alertbox FOLGENDES /
+  // VORHERGEHENDES Jahr
   auto* year_row = new QHBoxLayout();
   year_row->addWidget(new QLabel(tr("Gewünschtes Kalender-Jahr:"), &dialog));
   auto* year_spin = new QSpinBox(&dialog);
   year_spin->setRange(1, 3000);
   year_spin->setValue(QDate::currentDate().year());
+  //RR die eigenen Vor/Nächstes-Jahr Tasten unten übernehmen den Schritt,
+  // die Spin-Pfeile am Feld wären daneben tote Zwillinge
+  year_spin->setButtonSymbols(QAbstractSpinBox::NoButtons);
   year_row->addWidget(year_spin, 1);
   auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
-  auto* prev_btn = buttons->addButton(tr("← Vorheriges Jahr"), QDialogButtonBox::ActionRole);
-  auto* next_btn = buttons->addButton(tr("Nächstes Jahr →"), QDialogButtonBox::ActionRole);
+  auto* prev_btn = buttons->addButton(tr("Vorheriges Jahr"), QDialogButtonBox::ActionRole);
+  auto* next_btn = buttons->addButton(tr("Nächstes Jahr"), QDialogButtonBox::ActionRole);
   connect(prev_btn, &QPushButton::clicked, &dialog, [this, year_spin]() {
     year_spin->setValue(year_spin->value() - 1);
     run_solar(year_spin->value());
@@ -5020,13 +5028,17 @@ void MainWindow::lunar_chart() {
   auto* nr = new QSpinBox(&dialog);
   nr->setRange(-600, 600);
   nr->setPrefix(tr("Nummer "));
+  //RR Vor/Nächstes Lunar unten trägt den Schritt und rechnet sofort,
+  // die Spin-Pfeile am Feld wären daneben doppelt und tot
+  nr->setButtonSymbols(QAbstractSpinBox::NoButtons);
   auto* nr_note = new QLabel(tr("Nummer 0 nimmt das Datum, sonst zählt das n-te Lunar ab Geburt."), &dialog);
   nr_note->setWordWrap(true);
   auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
-  //RR Pfeil-Tasten für nachbarliche Lunare, seine WEITERES LUNAR
-  // In der ZUKUNFT / In der Vergangenheit
-  auto* prev_btn = buttons->addButton(tr("← Vorheriges Lunar"), QDialogButtonBox::ActionRole);
-  auto* next_btn = buttons->addButton(tr("Nächstes Lunar →"), QDialogButtonBox::ActionRole);
+  //RR Action-Tasten Vorheriges/Nächstes Lunar, seine WEITERES LUNAR
+  // In der ZUKUNFT / In der Vergangenheit; die Nummer trägt ihre eigenen
+  // Up/Down-Tasten, hier zählen die Aktionen das Lunar sofort
+  auto* prev_btn = buttons->addButton(tr("Vorheriges Lunar"), QDialogButtonBox::ActionRole);
+  auto* next_btn = buttons->addButton(tr("Nächstes Lunar"), QDialogButtonBox::ActionRole);
   const auto run_lunar = [this, when, nr]() {
     SearchContext ctx;
     //RR Radix-Grundlage wie bei Solar und Septar
