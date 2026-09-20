@@ -21,9 +21,34 @@ namespace horcom {
 
 namespace {
 
-// the bodies of his ingress menu in slot order
-constexpr const char* kBodyName[10] = {"Sonne",  "Mond",   "Merkur", "Venus",  "Mars",
-                                       "Jupiter", "Saturn", "Uranus", "Neptun", "Pluto"};
+// the bodies of his ingress menu in slot order plus the tester's extras
+struct BodyEntry {
+  const char* name;
+  int slot;
+  int min_year;
+};
+
+// CH orbit varies over centuries (Chiron crosses Saturn), so its earliest
+// reliable ingress lands around 1800. NE-PL-QU-XE are steady enough back
+// to 1500 which is what the tester asked for. AC and MC vary with the
+// nutation and the earth's obliquity, both good back to 1500 too.
+constexpr BodyEntry kBodies[] = {
+    {"Sonne",   1,  1},
+    {"Mond",    2,  1},
+    {"Merkur",  3,  1},
+    {"Venus",   4,  1},
+    {"Mars",    5,  1},
+    {"Jupiter", 6,  1},
+    {"Saturn",  7,  1},
+    {"Uranus",  8,  1500},
+    {"Neptun",  9,  1500},
+    {"Pluto",  10,  1500},
+    {"CH",     20,  1800},
+    {"QU",     35,  1500},
+    {"XE",     40,  1500},
+    {"AC",     13,  1},
+    {"MC",     14,  1},
+};
 
 constexpr const char* kSignName[12] = {"AR", "TA", "GM", "CN", "LE", "VI",
                                        "LI", "SC", "SG", "CP", "AQ", "PS"};
@@ -35,20 +60,32 @@ IngressDialog::IngressDialog(SearchContext ctx, QWidget* parent) : QDialog(paren
   auto* v = new QVBoxLayout(this);
   auto* top = new QHBoxLayout();
   body_ = new QComboBox(this);
-  for (int slot = 1; slot <= 10; ++slot) {
-    body_->addItem(kBodyName[slot - 1], slot);
+  for (const BodyEntry& e : kBodies) {
+    body_->addItem(e.name, e.slot);
   }
-  // the MC and AC entries of his ingress menu
-  body_->addItem("AC", 13);
-  body_->addItem("MC", 14);
   when_ = new QDateEdit(QDate::currentDate(), this);
   when_->setCalendarPopup(true);
   when_->setDisplayFormat("dd.MM.yyyy");
+  when_->setMinimumDate(QDate(1500, 1, 1));
   auto* run = new QPushButton(tr("Rechnen"), this);
   top->addWidget(body_);
   top->addWidget(new QLabel(tr("um"), this));
   top->addWidget(when_);
   top->addWidget(run, 1);
+  //RR the min date follows the body's reliable range, CH starts around 1800
+  const auto sync_min_date = [this]() {
+    const int slot = body_->currentData().toInt();
+    int min_year = 1;
+    for (const BodyEntry& e : kBodies) {
+      if (e.slot == slot) {
+        min_year = e.min_year;
+        break;
+      }
+    }
+    when_->setMinimumDate(QDate(min_year, 1, 1));
+  };
+  connect(body_, qOverload<int>(&QComboBox::currentIndexChanged), this, sync_min_date);
+  sync_min_date();
   table_ = new QTableWidget(0, 3, this);
   table_->setHorizontalHeaderLabels({tr("Zeichen"), tr("Datum"), tr("Zeit (UT)")});
   table_->horizontalHeader()->setStretchLastSection(true);

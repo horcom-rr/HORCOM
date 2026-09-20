@@ -483,15 +483,18 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
     }
   }
 
-  // the credit line like drad2 stamped on every output, his name first
+  // the credit line like drad2 stamped on every output, his name first.
+  // The tester's mockup places the credit on the right below the moment
+  // block so the left side of the sheet stays free for a Composit or
+  // Combin mini table
   {
     Primitive credit;
     credit.kind = Primitive::Kind::kText;
-    credit.x1 = 8.0;
+    credit.x1 = kCanvasWidth - 8.0;
     credit.y1 = kCanvasHeight - 8.0;
     credit.size = 8.0;
     credit.color = 0x808080;
-    credit.align_left = true;
+    credit.align_right = true;
     credit.anchor = Primitive::Anchor::kCredit;
     credit.text = "HORCOM \xC2\xB7 Robert Rettig \xC2\xB7 \xC2\xA9 Dominik Schwimmbeck";
     add(credit);
@@ -732,6 +735,16 @@ DisplayList centered_sheet(const DisplayList& dl, double width) {
       }
       continue;
     }
+    //RR the credit line follows the sheet edge like the corner block, so
+    // the right-aligned stamp stays visible when the sheet width changes
+    if (p.anchor == Primitive::Anchor::kCredit && p.kind == Primitive::Kind::kText) {
+      if (p.align_right) {
+        p.x1 = width - 8.0;
+      } else if (!p.align_left) {
+        p.x1 = cx;
+      }
+      continue;
+    }
     if (p.anchor != Primitive::Anchor::kSheet) {
       continue;
     }
@@ -891,30 +904,35 @@ void add_corner_text(DisplayList& dl, const ClassicSheetText& txt, double left_x
   if (!txt.stz.empty()) {
     text(right_x, 16.0, txt.stz, Align::kRight);
   }
-  text(left_x, 420.0, txt.place_label.empty() ? "Ort:" : txt.place_label);
+  //RR PNG_00: der Kasten Ort steht rechts unten, darüber der Zeitpunkt.
+  // So bleibt links unten Platz für die Composit/Combin/Doppelkreis-
+  // Mini-Tabelle, die vorher über den Radkreis stach
+  text(right_x, 384.0, txt.place_label.empty() ? "Ort:" : txt.place_label, Align::kRight);
   if (!txt.place.empty()) {
-    text(left_x, 432.0, txt.place);
+    text(right_x, 396.0, txt.place, Align::kRight);
   }
   if (!txt.lon.empty()) {
-    text(left_x, 444.0, txt.lon);
+    text(right_x, 408.0, txt.lon, Align::kRight);
   }
   if (!txt.lat.empty()) {
-    text(left_x, 456.0, txt.lat);
+    text(right_x, 420.0, txt.lat, Align::kRight);
   }
   if (!txt.date.empty()) {
-    text(right_x, 432.0, txt.date, Align::kRight);
+    text(right_x, 436.0, txt.date, Align::kRight);
   }
   if (!txt.ut.empty()) {
-    text(right_x, 444.0, txt.ut, Align::kRight);
+    text(right_x, 448.0, txt.ut, Align::kRight);
   }
   if (!txt.weekday.empty()) {
-    text(right_x, 456.0, txt.weekday, Align::kRight);
+    text(right_x, 460.0, txt.weekday, Align::kRight);
   }
   // the paired charts of composit, combin and doppelkreis carry a short
-  // block at the top of the sheet, so the reader sees both sources at a
-  // glance. The block sits under the primary name line
+  // block on the LEFT side under the wheel, freed by moving the Ort block
+  // to the right. The reader sees both sources without the text riding
+  // over the wheel. The Doppelkreis outer ring reaches lower than the
+  // radix wheel alone so the block starts at 420 to clear both
   if (!txt.pair_lines.empty()) {
-    double y = 42.0;
+    double y = 420.0;
     if (!txt.pair_kind.empty()) {
       text(left_x, y, txt.pair_kind);
       y += 12.0;
@@ -1051,15 +1069,18 @@ DisplayList a4_print_sheet(const Chart& chart, const ChartSettings& s, const Asp
       p.color = color;
       add(p);
     };
-    //RR KARDINAL - FIX - GEMISCHT, proportional bars to the group max
+    //RR KARDINAL - FIX - VERÄNDERLICH, proportional bars to the group
+    // max, coloured like kard_fix_gem1 (red/olive/teal) so the tester
+    // sees the qualities in the same key as the elements
     const double qmax = std::max({quality[0], quality[1], quality[2], 1.0});
     double y = 100.0;
     text(16.0, y, "Zeichen-Quali:", 8.5);
-    static constexpr const char* kQuali[3] = {"Kardinal", "Fix", "Gemischt"};
+    static constexpr const char* kQuali[3] = {"Kardinal", "Fix", "Ver\xC3\xA4nderlich"};
+    static constexpr Rgb kQualiColor[3] = {0xFF0000, 0x808000, 0x008080};
     for (int i = 0; i < 3; ++i) {
       y += 12.0;
       text(16.0, y, kQuali[i], 8.5);
-      bar(70.0, y, quality[i] / qmax, 0x606060);
+      bar(70.0, y, quality[i] / qmax, kQualiColor[i]);
     }
     //RR Elemente F E L W with the bars of elemhist1, the strong zeich_col
     // shades scaled to the element max. Wasser asked for RGB(0,255,255),

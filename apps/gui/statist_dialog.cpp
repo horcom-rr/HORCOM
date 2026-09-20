@@ -173,6 +173,10 @@ StatistDialog::StatistDialog(const AspectSettings& aspects, QWidget* parent) : Q
   eval_dist_->setWordWrap(true);
 
   auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
+  //RR die Familie will nach einem Klick auf ein Horoskop wieder in die
+  // Statistik zurückkehren, die Zeigen-Taste stößt das Panel-Redraw an,
+  // ohne den Dialog zu schließen
+  auto* show_btn = buttons->addButton(tr("Zeigen"), QDialogButtonBox::ActionRole);
   v->addLayout(top);
   v->addWidget(table_, 1);
   v->addWidget(distribution_);
@@ -181,8 +185,20 @@ StatistDialog::StatistDialog(const AspectSettings& aspects, QWidget* parent) : Q
   v->addWidget(eval_dist_);
   v->addWidget(buttons);
 
+  const auto emit_preview = [this]() {
+    const int row = table_->currentRow();
+    if (row < 0 || row >= table_->rowCount()) {
+      return;
+    }
+    const auto idx = table_->item(row, 0)->data(Qt::UserRole).toULongLong();
+    if (idx >= set_.records.size()) {
+      return;
+    }
+    emit preview_requested(set_.records[static_cast<std::size_t>(idx)]);
+  };
   connect(object_, &QComboBox::currentIndexChanged, this, [this](int) { refresh_distribution(); });
-  connect(table_, &QTableWidget::cellDoubleClicked, this, [this](int row, int) { accept_row(row); });
+  connect(table_, &QTableWidget::cellDoubleClicked, this, [this, emit_preview](int, int) { emit_preview(); });
+  connect(show_btn, &QPushButton::clicked, this, emit_preview);
   connect(buttons, &QDialogButtonBox::accepted, this, [this]() { accept_row(table_->currentRow()); });
   connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
   connect(eval_object_, &QComboBox::currentIndexChanged, this, [this](int) { update_eval_fields(); });

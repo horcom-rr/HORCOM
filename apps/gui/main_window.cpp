@@ -1006,39 +1006,47 @@ void MainWindow::build_ui() {
   horo->addAction(tr("ASPEKTARIUM…"), this, &MainWindow::open_aspektarium);
   //RR HALBSUMMEN-GRAPHIK
   horo->addAction(tr("HALBSUMMEN-GRAPHIK…"), this, &MainWindow::midpoint_tree);
-  // AUSWERTUNG in the order of his menu tree
-  //RR SOLAR-SEPTAR-LUNAR-PLANETARE-PERSONARE
+  // AUSWERTUNG grouped in three blocks per the tester's mockup: the
+  // return-family charts and the Münchner rhythm block first (SEPTAR sits
+  // with the rhythm since Septare belong to the Münchner Rhythmenlehre),
+  // then the direction block, then the transit/graphic block
+  //RR SOLAR-LUNAR-PLANETARE-PERSONARE, LISTE rides beside its parent
   ausw->addAction(tr("SOLAR…"), this, &MainWindow::solar_chart);
-  ausw->addAction(tr("SEPTAR…"), this, &MainWindow::septar_chart);
+  ausw->addAction(tr("SOLAR-LISTE…"), this, [this]() { return_list(false); });
   ausw->addAction(tr("LUNAR…"), this, &MainWindow::lunar_chart);
+  ausw->addAction(tr("LUNAR-LISTE…"), this, [this]() { return_list(true); });
   ausw->addAction(tr("PLANETAR…"), this, &MainWindow::planetar_chart);
   ausw->addAction(tr("PERSONAR…"), this, &MainWindow::personar_chart);
-  ausw->addAction(tr("SOLAR-LISTE…"), this, [this]() { return_list(false); });
-  ausw->addAction(tr("LUNAR-LISTE…"), this, [this]() { return_list(true); });
-  ausw->addSeparator();
-  //RR TAGES-HOR. / PROGRESS.- HOR.
+  //RR TAGES-HOR.
   ausw->addAction(tr("TAGES-HOROSKOP…"), this, &MainWindow::day_chart);
-  ausw->addAction(tr("PROGRESSIONS-HOROSKOP…"), this, &MainWindow::progression_chart);
-  ausw->addAction(tr("ERLÄUTERUNG 5…"), this, [erlaeuterung]() { erlaeuterung("komm5"); });
-  ausw->addSeparator();
+  //RR SEKUNDÄR-DIREKTION / DYNAMOGRAMM, tester keeps the short label
+  ausw->addAction(tr("DYNAMOGRAMM…"), this, &MainWindow::dynamogram_view);
   //RR MÜNCHNER RHYTHMENLEHRE
   ausw->addAction(tr("MÜNCHNER RHYTHMENLEHRE…"), this, &MainWindow::rhythm_table);
+  ausw->addAction(tr("ERLÄUTERUNG 5…"), this, [erlaeuterung]() { erlaeuterung("komm5"); });
   ausw->addAction(tr("ERLÄUTERUNG 6…"), this, [erlaeuterung]() { erlaeuterung("komm6"); });
-  ausw->addAction(tr("GRAD-DATUM-LISTE…"), this, &MainWindow::degree_date_list);
-  //RR SEKUNDÄR-DIREKTION / DYNAMOGRAMM
-  ausw->addAction(tr("SEKUNDÄR-DIREKTION / DYNAMOGRAMM…"), this, &MainWindow::dynamogram_view);
-  //RR SYMB. DIREKTIONEN
-  ausw->addAction(tr("SYMB. DIREKTIONEN ( AUSWERTUNG )…"), this, [this]() {
+  ausw->addAction(tr("SEPTAR…"), this, &MainWindow::septar_chart);
+  ausw->addSeparator();
+  //RR PROGRESSIONS-HOR. plus the direction group
+  ausw->addAction(tr("PROGRESSIONS-HOROSKOP…"), this, &MainWindow::progression_chart);
+  // PRIMÄR-DIREKTION belongs after PROGRESSIONS-HOROSKOP; its behaviour
+  // is wired further down where the rest of the checkable actions live,
+  // insertAction places it here without moving the connect logic
+  QAction* symb_dir_action = ausw->addAction(tr("SYMB. DIREKTIONEN ( AUSWERTUNG )…"), this, [this]() {
     if (!last_chart_) {
       return;
     }
     DirectionListDialog dialog(*last_chart_, make_context(), this);
     dialog.exec();
   });
+  ausw->addAction(tr("ERLÄUTERUNG 7…"), this, [erlaeuterung]() { erlaeuterung("komm7"); });
+  ausw->addAction(tr("GRAD-DATUM-LISTE…"), this, &MainWindow::degree_date_list);
+  ausw->addSeparator();
   ausw->addAction(tr("LINEAR-GRAPHIK…"), this, &MainWindow::linear_graph);
   //RR TRANSITE
   ausw->addAction(tr("TRANSIT-LISTE…"), this, &MainWindow::transit_list);
-  ausw->addAction(tr("ERLÄUTERUNG 7…"), this, [erlaeuterung]() { erlaeuterung("komm7"); });
+  // MUNDAN-ASPEKTE follows TRANSIT-LISTE and is wired below like the
+  // primär direction action, both insert into the slots reserved here
   // DIVERSES in the order of his menu tree
   //RR HÄUSER-SYSTEM
   divers->addAction(tr("HÄUSER-SYSTEM…"), this, &MainWindow::choose_house_system);
@@ -1277,8 +1285,11 @@ void MainWindow::build_ui() {
     recompute();
   });
   horo->addAction(tr("ERLÄUTERUNG 4…"), this, [erlaeuterung]() { erlaeuterung("komm4"); });
-  // the primary directed axes of prima with his sidereal time variation
-  directions_action_ = ausw->addAction(tr("PRIMÄR-DIREKTION ( E.C.KÜHR )…"));
+  // the primary directed axes of prima with his sidereal time variation,
+  // slotted into the AUSWERTUNG menu between PROGRESSIONS-HOROSKOP and
+  // SYMB. DIREKTIONEN via insertAction
+  directions_action_ = new QAction(tr("PRIMÄR-DIREKTION ( E.C.KÜHR )…"), this);
+  ausw->insertAction(symb_dir_action, directions_action_);
   directions_action_->setCheckable(true);
   connect(directions_action_, &QAction::toggled, this, [this](bool on) {
     if (!on) {
@@ -1350,8 +1361,10 @@ void MainWindow::build_ui() {
     claim_wheel();
     recompute();
   });
-  // the horm 2 view, semi arc house space instead of the ecliptic
-  mundane_action_ = ausw->addAction(tr("MUNDAN-ASPEKTE"));
+  // the horm 2 view, semi arc house space instead of the ecliptic, sits
+  // as the last entry of AUSWERTUNG per the tester's mockup
+  mundane_action_ = new QAction(tr("MUNDAN-ASPEKTE"), this);
+  ausw->addAction(mundane_action_);
   mundane_action_->setCheckable(true);
   connect(mundane_action_, &QAction::toggled, this, [this](bool on) {
     if (on) {
@@ -2268,12 +2281,65 @@ void MainWindow::apply_moment(double jd_ut, const QString& label, bool solar_slo
 }
 
 void MainWindow::solar_chart() {
-  bool ok = false;
-  const int year = QInputDialog::getInt(this, tr("Solar"), tr("Gewünschtes Kalender-Jahr"),
-                                        QDate::currentDate().year(), 1, 3000, 1, &ok);
-  if (ok) {
-    run_solar(year);
+  if (!last_chart_ || !last_chart_->b[body::kSun].valid) {
+    return;
   }
+  QDialog dialog(this);
+  dialog.setWindowTitle(tr("Solar"));
+  auto* v = new QVBoxLayout(&dialog);
+  //RR "Beim Solar ist die Angabe vom Ort extrem wichtig", so trägt der
+  // Dialog den derzeit geladenen Ort und lässt ihn auf Wunsch tauschen.
+  // Der Panel-Ort ist die Vorgabe wie im Original ort_wahl(0,0)
+  auto* place_row = new QHBoxLayout();
+  place_row->addWidget(new QLabel(tr("Ort:"), &dialog));
+  auto* place_label = new QLabel(&dialog);
+  place_label->setStyleSheet("font-weight: bold");
+  const auto refresh_place = [this, place_label]() {
+    QString name = QString::fromStdString(record_.place).trimmed();
+    if (name.isEmpty()) {
+      name = place_field_->text().trimmed();
+    }
+    if (name.isEmpty()) {
+      name = tr("(Panel-Koordinaten)");
+    }
+    place_label->setText(name);
+  };
+  refresh_place();
+  auto* choose_place = new QPushButton(tr("Ort wählen…"), &dialog);
+  place_row->addWidget(place_label, 1);
+  place_row->addWidget(choose_place);
+  //RR Pfeil-Tasten für andere Jahre bei gleichem Ort, sein alertbox
+  // FOLGENDES / VORHERGEHENDES Jahr
+  auto* year_row = new QHBoxLayout();
+  year_row->addWidget(new QLabel(tr("Gewünschtes Kalender-Jahr:"), &dialog));
+  auto* year_spin = new QSpinBox(&dialog);
+  year_spin->setRange(1, 3000);
+  year_spin->setValue(QDate::currentDate().year());
+  year_row->addWidget(year_spin, 1);
+  auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+  auto* prev_btn = buttons->addButton(tr("← Vorheriges Jahr"), QDialogButtonBox::ActionRole);
+  auto* next_btn = buttons->addButton(tr("Nächstes Jahr →"), QDialogButtonBox::ActionRole);
+  connect(prev_btn, &QPushButton::clicked, &dialog, [this, year_spin]() {
+    year_spin->setValue(year_spin->value() - 1);
+    run_solar(year_spin->value());
+  });
+  connect(next_btn, &QPushButton::clicked, &dialog, [this, year_spin]() {
+    year_spin->setValue(year_spin->value() + 1);
+    run_solar(year_spin->value());
+  });
+  connect(choose_place, &QPushButton::clicked, &dialog, [this, refresh_place]() {
+    open_place();
+    refresh_place();
+  });
+  connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+  connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+  v->addLayout(place_row);
+  v->addLayout(year_row);
+  v->addWidget(buttons);
+  if (dialog.exec() != QDialog::Accepted) {
+    return;
+  }
+  run_solar(year_spin->value());
 }
 
 void MainWindow::show_solar(int year) {
@@ -2303,17 +2369,29 @@ void MainWindow::return_list(bool lunar) {
   auto* note = new QLabel(tr("Doppelklick übernimmt den Zeitpunkt ins Panel."), &dialog);
   auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
   connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-  const SearchContext ctx = make_context();
-  const double birth = last_chart_->jd_ut;
+  //RR Radix-Grundlage wie in den Return-Dialogen, ein abgeleitetes Panel
+  // trägt hier nichts bei
+  SearchContext ctx = make_context();
+  const bool use_record = record_.day > 0 || record_.jd > 0.0;
+  if (use_record) {
+    ctx.base = record_input(record_);
+  }
+  const double birth = julian_day(ctx.base.date_ut, ctx.settings.calendar);
+  const BodyLongitude natal_sun = body_longitude(birth, body::kSun, ctx);
+  const BodyLongitude natal_moon = body_longitude(birth, body::kMoon, ctx);
+  if (!(lunar ? natal_moon.valid : natal_sun.valid)) {
+    QApplication::restoreOverrideCursor();
+    return;
+  }
   QApplication::setOverrideCursor(Qt::WaitCursor);
   std::vector<std::pair<int, double>> rows;
   //RR bis zu 84 Daten
   for (int n = 1; n <= 84; ++n) {
     LongitudeCrossing hit;
     if (lunar) {
-      hit = planetar_return(birth, body::kMoon, last_chart_->b[body::kMoon].el, n, true, ctx);
+      hit = planetar_return(birth, body::kMoon, natal_moon.el, n, true, ctx);
     } else {
-      hit = solar_return(ctx.base.date_ut, last_chart_->b[body::kSun].el, ctx.base.date_ut.year + n, ctx);
+      hit = solar_return(ctx.base.date_ut, natal_sun.el, ctx.base.date_ut.year + n, ctx);
     }
     if (hit.ok) {
       rows.push_back({n, hit.jd_ut});
@@ -2352,11 +2430,21 @@ void MainWindow::run_solar(int year) {
     return;
   }
   SearchContext ctx;
-  ctx.base = current_input();
+  //RR das Solar baut auf dem Radix auf. Ist auf dem Panel gerade ein
+  // abgeleitetes Horoskop, hält record_ die Geburts-Angaben
+  const bool use_record = record_.day > 0 || record_.jd > 0.0;
+  ctx.base = use_record ? record_input(record_) : current_input();
   ctx.settings = current_settings();
   ctx.vsop = &vsop_;
   ctx.eph = &eph_;
-  const LongitudeCrossing hit = solar_return(ctx.base.date_ut, last_chart_->b[body::kSun].el, year, ctx);
+  //RR die natale Sonne, aus der Geburt errechnet
+  const double birth_jd = julian_day(ctx.base.date_ut, ctx.settings.calendar);
+  const BodyLongitude natal_sun = body_longitude(birth_jd, body::kSun, ctx);
+  if (!natal_sun.valid) {
+    banner_->set_record(tr("Natale Sonne konnte nicht bestimmt werden"));
+    return;
+  }
+  const LongitudeCrossing hit = solar_return(ctx.base.date_ut, natal_sun.el, year, ctx);
   if (!hit.ok) {
     banner_->set_record(tr("Kein Solar gefunden"));
     return;
@@ -3738,11 +3826,13 @@ void MainWindow::histogram_view() {
     };
     //RR die Element-Reihen tragen die Balkenfarbe des Originals aus
     // elemhist1, Feuer rot, Erde oliv, Luft petrol, Wasser cyan. Die
-    // Qualitäts-Reihen (Kardinal, Fix, Gemischt) bleiben grau wie beim
-    // A4-Druck. Nur der Balken-Anteil der Zelle wird eingefärbt, die
-    // Zahl links vom Balken behält die Schrift-Farbe des Themes
-    static constexpr QRgb kBarColorRgb[4] = {0xFFFF0000, 0xFF808000, 0xFF008080, 0xFF00C8C8};
-    const char* names[7] = {"Feuer", "Erde", "Luft", "Wasser", "Kardinal", "Fix", "Gemeinschaftlich"};
+    // Qualitäts-Reihen färben sich wie kard_fix_gem1, Kardinal rot,
+    // Fix oliv, Veränderlich petrol. Der Original-Begriff Gemischt
+    // trägt jetzt die geläufige Bezeichnung Veränderlich, wie es die
+    // Familie liest
+    static constexpr QRgb kElementColorRgb[4] = {0xFFFF0000, 0xFF808000, 0xFF008080, 0xFF00C8C8};
+    static constexpr QRgb kQualityColorRgb[3] = {0xFFFF0000, 0xFF808000, 0xFF008080};
+    const char* names[7] = {"Feuer", "Erde", "Luft", "Wasser", "Kardinal", "Fix", "Veränderlich"};
     for (int r = 0; r < 7; ++r) {
       table->setItem(r, 0, new QTableWidgetItem(tr(names[r])));
       const bool element = r < 4;
@@ -3751,11 +3841,10 @@ void MainWindow::histogram_view() {
       const int house = element ? h.element_house[static_cast<std::size_t>(idx)] : h.quality_house[static_cast<std::size_t>(idx)];
       auto* sign_item = new QTableWidgetItem(bar(sign));
       auto* house_item = new QTableWidgetItem(h.houses_counted ? bar(house) : tr("-"));
-      if (element) {
-        const QColor col = QColor::fromRgba(kBarColorRgb[r]);
-        sign_item->setForeground(col);
-        house_item->setForeground(col);
-      }
+      const QColor col = element ? QColor::fromRgba(kElementColorRgb[r])
+                                 : QColor::fromRgba(kQualityColorRgb[r - 4]);
+      sign_item->setForeground(col);
+      house_item->setForeground(col);
       table->setItem(r, 1, sign_item);
       table->setItem(r, 2, house_item);
     }
@@ -4530,7 +4619,13 @@ SearchContext MainWindow::make_context() const {
 }
 
 void MainWindow::septar_chart() {
-  if (!last_chart_ || !last_chart_->b[body::kSun].valid) {
+  if (!last_chart_) {
+    return;
+  }
+  //RR Sun-slot is empty in heliocentric mode, Septar needs the Sonne
+  if (!last_chart_->b[body::kSun].valid) {
+    QMessageBox::information(this, tr("Septar"),
+                             tr("Septar braucht die geozentrische Sonne. Heliozentrisch abschalten und erneut versuchen."));
     return;
   }
   QDialog dialog(this);
@@ -4539,12 +4634,16 @@ void MainWindow::septar_chart() {
   auto* form = new QFormLayout();
   auto* age = new QSpinBox(&dialog);
   age->setRange(0, 150);
+  //RR Vorgabe ist das heutige Alter, so entfällt der leere Klick auf 1.SEPTAR
+  const int today_age = std::max(0, QDate::currentDate().year() - astro_year(panel_date()));
+  age->setValue(std::min(150, today_age));
   auto* phase = new QDoubleSpinBox(&dialog);
   phase->setRange(1.0, 30.0);
   phase->setDecimals(1);
   //RR die Phase der Rhythmenlehre, sieben Jahre je Septar
   phase->setValue(7.0);
   auto* unit = new QComboBox(&dialog);
+  //RR Bei SEPTAREN i,a. MONAT, sein Kommentar aus a17eing11
   unit->addItem(tr("Monat"), 1);
   unit->addItem(tr("Jahr"), 12);
   form->addRow(tr("Interessierendes Lebensjahr"), age);
@@ -4552,11 +4651,31 @@ void MainWindow::septar_chart() {
   form->addRow(tr("Zeit-Einheit"), unit);
   auto* note = new QLabel(tr("Ein Septar ist das Solar jenes Lebensjahres, in dessen Sieben-Jahres-Phase das gewählte Alter fällt."), &dialog);
   note->setWordWrap(true);
+  auto* result_label = new QLabel(&dialog);
+  result_label->setWordWrap(true);
+  const auto refresh = [age, phase, unit, result_label]() {
+    const double vp = phase->value();
+    const int fa = unit->currentData().toInt();
+    if (vp <= 0.0 || fa <= 0) {
+      result_label->clear();
+      return;
+    }
+    const int sen = static_cast<int>(std::trunc(age->value() / vp / fa)) + 1;
+    const int span = static_cast<int>(std::round(vp * fa));
+    const int from = (sen - 1) * span;
+    const int to = from + span - 1;
+    result_label->setText(QObject::tr("Ergebnis: %1. SEPTAR — Lebensjahre %2 bis %3").arg(sen).arg(from).arg(to));
+  };
+  connect(age, qOverload<int>(&QSpinBox::valueChanged), &dialog, refresh);
+  connect(phase, qOverload<double>(&QDoubleSpinBox::valueChanged), &dialog, refresh);
+  connect(unit, qOverload<int>(&QComboBox::currentIndexChanged), &dialog, refresh);
+  refresh();
   auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
   connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
   connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
   v->addLayout(form);
   v->addWidget(note);
+  v->addWidget(result_label);
   v->addWidget(buttons);
   if (dialog.exec() != QDialog::Accepted) {
     return;
@@ -4564,16 +4683,30 @@ void MainWindow::septar_chart() {
   const double vp = phase->value();
   const int fa = unit->currentData().toInt();
   const int sen = static_cast<int>(std::trunc(age->value() / vp / fa)) + 1;
-  const SearchContext ctx = make_context();
-  const int year = astro_year(panel_date()) + sen - 1;
-  const LongitudeCrossing hit = solar_return(ctx.base.date_ut, last_chart_->b[body::kSun].el, year, ctx);
+  //RR das Septar baut auf dem Radix auf, nicht auf dem gerade
+  // angezeigten Solar/Lunar. record_ hält die Geburtsdaten des Panels
+  const bool use_record = record_.day > 0 || record_.jd > 0.0;
+  const ChartInput base_in = use_record ? record_input(record_) : current_input();
+  SearchContext ctx = make_context();
+  ctx.base = base_in;
+  //RR die natale Sonne, unabhängig von einem gerade angezeigten
+  // abgeleiteten Chart. body_longitude liefert sie zum Geburts-JD
+  const double birth_jd = julian_day(base_in.date_ut, ctx.settings.calendar);
+  const BodyLongitude natal_sun = body_longitude(birth_jd, body::kSun, ctx);
+  if (!natal_sun.valid) {
+    QMessageBox::warning(this, tr("Septar"), tr("Natale Sonne konnte nicht bestimmt werden."));
+    return;
+  }
+  const int year = base_in.date_ut.year + sen - 1;
+  const LongitudeCrossing hit = solar_return(base_in.date_ut, natal_sun.el, year, ctx);
   if (!hit.ok) {
+    QMessageBox::warning(this, tr("Septar"), tr("Kein Septar gefunden."));
     banner_->set_record(tr("Kein Septar gefunden"));
     return;
   }
-  if (age->value() < vp * fa) {
-    //RR 1. SEPTAR = RADIX !
-    QMessageBox::information(this, tr("Septar"), tr("Das erste Septar ist das Radix selbst."));
+  //RR 1. SEPTAR = RADIX !
+  if (sen == 1) {
+    QMessageBox::information(this, tr("Septar"), tr("Das 1. Septar ist das Radix selbst."));
   }
   apply_moment(hit.jd_ut, QString("%1.SEPTAR").arg(sen), true);
 }
@@ -4596,9 +4729,14 @@ void MainWindow::planetar_chart() {
       {body::kVesta, "VESTAR"},     {body::kQuaoar, "QUAOARAR"}, {body::kHalley, "HALLEYAR"},
       {body::kPholus, "PHOLUSAR"},  {body::kDamokles, "DAMOKLESAR"}, {body::kNessus, "NESSUSAR"},
       {body::kXena, "XENAR"}};
+  //RR die drei Zusatz-Planeten der Endeinstellung stehen der Familie immer
+  // zur Verfügung, auch wenn Panel-Zusatz-Planeten abgeschaltet wurde
+  const auto always_offer = [](int slot) {
+    return slot == body::kChiron || slot == body::kQuaoar || slot == body::kXena;
+  };
   for (const auto& [slot, name] : kPlanetar) {
     const BodyState& b = last_chart_->b[static_cast<std::size_t>(slot)];
-    if (b.present && b.valid) {
+    if ((b.present && b.valid) || always_offer(slot)) {
       bodybox->addItem(name, slot);
     }
   }
@@ -4607,6 +4745,30 @@ void MainWindow::planetar_chart() {
   auto* dir = new QComboBox(&dialog);
   dir->addItem(tr("Zukunft"), 1);
   dir->addItem(tr("Vergangenheit"), 0);
+  //RR "Beim Planetar ist die Angabe vom Ort extrem wichtig", so trägt der
+  // Dialog den derzeit geladenen Ort und lässt ihn auf Wunsch tauschen
+  QString panel_place = QString::fromStdString(record_.place).trimmed();
+  if (panel_place.isEmpty()) {
+    panel_place = place_field_->text().trimmed();
+  }
+  if (panel_place.isEmpty()) {
+    panel_place = tr("(Panel-Koordinaten)");
+  }
+  auto* place_label = new QLabel(panel_place, &dialog);
+  place_label->setStyleSheet("font-weight: bold");
+  auto* choose_place = new QPushButton(tr("Ort wählen…"), &dialog);
+  connect(choose_place, &QPushButton::clicked, &dialog, [this, place_label]() {
+    open_place();
+    QString name = QString::fromStdString(record_.place).trimmed();
+    if (name.isEmpty()) {
+      name = place_field_->text().trimmed();
+    }
+    place_label->setText(name.isEmpty() ? tr("(Panel-Koordinaten)") : name);
+  });
+  auto* place_row = new QHBoxLayout();
+  place_row->addWidget(place_label, 1);
+  place_row->addWidget(choose_place);
+  form->addRow(tr("Ort"), place_row);
   form->addRow(tr("Planet"), bodybox);
   form->addRow(tr("Nummer"), nr);
   form->addRow(tr("Richtung"), dir);
@@ -4623,9 +4785,24 @@ void MainWindow::planetar_chart() {
     return;
   }
   const int slot = bodybox->currentData().toInt();
-  const SearchContext ctx = make_context();
-  const double birth = last_chart_->jd_ut;
-  const double radix = last_chart_->b[static_cast<std::size_t>(slot)].el;
+  SearchContext ctx = make_context();
+  //RR Radix-Grundlage wie bei Solar/Lunar/Septar. record_ hält die
+  // Geburtsdaten des Panels, auch wenn ein abgeleitetes Horoskop
+  // gerade angezeigt wird
+  const bool use_record = record_.day > 0 || record_.jd > 0.0;
+  if (use_record) {
+    ctx.base = record_input(record_);
+  }
+  const double birth = julian_day(ctx.base.date_ut, ctx.settings.calendar);
+  //RR natale Position aus der Ephemeride bestimmen, unabhängig vom
+  // gerade angezeigten Chart
+  const BodyLongitude bl = body_longitude(birth, slot, ctx);
+  if (!bl.valid) {
+    QMessageBox::warning(this, tr("Planetar"),
+                         tr("Radix-Koordinate für den gewählten Körper konnte nicht bestimmt werden."));
+    return;
+  }
+  const double radix = bl.el;
   const LongitudeCrossing hit = planetar_return(birth, slot, radix, nr->value(), dir->currentData().toInt() == 1, ctx);
   if (!hit.ok) {
     banner_->set_record(tr("Kein Planetar gefunden"));
@@ -4704,17 +4881,28 @@ void MainWindow::personar_chart() {
     return;
   }
   const int slot = bodybox->currentData().toInt();
-  const SearchContext ctx = make_context();
-  const double birth = last_chart_->jd_ut;
+  SearchContext ctx = make_context();
+  //RR Radix-Grundlage wie bei Solar/Lunar/Septar
+  const bool use_record = record_.day > 0 || record_.jd > 0.0;
+  if (use_record) {
+    ctx.base = record_input(record_);
+  }
+  const double birth = julian_day(ctx.base.date_ut, ctx.settings.calendar);
   const double tja = last_chart_->ta.tropical_year_days;
+  //RR natale Position des gewählten Planeten aus der Ephemeride
+  const BodyLongitude bl = body_longitude(birth, slot, ctx);
+  if (!bl.valid) {
+    QMessageBox::warning(this, tr("Personar"),
+                         tr("Radix-Koordinate für den gewählten Körper konnte nicht bestimmt werden."));
+    return;
+  }
   double start = birth + tja;
   if (seed->currentData().toInt() == 1) {
     start = birth + 2.0 * tja;
   } else if (seed->currentData().toInt() == 2) {
     start = birth + 3.0;
   }
-  const LongitudeCrossing hit =
-      find_longitude_backward(start, body::kSun, last_chart_->b[static_cast<std::size_t>(slot)].el, ctx);
+  const LongitudeCrossing hit = find_longitude_backward(start, body::kSun, bl.el, ctx);
   if (!hit.ok) {
     banner_->set_record(tr("Kein Personar gefunden"));
     return;
@@ -4801,6 +4989,27 @@ void MainWindow::lunar_chart() {
   QDialog dialog(this);
   dialog.setWindowTitle(tr("Lunar"));
   auto* v = new QVBoxLayout(&dialog);
+  //RR die Familie liest den Ort als zentralen Bestandteil, "extrem
+  // wichtig" schrieb der Tester in v5. Der Panel-Ort ist die Vorgabe wie
+  // im Original ort_wahl(0,0)
+  auto* place_row = new QHBoxLayout();
+  place_row->addWidget(new QLabel(tr("Ort:"), &dialog));
+  auto* place_label = new QLabel(&dialog);
+  place_label->setStyleSheet("font-weight: bold");
+  const auto refresh_place = [this, place_label]() {
+    QString name = QString::fromStdString(record_.place).trimmed();
+    if (name.isEmpty()) {
+      name = place_field_->text().trimmed();
+    }
+    if (name.isEmpty()) {
+      name = tr("(Panel-Koordinaten)");
+    }
+    place_label->setText(name);
+  };
+  refresh_place();
+  auto* choose_place = new QPushButton(tr("Ort wählen…"), &dialog);
+  place_row->addWidget(place_label, 1);
+  place_row->addWidget(choose_place);
   //RR Meist wird das Diesem Datum, 0H UT ,VORAUSGEHENDE LUNAR berechnet !
   auto* note = new QLabel(tr("Das diesem Datum, 0h UT, vorausgehende Lunar wird berechnet."), &dialog);
   note->setWordWrap(true);
@@ -4814,8 +5023,57 @@ void MainWindow::lunar_chart() {
   auto* nr_note = new QLabel(tr("Nummer 0 nimmt das Datum, sonst zählt das n-te Lunar ab Geburt."), &dialog);
   nr_note->setWordWrap(true);
   auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+  //RR Pfeil-Tasten für nachbarliche Lunare, seine WEITERES LUNAR
+  // In der ZUKUNFT / In der Vergangenheit
+  auto* prev_btn = buttons->addButton(tr("← Vorheriges Lunar"), QDialogButtonBox::ActionRole);
+  auto* next_btn = buttons->addButton(tr("Nächstes Lunar →"), QDialogButtonBox::ActionRole);
+  const auto run_lunar = [this, when, nr]() {
+    SearchContext ctx;
+    //RR Radix-Grundlage wie bei Solar und Septar
+    const bool use_record = record_.day > 0 || record_.jd > 0.0;
+    ctx.base = use_record ? record_input(record_) : current_input();
+    ctx.settings = current_settings();
+    ctx.vsop = &vsop_;
+    ctx.eph = &eph_;
+    const double birth_jd = julian_day(ctx.base.date_ut, ctx.settings.calendar);
+    const BodyLongitude natal_moon = body_longitude(birth_jd, body::kMoon, ctx);
+    if (!natal_moon.valid) {
+      banner_->set_record(tr("Nataler Mond konnte nicht bestimmt werden"));
+      return;
+    }
+    LongitudeCrossing hit;
+    QString label;
+    if (nr->value() != 0) {
+      hit = planetar_return(birth_jd, body::kMoon, natal_moon.el,
+                            std::abs(nr->value()), nr->value() > 0, ctx);
+      label = QString("LUNAR NR %1").arg(nr->value());
+    } else {
+      const QDate d = when->date();
+      const double before = julian_day({d.day(), d.month(), d.year(), 0, 0.0}, ctx.settings.calendar);
+      hit = lunar_return(before, natal_moon.el, ctx);
+      label = QString("LUNAR %1").arg(d.toString("dd.MM.yyyy"));
+    }
+    if (!hit.ok) {
+      banner_->set_record(tr("Kein Lunar gefunden"));
+      return;
+    }
+    apply_moment(hit.jd_ut, label, true);
+  };
+  connect(prev_btn, &QPushButton::clicked, &dialog, [nr, run_lunar]() {
+    nr->setValue(nr->value() - 1);
+    run_lunar();
+  });
+  connect(next_btn, &QPushButton::clicked, &dialog, [nr, run_lunar]() {
+    nr->setValue(nr->value() + 1);
+    run_lunar();
+  });
+  connect(choose_place, &QPushButton::clicked, &dialog, [this, refresh_place]() {
+    open_place();
+    refresh_place();
+  });
   connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
   connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+  v->addLayout(place_row);
   v->addWidget(note);
   v->addWidget(when);
   v->addWidget(nr);
@@ -4824,28 +5082,7 @@ void MainWindow::lunar_chart() {
   if (dialog.exec() != QDialog::Accepted) {
     return;
   }
-  SearchContext ctx;
-  ctx.base = current_input();
-  ctx.settings = current_settings();
-  ctx.vsop = &vsop_;
-  ctx.eph = &eph_;
-  const QDate d = when->date();
-  LongitudeCrossing hit;
-  QString label;
-  if (nr->value() != 0) {
-    hit = planetar_return(last_chart_->jd_ut, body::kMoon, last_chart_->b[body::kMoon].el, std::abs(nr->value()),
-                          nr->value() > 0, ctx);
-    label = QString("LUNAR NR %1").arg(nr->value());
-  } else {
-    const double before = julian_day({d.day(), d.month(), d.year(), 0, 0.0}, ctx.settings.calendar);
-    hit = lunar_return(before, last_chart_->b[body::kMoon].el, ctx);
-    label = QString("LUNAR %1").arg(d.toString("dd.MM.yyyy"));
-  }
-  if (!hit.ok) {
-    banner_->set_record(tr("Kein Lunar gefunden"));
-    return;
-  }
-  apply_moment(hit.jd_ut, label, true);
+  run_lunar();
 }
 
 void MainWindow::transit_list() {
@@ -5592,6 +5829,43 @@ void MainWindow::choose_house_system() {
 // ported from a210 through a2113, HOLEN fills the free slots and every
 // record passes through the ANZEIGE box on its way in
 void MainWindow::fetch_from_file() {
+  //RR die Familie will wie im Original bei jedem Holen die Datei
+  // wählen dürfen, ohne über den Hub zurückzugehen. Der Dialog nimmt
+  // die aktuelle Datei als Default und bietet daneben "Andere Datei".
+  {
+    const QString label = data_file_.isEmpty()
+                              ? tr("keine gebunden")
+                              : QFileInfo(data_file_).fileName();
+    const int action = ChoiceDialog::ask(
+        this, tr("Datensätze HOLEN"),
+        {tr("Aus welcher Daten-Datei sollen Datensätze geholt werden?")},
+        {tr("Aus %1").arg(label), tr("Andere Datei wählen…"), tr("ABBRUCH")},
+        data_file_.isEmpty() ? 1 : 0);
+    if (action < 0 || action == 2) {
+      return;
+    }
+    if (action == 1 || data_file_.isEmpty()) {
+      QString start = data_file_;
+      if (start.isEmpty()) {
+        start = QString::fromStdWString((data_dir_ / "spezial").wstring());
+      }
+      const QString path = QFileDialog::getOpenFileName(
+          this, tr("Andere Daten-Datei wählen"), start,
+          tr("HORCOM Daten-Dateien (*.DAT *.dat);;AAF (*.AAF *.aaf)"));
+      if (path.isEmpty()) {
+        return;
+      }
+      std::filesystem::path dat(path.toStdWString());
+      if (path.endsWith(".aaf", Qt::CaseInsensitive)) {
+        dat = dat_twin_path(dat);
+      }
+      if (!std::filesystem::exists(dat)) {
+        QMessageBox::warning(this, "HORCOM", tr("Die Datei ließ sich nicht öffnen."));
+        return;
+      }
+      bind_data_file(QString::fromStdWString(dat.wstring()));
+    }
+  }
   const auto records = load_collection(data_file_);
   if (!records || records->empty()) {
     QMessageBox::warning(this, "HORCOM", tr("Keine Datensätze gefunden."));
@@ -6070,32 +6344,37 @@ void MainWindow::open_statistics() {
     QMessageBox::warning(this, "HORCOM", tr("Die Statistik-Datei ließ sich nicht laden, fehlt die .PAR daneben?"));
     return;
   }
+  //RR die Familie will dutzende Horoskope nach und nach anschauen; Zeigen
+  // und Doppelklick zeichnen das Panel neu, ohne den Dialog zu schließen,
+  // OK bleibt der Übernehmen-und-Schließen-Pfad
+  const auto apply_stat = [this](const StatRecord& r) {
+    record_ = AafRecord{};
+    record_.surname = r.name;
+    record_.place = r.place;
+    const QSignalBlocker b1(date_);
+    const QSignalBlocker b2(time_);
+    const QSignalBlocker b3(zone_);
+    const QSignalBlocker b4(lon_);
+    const QSignalBlocker b5(lat_);
+    set_panel_date(QDate(qdate_year(r.year), r.month, r.day));
+    int seconds = static_cast<int>((r.hour * 60.0 + r.minute) * 60.0 + 0.5);
+    if (seconds >= kSecondsPerDay) {
+      seconds = kSecondsPerDay - 1;
+    }
+    time_->setTime(QTime(seconds / 3600, (seconds / 60) % 60, seconds % 60));
+    zone_->setValue(0.0);
+    lon_->setValue(r.lon);
+    lat_->setValue(r.lat);
+    sync_coord_boxes();
+    if (refresh_sommer_effect_) refresh_sommer_effect_();
+    recompute();
+    refresh_record_label();
+  };
+  connect(&dialog, &StatistDialog::preview_requested, this, apply_stat);
   if (dialog.exec() != QDialog::Accepted || !dialog.chosen()) {
     return;
   }
-  const StatRecord& r = *dialog.chosen();
-  // the store keeps the clock as the original computed it, treated as UT
-  record_ = AafRecord{};
-  record_.surname = r.name;
-  record_.place = r.place;
-  const QSignalBlocker b1(date_);
-  const QSignalBlocker b2(time_);
-  const QSignalBlocker b3(zone_);
-  const QSignalBlocker b4(lon_);
-  const QSignalBlocker b5(lat_);
-  set_panel_date(QDate(qdate_year(r.year), r.month, r.day));
-  int seconds = static_cast<int>((r.hour * 60.0 + r.minute) * 60.0 + 0.5);
-  if (seconds >= kSecondsPerDay) {
-    seconds = kSecondsPerDay - 1;
-  }
-  time_->setTime(QTime(seconds / 3600, (seconds / 60) % 60, seconds % 60));
-  zone_->setValue(0.0);
-  lon_->setValue(r.lon);
-  lat_->setValue(r.lat);
-  sync_coord_boxes();
-  if (refresh_sommer_effect_) refresh_sommer_effect_();
-  recompute();
-  refresh_record_label();
+  apply_stat(*dialog.chosen());
 }
 
 void MainWindow::open_aspektarium() {
@@ -6346,6 +6625,34 @@ ClassicSheetText MainWindow::classic_sheet_text() const {
   } else if (!combin_pair_lines_.empty()) {
     t.pair_kind = combin_kind_.toStdString();
     t.pair_lines = combin_pair_lines_;
+  } else if (partner_chart_ && ((compare_action_ != nullptr && compare_action_->isChecked()) ||
+                                (dial_action_ != nullptr && dial_action_->isChecked()))) {
+    //RR Doppelkreis und 90-Grad-Kreis brauchen die Angabe des zweiten
+    // Horoskops auf dem Blatt, sonst weiß der Betrachter nicht, wer außen
+    // reitet. Der Tester meldete das für Doppel-Kreis in der v5-Runde
+    const bool dial = dial_action_ != nullptr && dial_action_->isChecked();
+    t.pair_kind = (dial ? tr("90-GRAD-KREIS") : tr("DOPPEL-KREIS")).toStdString();
+    const auto compose = [](const QString& who, const CalendarDate& d) {
+      int s = static_cast<int>((d.hour * 60.0 + d.minute) * 60.0 + 0.5);
+      if (s >= kSecondsPerDay) {
+        s = kSecondsPerDay - 1;
+      }
+      return QString::asprintf("%s   %02d.%02d.%d  UT %02d:%02d:%02d", who.toUtf8().constData(), d.day,
+                               d.month, d.year, s / 3600, (s / 60) % 60, s % 60)
+          .toStdString();
+    };
+    QString hor1 = QString("%1 %2")
+                       .arg(QString::fromStdString(record_.surname), QString::fromStdString(record_.given))
+                       .trimmed();
+    if (hor1.isEmpty()) {
+      hor1 = tr("Hor 1");
+    }
+    QString hor2 = partner_name_;
+    if (hor2.isEmpty()) {
+      hor2 = tr("Hor 2");
+    }
+    t.pair_lines.push_back(compose(tr("Hor 1: ") + hor1, in.date_ut));
+    t.pair_lines.push_back(compose(tr("Hor 2: ") + hor2, partner_input_.date_ut));
   }
   return t;
 }

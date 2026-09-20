@@ -45,6 +45,12 @@ class StatistDialog : public QDialog {
   /// @return the picked record after accept
   [[nodiscard]] const std::optional<StatRecord>& chosen() const { return chosen_; }
 
+ signals:
+  /// Fires when the tester clicks Zeigen for a selected row, the panel
+  /// then updates while the dialog stays open so the next chart is one
+  /// double-click away
+  void preview_requested(const StatRecord& r);
+
  private:
   void refresh_distribution();
   void accept_row(int row);

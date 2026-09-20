@@ -399,7 +399,10 @@ double body_period_days(int slot, double tja) {
 // it. Mercury and Venus return almost yearly so their seeds count in
 // years, the outer planets get a growing head start, the eccentric
 // centaurs and the comet five years, the main belt asteroids a hundred
-// days forward and a year backward.
+// days forward and a year backward. The moon has its own seed from the
+// a16 lunar branch so a signed monthly step lands one lunation past
+// the target, and its search skips the general 15 day nudge that would
+// otherwise overshoot by more than one lunation.
 LongitudeCrossing planetar_return(double jd_birth_ut, int slot, double radix_rad, int n, bool future, const SearchContext& ctx) {
   const double tja = eval_chart(jd_birth_ut, ctx).ta.tropical_year_days;
   const double ta = period_days(slot, tja);
@@ -408,7 +411,12 @@ LongitudeCrossing planetar_return(double jd_birth_ut, int slot, double radix_rad
   const bool centaur = slot == body::kChiron || slot == body::kHalley || slot == body::kPholus ||
                        slot == body::kDamokles || slot == body::kNessus;
   const bool belt = slot >= body::kCeres && slot <= body::kVesta;
-  if (slot == body::kMercury) {
+  double seed_bump = 15.0;
+  //RR jd = jd(1,ze) + ns1& * ta(2) + 0.1 * ta(2), pl& = 2, jdz = jd
+  if (slot == body::kMoon) {
+    jd += ns * ta + 0.1 * ta;
+    seed_bump = 0.0;
+  } else if (slot == body::kMercury) {
     jd += ns * tja + 0.5 * ta;
   } else if (slot == body::kVenus) {
     jd += ns * tja + 0.9 * ta;
@@ -420,7 +428,7 @@ LongitudeCrossing planetar_return(double jd_birth_ut, int slot, double radix_rad
     jd += ns * ta + (future ? tja * (slot - 4) : 0.5 * ta);
   }
   //RR jd-Startwert
-  return find_longitude_backward(jd + 15.0, slot, radix_rad, ctx);
+  return find_longitude_backward(jd + seed_bump, slot, radix_rad, ctx);
 }
 
 // the MC and AC branches of the ingress menu, solved on the daily turn

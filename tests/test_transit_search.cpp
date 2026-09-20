@@ -196,6 +196,34 @@ TEST_CASE("the planetar and the personar land on their radix targets") {
   CHECK(pers.jd_ut < birth + tja);
 }
 
+// the tester's v5 lunar bug, +1 must land on the first lunation after
+// birth (about 27 days later) and -1 on the first lunation before birth
+// (about 27 days earlier). The old seed formula treated the moon like
+// an outer body and drifted by whole years
+TEST_CASE("the lunar planetar counts signed months from birth") {
+  const SearchContext ctx = context();
+  const double birth = julian_day({13, 10, 1992, 3, 0.0});
+  const double radix_moon = body_longitude(birth, body::kMoon, ctx).el;
+  const double lunation = 27.321582;
+
+  const LongitudeCrossing next = planetar_return(birth, body::kMoon, radix_moon, 1, true, ctx);
+  REQUIRE(next.ok);
+  CHECK(next.jd_ut > birth);
+  CHECK(std::abs((next.jd_ut - birth) - lunation) < 2.0);
+  CHECK(residual_arcsec(next, body::kMoon, radix_moon, ctx) < 5.0);
+
+  const LongitudeCrossing prev = planetar_return(birth, body::kMoon, radix_moon, 1, false, ctx);
+  REQUIRE(prev.ok);
+  CHECK(prev.jd_ut < birth);
+  CHECK(std::abs((birth - prev.jd_ut) - lunation) < 2.0);
+  CHECK(residual_arcsec(prev, body::kMoon, radix_moon, ctx) < 5.0);
+
+  // the second past lunation sits two lunar periods before birth
+  const LongitudeCrossing prev2 = planetar_return(birth, body::kMoon, radix_moon, 2, false, ctx);
+  REQUIRE(prev2.ok);
+  CHECK(std::abs((birth - prev2.jd_ut) - 2.0 * lunation) < 3.0);
+}
+
 TEST_CASE("the progressions map one day onto one year") {
   const SearchContext ctx = context();
   ChartInput in;
