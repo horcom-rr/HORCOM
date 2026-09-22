@@ -333,6 +333,28 @@ AafRecord aaf_from_chart_record(const ChartRecord& c) {
   return a;
 }
 
+// the numbered corner rows of the paired sheets, ported from a13aus.
+//RR LEFT$(na$(oo,zz),20), his name cut keeps the row short of the wheel
+constexpr int kPairNameLength = 20;
+
+std::string pair_name_row(int nr, QString who, const QString& fallback) {
+  who = who.trimmed();
+  if (who.isEmpty()) {
+    who = fallback;
+  }
+  return QString("%1: %2").arg(nr).arg(who.left(kPairNameLength)).toStdString();
+}
+
+std::string pair_moment_row(int nr, const CalendarDate& d) {
+  int s = static_cast<int>((d.hour * 60.0 + d.minute) * 60.0 + 0.5);
+  if (s >= kSecondsPerDay) {
+    s = kSecondsPerDay - 1;
+  }
+  return QString::asprintf("%d: %02d.%02d.%d  UT %02d:%02d:%02d", nr, d.day, d.month, d.year,
+                           s / 3600, (s / 60) % 60, s % 60)
+      .toStdString();
+}
+
 }  // namespace
 
 MainWindow::MainWindow(VsopTables vsop, Ephemerides eph, std::filesystem::path data_dir, QWidget* parent)
@@ -2006,6 +2028,8 @@ void MainWindow::recompute() {
                                      s.houses, lat_->value());
     WheelOptions opt = wopt;
     opt.center_label = kMultiName[static_cast<int>(multi_mode_)];
+    //RR km = 0.82, der Massstab des multi1-Blatts
+    opt.scale = kMultiWheelScale;
     show_wheel(build_double_wheel(chart, mchart, s, aspects, opt));
     transit_drawn = true;
     //RR " LJ"
@@ -2018,6 +2042,8 @@ void MainWindow::recompute() {
     WheelOptions opt = wopt;
     //RR STR$(ha) + ".HARMONIC"
     opt.center_label = QString("%1.HARMONIC").arg(harm_n_).toStdString();
+    //RR km = 0.82, harmst teilt den Massstab mit multi1
+    opt.scale = kMultiWheelScale;
     show_wheel(build_double_wheel(chart, hc, s, aspects, opt));
     transit_drawn = true;
     banner_->set_record(QString("%1.HARMONIC").arg(harm_n_));
@@ -5171,21 +5197,22 @@ void MainWindow::combin_chart() {
   }
   //RR Combin, der Zeit-Mittelwert zweier Horoskope. Der Tester wünscht
   // die Namen und Zeitdaten beider Herkunftshoroskope plus den
-  // ermittelten Mittelpunkt gemeinsam am Sheet
-  combin_kind_ = tr("COMBIN:");
-  combin_pair_lines_.clear();
-  const auto compose = [](const QString& who, const CalendarDate& d) {
-    int s = static_cast<int>((d.hour * 60.0 + d.minute) * 60.0 + 0.5);
+  // ermittelten Mittelpunkt gemeinsam am Sheet, die Zeilen liegen als
+  // a13aus-Ecken bereit. COMBIN-UT trägt Roberts Etikett aus a14auscomb
+  combin_name1_ = pair_name_row(1, mine, "RADIX");
+  combin_moment1_ = pair_moment_row(1, first.date_ut);
+  combin_name2_ = pair_name_row(2, hers, tr("Hor 2"));
+  combin_moment2_ = pair_moment_row(2, second.date_ut);
+  {
+    int s = static_cast<int>((mixed.date_ut.hour * 60.0 + mixed.date_ut.minute) * 60.0 + 0.5);
     if (s >= kSecondsPerDay) {
       s = kSecondsPerDay - 1;
     }
-    return QString::asprintf("%s   %02d.%02d.%d  UT %02d:%02d:%02d", who.toUtf8().constData(), d.day,
-                             d.month, d.year, s / 3600, (s / 60) % 60, s % 60)
-        .toStdString();
-  };
-  combin_pair_lines_.push_back(compose(tr("Hor 1: ") + mine, first.date_ut));
-  combin_pair_lines_.push_back(compose(tr("Hor 2: ") + hers, second.date_ut));
-  combin_pair_lines_.push_back(compose(tr("Combin ") + tr("(Mittel)"), mixed.date_ut));
+    combin_note_ = QString::asprintf("COMBIN-UT: %02d.%02d.%d  %02d:%02d:%02d", mixed.date_ut.day,
+                                     mixed.date_ut.month, mixed.date_ut.year, s / 3600,
+                                     (s / 60) % 60, s % 60)
+                       .toStdString();
+  }
   apply_moment(julian_day(mixed.date_ut, current_settings().calendar),
                QString("COMBIN %1-%2").arg(mine, hers));
 }
@@ -6290,8 +6317,11 @@ void MainWindow::apply_record(const AafRecord& r, bool claim_slot) {
   //RR beim Wechsel auf ein Radix-Horoskop fällt die Combin-Erinnerung
   // weg, die Herkunftszeilen sollen nicht in fremden Zeichnungen
   // stehenbleiben
-  combin_kind_.clear();
-  combin_pair_lines_.clear();
+  combin_name1_.clear();
+  combin_moment1_.clear();
+  combin_name2_.clear();
+  combin_moment2_.clear();
+  combin_note_.clear();
   // whatever becomes current also lives in a slot like his SATZ arrays,
   // a reactivated SOLAR snapshot leaves the radix slots untouched
   if (claim_slot) {
@@ -6605,70 +6635,47 @@ ClassicSheetText MainWindow::classic_sheet_text() const {
     sec = kSecondsPerDay - 1;
   }
   t.ut = QString::asprintf("UT:%3dh %2dm %2ds", sec / 3600, (sec / 60) % 60, sec % 60).toStdString();
-  // the composit and combin blocks share the top-left of the sheet with
-  // the primary name line. Composit reads from the live partner state,
-  // combin from its own saved memory so both parents plus the mid
-  // moment stay visible
+  // the paired sheets fill the a13aus corners. Composit reads from the
+  // live partner state, combin from its own saved memory so both
+  // parents plus the mid moment stay visible
+  const QString hor1_name = QString("%1 %2")
+                                .arg(QString::fromStdString(record_.surname),
+                                     QString::fromStdString(record_.given))
+                                .trimmed();
   if (composite_action_ != nullptr && composite_action_->isChecked() && partner_chart_) {
-    //RR die Kopfzeile des Composit trägt seit dem Original die gewählte
-    // Häusersystem-Methode, so behält der Leser die Rechenwahl vor Augen
-    const QString comp_head = konsta_.comp_mstz
-                                  ? tr("COMPOSIT — Häuser: Mittel der Sternzeiten")
-                                  : (konsta_.comp_hand ? tr("COMPOSIT — Häuser: nach Robert Hand")
-                                                       : tr("COMPOSIT — Häuser: ab MC-Halbsumme schematisch"));
-    t.pair_kind = comp_head.toStdString();
-    const auto compose = [](const QString& who, const CalendarDate& d) {
-      int s = static_cast<int>((d.hour * 60.0 + d.minute) * 60.0 + 0.5);
-      if (s >= kSecondsPerDay) {
-        s = kSecondsPerDay - 1;
-      }
-      return QString::asprintf("%s   %02d.%02d.%d  UT %02d:%02d:%02d", who.toUtf8().constData(), d.day,
-                               d.month, d.year, s / 3600, (s / 60) % 60, s % 60)
-          .toStdString();
-    };
-    QString hor1 = QString("%1 %2")
-                       .arg(QString::fromStdString(record_.surname), QString::fromStdString(record_.given))
-                       .trimmed();
-    if (hor1.isEmpty()) {
-      hor1 = tr("Hor 1");
-    }
-    QString hor2 = partner_name_;
-    if (hor2.isEmpty()) {
-      hor2 = tr("Hor 2");
-    }
-    t.pair_lines.push_back(compose(tr("Hor 1: ") + hor1, in.date_ut));
-    t.pair_lines.push_back(compose(tr("Hor 2: ") + hor2, partner_input_.date_ut));
-  } else if (!combin_pair_lines_.empty()) {
-    t.pair_kind = combin_kind_.toStdString();
-    t.pair_lines = combin_pair_lines_;
+    //RR IF comp! = 0 && comb! = 0, das Composit unterdrückt die STZ-
+    // Zeile des normalen Blatts. Das erste Horoskop steht als 1: oben
+    // links, sein Zeitpunkt bleibt der Datum-Kasten unten rechts, das
+    // zweite reiht sich mit Name und Zeitpunkt links unten ein
+    t.stz.clear();
+    t.pair_name1 = pair_name_row(1, hor1_name, tr("Hor 1"));
+    t.pair_name2 = pair_name_row(2, partner_name_, tr("Hor 2"));
+    t.pair_moment2 = pair_moment_row(2, partner_input_.date_ut);
+    // die gewählte Häusersystem-Methode bleibt dem Leser vor Augen, das
+    // COMPOSIT selbst steht schon in der Rad-Mitte
+    t.pair_note = (konsta_.comp_mstz
+                       ? tr("Häuser: Mittel der Sternzeiten")
+                       : (konsta_.comp_hand ? tr("Häuser: nach Robert Hand")
+                                            : tr("Häuser: ab MC-Halbsumme schematisch")))
+                      .toStdString();
+  } else if (!combin_name1_.empty()) {
+    //RR comb! unterdrückt die STZ-Zeile ebenso, a14auscomb stellt den
+    // Mittelwert als COMBIN-UT auf das Blatt
+    t.stz.clear();
+    t.pair_name1 = combin_name1_;
+    t.pair_moment1 = combin_moment1_;
+    t.pair_name2 = combin_name2_;
+    t.pair_moment2 = combin_moment2_;
+    t.pair_note = combin_note_;
   } else if (partner_chart_ && ((compare_action_ != nullptr && compare_action_->isChecked()) ||
                                 (dial_action_ != nullptr && dial_action_->isChecked()))) {
     //RR Doppelkreis und 90-Grad-Kreis brauchen die Angabe des zweiten
     // Horoskops auf dem Blatt, sonst weiß der Betrachter nicht, wer außen
-    // reitet. Der Tester meldete das für Doppel-Kreis in der v5-Runde
-    const bool dial = dial_action_ != nullptr && dial_action_->isChecked();
-    t.pair_kind = (dial ? tr("90-GRAD-KREIS") : tr("DOPPEL-KREIS")).toStdString();
-    const auto compose = [](const QString& who, const CalendarDate& d) {
-      int s = static_cast<int>((d.hour * 60.0 + d.minute) * 60.0 + 0.5);
-      if (s >= kSecondsPerDay) {
-        s = kSecondsPerDay - 1;
-      }
-      return QString::asprintf("%s   %02d.%02d.%d  UT %02d:%02d:%02d", who.toUtf8().constData(), d.day,
-                               d.month, d.year, s / 3600, (s / 60) % 60, s % 60)
-          .toStdString();
-    };
-    QString hor1 = QString("%1 %2")
-                       .arg(QString::fromStdString(record_.surname), QString::fromStdString(record_.given))
-                       .trimmed();
-    if (hor1.isEmpty()) {
-      hor1 = tr("Hor 1");
-    }
-    QString hor2 = partner_name_;
-    if (hor2.isEmpty()) {
-      hor2 = tr("Hor 2");
-    }
-    t.pair_lines.push_back(compose(tr("Hor 1: ") + hor1, in.date_ut));
-    t.pair_lines.push_back(compose(tr("Hor 2: ") + hor2, partner_input_.date_ut));
+    // reitet. Der Tester meldete das für Doppel-Kreis in der v5-Runde;
+    // die STZ und der Datum-Kasten gehören weiter dem inneren Horoskop
+    t.pair_name1 = pair_name_row(1, hor1_name, tr("Hor 1"));
+    t.pair_name2 = pair_name_row(2, partner_name_, tr("Hor 2"));
+    t.pair_moment2 = pair_moment_row(2, partner_input_.date_ut);
   }
   return t;
 }

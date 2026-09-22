@@ -636,10 +636,14 @@ DisplayList build_transit_wheel(const Chart& radix, const Chart& transit, const 
 
 DisplayList build_double_wheel(const Chart& inner, const Chart& outer, const ChartSettings& s, const AspectResult& inner_aspects, const WheelOptions& opt) {
   DisplayList dl;
-  build_base(dl, inner, s, inner_aspects, opt, kKm);
+  //RR km = 0.8, a12 verkleinert das Rad damit der zweite Ring samt
+  // Aussenband auf dem Blatt bleibt, multi1 reicht sein km = 0.82 als
+  // scale herein
+  const double km = opt.scale > 0.0 ? opt.scale : kDoubleWheelScale;
+  build_base(dl, inner, s, inner_aspects, opt, km);
   auto add = [&](Primitive p) { dl.items.push_back(std::move(p)); };
-  const auto at = [](double w, double r) {
-    return Pt{kCx + kKm * r * std::cos(-w), kCy + kKm * r * std::sin(-w)};
+  const auto at = [km](double w, double r) {
+    return Pt{kCx + km * r * std::cos(-w), kCy + km * r * std::sin(-w)};
   };
   const double fza = opt.heliocentric ? 0.0 : inner.houses.angles.ac;
   //RR Äussere Häuser, horg11mult zieht die Häuser-Speichen des zweiten
@@ -666,7 +670,7 @@ DisplayList build_double_wheel(const Chart& inner, const Chart& outer, const Cha
     ring.kind = Primitive::Kind::kCircle;
     ring.x1 = kCx;
     ring.y1 = kCy;
-    ring.r1 = kKm * kOuterCuspOuter;
+    ring.r1 = km * kOuterCuspOuter;
     ring.width = kThinLine;
     add(ring);
     static constexpr int kAxes[4] = {1, 4, 7, 10};
@@ -709,7 +713,7 @@ DisplayList build_double_wheel(const Chart& inner, const Chart& outer, const Cha
       }
     }
   }
-  draw_outer_bodies(dl, outer, fza, kKm, kCompareMarkRing, kCompareGlyphRing, opt);
+  draw_outer_bodies(dl, outer, fza, km, kCompareMarkRing, kCompareGlyphRing, opt);
   return dl;
 }
 
@@ -894,9 +898,15 @@ void add_corner_text(DisplayList& dl, const ClassicSheetText& txt, double left_x
   };
   // the record corners of his HOROSKOP GRAPHIK screen, the name top
   // left, the place bottom left, the moment bottom right
-  text(left_x, 16.0, txt.name_label.empty() ? "Name:" : txt.name_label);
-  if (!txt.name.empty()) {
-    text(left_x, 28.0, txt.name);
+  if (!txt.pair_name1.empty()) {
+    //RR @text(202,16,13,"1: " + LEFT$(na$(oo1,zz1),20)), a13aus setzt
+    // das erste Horoskop an die Stelle des Name:-Kastens
+    text(left_x, 16.0, txt.pair_name1);
+  } else {
+    text(left_x, 16.0, txt.name_label.empty() ? "Name:" : txt.name_label);
+    if (!txt.name.empty()) {
+      text(left_x, 28.0, txt.name);
+    }
   }
   if (!txt.mode.empty()) {
     text(center_x, 16.0, txt.mode, Align::kCenter);
@@ -927,24 +937,28 @@ void add_corner_text(DisplayList& dl, const ClassicSheetText& txt, double left_x
   if (!txt.weekday.empty()) {
     text(right_x, 460.0, txt.weekday, Align::kRight);
   }
-  // the paired charts of composit, combin and doppelkreis carry a short
-  // block on the LEFT side under the wheel, freed by moving the Ort block
-  // to the right. The reader sees both sources without the text riding
-  // over the wheel. The Doppelkreis outer ring reaches lower than the
-  // radix wheel alone so the block starts at 420 to clear both
-  if (!txt.pair_lines.empty()) {
-    double y = 420.0;
-    if (!txt.pair_kind.empty()) {
-      text(left_x, y, txt.pair_kind);
-      y += 12.0;
+  //RR @text(202,454,13,"2: " + LEFT$(na$(oo2,zz2),20)), a13aus stellt
+  // das zweite Horoskop als kurze Zeile unter das Rad. Der Block
+  // stapelt die kurzen Paar-Zeilen von unten nach oben, keine reicht
+  // bis in den IC-Bereich des vollen Rades oder an das Aussenband des
+  // verkleinerten Doppelkreises heran
+  constexpr double kPairRowStep = 12.0;
+  constexpr double kPairRowBase = 466.0;
+  const std::array<const std::string*, 4> pair_rows = {&txt.pair_moment1, &txt.pair_name2,
+                                                       &txt.pair_moment2, &txt.pair_note};
+  int filled = 0;
+  for (const std::string* row : pair_rows) {
+    if (!row->empty()) {
+      ++filled;
     }
-    for (const auto& line : txt.pair_lines) {
-      if (line.empty()) {
-        continue;
-      }
-      text(left_x, y, line);
-      y += 12.0;
+  }
+  double py = kPairRowBase - kPairRowStep * (filled > 0 ? filled - 1 : 0);
+  for (const std::string* row : pair_rows) {
+    if (row->empty()) {
+      continue;
     }
+    text(left_x, py, *row);
+    py += kPairRowStep;
   }
 }
 

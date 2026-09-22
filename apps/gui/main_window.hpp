@@ -393,9 +393,13 @@ class MainWindow : public QMainWindow {
   QString partner_name_;
   QString partner_place_;
   // the combin source memory, so the wheel can name both parents plus
-  // the calculated mid moment as the tester wants. Empty means no combin
-  QString combin_kind_;
-  std::vector<std::string> combin_pair_lines_;
+  // the calculated mid moment as the tester wants, ready as the a13aus
+  // corner rows. An empty name1 means no combin
+  std::string combin_name1_;
+  std::string combin_moment1_;
+  std::string combin_name2_;
+  std::string combin_moment2_;
+  std::string combin_note_;
   // the panel history, every settled change one step, capped in depth
   std::vector<PanelState> back_;
   std::vector<PanelState> forward_;

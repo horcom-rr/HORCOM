@@ -86,6 +86,15 @@ inline constexpr double kTransitWheelScale = 0.85;
 /// primhorg draws the directed axes wheel slightly smaller
 inline constexpr double kDirectedWheelScale = 0.89;
 
+/// the a12 comparison screen shrinks the wheel like the transit screen,
+/// so the second ring and its house band stay inside the sheet, the
+/// original km there
+inline constexpr double kDoubleWheelScale = 0.8;
+
+/// multi1 and the harmonics draw their double wheel a shade wider, the
+/// original km of both entries
+inline constexpr double kMultiWheelScale = 0.82;
+
 /// Options of the wheel builder.
 struct WheelOptions {
   /// draw the aspect chords of a scan result
@@ -202,12 +211,15 @@ struct ClassicSheetText {
   std::string len_header;    ///< Länge:, the mode tag joins it
   std::string houses_header; ///< Häusersp.
   std::string mirror_label;  ///< Spiegelung:
-  // the paired-chart lines for Composit, Combin and Doppelkreis, they
-  // only render when populated. The `pair_kind` labels the block, e.g.
-  // "COMPOSIT" or "COMBIN", and each pair line carries a self contained
-  // Name  Datum  Uhrzeit  Ort caption
-  std::string pair_kind;                 ///< Composit, Combin, Doppel-Kreis
-  std::vector<std::string> pair_lines;   ///< two or three ready lines
+  // the paired-chart corners of Composit, Combin and Doppelkreis after
+  // the a13aus split, the first name replaces the Name: block, the
+  // short rows stack above the bottom left corner. No row is wide
+  // enough to reach the wheel, empty fields stay away
+  std::string pair_name1;    ///< 1: first chart, replaces the Name: block
+  std::string pair_moment1;  ///< 1: the first moment, when the sheet corner shows another
+  std::string pair_name2;    ///< 2: second chart
+  std::string pair_moment2;  ///< 2: the second moment
+  std::string pair_note;     ///< the Composit house method or the Combin mean
 };
 
 /// Writes the classic screen sheet of the original around a wheel

@@ -531,12 +531,15 @@ int main(int argc, char** argv) {
       window.resize(wh[0].toInt(), wh[1].toInt());
     }
   }
-  if (shot >= 0) {
+  // a shot flag without a target path opens the preset view normally,
+  // so a doppelkreis or composit lands on screen for a live look
+  const bool will_shoot = shot >= 0 && shot + 1 < args.size() && !args[shot + 1].startsWith("--");
+  if (will_shoot) {
     window.showMinimized();
   } else {
     window.show();
   }
-  if (shot >= 0 && shot + 1 < args.size()) {
+  if (will_shoot) {
     const QString target = args[shot + 1];
     QTimer::singleShot(1200, &window, [&window, target]() {
       window.grab().save(target);

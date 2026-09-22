@@ -77,7 +77,7 @@ TEST_CASE("the transit wheel rides the running sky outside the signs") {
   CHECK(label);
 }
 
-TEST_CASE("the double wheel carries the partner outside at full scale") {
+TEST_CASE("the double wheel carries the partner outside at the a12 scale") {
   const Chart inner = sample_chart();
   REQUIRE(inner.ok);
   ChartInput in;
@@ -94,9 +94,11 @@ TEST_CASE("the double wheel carries the partner outside at full scale") {
     if (p.kind == Primitive::Kind::kGlyph && p.text.rfind("☉", 0) == 0) {
       ++suns;
       const double r = std::hypot(p.x1 - kWheelCenterX, p.y1 - kWheelCenterY);
-      if (r > kWheelScale * 185.0) {
+      //RR km = 0.8, a12 shrinks the wheel so the second ring keeps
+      // inside the sheet
+      if (r > kDoubleWheelScale * 185.0) {
         outer_sun = true;
-        CHECK(r < kWheelScale * 215.0);
+        CHECK(r < kDoubleWheelScale * 215.0);
       }
     }
   }
