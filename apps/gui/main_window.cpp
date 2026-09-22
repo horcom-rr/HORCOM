@@ -392,7 +392,10 @@ void MainWindow::build_ui() {
       ring_colors_[static_cast<std::size_t>(i)] =
           static_cast<Rgb>(settings.value(QString("view/ringColor%1").arg(i), 0).toUInt());
     }
-    outer_color_ = settings.value("view/outerColor", 2).toInt();
+    //RR hard&, his profile carries the choice, the final KONSTA7P.INT
+    // says 1, so a fresh start paints the outer symbols red like his
+    // running program, not the black of the bare code default
+    outer_color_ = settings.value("view/outerColor", konsta_.hard).toInt();
   }
   setWindowIcon(QIcon(":/logo.svg"));
 
