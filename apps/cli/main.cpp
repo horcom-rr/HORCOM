@@ -8,6 +8,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -120,6 +121,13 @@ int main(int argc, char** argv) {
     usage();
     return 1;
   }
+#ifdef HORCOM_INSTALL_DATADIR
+  // an installed tool falls back to the shipped tables when no local
+  // data folder is at hand
+  if (data_dir == "data" && !std::filesystem::exists(data_dir + "/planets.dat")) {
+    data_dir = HORCOM_INSTALL_DATADIR;
+  }
+#endif
 
   VsopTables vsop;
   try {

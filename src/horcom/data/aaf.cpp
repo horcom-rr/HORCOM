@@ -224,7 +224,8 @@ std::string aaf_zone(double hours_east) {
     ++mm;
   }
   const char side = hours_east < 0.0 ? 'W' : 'E';
-  char out[16];
+  // wide enough for three full ints, GCC cannot see that hh stays below 24
+  char out[40];
   std::snprintf(out, sizeof(out), "%02dh%c%02d:%02d", hh, side, mm, ss);
   return out;
 }

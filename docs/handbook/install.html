@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>horcom Handbook — Installation</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="sky">
+  <h1>Installation</h1>
+  <p class="sub">Getting HORCOM onto Windows and Linux, ready built or from source</p>
+</header>
+
+<main>
+
+<p><a href="index.html">&larr; back to the handbook</a></p>
+
+<p>
+Every push to the main branch builds and tests the program on Windows and
+Linux and publishes a release on the
+<a href="https://github.com/horcom-rr/HORCOM/releases/latest">GitHub releases page</a>.
+Versions stay 0.x until the port of the original is complete. Each release
+carries three downloads.
+</p>
+
+<table>
+<tr><th>File</th><th>For</th></tr>
+<tr><td><code>horcom-windows-x64.zip</code></td><td>Windows 10 and 11, 64 bit</td></tr>
+<tr><td><code>horcom-linux-x86_64.AppImage</code></td><td>any 64 bit Linux desktop with glibc 2.35 or newer, Ubuntu 22.04, Debian 12, Fedora, Arch, openSUSE and their relatives</td></tr>
+<tr><td><code>SHA256SUMS.txt</code></td><td>the checksums of both, written by the build pipeline</td></tr>
+</table>
+
+<h2>Windows</h2>
+<ol>
+  <li>Download <code>horcom-windows-x64.zip</code> and unpack it into a folder of your choice, for example <code>Documents\HORCOM</code>.</li>
+  <li>Start <code>horcom_gui.exe</code> in that folder. The <code>data</code> folder must stay beside it.</li>
+</ol>
+<p>
+Windows may warn about an unknown publisher on the first start. That is
+expected for a young open source program without a paid code signing
+certificate. Click <b>More info</b>, then <b>Run anyway</b>. To verify a
+download, compare the output of <code>Get-FileHash horcom-windows-x64.zip</code>
+in PowerShell with the line in <code>SHA256SUMS.txt</code>.
+</p>
+<p>
+The program writes into its own <code>data</code> folder like the original
+did, your KONSTA settings, the SPEZIAL data files and your own place files
+live there. Unpacked to a folder you cannot write to, such as
+<code>Program Files</code>, it works in <code>%LOCALAPPDATA%\horcom\data</code>
+instead. To update, unpack the new release over the old folder, your own
+files are kept. To uninstall, delete the folder.
+</p>
+
+<h2>Linux</h2>
+<p>
+The AppImage is one self contained file, Qt and every library it needs
+travel inside, nothing is installed into the system.
+</p>
+<pre><code>chmod +x horcom-linux-x86_64.AppImage
+./horcom-linux-x86_64.AppImage</code></pre>
+<p>
+In a file manager, open the file's properties, allow executing it as a
+program and double click it. To verify the download, run
+<code>sha256sum -c SHA256SUMS.txt --ignore-missing</code> in the download folder.
+</p>
+<p>
+If the image does not start and mentions FUSE, the system lacks the old
+FUSE 2 library that AppImages mount themselves with. Install it
+(<code>sudo apt install libfuse2t64</code> on Ubuntu 24.04,
+<code>sudo apt install libfuse2</code> on Ubuntu 22.04 and Debian,
+<code>sudo dnf install fuse-libs</code> on Fedora), or start the image
+with <code>--appimage-extract-and-run</code>, which works everywhere.
+</p>
+
+<h3>Menu entry and updates</h3>
+<p>
+The image carries its own desktop entry and icon. A helper such as
+<a href="https://github.com/mijorus/gearlever">Gear Lever</a> or
+AppImageLauncher files it into the application menu with one click and
+keeps it up to date, every release ships a <code>.zsync</code> file for delta
+updates. Without a helper, replace the file with a newer download, your
+own files are not stored inside it.
+</p>
+
+<h3>Where your files live</h3>
+<table>
+<tr><th>What</th><th>Where</th></tr>
+<tr><td>settings of the Ansicht menu, language, colours</td><td><code>~/.config/horcom/horcom.conf</code></td></tr>
+<tr><td>KONSTA settings, SPEZIAL data files, own place files, commentary texts</td><td><code>~/.local/share/horcom/data</code></td></tr>
+</table>
+<p>
+The shipped data inside the image is read only. On the first start the
+program copies its working files, about 1 MB, into the folder above and
+works there from then on. A later release adds new shipped files there but
+never overwrites one you already have. The planet tables and ephemeris
+files are always read from the image. To uninstall, delete the AppImage
+and, if you want to lose your files too, the two locations above.
+</p>
+
+<h3>Fonts</h3>
+<p>
+The sheets and tables are laid out in Courier New. Where it is missing,
+the program falls back to Liberation Mono, which has exactly the same
+character widths, so every column lines up as on Windows. The AppImage
+brings Liberation Mono along. Menu shortcut letters are underlined
+permanently on Linux, the usual convention there.
+</p>
+
+<h2>Building from source</h2>
+<p>
+The library, the <code>horcom</code> command line tool and the tests need a
+C++20 compiler and CMake 3.25 or newer. The desktop shell
+<code>horcom_gui</code> additionally needs Qt 6 with Widgets, Svg,
+PrintSupport and the Linguist tools. Where Qt is absent the shell is skipped
+and the rest still builds. Warnings are errors on every compiler.
+</p>
+
+<h3>Windows</h3>
+<p>
+Install the Visual Studio 2022 Build Tools with the C++ workload, CMake,
+Ninja and Qt 6.8 for MSVC 2022 64 bit. <code>build.bat</code> in the
+repository root configures, builds and runs the tests in one go, it
+expects Qt in <code>C:\Qt\6.8.3\msvc2022_64</code>. By hand:
+</p>
+<pre><code>cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=C:/Qt/6.8.3/msvc2022_64
+cmake --build build
+ctest --test-dir build --output-on-failure</code></pre>
+
+<h3>Linux</h3>
+<p>
+GCC 12 or newer and Clang 18 or newer both work, the distribution's own Qt 6
+is enough. Install the tools for your distribution.
+</p>
+<table>
+<tr><th>Distribution</th><th>Command</th></tr>
+<tr><td>Ubuntu 24.04, Debian 12</td><td><code>sudo apt install build-essential cmake ninja-build libgl-dev qt6-base-dev qt6-svg-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools</code></td></tr>
+<tr><td>Fedora</td><td><code>sudo dnf install gcc-c++ cmake ninja-build qt6-qtbase-devel qt6-qtsvg-devel qt6-qttools-devel</code></td></tr>
+<tr><td>Arch</td><td><code>sudo pacman -S base-devel cmake ninja qt6-base qt6-svg qt6-tools</code></td></tr>
+</table>
+<p>
+Then, from the repository root, <code>./build.sh</code> configures, builds and
+runs the tests. Set <code>QT_PREFIX</code> to use a Qt outside the system, for
+example <code>QT_PREFIX=~/Qt/6.8.3/gcc_64 ./build.sh</code>. The programs land
+in <code>build/apps</code> and find the <code>data</code> folder of the checkout
+by themselves.
+</p>
+<p>
+A system wide install follows the usual layout, the binaries in
+<code>bin</code>, the data in <code>share/horcom/data</code>, plus the desktop
+entry, the AppStream metadata and the icons. Distribution packagers stage it
+with <code>DESTDIR</code>.
+</p>
+<pre><code>cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
+cmake --build build
+sudo cmake --install build</code></pre>
+<p>
+<code>packaging/linux/appimage.sh</code> builds the release AppImage itself,
+given a Qt prefix in <code>QT_ROOT_DIR</code>. Build it on the oldest
+distribution it should run on, its C library sets the floor, the release
+image is built on Ubuntu 22.04 with Qt 6.8.3.
+</p>
+
+<h2>Same numbers everywhere</h2>
+<p>
+Robert's advice to keep the computation order of the original binds the
+port, so the Linux build switches off the fused multiply add contraction
+that would let a compiler reorder his arithmetic. Before the Linux build
+was released, 600 randomised charts across all house systems, parallax,
+the extra bodies and dates from the year -500 to 3000 were computed with
+MSVC, GCC and Clang. Every coordinate table and every SVG wheel came out
+byte for byte identical on all three.
+</p>
+
+</main>
+
+<footer class="page">In memory of Robert Rettig, who built all of this first.<br>Rewritten in C++ and maintained by Dominik Schwimmbeck.</footer>
+
+</body>
+</html>

@@ -3786,7 +3786,7 @@ void MainWindow::degree_date_list() {
     }
     refresh();
   });
-  connect(clear, &QPushButton::clicked, &dialog, [this, grade_file, refresh]() {
+  connect(clear, &QPushButton::clicked, &dialog, [grade_file, refresh]() {
     std::error_code ec;
     std::filesystem::remove(grade_file, ec);
     refresh();
@@ -5784,7 +5784,6 @@ void MainWindow::vorgaben_overview() {
   row->setSpacing(28);
   const auto head = [](const QString& s) { return theme::heading_span(s) + "<br>"; };
   const ClassicSheetText sheet = classic_sheet_text();
-  const ChartSettings s = current_settings();
   QString left;
   left += head(tr("Name :")) + QString::fromStdString(sheet.name).toHtmlEscaped() + "<br>";
   left += head(tr("Ort :")) + QString::fromStdString(sheet.place).toHtmlEscaped() + "<br>";

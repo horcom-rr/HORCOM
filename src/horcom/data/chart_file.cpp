@@ -56,7 +56,8 @@ double val(std::string_view v) {
 // numbers as the original RSET STR$(x) writes them, compact and right
 // aligned in the field
 void rset_number(std::string& rec, FieldSpec f, double v, bool integral) {
-  char buf[32];
+  // room for the widest %g of any double, GCC cannot bound the field length
+  char buf[320];
   if (integral) {
     std::snprintf(buf, sizeof(buf), "%lld", static_cast<long long>(v));
   } else {

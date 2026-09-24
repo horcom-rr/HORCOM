@@ -12,6 +12,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue" alt="license"></a>
   <img src="https://img.shields.io/badge/C%2B%2B-20-1f4f6f" alt="C++20">
   <img src="https://img.shields.io/badge/Qt-6-41cd52" alt="Qt 6">
+  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux-555" alt="Windows and Linux">
 </p>
 
 A modern C++ rewrite of **HORCOM**, the astrology program that **Robert Rettig** wrote and refined over more than two decades, from about 1989 on the Atari ST until 2010 on Windows.
@@ -34,6 +35,7 @@ He wished for HORCOM to live on in C++. This project is that rewrite, done caref
 | `apps/` | The `horcom` command line tool and the `horcom_gui` Qt desktop shell |
 | `tests/` | Tests, including comparisons against the original program's results |
 | `data/` | His ephemerides, term tables, place and zone catalogues, and his original commentary texts (`data/kommen/`) |
+| `packaging/` | Linux desktop entry, AppStream metadata and the AppImage build script |
 | `docs/` | Architecture notes, the map of the original program, the rewrite plan and the handbook (`docs/handbook/index.html`) |
 | `reference/` | Verified UTF-8 copies of his original GFA BASIC listings, the factual base of the port (local only, not in git) |
 | `legacy/` | The complete original archive, programs, data and documents (local only, not in git, contains private data) |
@@ -70,21 +72,55 @@ The Qt 6 desktop shell carries his visual identity and starts on his own setting
 build\apps\horcom.exe --date 13.10.1992 --time 03:00 --lon 11.32 --lat 48.17 --extras --svg wheel.svg
 ```
 
-## Building
+## Installation
 
-A C++20 compiler (MSVC 2022 on Windows) and CMake 3.25 or newer build the library, the command line tool and the tests. Qt 6 with Widgets, Svg and the Linguist tools additionally builds the desktop shell, the target is skipped where Qt is absent.
+Every push builds and tests the program on Windows and Linux and publishes a [release](https://github.com/horcom-rr/HORCOM/releases/latest), versioned 0.x until the port of the original is complete, so a ready build is always one download away. The [handbook](https://horcom-rr.github.io/HORCOM/install.html) has the full installation guide.
 
-```
-cmake -S . -B build -DCMAKE_PREFIX_PATH=C:/Qt/6.8.3/msvc2022_64
-cmake --build build --config Release
-ctest --test-dir build -C Release
-```
+### Windows
 
-The programs expect the `data` folder next to the executable or above it. The project lives at [github.com/horcom-rr/HORCOM](https://github.com/horcom-rr/HORCOM). Every push builds and tests there and publishes a fresh [Windows release](https://github.com/horcom-rr/HORCOM/releases/latest), versioned 0.x until the port of the original is complete, so a ready build is always one download away.
+1. Download `horcom-windows-x64.zip` from the [latest release](https://github.com/horcom-rr/HORCOM/releases/latest).
+2. Unpack it into a folder of your choice, for example `Documents\HORCOM`.
+3. Start `horcom_gui.exe`. The `data` folder must stay beside it, your settings and data files are written there.
 
-## A note on the Windows SmartScreen warning
+To update, unpack a newer release over the old folder, your own files are kept. To uninstall, delete the folder.
 
 Windows may warn about an unknown publisher when starting a downloaded `horcom_gui.exe`. That is expected for a young open source program without a paid code signing certificate, not a finding about the software. Click **More info**, then **Run anyway**. Every release ships a `SHA256SUMS.txt`, so a download can be verified against the hash published by the build pipeline, `Get-FileHash horcom-windows-x64.zip` in PowerShell prints the value to compare. The releases will be signed once the project has grown into it.
+
+### Linux
+
+The AppImage runs on any 64 bit desktop with glibc 2.35 or newer (Ubuntu 22.04, Debian 12, Fedora, Arch, openSUSE and relatives). It is one self contained file with Qt inside, nothing is installed into the system.
+
+```sh
+chmod +x horcom-linux-x86_64.AppImage
+./horcom-linux-x86_64.AppImage
+```
+
+- Verify the download with `sha256sum -c SHA256SUMS.txt --ignore-missing`.
+- If it does not start and mentions FUSE, install `libfuse2t64` (Ubuntu 24.04), `libfuse2` (Ubuntu 22.04, Debian) or `fuse-libs` (Fedora), or start it with `--appimage-extract-and-run`.
+- [Gear Lever](https://github.com/mijorus/gearlever) or AppImageLauncher add it to the application menu and keep it updated, each release ships a `.zsync` file for delta updates.
+- Your settings live in `~/.config/horcom/horcom.conf`, your working files (KONSTA settings, SPEZIAL data files, own places) in `~/.local/share/horcom/data`. Updating means replacing the AppImage, your files stay.
+
+## Building from source
+
+A C++20 compiler and CMake 3.25 or newer build the library, the `horcom` command line tool and the tests. Qt 6 with Widgets, Svg, PrintSupport and the Linguist tools additionally builds the desktop shell, the target is skipped where Qt is absent. Warnings are errors on every compiler.
+
+**Windows** (MSVC 2022, Qt 6.8 for MSVC). `build.bat` configures, builds and tests in one go, or by hand:
+
+```
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=C:/Qt/6.8.3/msvc2022_64
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
+
+**Linux** (GCC 12+ or Clang 18+, the distribution's Qt 6). Install the dependencies, then run `./build.sh` from the repository root, which configures, builds and tests. `QT_PREFIX=~/Qt/6.8.3/gcc_64 ./build.sh` uses a Qt outside the system.
+
+| Distribution | Dependencies |
+|---|---|
+| Ubuntu 24.04, Debian 12 | `sudo apt install build-essential cmake ninja-build libgl-dev qt6-base-dev qt6-svg-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools` |
+| Fedora | `sudo dnf install gcc-c++ cmake ninja-build qt6-qtbase-devel qt6-qtsvg-devel qt6-qttools-devel` |
+| Arch | `sudo pacman -S base-devel cmake ninja qt6-base qt6-svg qt6-tools` |
+
+The built programs find the `data` folder of the checkout by themselves. `sudo cmake --install build` installs system wide in the usual layout (binaries in `bin`, data in `share/horcom/data`, desktop entry, AppStream metadata and icons), `packaging/linux/appimage.sh` builds the release AppImage. MSVC, GCC and Clang produce byte identical chart output.
 
 ## License
 

@@ -92,3 +92,31 @@ if(Qt6_FOUND)
 else()
   message(STATUS "Qt 6 not found, the GUI target is skipped")
 endif()
+
+# the FHS layout of Linux packages and the AppImage, the binaries in
+# bin, the shipped data under share/horcom where both front ends look
+# for it. Windows keeps its flat zip beside the executables
+if(UNIX AND NOT APPLE)
+  include(GNUInstallDirs)
+  set(HORCOM_APP_ID "io.github.horcom_rr.horcom")
+  set(HORCOM_LINUX_DIR "${CMAKE_SOURCE_DIR}/packaging/linux")
+  target_compile_definitions(horcom_cli PRIVATE
+    HORCOM_INSTALL_DATADIR="${CMAKE_INSTALL_FULL_DATADIR}/horcom/data")
+  install(TARGETS horcom_cli RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+  install(DIRECTORY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CMAKE_INSTALL_DATADIR}/horcom/data)
+  install(FILES ${CMAKE_SOURCE_DIR}/LICENSE ${CMAKE_SOURCE_DIR}/README.md
+          DESTINATION ${CMAKE_INSTALL_DOCDIR})
+  if(TARGET horcom_gui)
+    install(TARGETS horcom_gui RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    install(FILES ${HORCOM_LINUX_DIR}/${HORCOM_APP_ID}.desktop
+            DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
+    install(FILES ${HORCOM_LINUX_DIR}/${HORCOM_APP_ID}.metainfo.xml
+            DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
+    install(FILES ${CMAKE_SOURCE_DIR}/assets/logo.svg
+            DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps
+            RENAME ${HORCOM_APP_ID}.svg)
+    install(FILES ${CMAKE_SOURCE_DIR}/assets/logo.png
+            DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/512x512/apps
+            RENAME ${HORCOM_APP_ID}.png)
+  endif()
+endif()

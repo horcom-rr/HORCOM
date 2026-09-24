@@ -34,6 +34,8 @@ words wherever his comments still tell the story best.
 
 <h2>Using the program</h2>
 <p>
+<a href="install.html">Installation</a> covers the ready builds for Windows
+and Linux and building from source.
 The <a href="tutorial.html">tutorial</a> walks through the shell from the
 first chart to transits, comparisons, the 90 degree dial, statistics
 and printing. The module pages below describe the machinery behind it.
@@ -130,7 +132,10 @@ logic depends on it.
 <h2>Verification</h2>
 <p>
 The test suite currently holds 131 test cases with 1622 assertions, all green,
-built with MSVC at warning level 4 with warnings as errors. The anchors are
+built with MSVC at warning level 4 and with GCC and Clang on Linux, warnings
+as errors on all three, and on Linux once more under the address and
+undefined behaviour sanitizers. The three compilers produce byte identical
+coordinate tables and wheels, see <a href="install.html">Installation</a>. The anchors are
 Jean Meeus's worked examples, the binary data files themselves and cross
 checks between independent engines, the Chapront theory against the
 integrated Pluto file among them. The golden reference now exists,

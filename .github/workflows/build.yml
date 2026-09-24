@@ -44,8 +44,6 @@ jobs:
           Copy-Item README.md dist/
           & "$env:QT_ROOT_DIR/bin/windeployqt.exe" --release dist/horcom_gui.exe
           Compress-Archive -Path dist/* -DestinationPath horcom-windows-x64.zip
-          $hash = (Get-FileHash horcom-windows-x64.zip -Algorithm SHA256).Hash.ToLower()
-          "$hash  horcom-windows-x64.zip" | Out-File -Encoding ascii SHA256SUMS.txt
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -53,14 +51,123 @@ jobs:
           name: horcom-windows-x64
           path: horcom-windows-x64.zip
 
+  # compiler and sanitizer coverage on current Linux, distribution Qt
+  linux:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: gcc
+            cxx: g++-14
+            flags: ''
+          - name: clang
+            cxx: clang++-18
+            flags: ''
+          - name: sanitize
+            cxx: g++-14
+            flags: -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer
+    name: linux (${{ matrix.name }})
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt and tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ninja-build libgl-dev             qt6-base-dev qt6-svg-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools
+
+      - name: Configure
+        run: >
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
+          -DCMAKE_CXX_FLAGS="${{ matrix.flags }}${{ matrix.flags && ' -Wno-maybe-uninitialized' || '' }}"
+          -DCMAKE_EXE_LINKER_FLAGS="${{ matrix.flags }}"
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Smoke test
+        env:
+          QT_QPA_PLATFORM: offscreen
+          ASAN_OPTIONS: detect_leaks=0
+        run: |
+          ./build/apps/horcom --date 13.10.1992 --time 03:00 --lon 11.3244 --lat 48.1742 --parallax --extras --svg wheel.svg
+          timeout 300 ./build/apps/horcom_gui --lang de --shot shot.png
+          test -s wheel.svg && test -s shot.png
+
+  # the release image, built on the oldest supported base so its glibc
+  # floor stays low, with the Qt of the Windows build
+  appimage:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          host: linux
+          arch: linux_gcc_64
+          modules: qtimageformats
+
+      - name: Install packaging dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ninja-build fonts-liberation2             libxcb-cursor0 libxkbcommon-x11-0 libcups2
+
+      - name: Build, test and pack
+        env:
+          CXX: g++-12
+          HORCOM_VERSION: 0.${{ github.run_number }}
+        run: packaging/linux/appimage.sh
+
+      - name: Smoke test
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          timeout 300 ./horcom-linux-x86_64.AppImage --appimage-extract-and-run --lang de --shot shot.png
+          test -s shot.png
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: horcom-linux-x86_64
+          path: |
+            horcom-linux-x86_64.AppImage
+            horcom-linux-x86_64.AppImage.zsync
+
+  # one release per push, the Windows zip always, the AppImage when its
+  # job passed, so a Linux failure never holds back the Windows build
+  release:
+    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.windows.result == 'success'
+    needs: [windows, appimage]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Checksums
+        working-directory: dist
+        run: sha256sum horcom-* > SHA256SUMS.txt
+
       - name: Release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v0.${{ github.run_number }}
           name: v0.${{ github.run_number }}
-          body: Windows build of this push. Unzip and start horcom_gui.exe, SHA256SUMS.txt verifies the download. Versions stay 0.x until the port of the original is complete.
+          body: |
+            Windows and Linux builds of this push. Versions stay 0.x until the port of the original is complete, SHA256SUMS.txt verifies the downloads.
+
+            Windows, unzip horcom-windows-x64.zip and start horcom_gui.exe.
+            Linux, make horcom-linux-x86_64.AppImage executable (chmod +x) and start it.
           make_latest: true
           files: |
-            horcom-windows-x64.zip
-            SHA256SUMS.txt
+            dist/horcom-windows-x64.zip
+            dist/horcom-linux-x86_64.AppImage
+            dist/horcom-linux-x86_64.AppImage.zsync
+            dist/SHA256SUMS.txt

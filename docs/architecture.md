@@ -92,7 +92,7 @@ The cluster `par` (topocentric parallax, Montenbruck p.25 formulation in equator
 
 ## 7. Toolchain
 
-Target: C++20, CMake ≥ 3.25, warnings-as-errors, `doctest` (vendored single header) for tests. No compiler is currently installed on this machine; phase 0 means installing either Visual Studio Build Tools (MSVC) or MSYS2/MinGW — both work, MSVC is the primary target on Windows.
+Target: C++20, CMake ≥ 3.25, warnings-as-errors, `doctest` (vendored single header) for tests. MSVC 2022 is the primary target on Windows. Linux builds with GCC ≥ 12 and Clang ≥ 18 under `-Wall -Wextra -Wpedantic -Werror` and `-ffp-contract=off`, so no compiler fuses Robert's multiply-add steps and the numbers stay byte identical to MSVC (verified over 600 randomised charts). CI runs GCC, Clang and an ASan/UBSan build on Ubuntu 24.04 and packs the release AppImage on Ubuntu 22.04 with Qt 6.8.3 (`packaging/linux/appimage.sh`). On a read-only install (AppImage, `/usr`) the GUI works in `~/.local/share/horcom/data`, seeded from the shipped data, while planet tables and ephemerides stay read from the install.
 
 ## 8. References Robert Rettig worked from
 

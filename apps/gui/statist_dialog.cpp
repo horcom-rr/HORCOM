@@ -197,7 +197,7 @@ StatistDialog::StatistDialog(const AspectSettings& aspects, QWidget* parent) : Q
     emit preview_requested(set_.records[static_cast<std::size_t>(idx)]);
   };
   connect(object_, &QComboBox::currentIndexChanged, this, [this](int) { refresh_distribution(); });
-  connect(table_, &QTableWidget::cellDoubleClicked, this, [this, emit_preview](int, int) { emit_preview(); });
+  connect(table_, &QTableWidget::cellDoubleClicked, this, [emit_preview](int, int) { emit_preview(); });
   connect(show_btn, &QPushButton::clicked, this, emit_preview);
   connect(buttons, &QDialogButtonBox::accepted, this, [this]() { accept_row(table_->currentRow()); });
   connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);

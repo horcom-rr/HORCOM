@@ -7,10 +7,14 @@
 #include <QDate>
 #include <QDir>
 #include <QFile>
+#include <QFont>
+#include <QFontDatabase>
 #include <QLibraryInfo>
 #include <QLocale>
 #include <QMessageBox>
 #include <QSettings>
+#include <QStandardPaths>
+#include <QTemporaryFile>
 #include <QTimer>
 #include <QFormLayout>
 #include <QDoubleSpinBox>
@@ -39,16 +43,72 @@
 
 namespace {
 
-// the data directory travels next to the executable or above it during
-// development builds
+// the data directory travels next to the executable, above it during
+// development builds, or in the share tree of an installed or AppImage
+// layout
 std::filesystem::path find_data_dir() {
   const QString app = QCoreApplication::applicationDirPath();
-  for (const QString& candidate : {app + "/data", app + "/../data", app + "/../../data", QDir::currentPath() + "/data"}) {
+  for (const QString& candidate : {app + "/data", app + "/../data", app + "/../../data",
+                                   app + "/../share/horcom/data", QDir::currentPath() + "/data"}) {
     if (QDir(candidate).exists("planets.dat")) {
       return std::filesystem::path(candidate.toStdWString());
     }
   }
   return {};
+}
+
+// the data folder doubles as the working folder of the original, where
+// konsta.int, SPEZIAL and the own place files are written. A read only
+// install keeps its shipped files and works in the per user data folder
+// instead, seeded with every shipped file it does not hold yet so a
+// user's edits survive updates. The planet tables and ephemerides stay
+// read from the shipped folder. An AppImage counts as read only even
+// when unpacked to a temporary folder
+std::filesystem::path working_dir(const std::filesystem::path& shipped) {
+  QTemporaryFile probe(QString::fromStdWString((shipped / "probe").wstring()));
+  if (!qEnvironmentVariableIsSet("APPIMAGE") && probe.open()) {
+    return shipped;
+  }
+  const std::filesystem::path own =
+      std::filesystem::path(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation).toStdWString()) /
+      "horcom" / "data";
+  std::error_code ec;
+  for (auto it = std::filesystem::recursive_directory_iterator(shipped, ec);
+       it != std::filesystem::recursive_directory_iterator(); it.increment(ec)) {
+    const std::filesystem::path rel = it->path().lexically_relative(shipped);
+    const std::filesystem::path top = *rel.begin();
+    if (top == "eph" || top == "planets.dat" || top == "planets.ndx") {
+      if (it->is_directory()) {
+        it.disable_recursion_pending();
+      }
+      continue;
+    }
+    const std::filesystem::path target = own / rel;
+    if (it->is_directory()) {
+      std::filesystem::create_directories(target, ec);
+    } else if (!std::filesystem::exists(target, ec)) {
+      std::filesystem::create_directories(target.parent_path(), ec);
+      std::filesystem::copy_file(it->path(), target, ec);
+    }
+  }
+  return std::filesystem::exists(own, ec) ? own : shipped;
+}
+
+// Courier New carries every fixed width sheet and table. Where it is
+// missing its metric twin Liberation Mono stands in, from the system or
+// from a fonts folder shipped beside the data, so the columns keep the
+// widths they have on Windows
+void substitute_courier(const std::filesystem::path& shipped) {
+  if (QFontDatabase::hasFamily(QStringLiteral("Courier New"))) {
+    return;
+  }
+  const QDir fonts(QString::fromStdWString((shipped.parent_path() / "fonts").wstring()));
+  for (const QString& file : fonts.entryList({"*.ttf", "*.otf"}, QDir::Files)) {
+    QFontDatabase::addApplicationFont(fonts.filePath(file));
+  }
+  QFont::insertSubstitutions(QStringLiteral("Courier New"),
+                             {QStringLiteral("Liberation Mono"), QStringLiteral("Cousine"),
+                              QStringLiteral("Nimbus Mono PS"), QStringLiteral("DejaVu Sans Mono")});
 }
 
 }  // namespace
@@ -57,6 +117,8 @@ int main(int argc, char** argv) {
   QApplication app(argc, argv);
   QApplication::setApplicationName("horcom");
   QApplication::setOrganizationName("horcom");
+  const std::filesystem::path data = find_data_dir();
+  substitute_courier(data);
   // the remembered text scale and theme of the Ansicht menu, black on
   // white unless the night theme was chosen
   horcom::theme::apply(QSettings().value(horcom::theme::kTextScaleKey, horcom::theme::kTextScaleNormal).toInt(),
@@ -95,7 +157,6 @@ int main(int argc, char** argv) {
     }
   }
 
-  const std::filesystem::path data = find_data_dir();
   if (data.empty()) {
     QMessageBox::critical(nullptr, "HORCOM",
                           QCoreApplication::translate("main", "Der Ordner 'data' mit planets.dat wurde nicht gefunden."));
@@ -341,7 +402,7 @@ int main(int argc, char** argv) {
     return 0;
   }
 
-  horcom::MainWindow window(std::move(vsop), std::move(eph), data);
+  horcom::MainWindow window(std::move(vsop), std::move(eph), working_dir(data));
 
   // --chart "DD.MM.YYYY,HH:MM:SS,E,11,35,0,N,48,8,0,NAME" presets the
   // panel with parallax and true node on, the batch comparison hook
