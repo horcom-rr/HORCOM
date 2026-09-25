@@ -27,6 +27,10 @@ inline constexpr int kNodeAsc = 11;   // DR, Drachenkopf
 inline constexpr int kNodeDesc = 12;  // DS, Drachenschwanz
 inline constexpr int kAscendant = 13;
 inline constexpr int kMc = 14;
+// the cardinal points 0 Aries, 0 Cancer, 0 Libra and 0 Capricorn of his
+// a921 on the slots between the axes and the extra bodies
+inline constexpr int kAriesPoint = 15;
+inline constexpr int kCapricornPoint = 18;
 // the extra body slots of the standard layout nk(i) = 18 + i
 inline constexpr int kApogee = 19;
 inline constexpr int kChiron = 20;
@@ -72,6 +76,12 @@ inline constexpr std::string_view kName[kSlotCount] = {
 
 //RR pl$(2) = "TE", the moon slot carries the earth in the hrg mode
 inline constexpr std::string_view kEarthName = "TE";
+
+/// @param slot a body slot
+/// @return true for the four cardinal points of a921
+[[nodiscard]] constexpr bool cardinal(int slot) {
+  return slot >= kAriesPoint && slot <= kCapricornPoint;
+}
 
 /// @param slot a body slot 19 and up in the standard layout
 /// @return the ephemeris file stem for eph based bodies, empty otherwise

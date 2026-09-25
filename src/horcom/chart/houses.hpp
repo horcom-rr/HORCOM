@@ -44,6 +44,13 @@ struct Houses {
 /// @return the four angles and the vertex
 [[nodiscard]] Angles chart_angles(double armcb, double lat_deg, double ekls);
 
+/// The original maxbreit limit, the geographic latitude beyond which the
+/// semi arc systems Placidus and Koch find no cusps and AUFGANG no rising.
+///
+/// @param ekls obliquity in radians
+/// @return ninety degrees minus the obliquity, in degrees
+[[nodiscard]] double polar_limit_deg(double ekls);
+
 /// Computes the house cusps for a system, the original a60 dispatch.
 ///
 /// @param system  house system

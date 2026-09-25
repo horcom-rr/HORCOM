@@ -106,7 +106,9 @@ MoonPosition moon_position(const TimeArguments& t, const SunMoonState& s) {
 
   const double mel2 = out.mel;
   out.el = norm_rad(s.dpsi + mel2 + kDegToRad * (lae + 3958.0 * std::sin(a1) + 1962.0 * std::sin(mel2 - s.moon_fm) + 318.0 * std::sin(a2)) * 1e-6);
-  out.eb = s.deps + kDegToRad * (bre - 2235.0 * std::sin(mel2) + 382.0 * std::sin(a3) + 175.0 * std::sin(a1 - s.moon_fm) + 175.0 * std::sin(a1 + s.moon_fm) + 127.0 * std::sin(mel2 - s.moon_man) - 115.0 * std::sin(mel2 + s.moon_man)) * 1e-6;
+  // his eb(2) = deps + ..., the nutation in obliquity turns the equator
+  // and leaves the ecliptic latitude alone
+  out.eb = kDegToRad * (bre - 2235.0 * std::sin(mel2) + 382.0 * std::sin(a3) + 175.0 * std::sin(a1 - s.moon_fm) + 175.0 * std::sin(a1 + s.moon_fm) + 127.0 * std::sin(mel2 - s.moon_man) - 115.0 * std::sin(mel2 + s.moon_man)) * 1e-6;
   out.r = (385000.56 + rdv / 1000.0) / kKmPerAu;
   out.parallax = std::asin(0.0000426345151 / out.r);  //RR Parall
 
@@ -144,7 +146,6 @@ LunarPoints lunar_points(const MoonPosition& m, const SunMoonState& s, const Tim
   const double el11 = atn(c1, -c2);  //RR wahrer Knoten
   const double i4 = std::asin(std::sqrt(c1 * c1 + c2 * c2) / c);  //RR MONT. S.78 oben
   const double u4 = atn(m.x[2], std::sin(i4) * (m.x[0] * std::cos(el11) + m.x[1] * std::sin(el11)));  //RR S.78 mitte
-  out.true_apogee_lat = std::asin(std::sin(u4) * std::sin(i4));  //RR Breite des Knotens
   const double g = 0.0002959122083;  //RR Grav.Konst
   const double mm = 3.0404332e-06;   //RR Masse Erde +Mond
   const double a4 = 1.0 / ((2.0 / r4) - (vv / g / mm));  //RR Grosse Halbachse
@@ -154,6 +155,9 @@ LunarPoints lunar_points(const MoonPosition& m, const SunMoonState& s, const Tim
                         (1.0 - (r4 / a4)) * std::sqrt(a4 * g * mm));  //RR Exzentr.Anomalie
   const double wa = 2.0 * atn(std::sqrt(1.0 + e4) * std::tan(ea / 2.0), std::sqrt(1.0 - e4));  //RR Wahre Anom.
   const double el24 = norm_rad(kPi + u4 - wa + el11);  //RR Apogäum
+  // his eb(nk&(1)) took u4, the argument of latitude of the Moon itself,
+  // the apogee stands at u4 - wa + PI in its orbit like el24 below
+  out.true_apogee_lat = std::asin(std::sin(kPi + u4 - wa) * std::sin(i4));
 
   out.true_node = norm_rad(el11 + s.dpsi);
   out.true_apogee = norm_rad(el24 + s.dpsi);

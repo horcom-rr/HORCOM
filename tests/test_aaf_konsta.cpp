@@ -2,6 +2,12 @@
 // horcom, the C++ rewrite of HORCOM by Robert Rettig (1989 to 2010)
 // Copyright (c) 2026 Dominik Schwimmbeck
 
+#include <algorithm>
+#include <filesystem>
+#include <fstream>
+#include <iterator>
+#include <string>
+
 #include "doctest.h"
 #include "horcom/core/constants.hpp"
 #include "horcom/data/aaf.hpp"
@@ -52,6 +58,35 @@ TEST_CASE("KONSTA round trips through format and parse") {
   CHECK(back.gena == " Ephem ::App.1,MitParall.");
 }
 
+TEST_CASE("the shipped konsta.int survives a load and save unchanged") {
+  // kon_dsp writes at every settings change and at the end of a session,
+  // an untouched profile must come back byte for byte
+  const std::filesystem::path shipped = std::filesystem::path(HORCOM_TEST_DATA_DIR) / "konsta.int";
+  const auto k = load_konsta(shipped);
+  REQUIRE(k.has_value());
+  const auto copy = std::filesystem::temp_directory_path() / "horctest_konsta.int";
+  REQUIRE(save_konsta(copy, *k));
+  const auto bytes = [](const std::filesystem::path& p) {
+    std::ifstream in(p, std::ios::binary);
+    std::string s((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    // the working tree may carry either line ending
+    s.erase(std::remove(s.begin(), s.end(), '\r'), s.end());
+    return s;
+  };
+  CHECK(bytes(copy) == bytes(shipped));
+  std::filesystem::remove(copy);
+}
+
+TEST_CASE("the shipped konsta.int is his profile") {
+  // a development build works in the data folder of the source tree, a
+  // settings change of a test session must not ship as the default
+  const auto k = load_konsta(std::filesystem::path(HORCOM_TEST_DATA_DIR) / "konsta.int");
+  REQUIRE(k.has_value());
+  CHECK(format_konsta(*k) == format_konsta(robert_profile()));
+  // the printer option ships off, the outputs open without a HARDCOPY box
+  CHECK(k->prenbl == 0);
+}
+
 TEST_CASE("KONSTA maps onto the pipeline settings like kon_dhol") {
   Konsta k;
   k.haw = 1;
@@ -76,6 +111,22 @@ TEST_CASE("KONSTA maps onto the pipeline settings like kon_dhol") {
   CHECK(a.orbe[7] == doctest::Approx(2.0 * kDegToRad));
 }
 
+TEST_CASE("the compact nk of KONSTA lands every extra in its own slot") {
+  // his final selection CH QU XE numbered compactly 19, 20, 21 like the
+  // plgen loop writes it, read as slots it named AG, CH and TP
+  Konsta k;
+  k.nk[2] = 19;
+  k.nk[17] = 20;
+  k.nk[22] = 21;
+  const ChartSettings s = k.chart_settings();
+  CHECK(s.extra_bodies);
+  CHECK(s.nk[1] == 0);
+  CHECK(s.nk[2] == body::kChiron);
+  CHECK(s.nk[3] == 0);
+  CHECK(s.nk[17] == body::kQuaoar);
+  CHECK(s.nk[22] == body::kXena);
+}
+
 TEST_CASE("his profile carries Robert Rettig's switches and round trips") {
   const Konsta k = robert_profile();
   CHECK(k.haw == 1);
@@ -96,9 +147,8 @@ TEST_CASE("his profile carries Robert Rettig's switches and round trips") {
   CHECK(a.orbe[1] == doctest::Approx(5.40 * kDegToRad));
   CHECK(a.orbe[11] == doctest::Approx(0.60 * kDegToRad));
   CHECK(a.weight[1] == 150);
-  // Merkur trägt jetzt wieder 100 statt der versehentlich in KONSTA7P.INT
-  // stehen gebliebenen 1, so wie es die weiteren Fassungen KONSTA5P.INT
-  // und KONSTA8P.INT ohnehin vorgaben
+  // Mercury weighs 100 again instead of the 1 left by accident in
+  // KONSTA7P.INT, as the versions KONSTA5P.INT and KONSTA8P.INT had it
   CHECK(a.weight[3] == 100);
   const Konsta back = parse_konsta(format_konsta(k));
   CHECK(format_konsta(back) == format_konsta(k));
@@ -110,6 +160,69 @@ TEST_CASE("the zone field composes like zeitzon") {
   // Newfoundland west three and a half hours
   CHECK(aaf_zone(-3.5) == "03hW30:00");
   CHECK(aaf_zone(5.75) == "05hE45:00");
+}
+
+TEST_CASE("the zone field reads back like the ZZD branch of aaf_horcom2") {
+  CHECK(aaf_zone_hours("01hE00:00") == doctest::Approx(1.0));
+  // the minutes after the side letter count, India and Newfoundland
+  CHECK(aaf_zone_hours("05hE30:00") == doctest::Approx(5.5));
+  CHECK(aaf_zone_hours("03hW30:00") == doctest::Approx(-3.5));
+  // local mean time of 11.58 degrees east carries seconds
+  CHECK(aaf_zone_hours("00hE46:19") == doctest::Approx(46.0 / 60.0 + 19.0 / 3600.0));
+  // the short forms and the empty star
+  CHECK(aaf_zone_hours("5E") == doctest::Approx(5.0));
+  CHECK(aaf_zone_hours("8w") == doctest::Approx(-8.0));
+  CHECK(aaf_zone_hours("*") == doctest::Approx(0.0));
+  CHECK(aaf_zone_hours("") == doctest::Approx(0.0));
+  // the writer and the reader agree, the old atof read 5.75 as 5
+  for (const double z : {0.0, 1.0, -3.5, 5.75, 9.5, -9.5, 12.75}) {
+    CHECK(aaf_zone_hours(aaf_zone(z)) == doctest::Approx(z));
+  }
+  // a whisker below the hour rolls over instead of printing 60 minutes
+  CHECK(aaf_zone(0.99999) == "01hE00:00");
+}
+
+TEST_CASE("the dst code maps like korr_sommz") {
+  CHECK(aaf_dst_hours("0") == doctest::Approx(0.0));
+  CHECK(aaf_dst_hours("1") == doctest::Approx(1.0));
+  CHECK(aaf_dst_hours("2") == doctest::Approx(2.0));
+  CHECK(aaf_dst_hours("w") == doctest::Approx(1.0));
+  CHECK(aaf_dst_hours("W") == doctest::Approx(1.0));
+  CHECK(aaf_dst_hours("h") == doctest::Approx(0.5));
+  CHECK(aaf_dst_hours("*") == doctest::Approx(0.0));
+  CHECK(aaf_dst_hours("m") == doctest::Approx(0.0));
+  CHECK(aaf_dst_hours("") == doctest::Approx(0.0));
+}
+
+TEST_CASE("a record's moment follows aaf_horcom2") {
+  AafRecord r;
+  r.day = 15;
+  r.month = 8;
+  r.year = 1947;
+  r.hour = 12;
+  r.minute = 0;
+  r.zone = "05hE30:00";
+  const double noon_ut = julian_day({15, 8, 1947, 12, 0.0});
+  // the half hour of the Indian zone counts, atof once read it as five
+  CHECK(aaf_moment_jd_ut(r) == doctest::Approx(noon_ut - 5.5 / 24.0).epsilon(1e-12));
+  // the summer time code rides on top, one hour for 1 and w, two for 2
+  r.zone = "01hE00:00";
+  r.dst = "1";
+  CHECK(aaf_moment_jd_ut(r) == doctest::Approx(noon_ut - 2.0 / 24.0).epsilon(1e-12));
+  r.dst = "2";
+  CHECK(aaf_moment_jd_ut(r) == doctest::Approx(noon_ut - 3.0 / 24.0).epsilon(1e-12));
+  // a record from the old Russian calendar reads its date as Julian,
+  // twelve days behind until the Julian leap day of 1900
+  AafRecord j;
+  j.day = 1;
+  j.month = 1;
+  j.year = 1900;
+  j.calendar = Calendar::kJulian;
+  j.zone = "00hE00:00";
+  CHECK(aaf_moment_jd_ut(j) == doctest::Approx(julian_day({13, 1, 1900, 0, 0.0})).epsilon(1e-12));
+  // the julian date outranks every clock field
+  j.jd = 2451545.0;
+  CHECK(aaf_moment_jd_ut(j) == doctest::Approx(2451545.0));
 }
 
 TEST_CASE("AAF parses a synthetic record with every quirk") {

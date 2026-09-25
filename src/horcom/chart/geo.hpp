@@ -22,7 +22,7 @@ struct HelioState {
 /// Result of the conversion.
 struct GeoResult {
   double el = 0.0;  // geocentric ecliptic longitude with nutation applied
-  double eb = 0.0;  // latitude with the original's deps term
+  double eb = 0.0;  // latitude
   double dr = 0.0;  // geocentric distance, AU
   double tb = 0.0;  // daily motion, negative when retrograde
   double ttb = 0.0; // change of the daily motion
@@ -33,9 +33,7 @@ struct GeoResult {
 /// @param body  heliocentric state of the body
 /// @param earth heliocentric state of the Earth, the original slot 1
 /// @param dpsi  nutation in longitude, radians
-/// @param deps  nutation in obliquity, the original adds it to the
-///              latitude
 /// @return geocentric position, distance and motion
-[[nodiscard]] GeoResult helio_to_geo(const HelioState& body, const HelioState& earth, double dpsi, double deps);
+[[nodiscard]] GeoResult helio_to_geo(const HelioState& body, const HelioState& earth, double dpsi);
 
 }  // namespace horcom

@@ -6,40 +6,34 @@
 
 #include <QDialog>
 
-#include "horcom/chart/aspects.hpp"
-#include "horcom/chart/chart.hpp"
-
-class QComboBox;
-class QLabel;
-class QTableWidget;
+#include "horcom/render/wheel.hpp"
 
 namespace horcom {
 
-/// The Aspektarium of the original aspar, the triangular aspect matrix.
-/// Exact separations stand above the diagonal, the named aspect below
-/// it, the per body hit counts on the diagonal, beside it the divisor
-/// table with angle and orb and under it his planet weights.
+class WheelWidget;
+
+/// The window of the ASPEKTARIUM, his aspar sheet drawn by
+/// build_aspektarium. The right mouse asks for single planets like his
+/// einzel_plan_wahl, the owner redraws the sheet then.
 class AspektariumDialog : public QDialog {
   Q_OBJECT
 
  public:
-  /// @param chart  the computed chart the matrix reads
-  /// @param s      its settings, decide the mode word of the title
-  /// @param a      orb configuration, the divisor limit moves with the
-  ///               dialog's own selector like his MAXIMALER TEILER box
-  /// @param record the record label for the title line
-  AspektariumDialog(const Chart& chart, const ChartSettings& s, const AspectSettings& a, const QString& record, QWidget* parent = nullptr);
+  /// @param sheet  the drawn sheet
+  /// @param parent the owner window
+  explicit AspektariumDialog(DisplayList sheet, QWidget* parent = nullptr);
+
+  /// Replaces the drawing.
+  ///
+  /// @param sheet the new sheet
+  void set_sheet(DisplayList sheet);
+
+ signals:
+  /// The right mouse button went down on the sheet.
+  void right_clicked();
 
  private:
-  void rebuild();
-
-  Chart chart_;
-  ChartSettings s_;
-  AspectSettings base_;
-  QComboBox* divisors_ = nullptr;
-  QTableWidget* matrix_ = nullptr;
-  QTableWidget* legend_ = nullptr;
-  QLabel* weights_ = nullptr;
+  WheelWidget* canvas_ = nullptr;
 };
 
 }  // namespace horcom

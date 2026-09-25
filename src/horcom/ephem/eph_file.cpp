@@ -31,9 +31,10 @@ constexpr EphBodyInfo kBodies[] = {
     {"juno", kScaleBase / 5.0, EphFrame::kEclipticJ2000},
     {"vesta", kScaleBase / 5.0, EphFrame::kEclipticJ2000},
     {"quaoar", kScaleBase / 60.0, EphFrame::kEclipticJ2000},
-    // the original's duplicated CASE precesses Halley from B1950 even
-    // though the file is written for J2000, preserved knowingly until a
-    // golden test decides the fix
+    // his CASE n2&,n18& reads Halley as B1950. His generator program for
+    // the comet names J2000, but the shipped file meets his B1950 start
+    // elements of elem_halley only when read as B1950, so the reader was
+    // right
     {"halley", kScaleBase / 40.0, EphFrame::kEclipticB1950},
     {"pholus", kScaleBase / 40.0, EphFrame::kEclipticJ2000},
     {"damokles", kScaleBase / 40.0, EphFrame::kEclipticJ2000},
@@ -115,23 +116,37 @@ EphFile::Sample EphFile::evaluate(double jd, double fplanet, EphFrame frame) con
   const double x2 = ipol(ys[1][1], ys[1][2], ys[1][3], ys[1][4], ys[1][5], jdip);
   const double x3 = ipol(ys[2][1], ys[2][2], ys[2][3], ys[2][4], ys[2][5], jdip);
   //RR Geschwindigkeit
-  const double yip = jdip - djd_ / 2.0;
+  // the velocities sit at the interval midpoints, the centre one half a
+  // step after jd3. The original wrote jdip - djd / 2 with the step in
+  // days where jdip counts steps, right only for a one day step
+  const double yip = jdip - 0.5;
   const double v1 = ipol3(vs[0][2], vs[0][3], vs[0][4], yip);
   const double v2 = ipol3(vs[1][2], vs[1][3], vs[1][4], yip);
   const double v3 = ipol3(vs[2][2], vs[2][3], vs[2][4], yip);
 
   out.xyz = {x1, x2, x3};
+  out.vxyz = {v1, v2, v3};
   const double rd = std::sqrt(x1 * x1 + x2 * x2 + x3 * x3);
   out.lon = atn(x2, x1);
   out.lat = std::asin(x3 / rd);
   out.r = rd;
+  const SphericalRates rates = spherical_rates(out.xyz, out.vxyz);
+  out.lont = rates.lont;
+  out.latt = rates.latt;
+  out.rt = rates.rt;
+  return out;
+}
+
+SphericalRates spherical_rates(const std::array<double, 3>& x, const std::array<double, 3>& v) {
+  SphericalRates out;
+  const double rd = std::sqrt(x[0] * x[0] + x[1] * x[1] + x[2] * x[2]);
   //RR Differenzieren von hel(f&)
-  out.lont = std::abs((v2 * x1 - x2 * v1) / (x1 * x1 + x2 * x2));
-  const double sq = 1.0 / std::sqrt(1.0 - (x3 / rd) * (x3 / rd));
+  out.lont = (v[1] * x[0] - x[1] * v[0]) / (x[0] * x[0] + x[1] * x[1]);
+  const double sq = 1.0 / std::sqrt(1.0 - (x[2] / rd) * (x[2] / rd));
   //RR Ableitung Radius
-  out.rt = std::abs((x1 * v1 + x2 * v2 + x3 * v3) / rd);
+  out.rt = (x[0] * v[0] + x[1] * v[1] + x[2] * v[2]) / rd;
   //RR Ableitung Breite
-  out.latt = std::abs(sq * (rd * v3 - x3 * out.rt) / (rd * rd));
+  out.latt = sq * (rd * v[2] - x[2] * out.rt) / (rd * rd);
   return out;
 }
 

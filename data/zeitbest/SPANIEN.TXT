@@ -1,0 +1,108 @@
+-----------------------------------------------------------------------------
+      SPANIEN
+-----------------------------------------------------------------------------
+      
+     Für umfassende Informationen weltweit,siehe unter :
+        http://www.themamundi.de/aws/tabellen/zeitzonen.htm
+
+
+      MADRID  Br.:40.25 N  Lg.:03.43 W  =  0h 14m 52s
+      
+      am  15.10.1582 wurde der Gregorianische Kalender eingeführt
+      bis 01.01.1901 bestand Ortszeit
+      ab  01.01.1901 wurde Zonenzeit eingeführt GMT = Ereig.Zeit -0h
+      ab  16.03.1940 wurde auf MEZ umgestellt   GMT = Ereig.Zeit -1h
+      
+      SOMMERZEITEN
+      
+      vom
+      05.05.1917  23h  bis  07.10.1917  24h  GMT = Ereig.Zeit -1h ??
+      15.04.1918  23h  bis  06.10.1918  24h  GMT = Ereig.Zeit -1h
+      06.04.1919  23h  bis  06.10.1919  24h  GMT = Ereig.Zeit -1h
+      von 1920 bis 1923 keine Sommerzeit     GMT = Ereig.Zeit -0h 
+      16.04.1924  23h  bis  04.10.1924  24h  GMT = Ereig.Zeit -1h
+      1925 keine Sommerzeit                  GMT = Ereig.Zeit -0h
+      17.04.1926  23h  bis  02.10.1926  24h  GMT = Ereig.Zeit -1h
+      09.04.1927  23h  bis  01.10.1927  24h  GMT = Ereig.Zeit -1h
+      14.04.1928  23h  bis  06.10.1928  24h  GMT = Ereig.Zeit -1h
+      20.04.1929  23h  bis  06.10.1929  24h  GMT = Ereig.Zeit -1h
+      von 1930 bis 1936 keine Sommerzeit     GMT = Ereig.Zeit -0h
+      
+      Spanien war während des Bürgerkrieges (1936-1939) in 2 Zonen
+      aufgeteilt:
+      Republikanische Zone (auch Menorca)
+      Franquiste Zone (auch Mallorca, Ibiza und Kanarische Inseln)
+      
+      SOMMERZEITEN FÜR REPUBLIKANISCHE ZONE:
+      vom 
+      22.05.1937  23h  bis  02.10.1937  24h  GMT = Ereig.Zeit -1h
+      02.04.1938  23h  bis  30.04.1938  23h  GMT = Ereig.Zeit -1h
+      30.04.1938  23h  bis  02.10.1938  24h  GMT = Ereig.Zeit -2h
+      02.10.1938  23h  bis  28.03.1939  24h  GMT = Ereig.Zeit -1h
+      28.03.1939  23h  bis  15.04.1939  24h  GMT = Ereig.Zeit -0h
+      15.04.1939  23h  bis  07.10.1939  24h  GMT = Ereig.Zeit -1h
+      
+      SOMMERZEITEN FÜR FRANQUISTE ZONE:
+      vom
+      22.05.1937  23h  bis  02.10.1937  24h  GMT = Ereig.Zeit -1h
+      26.03.1938  23h  bis  01.10.1938  24h  GMT = Ereig.Zeit -1h
+      15.04.1939  23h  bis  07.10.1939  24h  GMT = Ereig.Zeit -1h
+      
+      von 1940 bis 1942 keine Sommerzeiten; ab 16.03.1940 GMT +1h
+
+      SOMMERZEITEN FÜR SPANIEN (gesamt)
+      
+      vom       
+      17.04.1943  23h  bis  03.10.1943  24h  GMT = Ereig.Zeit -2h
+      15.04.1944  23h  bis  01.10.1944  24h  GMT = Ereig.Zeit -2h
+      14.04.1945  23h  bis  30.09.1945  24h  GMT = Ereig.Zeit -2h
+      13.04.1946  23h  bis  29.09.1946  24h  GMT = Ereig.Zeit -2h
+      von 1947 bis 1948 keine Sommerzeiten   GMT = Ereig.Zeit -1h 
+      30.04.1949  23h  bis  02.10.1949  24h  GMT = Ereig.Zeit -2h
+      von 1950 bis 1973 keine Sommerzeiten   GMT = Ereig.Zeit -1h
+      13.04.1974  23h  bis  06.10.1974   0h  GMT = Ereig.Zeit -2h
+      12.04.1975  23h  bis  05.10.1975   0h  GMT = Ereig.Zeit -2h  
+      27.03.1976  23h  bis  26.09.1976   0h  GMT = Ereig.Zeit -2h
+      02.04.1977   0h  bis  25.09.1977   1h  GMT = Ereig.Zeit -2h
+      02.04.1978   2h  bis  01.10.1978   3h  GMT = Ereig.Zeit -2h
+      01.04.1979   2h  bis  30.09.1979   3h  GMT = Ereig.Zeit -2h
+      06.04.1980   2h  bis  28.09.1980   3h  GMT = Ereig.Zeit -2h  
+
+
+
+
+
+
+      Spanien Seite 2
+
+      29.03.1981   2h  bis  27.09.1981   3h  GMT = Ereig.Zeit -2h
+      28.03.1982   2h  bis  26.09.1982   3h  GMT = Ereig.Zeit -2h
+      27.03.1983   2h  bis  25.09.1983   3h  GMT = Ereig.Zeit -2h
+      25.03.1984   2h  bis  30.09.1984   3h  GMT = Ereig.Zeit -2h
+      31.03.1985   2h  bis  29.09.1985   3h  GMT = Ereig.Zeit -2h
+      30.03.1986   2h  bis  28.09.1986   3h  GMT = Ereig.Zeit -2h
+      29.03.1987   2h  bis  27.09.1987   3h  GMT = Ereig.Zeit -2h
+      27.03.1988   2h  bis  25.09.1988   3h  GMT = Ereig.Zeit -2h
+      26.03.1989   2h  bis  24.09.1989   3h  GMT = Ereig.Zeit -2h
+      25.03.1990   2h  bis  30.09.1990   3h  GMT = Ereig.Zeit -2h 
+      31.03.1991   2h  bis  29.09.1991   3h  GMT = Ereig.Zeit -2h
+      29.03.1992   2h  bis  27.09.1992   3h  GMT = Ereig.Zeit -2h
+      28.03.1993   2h  bis  26.09.1993   3h  GMT = Ereig.Zeit -2h
+      27.03.1994   2h  bis  25.09.1994   3h  GMT = Ereig.Zeit -2h
+      26.03.1995   2h  bis  24.09.1995   3h  GMT = Ereig.Zeit -2h
+      31.03.1996   2h  bis  27.10.1996   3h  GMT = Ereig.Zeit -2h
+      30.03.1997   2h  bis  26.10.1997   3h  GMT = Ereig.Zeit -2h
+      29.03.1998   2h  bis  25.10.1998   3h  GMT = Ereig.Zeit -2h
+
+      28.03.1999   2h  bis  31.10.1999  3h  GMT = Ereig.Zeit -2h 
+      26.03.2000   2h  bis  29.10.2000  3h  GMT = Ereig.Zeit -2h 
+      31.03.2001   2h  bis  28.10.2001  3h  GMT = Ereig.Zeit -2h 
+      31.03.2002   2h  bis  27.10.2002  3h  GMT = Ereig.Zeit -2h 
+      30.03.2003   2h  bis  26.10.2003  3h  GMT = Ereig.Zeit -2h 
+      28.03.2004   2h  bis  31.10.2004  3h  GMT = Ereig.Zeit -2h 
+      27.03.2005   2h  bis  30.10.2005  3h  GMT = Ereig.Zeit -2h 
+      26.03.2006   2h  bis  29.10.2006  3h  GMT = Ereig.Zeit -2h 
+      25.03.2007   2h  bis  28.10.2007  3h  GMT = Ereig.Zeit -2h 
+      30.03.2008   2h  bis  26.10.2008  3h  GMT = Ereig.Zeit -2h 
+      29.03.2009   2h  bis  25.10.2009  3h  GMT = Ereig.Zeit -2h 
+      28.03.2010   2h  bis  31.10.2010  3h  GMT = Ereig.Zeit -2h 

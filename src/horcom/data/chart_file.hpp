@@ -22,6 +22,10 @@ namespace horcom {
 
 /// the record size of the original FIELD layout
 inline constexpr std::size_t kChartRecordBytes = 128;
+/// the text fields of a record, naa$, goo$ and bem$
+inline constexpr int kDatNameLength = 25;
+inline constexpr int kDatPlaceLength = 20;
+inline constexpr int kDatRemarkLength = 51;
 
 /// One stored chart, text fields already UTF-8.
 struct ChartRecord {
@@ -66,7 +70,8 @@ struct ChartRecord {
 ///         its size is not a multiple of the record size
 [[nodiscard]] std::optional<std::vector<ChartRecord>> read_chart_file(const std::filesystem::path& path);
 
-/// Writes a whole chart file in the original format.
+/// Writes a whole chart file in the original format. The old file is
+/// replaced in one step, a failed write leaves it untouched.
 ///
 /// @param path    destination
 /// @param records the records

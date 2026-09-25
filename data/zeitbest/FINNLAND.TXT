@@ -1,0 +1,47 @@
+-----------------------------------------------------------------------------
+      FINNLAND
+-----------------------------------------------------------------------------
+     
+     Für umfassende Informationen weltweit,siehe unter :
+        http://www.themamundi.de/aws/tabellen/zeitzonen.htm
+
+ 
+      HELSINKI  Br.:60.0943 N   Lg.:24.5717 ö  =  1h 39m 49s
+      
+      bis 1880 bestand Ortszeit
+      von 1881 bis 30.04.1921  GMT = Ereig.Zeit -1h 39m 52s bis 25Grad Ost
+      vom 01.05.1921  GMT = Ereig.Zeit -2h
+      
+      SOMMERZEITEN
+      
+      vom
+      01.05.1942  2h  bis  03.10.1942  0h  GMT = Ereig.Zeit -3h
+      von 1943 bis 1980  keine Sommerzeit  GMT = Ereig.Zeit -2h
+      20.03.1981  2h  bis  27.09.1981  3h  GMT = Ereig.Zeit -3h
+      28.03.1982  2h  bis  26.09.1982  3h  GMT = Ereig.Zeit -3h
+      27.03.1983  2h  bis  25.09.1983  3h  GMT = Ereig.Zeit -3h
+      25.03.1984  2h  bis  30.09.1984  3h  GMT = Ereig.Zeit -3h
+      31.03.1985  2h  bis  29.09.1985  3h  GMT = Ereig.Zeit -3h
+      30.03.1986  2h  bis  28.09.1986  3h  GMT = Ereig.Zeit -3h
+      29.03.1987  2h  bis  27.09.1987  3h  GMT = Ereig.Zeit -3h
+      27.03.1988  2h  bis  26.09.1988  3h  GMT = Ereig.Zeit -3h
+      26.03.1989  2h  bis  25.09.1989  3h  GMT = Ereig.Zeit -3h
+      25.03.1990  2h  bis  30.09.1990  3h  GMT = Ereig.Zeit -3h
+      31.03.1991  2h  bis  29.09.1991  3h  GMT = Ereig.Zeit -3h
+      29.03.1992  2h  bis  27.09.1992  3h  GMT = Ereig.Zeit -3h
+      28.03.1993  2h  bis  26.09.1993  3h  GMT = Ereig.Zeit -3h
+      27.03.1994  2h  bis  25.09.1994  3h  GMT = Ereig.Zeit -3h
+      26.03.1995  2h  bis  24.09.1995  3h  GMT = Ereig.Zeit -3h
+      31.03.1996  2h  bis  27.10.1996  3h  GMT = Ereig.Zeit -3h
+      30.03.1997  2h  bis  26.10.1997  3h  GMT = Ereig.Zeit -3h
+      29.03.1998  2h  bis  25.10.1998  3h  GMT = Ereig.Zeit -3h
+      28.03.1999   2h  bis  31.10.1999  3h  GMT = Ereig.Zeit -3h 
+      26.03.2000   2h  bis  29.10.2000  3h  GMT = Ereig.Zeit -3h 
+      31.03.2001   2h  bis  28.10.2001  3h  GMT = Ereig.Zeit -3h 
+      31.03.2002   2h  bis  27.10.2002  3h  GMT = Ereig.Zeit -3h 
+      30.03.2003   2h  bis  26.10.2003  3h  GMT = Ereig.Zeit -3h 
+      28.03.2004   2h  bis  31.10.2004  3h  GMT = Ereig.Zeit -3h 
+      27.03.2005   2h  bis  30.10.2005  3h  GMT = Ereig.Zeit -3h 
+      26.03.2006   2h  bis  29.10.2006  3h  GMT = Ereig.Zeit -3h 
+      25.03.2007   2h  bis  28.10.2007  3h  GMT = Ereig.Zeit -3h 
+      30.03.2008   2h  bis  26.10.2008  3h  GMT = Ereig.Zeit -3h 

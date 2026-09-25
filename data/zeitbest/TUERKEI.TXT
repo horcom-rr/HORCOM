@@ -1,0 +1,118 @@
+-----------------------------------------------------------------------------
+      TUERKEI
+-----------------------------------------------------------------------------
+
+     Für umfassende Informationen weltweit,siehe unter :
+        http://www.themamundi.de/aws/tabellen/zeitzonen.htm
+
+
+      bis 1922
+      ISTANBUL  Br.:41.02 N   Lg.:28.57 ö  =  1h 55m 48s
+      
+      ab  1922
+      ANKARA    Br.:39.55 N   Lg.:32.50 ö  =  2h 11m 20s
+      
+      ab 1908 wurde für die europäische Türkenzone der Gregorianische Kalen-
+      der eingeführt.
+      ab 1917 wurde für die asiatische Türkenzone der Gregorianische Kalender
+      eingeführt.
+      
+      bis 1880 bestand Ortszeit
+      von 1880 bis 01.01.1900 Istanbuler-Zeit  GMT = Ereig.Zeit -1h 56m
+      am  01.01.1900 wurde Zonenzeit für die europäische Zone eingeführt
+      GMT = Ereig.Zeit -2h
+      für die asiatische Zone wird weiter mit Ortszeit nach Sainte-Sophie
+      (Kathedrale) geführt (moslemische Zeit) GMT = Ereig.Zeit -1h 56m
+      
+      Anmerkung: bei Daten vor 1925 kann es zu Schwierigkeiten kommen, da nur
+      die Behörden sich nach Zonenzeit gerichtet haben! Mit beiden Zeitzonen
+      versuchen um auf die richtige Zeit zu gelangen.
+      
+      SOMMERZEITEN
+      
+      vom
+      01.05.1916  0h  bis  01.10.1916  0h  GMT = Ereig.Zeit -3h
+      von 1917 bis 1919 keine Sommerzeit   GMT = Ereig.Zeit -2h
+      28.03.1920  0h  bis  25.10.1920  0h  GMT = Ereig.Zeit -3h
+      03.04.1921  0h  bis  03.10.1921  0h  GMT = Ereig.Zeit -3h
+      28.03.1922  0h  bis  08.10.1922  0h  GMT = Ereig.Zeit -3h
+      1923 keine Sommerzeit                GMT = Ereig.Zeit -2h
+      13.05.1924  0h  bis  01.10.1924  0h  GMT = Ereig.Zeit -3h
+      01.05.1925  0h  bis  01.10.1925  0h  GMT = Ereig.Zeit -3h
+      von 1926 bis 1939 keine Sommerzeit   GMT = Ereig.Zeit -2h
+      01.12.1940      durchgehend
+                      bis  21.09.1941  0h  GMT = Ereig.Zeit -3h
+      01.04.1942  0h  bis  31.10.1942 24h  GMT = Ereig.Zeit -3h
+      von 1943 bis 1944 keine Sommerzeit   GMT = Ereig.Zeit -2h
+      02.04.1945  0h  bis  07.10.1945 24h  GMT = Ereig.Zeit -3h
+      31.05.1946 24h  bis  30.09.1946 24h  GMT = Ereig.Zeit -3h
+      19.04.1947 24h  bis  04.10.1947 24h  GMT = Ereig.Zeit -3h
+      17.04.1948 24h  bis  02.10.1948 24h  GMT = Ereig.Zeit -3h
+      09.04.1949 24h  bis  01.10.1949 24h  GMT = Ereig.Zeit -3h
+      18.04.1950 24h  bis  07.10.1950 24h  GMT = Ereig.Zeit -3h
+      21.04.1951 24h  bis  07.10.1951 24h  GMT = Ereig.Zeit -3h
+      von 1952 bis 1961 keine Sommerzeit   GMT = Ereig.Zeit -2h
+      14.07.1962 24h  bis  07.10.1962 24h  GMT = Ereig.Zeit -3h
+      1963 keine Sommerzeit                GMT = Ereig.Zeit -2h
+      14.05.1964 24h  bis  30.09.1964 24h  GMT = Ereig.Zeit -3h
+      von 1965 bis 1969 keine Sommerzeit   GMT = Ereig.Zeit -2h
+      02.05.1970 24h  bis  03.10.1970 24h  GMT = Ereig.Zeit -3h
+      01.05.1971 24h  bis  02.10.1971 24h  GMT = Ereig.Zeit -3h
+      06.05.1972 24h  bis  07.10.1972 24h  GMT = Ereig.Zeit -3h
+      03.06.1973  1h  bis  04.11.1973  3h  GMT = Ereig.Zeit -3h
+      31.03.1974  2h  bis  03.11.1974  5h  GMT = Ereig.Zeit -3h
+      30.03.1975  0h  bis  26.10.1975  0h  GMT = Ereig.Zeit -3h
+      01.06.1976  0h  bis  31.10.1976  0h  GMT = Ereig.Zeit -3h
+      03.04.1977  0h  bis  16.10.1977  0h  GMT = Ereig.Zeit -3h
+      02.04.1978  0h  bis  15.10.1978  0h  GMT = Ereig.Zeit -3h
+
+
+
+
+
+
+
+
+      Türkei Seite 2
+
+      ---------------------------------------------------------
+      ab 15.10.1978 wurde Zonenzeit auf    GMT = Ereig.Zeit -3h gestellt 
+      15.10.1978  0h  bis  01.04.1979  3h  GMT = Ereig.Zeit -3h
+      ---------------------------------------------------------
+      SOMMERZEITEN ab 1979 
+      01.04.1979  3h  bis  14.10.1979 24h  GMT = Ereig.Zeit -4h
+      06.04.1980  3h  bis  12.10.1980 24h  GMT = Ereig.Zeit -4h
+      29.03.1981  3h  bis  11.10.1981 24h  GMT = Ereig.Zeit -4h
+      28.03.1982  3h  bis  10.10.1982 24h  GMT = Ereig.Zeit -4h
+      31.07.1983  3h  bis  02.10.1983  0h  GMT = Ereig.Zeit -4h
+      von 1984 bis 1986 sind Sommerzeiten noch nicht bekannt!!
+      ---------------------------------------------------------
+      ab 01.01.1986 wurde Zonenzeit auf    GMT = Ereig.Zeit -2h rückgestellt
+      ---------------------------------------------------------
+      SOMMERZEITEN ab 1986
+      30.03.1986  0h  bis  28.09.1986  0h  GMT = Ereig.Zeit -3h
+      29.03.1987  0h  bis  27.09.1987  0h  GMT = Ereig.Zeit -3h
+      27.03.1988  0h  bis  26.09.1988  0h  GMT = Ereig.Zeit -3h
+      26.03.1989  0h  bis  25.09.1989  0h  GMT = Ereig.Zeit -3h
+      25.03.1990  0h  bis  30.09.1990  0h  GMT = Ereig.Zeit -3h
+      31.03.1991  0h  bis  29.09.1991  0h  GMT = Ereig.Zeit -3h
+      29.03.1992  0h  bis  27.09.1992  0h  GMT = Ereig.Zeit -3h
+      28.03.1993  0h  bis  26.09.1993  0h  GMT = Ereig.Zeit -3h
+      27.03.1994  0h  bis  25.09.1994  0h  GMT = Ereig.Zeit -3h
+      26.03.1995  0h  bis  24.09.1995  0h  GMT = Ereig.Zeit -3h
+      31.03.1996  0h  bis  27.10.1996  0h  GMT = Ereig.Zeit -3h
+      30.03.1997  0h  bis  26.10.1997  0h  GMT = Ereig.Zeit -3h
+      29.03.1998  0h  bis  25.10.1998  0h  GMT = Ereig.Zeit -3h
+
+      28.03.1999   2h  bis  31.10.1999  3h  GMT = Ereig.Zeit -3h 
+      26.03.2000   2h  bis  29.10.2000  3h  GMT = Ereig.Zeit -3h 
+      31.03.2001   2h  bis  28.10.2001  3h  GMT = Ereig.Zeit -3h 
+      31.03.2002   2h  bis  27.10.2002  3h  GMT = Ereig.Zeit -3h 
+      30.03.2003   2h  bis  26.10.2003  3h  GMT = Ereig.Zeit -3h 
+      28.03.2004   2h  bis  31.10.2004  3h  GMT = Ereig.Zeit -3h 
+      27.03.2005   2h  bis  30.10.2005  3h  GMT = Ereig.Zeit -3h 
+      26.03.2006   2h  bis  29.10.2006  3h  GMT = Ereig.Zeit -3h 
+      25.03.2007   2h  bis  28.10.2007  3h  GMT = Ereig.Zeit -3h 
+      30.03.2008   2h  bis  26.10.2008  3h  GMT = Ereig.Zeit -3h 
+      29.03.2009   2h  bis  25.10.2009  3h  GMT = Ereig.Zeit -3h 
+      28.03.2010   2h  bis  31.10.2010  3h  GMT = Ereig.Zeit -3h 

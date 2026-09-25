@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>horcom Handbook — Installation</title>
+<title>horcom Handbook, Installation</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -87,7 +87,7 @@ own files are not stored inside it.
 <h3>Where your files live</h3>
 <table>
 <tr><th>What</th><th>Where</th></tr>
-<tr><td>settings of the Ansicht menu, language, colours</td><td><code>~/.config/horcom/horcom.conf</code></td></tr>
+<tr><td>settings of the VIEW menu, language, colours</td><td><code>~/.config/horcom/horcom.conf</code></td></tr>
 <tr><td>KONSTA settings, SPEZIAL data files, own place files, commentary texts</td><td><code>~/.local/share/horcom/data</code></td></tr>
 </table>
 <p>
@@ -127,6 +127,14 @@ expects Qt in <code>C:\Qt\6.8.3\msvc2022_64</code>. By hand:
 <pre><code>cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=C:/Qt/6.8.3/msvc2022_64
 cmake --build build
 ctest --test-dir build --output-on-failure</code></pre>
+<p>
+A shell built in the source tree finds the <code>data</code> folder of the
+repository, which is what every release ships. It never works in it. Like a
+read only install it copies its working files once into
+<code>%LOCALAPPDATA%\horcom\data</code> or
+<code>~/.local/share/horcom/data</code> and keeps your KONSTA settings and own
+files there, so a session never changes the shipped files.
+</p>
 
 <h3>Linux</h3>
 <p>

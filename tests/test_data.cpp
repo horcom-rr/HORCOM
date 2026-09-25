@@ -2,13 +2,20 @@
 // horcom, the C++ rewrite of HORCOM by Robert Rettig (1989 to 2010)
 // Copyright (c) 2026 Dominik Schwimmbeck
 
+#include <cmath>
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
+#include <string>
+#include <vector>
 
 #include "doctest.h"
+#include "horcom/core/constants.hpp"
 #include "horcom/data/aaf.hpp"
 #include "horcom/data/chart_file.hpp"
+#include "horcom/data/collection.hpp"
+#include "horcom/data/file_io.hpp"
 #include "horcom/data/record_order.hpp"
 #include "horcom/data/encoding.hpp"
 #include "horcom/data/countries.hpp"
@@ -291,7 +298,8 @@ TEST_CASE("the statistics store round trips with the original packing") {
   const auto base = std::filesystem::temp_directory_path() / "HORCTEST.STA";
   REQUIRE(save_statistics(base, set));
   // the twin name follows stat2_teil, eight characters plus a one
-  CHECK(sth_path(base).filename().string() == "HORCTEST1.STH");
+  // his LEFT$(daa$,8) counts the leading backslash, seven letters stay
+  CHECK(sth_path(base).filename().string() == "HORCTES1.STH");
   CHECK(std::filesystem::file_size(base) == kStaRecordBytes);
   CHECK(std::filesystem::file_size(sth_path(base)) == kSthRecordBytes);
 
@@ -318,6 +326,72 @@ TEST_CASE("the statistics store round trips with the original packing") {
   std::filesystem::remove(par);
 }
 
+
+TEST_CASE("a sparse extra selection keeps each body in its own slot") {
+  // Robert's own final profile, Chiron, Quaoar and Xena chosen. His nk
+  // numbers them compactly 19, 20 and 21, the store keys field k by the
+  // extra index, so a reader that took nk for the slot handed Quaoar's
+  // positions to Chiron and Xena's to Transpluto
+  StatSet set;
+  set.params.nk[2] = body::kChiron;
+  set.params.nk[17] = body::kQuaoar;
+  set.params.nk[22] = body::kXena;
+  StatRecord r;
+  r.name = "Testfall";
+  r.day = 1;
+  r.month = 2;
+  r.year = 1990;
+  r.el[body::kChiron] = 1.1111111;
+  r.el[body::kQuaoar] = 2.2222222;
+  r.el[body::kXena] = 3.3333333;
+  set.records.push_back(r);
+  const auto base = std::filesystem::temp_directory_path() / "HORCSPAR.STA";
+  REQUIRE(save_statistics(base, set));
+  std::filesystem::path par = base;
+  par.replace_extension(".PAR");
+  {
+    // the parameter file carries his compact numbering
+    std::ifstream f(par, std::ios::binary);
+    std::string line;
+    std::getline(f, line);
+    std::vector<int> nk;
+    while (std::getline(f, line)) {
+      nk.push_back(std::atoi(line.c_str()));
+    }
+    REQUIRE(nk.size() == 22);
+    CHECK(nk[1] == 19);
+    CHECK(nk[16] == 20);
+    CHECK(nk[21] == 21);
+    CHECK(nk[0] == 0);
+  }
+  const auto back = load_statistics(base);
+  REQUIRE(back.has_value());
+  REQUIRE(back->records.size() == 1);
+  const StatRecord& b = back->records[0];
+  CHECK(b.el[body::kChiron] == doctest::Approx(1.1111111).epsilon(1e-6));
+  CHECK(b.el[body::kQuaoar] == doctest::Approx(2.2222222).epsilon(1e-6));
+  CHECK(b.el[body::kXena] == doctest::Approx(3.3333333).epsilon(1e-6));
+  // the unchosen neighbours stay empty
+  CHECK(b.el[body::kApogee] == 0.0);
+  CHECK(b.el[body::kTranspluto] == 0.0);
+  CHECK(extra_slot(2) == body::kChiron);
+  CHECK(extra_slot(22) == body::kXena);
+  std::filesystem::remove(base);
+  std::filesystem::remove(sth_path(base));
+  std::filesystem::remove(par);
+}
+
+TEST_CASE("compact numbering follows the plgen selection loop") {
+  std::array<bool, 23> chosen{};
+  chosen[1] = true;
+  chosen[5] = true;
+  chosen[9] = true;
+  const std::array<int, 23> nk = compact_nk(chosen);
+  CHECK(nk[1] == 19);
+  CHECK(nk[5] == 20);
+  CHECK(nk[9] == 21);
+  CHECK(nk[2] == 0);
+}
 
 TEST_CASE("the kommen reader keeps the lese_text rules") {
   const auto dir = std::filesystem::temp_directory_path();
@@ -348,6 +422,145 @@ TEST_CASE("the kommen reader keeps the lese_text rules") {
   REQUIRE(!preferred.empty());
   CHECK(preferred[0].path == md);
   std::filesystem::remove(md);
+  std::filesystem::remove(path);
+}
+
+TEST_CASE("his time texts decode the Atari letters beside Windows 1252") {
+  // Preu\x9Eische and f\x81r from his Atari days, gem\xE4\xDF typed later
+  const std::string atari = "f\x81r die Preu\x9Eische Bahn, Neuch\x83tel, F\x9AR, erfahrungsgem\xE4\xDF";
+  CHECK(atari_cp1252_to_utf8(atari) ==
+        "f\xC3\xBCr die Preu\xC3\x9F" "ische Bahn, Neuch\xC3\xA2tel, F\xC3\x9CR, erfahrungsgem\xC3\xA4\xC3\x9F");
+  CHECK(looks_like_utf8("Gr\xC3\xBC\xC3\x9F" "e"));
+  CHECK_FALSE(looks_like_utf8(atari));
+}
+
+TEST_CASE("the ZEITBEST reader keeps dash lines like his handle seven") {
+  const auto path = std::filesystem::temp_directory_path() / "HORCTEST.TXT";
+  {
+    std::ofstream out(path, std::ios::binary);
+    out << "--------\r\n";
+    out << "      DEUTSCHLAND\r\n";
+    out << "~ unsichtbar\r\n";
+    out << "--------\r\n";
+    out << "f\x81r die Preu\x9Eische Eisenbahn\r\n";
+  }
+  const auto text = read_zeitbest(path);
+  REQUIRE(text.has_value());
+  CHECK(*text == "--------\n      DEUTSCHLAND\n--------\nf\xC3\xBCr die Preu\xC3\x9F" "ische Eisenbahn\n");
+  std::filesystem::remove(path);
+  // the shipped editions are UTF-8 and read unchanged
+  const auto germany = read_zeitbest(std::filesystem::path(HORCOM_TEST_DATA_DIR) / "zeitbest" / "GERMANY.TXT");
+  REQUIRE(germany.has_value());
+  CHECK(germany->find("DEUTSCHLAND") != std::string::npos);
+  CHECK(germany->find("Preu\xC3\x9F" "ische") != std::string::npos);
+}
+
+TEST_CASE("the zone of a picker name reads like his FUNCTION VAL") {
+  const auto zone = [](const char* name) { return PlaceRecord{0.0, 0.0, name}.zone_to_ut(); };
+  CHECK(*zone("Agram / YU        -1") == doctest::Approx(-1.0));
+  // a long name reaching into the zone bytes, his filter keeps the number
+  CHECK(*zone("Tirana / Albanie  -1") == doctest::Approx(-1.0));
+  CHECK(*zone("Allahabad / Indi-5.5") == doctest::Approx(-5.5));
+  CHECK(*zone("Kourou/Frz.Guyan+3.5") == doctest::Approx(3.5));
+  CHECK(*zone("Brisbane/Austral -10") == doctest::Approx(-10.0));
+  CHECK(*zone("Beccles / GB     +-0") == doctest::Approx(0.0));
+  // his VAL read ".-1" as zero, the trailing signed number is the zone
+  CHECK(*zone("Bialystok / Pol.  -1") == doctest::Approx(-1.0));
+  CHECK_FALSE(zone("LJUBLJANA/SLOVENIA").has_value());
+}
+
+TEST_CASE("the shipped zone lists carry the corrected records") {
+  const std::filesystem::path dir = std::filesystem::path(HORCOM_TEST_DATA_DIR) / "places";
+  const auto find = [](const std::vector<PlaceRecord>& list, const std::string& prefix) -> const PlaceRecord* {
+    for (const PlaceRecord& p : list) {
+      if (p.name.rfind(prefix, 0) == 0) {
+        return &p;
+      }
+    }
+    return nullptr;
+  };
+  const auto europa = read_place_file(dir / "europa.int");
+  REQUIRE(europa.has_value());
+  // his EUROPA.INT had Saloniki and MADRID at +2, Tirana at -2
+  const PlaceRecord* saloniki = find(*europa, "Saloniki");
+  REQUIRE(saloniki != nullptr);
+  CHECK(*saloniki->zone_to_ut() == doctest::Approx(-2.0));
+  const PlaceRecord* madrid = find(*europa, "MADRID");
+  REQUIRE(madrid != nullptr);
+  CHECK(*madrid->zone_to_ut() == doctest::Approx(-1.0));
+  const PlaceRecord* tirana = find(*europa, "Tirana");
+  REQUIRE(tirana != nullptr);
+  CHECK(*tirana->zone_to_ut() == doctest::Approx(-1.0));
+  // his Coimbra stood east at 8.43, Cambridge at 5.85 east, Powderham on
+  // the coordinates 53.47 N 1.57 E
+  const PlaceRecord* coimbra = find(*europa, "Coimbra");
+  REQUIRE(coimbra != nullptr);
+  CHECK(coimbra->lon == doctest::Approx(-8.43333));
+  const PlaceRecord* cambridge = find(*europa, "Cambridge");
+  REQUIRE(cambridge != nullptr);
+  CHECK(cambridge->lon == doctest::Approx(0.116666));
+  const PlaceRecord* powderham = find(*europa, "Powderham");
+  REQUIRE(powderham != nullptr);
+  CHECK(powderham->lon == doctest::Approx(-3.45));
+  CHECK(powderham->lat == doctest::Approx(50.63333));
+  const auto welt = read_place_file(dir / "welt.int");
+  REQUIRE(welt.has_value());
+  // his WELT.INT had Kapstadt at +2
+  const PlaceRecord* kapstadt = find(*welt, "Kapstadt");
+  REQUIRE(kapstadt != nullptr);
+  CHECK(*kapstadt->zone_to_ut() == doctest::Approx(-2.0));
+  // every zone of both lists now points the way of its longitude, a zone
+  // difference is UT minus local time and falls to the east
+  for (const auto* list : {&*europa, &*welt}) {
+    for (const PlaceRecord& p : *list) {
+      const auto z = p.zone_to_ut();
+      if (z && std::abs(p.lon) > 7.5) {
+        CHECK_MESSAGE((*z == 0.0 || (*z < 0.0) == (p.lon > 0.0)), p.name);
+      }
+    }
+  }
+}
+
+TEST_CASE("place files trim and delete like a2f_tr_ort") {
+  std::vector<PlaceRecord> p(5);
+  p[0] = {11.5, 48.1, "Muenchen / D"};
+  p[1] = {0.0, 51.4769, "Greenwich / GB"};
+  p[2] = {0.0, 0.0, "Nirgendwo"};
+  p[3] = {2.35, 48.85, ""};
+  p[4] = {13.4, 52.5, "Berlin / D"};
+  std::vector<PlaceRecord> t = p;
+  trim_places(t);
+  // the Greenwich meridian stays, his longitude test alone dropped it
+  REQUIRE(t.size() == 3);
+  CHECK(t[1].name == "Greenwich / GB");
+  std::vector<PlaceRecord> d = p;
+  delete_places(d, {0});
+  REQUIRE(d.size() == 2);
+  CHECK(d[0].name == "Greenwich / GB");
+  CHECK(d[1].name == "Berlin / D");
+}
+
+TEST_CASE("the preferred place writes like ortp and reads back") {
+  const auto path = std::filesystem::temp_directory_path() / "horctest_ort.ext";
+  REQUIRE(write_preferred_place(path, {10.123456, 47.654321, "TESTORT"}));
+  {
+    std::ifstream in(path, std::ios::binary);
+    std::string bytes((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    // integer micro degrees in eight bytes like his ortp
+    CHECK(bytes.size() == kPlaceRecordBytes);
+    CHECK(bytes.substr(0, 16) == "1012345647654321");
+  }
+  auto back = read_preferred_place(path);
+  REQUIRE(back.has_value());
+  CHECK(back->lon == doctest::Approx(10.123456));
+  CHECK(back->lat == doctest::Approx(47.654321));
+  CHECK(back->name == "TESTORT");
+  // west of ten degrees the micro degrees overflow, a decimal fills in
+  REQUIRE(write_preferred_place(path, {-73.9857, 40.7484, "NEW YORK"}));
+  back = read_preferred_place(path);
+  REQUIRE(back.has_value());
+  CHECK(back->lon == doctest::Approx(-73.9857).epsilon(1e-6));
+  CHECK(back->lat == doctest::Approx(40.7484).epsilon(1e-6));
   std::filesystem::remove(path);
 }
 
@@ -388,23 +601,24 @@ TEST_CASE("deleting removes the marked records and trims alongside") {
 
 TEST_CASE("overwrite by name drops every copy case blind") {
   std::vector<ChartRecord> r(3);
-  r[0].name = "MOZART WOLFGANG AMADEUS";
-  r[1].name = "Mozart Wolfgang Amadeus ";
-  r[2].name = "HAYDN JOSEF";
-  CHECK(remove_records_by_name(r, " mozart wolfgang amadeus") == 2);
+  r[0].name = "ZENTNER WILHELM AUGUST";
+  r[1].name = "Zentner Wilhelm August ";
+  r[2].name = "MAYER JONAS";
+  CHECK(remove_records_by_name(r, " zentner wilhelm august") == 2);
   REQUIRE(r.size() == 1);
-  CHECK(r[0].name == "HAYDN JOSEF");
+  CHECK(r[0].name == "MAYER JONAS");
 }
 
 TEST_CASE("record order follows the SORTIER-MODUS keys") {
   std::vector<OrderKeySource> r;
-  r.push_back({"MOZART WOLFGANG AMADEUS", 27, 1, 1756});
-  r.push_back({"HAYDN JOSEF", 31, 3, 1732});
-  r.push_back({"BACH JOHANN SEBASTIAN", 31, 3, 1685});
+  // invented records, no real people
+  r.push_back({"ZENTNER WILHELM AUGUST", 27, 1, 1956});
+  r.push_back({"MAYER JONAS", 31, 3, 1932});
+  r.push_back({"ADLER JOHANNES SEPP", 31, 3, 1885});
   const auto by_name = record_order(r, RecordOrder::kName123);
   CHECK(by_name == std::vector<std::size_t>{2, 1, 0});
-  // 2. und 3. Name keys on five characters of each word, JOHANN SEB
-  // against JOSEF against WOLFGANG AMADE
+  // 2. und 3. Name keys on five characters of each word, JOHAN SEPP
+  // against JONAS against WILHE AUGUS
   const auto by_given = record_order(r, RecordOrder::kName23);
   REQUIRE(by_given.size() == 3);
   CHECK(by_given[0] == 2);
@@ -443,4 +657,193 @@ TEST_CASE("minimizing collapses same name and birth clock") {
   minimize_records(r);
   REQUIRE(r.size() == 2);
   CHECK(r[1].day == 14);
+}
+
+TEST_CASE("appending to a place file the reader refuses leaves it untouched") {
+  namespace fs = std::filesystem;
+  const fs::path path = fs::temp_directory_path() / "horcom_place_broken.int";
+  {
+    std::ofstream f(path, std::ios::binary | std::ios::trunc);
+    f << std::string(40, 'x');
+  }
+  PlaceRecord p;
+  p.lon = 13.05;
+  p.lat = 47.7967;
+  p.name = "SALZBURG";
+  // the first port rewrote the file with the new place alone, 36 bytes
+  CHECK_FALSE(append_place(path, p));
+  CHECK(fs::file_size(path) == 40U);
+  fs::remove(path);
+}
+
+TEST_CASE("whole file writes replace the file and leave no scratch behind") {
+  namespace fs = std::filesystem;
+  const fs::path dir = fs::temp_directory_path() / "horcom_replace_test";
+  fs::remove_all(dir);
+  fs::create_directories(dir);
+  const fs::path dat = dir / "PAAR.DAT";
+  REQUIRE(write_chart_file(dat, {sample(), sample()}));
+  REQUIRE(write_chart_file(dat, {sample()}));
+  CHECK(fs::file_size(dat) == kChartRecordBytes);
+  int entries = 0;
+  for ([[maybe_unused]] const auto& e : fs::directory_iterator(dir)) {
+    ++entries;
+  }
+  CHECK(entries == 1);
+  // a folder in the way makes the write fail without touching anything
+  CHECK_FALSE(replace_file(dir, "x"));
+  fs::remove_all(dir);
+}
+
+TEST_CASE("twins are found whatever the case of their names") {
+  namespace fs = std::filesystem;
+  const fs::path dir = fs::temp_directory_path() / "horcom_case_twin";
+  fs::remove_all(dir);
+  fs::create_directories(dir);
+  REQUIRE(write_aaf(dir / "musik.aaf", {}));
+  REQUIRE(write_chart_file(dir / "musik.dat", {}));
+  CHECK(fs::equivalent(aaf_twin_path(dir / "musik.dat"), dir / "musik.aaf"));
+  CHECK(fs::equivalent(dat_twin_path(dir / "musik.aaf"), dir / "musik.dat"));
+  CHECK(fs::equivalent(find_case_blind(dir, "MUSIK.AAF"), dir / "musik.aaf"));
+  // a missing twin keeps his capital extension
+  CHECK(aaf_twin_path(dir / "neu.dat") == dir / "neu.AAF");
+  fs::remove_all(dir);
+}
+
+TEST_CASE("the name sort folds the umlauts like his vg| table") {
+  std::vector<OrderKeySource> r;
+  r.push_back({"OTTO ZWEI", 1, 1, 1950});
+  r.push_back({"ÖSTERREICHER EINS", 1, 1, 1950});
+  r.push_back({"ORT DREI", 1, 1, 1950});
+  // the first port sorted the Ö behind every capital, {2, 0, 1}
+  CHECK(record_order(r, RecordOrder::kName123) == std::vector<std::size_t>{2, 1, 0});
+  CHECK(collation_key("Müller Straße") == "MULLER STRASE");
+}
+
+TEST_CASE("degrees split into rounded seconds with the carry") {
+  const Dms d = split_dms(11.99999);
+  // his horcom_aaf3 wrote FIX and CINT without a carry, 11 59 60
+  CHECK(d.deg == 12);
+  CHECK(d.min == 0);
+  CHECK(d.sec == 0);
+  const Dms m = split_dms(-48.1);
+  CHECK(m.deg == 48);
+  CHECK(m.min == 6);
+  CHECK(m.sec == 0);
+  AafRecord r;
+  r.set_latitude(-33.5);
+  r.set_longitude(-70.25);
+  CHECK(r.lat_ns == 'S');
+  CHECK(r.lon_ew == 'W');
+  CHECK(r.latitude() == doctest::Approx(-33.5));
+  CHECK(r.longitude() == doctest::Approx(-70.25));
+}
+
+TEST_CASE("a one word DAT name comes back without a star") {
+  ChartRecord c = sample();
+  c.name = "EINWORT";
+  const AafRecord a = aaf_from_chart_record(c);
+  CHECK(a.surname == "EINWORT");
+  CHECK(a.given.empty());
+  // the first port set the given name to *, the DAT name came back as
+  // EINWORT * and missed its own record
+  CHECK(chart_record_from_aaf(a).name == "EINWORT");
+  CHECK(a.zone == kUtZoneText);
+  // the clock of the DAT is UT, 14 h 26.4 min is 14:26:24
+  CHECK(a.hour == 14);
+  CHECK(a.minute == 26);
+  CHECK(a.second == 24);
+  const ChartRecord back = chart_record_from_aaf(a);
+  CHECK(back.day == 3);
+  CHECK(back.hour == doctest::Approx(14.0));
+  CHECK(back.minute == doctest::Approx(26.4));
+  CHECK(back.lat == doctest::Approx(48.1742).epsilon(1e-5));
+}
+
+TEST_CASE("DAT text fields take his capitals over Windows 1252") {
+  CHECK(dat_field("Müller") == "MÜLLER");
+  // ß has no capital in the code page and stays
+  CHECK(dat_field("Straße") == "STRAßE");
+  CHECK(dat_field("Müller", 3) == "MÜL");
+  AafRecord r;
+  r.surname = " Testfall ";
+  r.given = "*";
+  CHECK(record_name(r) == "Testfall");
+  r.given = "Neu";
+  r.place = "München";
+  r.country = "D";
+  r.calendar = Calendar::kJulian;
+  r.day = 1;
+  r.month = 1;
+  r.year = 1600;
+  r.zone = kUtZoneText;
+  const ChartRecord c = chart_record_from_aaf(r);
+  CHECK(c.name == "TESTFALL NEU");
+  CHECK(c.place == "MÜNCHEN D");
+  CHECK(c.remark == "(JULIAN.) ");
+}
+
+TEST_CASE("aaf_ident looks for the exact name before his fallback") {
+  std::vector<AafRecord> aaf(3);
+  aaf[0].surname = "MAIER";
+  aaf[1].surname = "MAIERHOFER";
+  aaf[1].given = "ANNA";
+  aaf[2].surname = "EINZEL";
+  // his fallback found MAIER inside the name first, the record 0
+  CHECK(aaf_ident(aaf, "MAIERHOFER ANNA") == std::optional<std::size_t>(1));
+  CHECK(aaf_ident(aaf, "maier") == std::optional<std::size_t>(0));
+  // the name with the star that older files of the port wrote
+  CHECK(aaf_ident(aaf, "EINZEL *") == std::optional<std::size_t>(2));
+  // his rule for a surname with a one letter given name remains
+  CHECK(aaf_ident(aaf, "EINZELFALL X") == std::optional<std::size_t>(2));
+  CHECK_FALSE(aaf_ident(aaf, "NIEMAND").has_value());
+}
+
+TEST_CASE("the AAF box finds a record of the same name like CASE 168") {
+  std::vector<AafRecord> aaf(3);
+  aaf[0].surname = "Muster";
+  aaf[0].given = "Hans";
+  aaf[1].surname = "Anders";
+  aaf[1].given = "Eva";
+  aaf[2] = aaf[0];
+  AafRecord r;
+  r.surname = "MUSTER";
+  r.given = "hans";
+  // like his loop the last hit counts
+  CHECK(aaf_same_name(aaf, r) == std::optional<std::size_t>(2));
+  r.given = "Otto";
+  CHECK_FALSE(aaf_same_name(aaf, r).has_value());
+  // his INSTR over the head of the #A93 line
+  AafRecord head;
+  head.surname = "Anders";
+  head.given = "E";
+  CHECK(aaf_same_name(aaf, head) == std::optional<std::size_t>(1));
+}
+
+TEST_CASE("the chain keeps dated records with a place like a200dat") {
+  AafRecord r;
+  r.day = 4;
+  r.month = 5;
+  r.lat_deg = 48;
+  CHECK(chain_keeps(r));
+  AafRecord no_day = r;
+  no_day.day = 0;
+  CHECK_FALSE(chain_keeps(no_day));
+  AafRecord no_place = r;
+  no_place.lat_deg = 0;
+  CHECK_FALSE(chain_keeps(no_place));
+}
+
+TEST_CASE("the exporter writes a DAT record like horcom_aaf3") {
+  ChartRecord c = sample();
+  c.place = "";
+  c.remark = "(julian.) alter Vermerk";
+  const AafRecord a = aaf_export_record(c);
+  CHECK(a.place == "NICHT GENANNT !");
+  CHECK(a.comment == "alter Vermerk");
+  CHECK(a.zone_name == "GMT");
+  // UPPER$(LEFT$(bem$,9)), a small flag counts like his capitals
+  CHECK(a.calendar == Calendar::kJulian);
+  c.place = "SEHR LANGER ORTSNAME*X";
+  CHECK(aaf_export_record(c).place == "SEHR LANGER ORTSN");
 }

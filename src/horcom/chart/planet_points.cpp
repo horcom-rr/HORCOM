@@ -67,7 +67,7 @@ PlanetPoints planet_points(const Chart& chart, int slot, const ChartSettings& s)
     if (s.heliocentric) {
       return out;
     }
-    //RR gom(1), die Knotenlinie des Sonnenäquators
+    // his gom(1), the node line of the solar equator
     const CalendarDate d = calendar_date(chart.jd_ut, s.calendar);
     const double a = d.year + (d.month - 1 + d.day / 30.0) / 12.0;
     out.node = norm_rad(kDegToRad * (73.6667 + (a - 1850.0) * 0.01396));
@@ -80,12 +80,21 @@ PlanetPoints planet_points(const Chart& chart, int slot, const ChartSettings& s)
   }
   if (slot == body::kMoon) {
     if (s.heliocentric) {
+      //RR undefiniert
+      // his IF i& = 2, the Earth has no node, its apsides stand opposite
+      // the Sun's perigee, w = nb(PI + p(1)) above
+      out.node = -1.0;
+      out.node_south = -1.0;
+      out.perihelion = norm_rad(chart.smo.sun_p + kPi);
+      out.aphelion = norm_rad(chart.smo.sun_p);
+      out.ok = true;
       return out;
     }
     out.node = norm_rad(chart.lunar.mean_node);
     out.node_south = norm_rad(out.node + kPi);
-    //RR pdga(2) aus dem mittleren Apogäum, pdg gegenüber
-    out.aphelion = norm_rad(chart.lunar.mean_apogee);
+    // his pdga(2), the apogee after the AG setting, true with apogw!, pdg
+    // opposite
+    out.aphelion = norm_rad(s.true_apogee ? chart.lunar.true_apogee : chart.lunar.mean_apogee);
     out.perihelion = norm_rad(out.aphelion + kPi);
     out.ok = true;
     return out;

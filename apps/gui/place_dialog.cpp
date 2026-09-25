@@ -11,12 +11,16 @@
 #include <QFileInfo>
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QItemSelectionModel>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QTableWidget>
 #include <QVBoxLayout>
 #include <algorithm>
+#include <string>
+
+#include "horcom/data/record_order.hpp"
 
 namespace horcom {
 
@@ -47,9 +51,9 @@ PlaceDialog::PlaceDialog(std::filesystem::path places_dir, const std::filesystem
   auto* v = new QVBoxLayout(this);
   auto* top = new QHBoxLayout();
   files_ = new QComboBox(this);
-  auto* browse_button = new QPushButton(tr("Andere Datei…"), this);
+  browse_ = new QPushButton(tr("Andere Datei…"), this);
   top->addWidget(files_, 1);
-  top->addWidget(browse_button);
+  top->addWidget(browse_);
   filter_ = new QLineEdit(this);
   filter_->setPlaceholderText(tr("Suchen…"));
   filter_->setClearButtonEnabled(true);
@@ -70,10 +74,23 @@ PlaceDialog::PlaceDialog(std::filesystem::path places_dir, const std::filesystem
   v->addWidget(buttons);
 
   connect(files_, &QComboBox::currentIndexChanged, this, [this](int) { load_current_file(); });
-  connect(browse_button, &QPushButton::clicked, this, &PlaceDialog::browse);
+  connect(browse_, &QPushButton::clicked, this, &PlaceDialog::browse);
   connect(filter_, &QLineEdit::textChanged, this, [this](const QString&) { refresh(); });
-  connect(table_, &QTableWidget::cellDoubleClicked, this, [this](int row, int) { accept_row(row); });
-  connect(buttons, &QDialogButtonBox::accepted, this, [this]() { accept_row(table_->currentRow()); });
+  connect(table_, &QTableWidget::cellDoubleClicked, this, [this](int row, int) {
+    // his second click inside the double click time ends the marking
+    if (max_pick_ > 0) {
+      accept_marks();
+    } else {
+      accept_row(row);
+    }
+  });
+  connect(buttons, &QDialogButtonBox::accepted, this, [this]() {
+    if (max_pick_ > 0) {
+      accept_marks();
+      return;
+    }
+    accept_row(table_->currentRow());
+  });
   connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
   resize(580, 540);
 
@@ -102,16 +119,88 @@ void PlaceDialog::scan_directory() {
 
 void PlaceDialog::load_current_file() {
   records_.clear();
+  file_index_.clear();
+  marks_.clear();
   const QString path = files_->currentData().toString();
   if (!path.isEmpty()) {
     if (auto r = read_place_file(std::filesystem::path(path.toStdWString()))) {
-      records_ = std::move(*r);
       // the original sorts the loaded file with QSORT before the listbox
-      std::sort(records_.begin(), records_.end(),
-                [](const PlaceRecord& a, const PlaceRecord& b) { return a.name < b.name; });
+      std::vector<std::size_t> order(r->size());
+      for (std::size_t i = 0; i < order.size(); ++i) {
+        order[i] = i;
+      }
+      // n$ = UPPER$(goo$) sorted WITH vg|, the umlauts among their vowels
+      std::vector<std::string> key(r->size());
+      for (std::size_t i = 0; i < key.size(); ++i) {
+        key[i] = collation_key((*r)[i].name);
+      }
+      std::stable_sort(order.begin(), order.end(), [&key](std::size_t a, std::size_t b) { return key[a] < key[b]; });
+      for (const std::size_t i : order) {
+        records_.push_back((*r)[i]);
+        file_index_.push_back(i);
+      }
     }
   }
   refresh();
+}
+
+void PlaceDialog::lock_file(const std::filesystem::path& file) {
+  const QString path = QString::fromStdWString(file.wstring());
+  const QSignalBlocker block(files_);
+  int at = -1;
+  for (int i = 0; i < files_->count(); ++i) {
+    if (QFileInfo(files_->itemData(i).toString()) == QFileInfo(path)) {
+      at = i;
+    }
+  }
+  if (at < 0) {
+    files_->addItem(QFileInfo(path).fileName(), path);
+    at = files_->count() - 1;
+  }
+  files_->setCurrentIndex(at);
+  files_->setEnabled(false);
+  browse_->setEnabled(false);
+  load_current_file();
+}
+
+// ported from ausw_datei with loe$, the marking list of LÖSCHEN
+void PlaceDialog::set_delete_mode(int max_pick) {
+  max_pick_ = max_pick;
+  //RR Bis zu 10 zu LÖSCHENDE DATENSÄTZE markieren !
+  setWindowTitle(tr("Bis zu %1 zu LÖSCHENDE DATENSÄTZE markieren !  Datei: %2")
+                     .arg(max_pick)
+                     .arg(files_->currentText()));
+  table_->setSelectionMode(QAbstractItemView::MultiSelection);
+  table_->clearSelection();
+  marks_.clear();
+  // his dsr&(1..10) held ten marks, a further click is refused. The marks
+  // belong to the places, a new filter shows them again
+  connect(table_->selectionModel(), &QItemSelectionModel::selectionChanged, this,
+          [this](const QItemSelection& added, const QItemSelection& removed) {
+            if (refreshing_) {
+              return;
+            }
+            for (const QModelIndex& ix : removed.indexes()) {
+              if (ix.column() == 0 && table_->item(ix.row(), 0) != nullptr) {
+                marks_.erase(table_->item(ix.row(), 0)->data(Qt::UserRole).toULongLong());
+              }
+            }
+            for (const QModelIndex& ix : added.indexes()) {
+              if (ix.column() != 0 || table_->item(ix.row(), 0) == nullptr) {
+                continue;
+              }
+              const std::size_t idx = table_->item(ix.row(), 0)->data(Qt::UserRole).toULongLong();
+              if (marks_.count(idx) == 0 && static_cast<int>(marks_.size()) >= max_pick_) {
+                const QSignalBlocker b(table_->selectionModel());
+                table_->selectionModel()->select(ix, QItemSelectionModel::Deselect | QItemSelectionModel::Rows);
+                continue;
+              }
+              marks_.insert(idx);
+            }
+          });
+  if (auto* box = findChild<QDialogButtonBox*>()) {
+    box->button(QDialogButtonBox::Ok)->setText(tr("WAHL - ENDE"));
+  }
 }
 
 void PlaceDialog::browse() {
@@ -128,6 +217,7 @@ void PlaceDialog::browse() {
 
 void PlaceDialog::refresh() {
   const QString needle = filter_->text().trimmed();
+  refreshing_ = true;
   table_->setRowCount(0);
   int shown = 0;
   int hits = 0;
@@ -152,14 +242,19 @@ void PlaceDialog::refresh() {
     // the file stores the step from zone time to UT, the column shows
     // hours east like the input panel
     table_->setItem(row, 3, new QTableWidgetItem(zone ? QString::asprintf("%+g", -*zone) : QString()));
+    if (max_pick_ > 0 && marks_.count(i) > 0) {
+      table_->selectionModel()->select(table_->model()->index(row, 0),
+                                       QItemSelectionModel::Select | QItemSelectionModel::Rows);
+    }
     ++shown;
   }
+  refreshing_ = false;
   if (hits > shown) {
     count_->setText(tr("%1 Treffer, die ersten %2 angezeigt").arg(hits).arg(shown));
   } else {
     count_->setText(tr("%1 Treffer").arg(hits));
   }
-  if (table_->rowCount() > 0) {
+  if (table_->rowCount() > 0 && max_pick_ == 0) {
     table_->selectRow(0);
   }
   table_->resizeColumnToContents(0);
@@ -167,6 +262,16 @@ void PlaceDialog::refresh() {
 
 QString PlaceDialog::chosen_name() const {
   return display_name(chosen_, chosen_.zone_to_ut().has_value());
+}
+
+// WAHL - ENDE of the LÖSCHEN list, the marks in file order
+void PlaceDialog::accept_marks() {
+  marked_.clear();
+  for (const std::size_t idx : marks_) {
+    marked_.push_back(file_index_[idx]);
+  }
+  std::sort(marked_.begin(), marked_.end());
+  accept();
 }
 
 void PlaceDialog::accept_row(int row) {

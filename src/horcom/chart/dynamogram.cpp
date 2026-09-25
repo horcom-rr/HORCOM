@@ -16,12 +16,10 @@ namespace horcom {
 
 namespace {
 
-/// samples per progressed day, his one hundred twenty pixels a year
-constexpr int kPerDay = 120;
-/// sample days around the asked age, twenty five before and after
+// sample days around the asked age, twenty five before and after
 constexpr int kDays = 50;
-/// the length of the summed curves
-constexpr int kCurve = 6001;
+// the samples 0 to 6000 of the summed curves, fifty years of 120
+constexpr int kCurve = kDays * kDynamogramPerYear + 1;
 
 // the amplitudes of the radix arcs, his ampl_rad in display units
 double ampl_rad(int pl) {
@@ -143,6 +141,29 @@ std::vector<int> multiples(int na, bool classic_minors, bool quincunx) {
   }
 }
 
+}  // namespace
+
+// ported from the two SELECT lists of asp_analy_mund, the Moon takes part
+// on neither side
+// CASE aa&,1,3 TO 10 for the first, CASE 3 TO 10,13,14 for the other
+std::vector<std::pair<int, int>> dynamogram_mutual_pairs() {
+  std::vector<std::pair<int, int>> out;
+  for (int pl = 1; pl <= 10; ++pl) {
+    if (pl == 2) {
+      continue;
+    }
+    for (int rd = pl + 1; rd <= 14; ++rd) {
+      if (rd == 2 || rd == 11 || rd == 12) {
+        continue;
+      }
+      out.emplace_back(pl, rd);
+    }
+  }
+  return out;
+}
+
+namespace {
+
 struct Run {
   const Chart& radix;
   const DynamogramOptions& opt;
@@ -150,6 +171,8 @@ struct Run {
   Dynamogram out;
   // one progressed longitude per sample day and running point
   std::array<std::array<double, 15>, kDays + 1> elint{};
+  // his regress!, the arcs of the second run carry the flag
+  bool regressive_run = false;
   // the daily motion of each point, his anst
   std::array<std::array<double, kDays + 1>, 15> anst{};
 
@@ -193,7 +216,8 @@ struct Run {
   }
 
   // one finished arc summed into the curves, his hub_auswert
-  void arc(int pl, int rd, int na, int ma, int n1, int n2, double dds, bool mutual) {
+  [[nodiscard]] bool arc(int pl, int rd, int na, int ma, int n1, int n2, bool mutual) {
+    const double dds = orb(pl, rd, n2, mutual);
     const double pn = kTwoPi / na;
     double d1 = 0.0;
     double d2 = 0.0;
@@ -214,21 +238,33 @@ struct Run {
     const double bw = 2.0 * dds * (n2 - n1) / (d1 + d2 + kEps);
     const double tb = (d1 * n2 + d2 * n1) / (d1 + d2 + kEps);
     const double b = bw / 2.0;
-    const int bwp = static_cast<int>(std::lround(bw * kPerDay));
-    const int i1 = static_cast<int>(std::lround((opt.gauss ? tb - 6.0 * b : tb - b) * kPerDay));
-    const int i2 = static_cast<int>(std::lround((opt.gauss ? tb + 6.0 * b : tb + b) * kPerDay));
-    const int im = static_cast<int>(std::lround(tb * kPerDay));
+    const int bwp = static_cast<int>(std::lround(bw * kDynamogramPerYear));
+    const int i1 = static_cast<int>(std::lround((opt.gauss ? tb - 6.0 * b : tb - b) * kDynamogramPerYear));
+    const int i2 = static_cast<int>(std::lround((opt.gauss ? tb + 6.0 * b : tb + b) * kDynamogramPerYear));
+    const int im = static_cast<int>(std::lround(tb * kDynamogramPerYear));
     if (!(bwp > 0 && i1 > 0 && i2 < kCurve - 1 && i2 > 0 && i1 < kCurve - 1)) {
-      return;
+      return false;
     }
     const int sign = valuation(na, ma, pl, rd);
+    // IF (i1& > 3000 && i2& < 3600) OR (i1& < 3000 && i2& > 3000) OR ..., the single arc screen
+    const bool shown = (i1 > kDynamogramWindowStart && i2 < kDynamogramArcWindowEnd) ||
+                       (i1 < kDynamogramWindowStart && i2 > kDynamogramWindowStart) ||
+                       (i1 > kDynamogramWindowStart && i1 < kDynamogramArcWindowEnd && i2 > kDynamogramArcWindowEnd);
+    DynamogramArc single;
+    if (shown) {
+      single = {pl, rd, na, ma, i1, i2, tb, !mutual, regressive_run, {}};
+      single.bog.reserve(static_cast<std::size_t>(i2 - i1 + 1));
+    }
     for (int i = i1; i <= i2; ++i) {
       double ci = 0.0;
       if (opt.gauss) {
         const double ep = static_cast<double>(i - im) / (bwp + kEps);
         ci = sign * std::abs(std::exp(-ep * ep));
-      } else {
+      } else if (mutual) {
         ci = sign * std::abs(std::cos(kPi * (i - im) / (bwp + kEps)));
+      } else {
+        // hub_auswert_rad divides by bw& alone, the bw& > 0 test guards it
+        ci = sign * std::abs(std::cos(kPi * (i - im) / bwp));
       }
       double anz = 0.0;
       bool existential = false;
@@ -249,71 +285,87 @@ struct Run {
       } else {
         out.mood[static_cast<std::size_t>(i)] += anz;
       }
+      if (shown) {
+        single.bog.push_back(anz);
+      }
     }
+    if (shown) {
+      out.arcs.push_back(std::move(single));
+    }
+    return true;
   }
 
-  // the orb entry and exit walk of asp_analy, both crossing directions
+  // the orb walk of asp_analy_1_rad and asp_analy_1_mund. The first block
+  // tests the forward side, the second the backward one, an armed arc
+  // closes on either exit. His n1 of zero means unarmed, so an entry on
+  // the first sample day arms only on the next one
   void analyze(int pl, int rd, int na, int ma, bool mutual) {
     const double pn = kTwoPi / na;
     int n1 = 0;
     int n2 = 0;
-    bool armed_fwd = false;
-    bool armed_back = false;
-    for (int n = 0; n <= kDays; ++n) {
-      const double wa1 = elint[static_cast<std::size_t>(n)][static_cast<std::size_t>(pl)];
-      const double wa2 = mutual ? norm_rad(elint[static_cast<std::size_t>(n)][static_cast<std::size_t>(rd)] + pn * ma)
-                                : norm_rad(radix_pos(rd) + pn * ma);
-      double dds = 0.0;
-      if (mutual) {
-        //RR der schnellere Läufer gibt den Orbis
-        dds = std::abs(anst[static_cast<std::size_t>(pl)][static_cast<std::size_t>(n)]) >
-                      std::abs(anst[static_cast<std::size_t>(rd)][static_cast<std::size_t>(n)])
-                  ? kDegToRad * orbh(pl, opt.gauss)
-                  : kDegToRad * orbh(rd, opt.gauss);
-      } else {
-        dds = kDegToRad * orbh(pl, opt.gauss);
+    const auto close = [&](int n) {
+      n2 = n;
+      // a valid arc frees the combination again, a failed one stays shut
+      if (n2 > n1 && arc(pl, rd, na, ma, n1, n2, mutual)) {
+        n1 = 0;
+        n2 = 0;
       }
-      if (!armed_fwd && !armed_back) {
+    };
+    for (int n = 0; n <= kDays; ++n) {
+      const double running = elint[static_cast<std::size_t>(n)][static_cast<std::size_t>(pl)];
+      const double target = mutual ? norm_rad(elint[static_cast<std::size_t>(n)][static_cast<std::size_t>(rd)] + pn * ma)
+                                   : norm_rad(radix_pos(rd) + pn * ma);
+      // the mutual scan hands the other body with the aspect as wa1
+      const double wa1 = mutual ? target : running;
+      const double wa2 = mutual ? running : target;
+      const double dds = orb(pl, rd, n, mutual);
+      if (n1 == 0 && n2 == 0) {
         double w1 = wa1;
         double w2 = wa2;
         vergl1(w1, w2);
+        //RR untere Grenze überschritten
         if (w2 - w1 < dds && w2 - w1 > kEps) {
           n1 = n;
-          armed_fwd = true;
           continue;
         }
-        w1 = wa1;
-        w2 = wa2;
-        vergl1r(w1, w2);
-        if (w1 - w2 < dds && w1 - w2 > kEps) {
-          n1 = n;
-          armed_back = true;
-          continue;
-        }
-      } else if (armed_fwd) {
+      } else if (n1 > 0 && n2 == 0) {
         double w1 = wa1;
         double w2 = wa2;
         vergl1(w1, w2);
+        //RR obere Grenze überschritten
         if (w1 - w2 > dds && w1 - w2 < kPi) {
-          n2 = n;
-          if (n2 > n1) {
-            arc(pl, rd, na, ma, n1, n2, dds, mutual);
-          }
-          armed_fwd = false;
+          close(n);
         }
-      } else if (armed_back) {
+      }
+      if (n1 == 0 && n2 == 0) {
         double w1 = wa1;
         double w2 = wa2;
         vergl1r(w1, w2);
+        //RR obere Grenze unterschritten
+        if (w1 - w2 < dds && w1 - w2 > kEps) {
+          n1 = n;
+          continue;
+        }
+      } else if (n1 > 0 && n2 == 0) {
+        double w1 = wa1;
+        double w2 = wa2;
+        vergl1r(w1, w2);
+        //RR untere Grenze unterschritten
         if (w2 - w1 > dds && w2 - w1 < kPi) {
-          n2 = n;
-          if (n2 > n1) {
-            arc(pl, rd, na, ma, n1, n2, dds, mutual);
-          }
-          armed_back = false;
+          close(n);
         }
       }
     }
+  }
+
+  // orb_gen_rad and orb_gen_mund, the faster runner gives the orb of a
+  // mutual pair
+  [[nodiscard]] double orb(int pl, int rd, int n, bool mutual) const {
+    if (mutual && std::abs(anst[static_cast<std::size_t>(pl)][static_cast<std::size_t>(n)]) <=
+                      std::abs(anst[static_cast<std::size_t>(rd)][static_cast<std::size_t>(n)])) {
+      return kDegToRad * orbh(rd, opt.gauss);
+    }
+    return kDegToRad * orbh(pl, opt.gauss);
   }
 
   // the running points against the radix, his asp_analy_rad
@@ -349,18 +401,10 @@ struct Run {
 
   // the running points among themselves, his asp_analy_mund
   void mutual_pairs() {
-    for (int pl = 1; pl <= 10; ++pl) {
-      if (pl == 2) {
-        continue;
-      }
-      for (int rd = pl + 1; rd <= 14; ++rd) {
-        if (rd == 11 || rd == 12) {
-          continue;
-        }
-        for (const int na : {1, 2, 3, 4, 6, 8, 12}) {
-          for (const int ma : multiples(na, opt.classic_minors, opt.quincunx)) {
-            analyze(pl, rd, na, ma, true);
-          }
+    for (const auto& [pl, rd] : dynamogram_mutual_pairs()) {
+      for (const int na : {1, 2, 3, 4, 6, 8, 12}) {
+        for (const int ma : multiples(na, opt.classic_minors, opt.quincunx)) {
+          analyze(pl, rd, na, ma, true);
         }
       }
     }
@@ -369,10 +413,24 @@ struct Run {
 
 }  // namespace
 
+// ported from the MITTEL of hubausg
+double dynamogram_mean(const Dynamogram& d, double scale) {
+  const std::size_t n = std::min(d.existential.size(), d.mood.size());
+  if (n < 2) {
+    return 0.0;
+  }
+  double sum = 0.0;
+  for (std::size_t i = 0; i < n; ++i) {
+    sum += scale * (d.existential[i] + d.mood[i]);
+  }
+  // STR$(mittel% / 6000), the span of the samples, not their count
+  return sum / static_cast<double>(n - 1);
+}
+
 // ported from HORCOM huber with wert, hubephp, hubephn, asp_analy_rad,
 // asp_analy_mund and the two hub_auswert builders
 Dynamogram dynamogram(const Chart& radix, const DynamogramOptions& opt, const SearchContext& ctx) {
-  Run r{radix, opt, ctx, {}, {}, {}};
+  Run r{radix, opt, ctx, {}, {}, false, {}};
   r.out.from_age = opt.from_age;
   r.out.existential.assign(kCurve, 0.0);
   r.out.mood.assign(kCurve, 0.0);
@@ -380,6 +438,7 @@ Dynamogram dynamogram(const Chart& radix, const DynamogramOptions& opt, const Se
   r.against_radix();
   r.mutual_pairs();
   if (opt.regressive) {
+    r.regressive_run = true;
     r.sample(true);
     r.against_radix();
     r.mutual_pairs();

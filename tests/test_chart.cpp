@@ -2,12 +2,17 @@
 // horcom, the C++ rewrite of HORCOM by Robert Rettig (1989 to 2010)
 // Copyright (c) 2026 Dominik Schwimmbeck
 
+#include <algorithm>
 #include <cctype>
 #include <cmath>
 
 #include "doctest.h"
 #include "horcom/chart/chart.hpp"
+#include "horcom/ephem/eclipses.hpp"
 #include "horcom/ephem/elements.hpp"
+#include "horcom/ephem/moon.hpp"
+#include "horcom/ephem/sunmoon.hpp"
+#include "horcom/chart/great_year.hpp"
 #include "horcom/chart/planet_points.hpp"
 #include "horcom/chart/stars.hpp"
 #include "horcom/chart/composite.hpp"
@@ -231,9 +236,114 @@ TEST_CASE("the composite midpoints two charts like a13") {
   CHECK(dmc < 1e-6);
 }
 
+TEST_CASE("the mean sidereal composite takes the near half of the day") {
+  // sidereal times 23 h and 1 h apart by the midnight, the composite
+  // ARMC belongs near zero, his linear mean put it at twelve hours
+  Chart a;
+  Chart b;
+  a.ok = b.ok = true;
+  a.hs = 23.0;
+  b.hs = 1.0;
+  a.smo.ekls = b.smo.ekls = 23.44 * kDegToRad;
+  ChartInput ia;
+  ChartInput ib;
+  ia.lat_deg = ib.lat_deg = 48.0;
+  const Chart m = composite_chart(a, ia, b, ib, CompositeHouses::kMeanSidereal, 48.0, {});
+  double armc = norm_deg(m.armc_deg);
+  if (armc > 180.0) {
+    armc -= 360.0;
+  }
+  CHECK(std::abs(armc) < 1e-6);
+  // a pair less than twelve hours apart keeps the plain mean
+  a.hs = 5.0;
+  b.hs = 9.0;
+  CHECK(composite_chart(a, ia, b, ib, CompositeHouses::kMeanSidereal, 48.0, {}).armc_deg == doctest::Approx(105.0));
+  // the local sidereal times decide, not the Greenwich ones. At 170 east
+  // and 170 west the Greenwich times 1 h and 23 h give local ARMCs of 185
+  // and 175, mean 180, his linear mean was right there
+  ia.lon_deg_east = 170.0;
+  ib.lon_deg_east = -170.0;
+  a.hs = 1.0;
+  b.hs = 23.0;
+  CHECK(composite_chart(a, ia, b, ib, CompositeHouses::kMeanSidereal, 48.0, {}).armc_deg == doctest::Approx(180.0));
+  // both at 6 h give local ARMCs of 260 and 280, mean 270, his linear
+  // mean said 90
+  a.hs = 6.0;
+  b.hs = 6.0;
+  CHECK(composite_chart(a, ia, b, ib, CompositeHouses::kMeanSidereal, 48.0, {}).armc_deg == doctest::Approx(270.0));
+}
+
+TEST_CASE("the equal house systems take the schematic composite like a13") {
+  ChartInput ia;
+  ia.date_ut = {13, 10, 1992, 3, 0.0};
+  ia.lon_deg_east = 11.3244;
+  ia.lat_deg = 48.1742;
+  ChartInput ib;
+  ib.date_ut = {1, 6, 1990, 12, 0.0};
+  ib.lon_deg_east = 13.4;
+  ib.lat_deg = 52.5;
+  for (const HouseSystem hs : {HouseSystem::kEqualAsc, HouseSystem::kEqualVehlow}) {
+    ChartSettings s;
+    s.houses = hs;
+    const Chart a = compute_chart(ia, s, vsop(), eph());
+    const Chart b = compute_chart(ib, s, vsop(), eph());
+    REQUIRE(a.ok);
+    REQUIRE(b.ok);
+    const Chart schematic = composite_chart(a, ia, b, ib, CompositeHouses::kSchematic, ia.lat_deg, s);
+    //RR IF haw& = 6 OR haw& = 7 : CLR comp_hand!,comp_mstz!
+    for (const CompositeHouses m : {CompositeHouses::kMeanSidereal, CompositeHouses::kRobertHand}) {
+      const Chart c = composite_chart(a, ia, b, ib, m, ia.lat_deg, s);
+      for (int k = 1; k <= 12; ++k) {
+        CAPTURE(k);
+        CHECK(c.houses.cusp[static_cast<std::size_t>(k)] ==
+              doctest::Approx(schematic.houses.cusp[static_cast<std::size_t>(k)]));
+      }
+    }
+  }
+}
+
+TEST_CASE("the composite AC point turns to the side of its first cusp") {
+  // ACs at 5 and 200 degrees have their near midpoint at 282.5, the MC
+  // midpoint of 270 and 300 puts the ROBERT HAND first cusp at 48 north
+  // near 33 degrees. His a13 flipped the AC point to that side and then
+  // wrote the unflipped midpoint back, the final program showed 282.5
+  // beside the MC. The port keeps the flip his code was written for
+  Chart a;
+  Chart b;
+  a.ok = b.ok = true;
+  a.smo.ekls = b.smo.ekls = 23.44 * kDegToRad;
+  for (Chart* c : {&a, &b}) {
+    for (const int slot : {body::kAscendant, body::kMc}) {
+      c->b[static_cast<std::size_t>(slot)].present = true;
+      c->b[static_cast<std::size_t>(slot)].valid = true;
+    }
+  }
+  a.b[body::kAscendant].el = 5.0 * kDegToRad;
+  b.b[body::kAscendant].el = 200.0 * kDegToRad;
+  a.b[body::kMc].el = 270.0 * kDegToRad;
+  b.b[body::kMc].el = 300.0 * kDegToRad;
+  ChartInput ia;
+  ChartInput ib;
+  const Chart h = composite_chart(a, ia, b, ib, CompositeHouses::kRobertHand, 48.0, {});
+  REQUIRE(h.houses.ok);
+  CHECK(norm_rad(h.houses.cusp[1]) * kRadToDeg == doctest::Approx(32.6).epsilon(0.01));
+  // the original 282.5, the port 102.5 in the houses of the AC
+  CHECK(h.b[body::kAscendant].el * kRadToDeg == doctest::Approx(102.5));
+  // the MC point agrees with its cusp and stays
+  CHECK(h.b[body::kMc].el * kRadToDeg == doctest::Approx(285.0));
+}
+
 TEST_CASE("the halbsmin midpoint takes the near side") {
   CHECK(midpoint_near(350.0 * kDegToRad, 10.0 * kDegToRad) == doctest::Approx(0.0).epsilon(1e-9));
   CHECK(midpoint_near(10.0 * kDegToRad, 50.0 * kDegToRad) == doctest::Approx(30.0 * kDegToRad));
+  // pairs around zero Aries whose raw sum passes a full circle, the
+  // original returned the far midpoints 200 and 185 here
+  CHECK(midpoint_near(100.0 * kDegToRad, 300.0 * kDegToRad) == doctest::Approx(20.0 * kDegToRad));
+  CHECK(midpoint_near(20.0 * kDegToRad, 350.0 * kDegToRad) == doctest::Approx(5.0 * kDegToRad));
+  CHECK(midpoint_near(350.0 * kDegToRad, 20.0 * kDegToRad) == doctest::Approx(5.0 * kDegToRad));
+  // no wrap, no change
+  CHECK(midpoint_near(200.0 * kDegToRad, 250.0 * kDegToRad) == doctest::Approx(225.0 * kDegToRad));
+  CHECK(midpoint_near(10.0 * kDegToRad, 300.0 * kDegToRad) == doctest::Approx(335.0 * kDegToRad));
 }
 
 TEST_CASE("the combin averages moment and place like a14") {
@@ -249,6 +359,27 @@ TEST_CASE("the combin averages moment and place like a14") {
   CHECK(julian_day(c.date_ut) == doctest::Approx((julian_day(ia.date_ut) + julian_day(ib.date_ut)) / 2.0));
   CHECK(c.lon_deg_east == doctest::Approx(11.0));
   CHECK(c.lat_deg == doctest::Approx(49.0));
+}
+
+TEST_CASE("the combin place stays on the side of the date line where the places lie") {
+  // a group clear of the date line keeps his plain mean
+  CHECK(mean_longitude({-75.0, 10.0}) == doctest::Approx(-32.5));
+  CHECK(mean_longitude({0.0, 10.0, 50.0}) == doctest::Approx(20.0));
+  CHECK(mean_longitude({-100.0, 30.0, 60.0}) == doctest::Approx(-10.0 / 3.0));
+  // 170 east and 170 west, his glc / z& said 0, Greenwich
+  CHECK(mean_longitude({170.0, -170.0}) == doctest::Approx(180.0));
+  // his 53.33 for the three near the date line
+  CHECK(mean_longitude({170.0, -170.0, 160.0}) == doctest::Approx(173.0 + 1.0 / 3.0));
+  // Americas and Asia 160 apart over the Pacific, he gave 0
+  CHECK(mean_longitude({-100.0, 100.0}) == doctest::Approx(180.0));
+  // west of the date line the mean reads west
+  CHECK(mean_longitude({-175.0, 165.0, -165.0}) == doctest::Approx(-178.0 - 1.0 / 3.0));
+  ChartInput ia;
+  ia.date_ut = {1, 1, 2000, 0, 0.0};
+  ia.lon_deg_east = 170.0;
+  ChartInput ib = ia;
+  ib.lon_deg_east = -170.0;
+  CHECK(std::abs(combin_input({ia, ib}, Calendar::kAuto).lon_deg_east) == doctest::Approx(180.0));
 }
 
 TEST_CASE("the directed axes turn at his naibod style rate") {
@@ -268,10 +399,11 @@ TEST_CASE("the directed axes turn at his naibod style rate") {
   const DirectedAxes back = direct_axes(radix, in.lon_deg_east, in.lat_deg,
                                         radix.jd_ut + tja, true, 0.0, HouseSystem::kPlacidus);
   CHECK(back.arc_deg == doctest::Approx(-360.0 / tja));
-  // a degree of sidereal time variation adds at the same rate
+  // a degree of sidereal time variation turns the axes by a degree, his
+  // ADD brm,dif * 360 / tja gave 0.9856
   const DirectedAxes varied = direct_axes(radix, in.lon_deg_east, in.lat_deg,
                                           radix.jd_ut + tja, false, 1.0, HouseSystem::kPlacidus);
-  CHECK(varied.arc_deg - one_year.arc_deg == doctest::Approx(360.0 / tja));
+  CHECK(varied.arc_deg - one_year.arc_deg == doctest::Approx(1.0));
 }
 
 TEST_CASE("the mundane longitude follows the semi arc quadrants") {
@@ -445,4 +577,195 @@ TEST_CASE("body name table matches the pl$ assignments of plnm") {
       CHECK(static_cast<char>(std::toupper(static_cast<unsigned char>(tag[i]))) == name[i]);
     }
   }
+}
+
+TEST_CASE("the lunation series meets the true new moon of the year 1000") {
+  // the conjunction found by bisection on the port's own VSOP87 sun and
+  // ELP moon, independent of the lunation series. His finst_0 carried
+  // 0.1017438 for the T squared term of the moon's anomaly where Meeus
+  // prints 0.0107438, which put these new moons up to 86 minutes off.
+  // The corrected series meets them within ten seconds
+  const auto elongation = [](double jd_ut) {
+    ChartInput in;
+    in.date_ut = calendar_date(jd_ut, Calendar::kAuto);
+    in.lon_deg_east = 0.0;
+    in.lat_deg = 51.5;
+    const Chart c = compute_chart(in, ChartSettings{}, vsop(), eph());
+    return std::remainder(c.b[body::kMoon].el - c.b[body::kSun].el, kTwoPi);
+  };
+  const std::vector<Lunation> nm = lunations(julian_day({1, 6, 1000, 0, 0.0}, Calendar::kJulian), 6, false);
+  REQUIRE(nm.size() == 6);
+  double worst = 0.0;
+  for (const Lunation& l : nm) {
+    double lo = l.jd_ut - 0.5;
+    double hi = l.jd_ut + 0.5;
+    REQUIRE(elongation(lo) < 0.0);
+    REQUIRE(elongation(hi) > 0.0);
+    for (int i = 0; i < 40; ++i) {
+      const double mid = 0.5 * (lo + hi);
+      (elongation(mid) < 0.0 ? lo : hi) = mid;
+    }
+    worst = std::max(worst, std::abs(lo - l.jd_ut) * kMinutesPerDay);
+  }
+  CHECK(worst < 0.5);
+}
+
+TEST_CASE("the true node keeps its speed while it crosses zero Aries") {
+  // his vel_om_pd tested IF w2 > w1 OR w2 < w1 + PI, always true, so the
+  // retrograde fold never ran. An hour around the node's backward step
+  // over zero Aries his speed read about +75 radians a day
+  ChartSettings s;
+  s.true_node = true;
+  const auto node_at = [&s](double jd_ut) {
+    ChartInput in;
+    in.date_ut = calendar_date(jd_ut, Calendar::kAuto);
+    in.lat_deg = 48.0;
+    const Chart c = compute_chart(in, s, vsop(), eph());
+    return c.b[body::kNodeAsc];
+  };
+  // the true node left Aries backwards around the turn of 2025, find the
+  // day of the step
+  double lo = julian_day({1, 6, 2024, 0, 0.0});
+  double hi = lo;
+  for (double jd = lo; jd < lo + 800.0; jd += 1.0) {
+    if (node_at(jd).el < 1.0 && node_at(jd + 1.0).el > 5.0) {
+      lo = jd;
+      hi = jd + 1.0;
+      break;
+    }
+  }
+  REQUIRE(hi > lo);
+  for (int i = 0; i < 30; ++i) {
+    const double mid = 0.5 * (lo + hi);
+    (node_at(mid).el < 1.0 ? lo : hi) = mid;
+  }
+  const BodyState at = node_at(lo);
+  // the true node wanders by less than two degrees a day
+  CHECK(std::abs(at.tb) * kRadToDeg < 2.0);
+}
+
+TEST_CASE("the star aspects of stelk count both sides of exact") {
+  // his stelk accepted an opposition, square or trine only on the side
+  // before exact, the conjunction on both. A point at 100 degrees with the
+  // Sun half a degree before and after each aspect must hit every time
+  Chart c;
+  c.ok = true;
+  BodyState& sun = c.b[body::kSun];
+  sun.present = true;
+  sun.valid = true;
+  const double la = 100.0 * kDegToRad;
+  const auto kinds = [&](double sun_deg) {
+    sun.el = norm_rad(sun_deg * kDegToRad);
+    std::string out;
+    for (const auto& [slot, kind] : point_aspects(c, la, 1.0)) {
+      if (slot == body::kSun) {
+        out += kind;
+      }
+    }
+    return out;
+  };
+  for (double side : {-0.3, 0.3}) {
+    CHECK(kinds(100.0 + side) == "K");
+    CHECK(kinds(280.0 + side) == "O");
+    CHECK(kinds(190.0 + side) == "Q");
+    CHECK(kinds(10.0 + side) == "Q");
+    CHECK(kinds(220.0 + side) == "T");
+    CHECK(kinds(340.0 + side) == "T");
+  }
+}
+
+TEST_CASE("a body exactly on the star point still counts") {
+  // his x > 0 dropped the exact conjunction and the exact aspects
+  Chart c;
+  c.ok = true;
+  BodyState& sun = c.b[body::kSun];
+  sun.present = true;
+  sun.valid = true;
+  sun.el = 100.0 * kDegToRad;
+  bool conj = false;
+  for (const auto& [slot, kind] : point_aspects(c, 100.0 * kDegToRad, 1.0)) {
+    conj = conj || (slot == body::kSun && kind == 'K');
+  }
+  CHECK(conj);
+}
+
+TEST_CASE("the osculating apogee latitude belongs to the apogee, not to the Moon") {
+  // his eb(nk&(1)) = ASIN(SIN(u4) * SIN(i4)) took the Moon's own argument of
+  // latitude. The eccentricity vector of the same state points to the
+  // perigee, its opposite is the apogee in space
+  ChartInput in;
+  in.date_ut = {12, 4, 1992, 0, 0.0};
+  in.lon_deg_east = 11.0;
+  in.lat_deg = 48.0;
+  ChartSettings s;
+  s.enable_standard_extras();
+  s.true_apogee = true;
+  const Chart chart = compute_chart(in, s, vsop(), eph());
+  REQUIRE(chart.ok);
+  const MoonPosition& m = chart.moon;
+  const double mu = 0.0002959122083 * 3.0404332e-06;
+  const double r = std::sqrt(m.x[0] * m.x[0] + m.x[1] * m.x[1] + m.x[2] * m.x[2]);
+  const double h[3] = {m.x[1] * m.v[2] - m.x[2] * m.v[1], m.x[2] * m.v[0] - m.x[0] * m.v[2],
+                       m.x[0] * m.v[1] - m.x[1] * m.v[0]};
+  double e[3];
+  e[0] = (m.v[1] * h[2] - m.v[2] * h[1]) / mu - m.x[0] / r;
+  e[1] = (m.v[2] * h[0] - m.v[0] * h[2]) / mu - m.x[1] / r;
+  e[2] = (m.v[0] * h[1] - m.v[1] * h[0]) / mu - m.x[2] / r;
+  const double en = std::sqrt(e[0] * e[0] + e[1] * e[1] + e[2] * e[2]);
+  const double apogee_lat = std::asin(-e[2] / en);
+  CHECK(chart.lunar.true_apogee_lat == doctest::Approx(apogee_lat).epsilon(1e-6));
+  // the Moon's own latitude, what the original printed, lies elsewhere
+  CHECK(std::abs(chart.lunar.true_apogee_lat - m.eb) > 1.0 * kDegToRad);
+}
+
+TEST_CASE("the great year age point runs back with the precession like grossj1") {
+  //RR jdgross=2370832, CHAUVIN f.AQU.
+  constexpr double kRef = 2370832.0;
+  constexpr double kTja = 365.2422;
+  const double eps = 23.44 * kDegToRad;
+  // one Julian century after the reference the start of the age gained
+  // Newcomb's general precession of some 5026 arcseconds, the age point
+  // runs back by that
+  const GreatYearPoint aqu = great_year_point(kRef + kDaysPerCentury, kTja, eps, kRef, 330);
+  CHECK(aqu.di_deg == doctest::Approx(-5026.0 / 3600.0).epsilon(0.002));
+  CHECK(aqu.point_deg == doctest::Approx(330.0 + aqu.di_deg));
+  CHECK_FALSE(aqu.outside);
+  // before the reference the age has not begun, 2300 years on the point
+  // left the sign
+  CHECK(great_year_point(kRef - kDaysPerCentury / 10.0, kTja, eps, kRef, 330).outside);
+  CHECK(great_year_point(kRef + 23.0 * kDaysPerCentury, kTja, eps, kRef, 330).outside);
+  // his FISCHE start compared 360 degrees with a normalised longitude, di
+  // came out as 358.6 and the warning fired on every date. The fold gives
+  // the same run back as the other ages
+  const GreatYearPoint psc = great_year_point(kRef + kDaysPerCentury, kTja, eps, kRef, 360);
+  CHECK(std::abs(psc.di_deg - aqu.di_deg) < 0.01);
+  CHECK(psc.point_deg == doctest::Approx(360.0 + psc.di_deg));
+  CHECK_FALSE(psc.outside);
+  CHECK(great_year_point(kRef - kDaysPerCentury / 10.0, kTja, eps, kRef, 360).outside);
+}
+
+TEST_CASE("the Wahr node row of the coordinate table stands at ET") {
+  // his ko_ta ran moko for the Wahr rows after etut had set jd back to
+  // UT, around -1000 the true apogee came out half a degree off
+  ChartInput in;
+  in.date_ut = {1, 6, -1000, 12, 0.0};
+  in.lon_deg_east = 11.5;
+  in.lat_deg = 48.0;
+  ChartSettings s;
+  s.true_node = true;
+  const Chart c = compute_chart(in, s, vsop(), eph());
+  REQUIRE(c.ok);
+  const TimeArguments t = time_arguments(c.jd_ut);
+  const SunMoonState st = somo(t, calendar_date(c.jd_ut, s.calendar));
+  const LunarPoints at_ut = lunar_points(moon_position(t, st), st, t);
+  const double off = std::abs(std::remainder(c.lunar.true_node - at_ut.true_node, kTwoPi)) * kRadToDeg;
+  const double off_ag = std::abs(std::remainder(c.lunar.true_apogee - at_ut.true_apogee, kTwoPi)) * kRadToDeg;
+  CHECK(off > 1.0e-3);
+  CHECK(off_ag > 0.3);
+  CHECK(c.b[body::kNodeAsc].el == doctest::Approx(c.lunar.true_node));
+  // the rates of vel_om_pd come for both variants whatever the setting
+  const LunarRates r = lunar_rates(c, s.calendar);
+  CHECK(r.node_tb * kRadToDeg * 60.0 > -30.0);
+  CHECK(r.node_tb * kRadToDeg * 60.0 < 30.0);
+  CHECK(c.b[body::kNodeAsc].tb == doctest::Approx(r.node_tb));
 }

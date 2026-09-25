@@ -35,7 +35,10 @@ LunationArgs lunation_args(double k) {
   const double t41 = t31 * t11;
   a.jde = 2451550.09765 + 29.530588853 * k + 0.0001337 * a.t21 - 1.5e-07 * t31 + 7.3e-10 * t41;
   a.m1 = norm_rad(kDegToRad * (2.5534 + 29.10535669 * k - 0.0000218 * a.t21 - 1.1e-07 * t31));
-  a.m2 = norm_rad(kDegToRad * (201.5643 + 385.81693528 * k + 0.1017438 * a.t21 + 0.00001239 * t31 - 5.8e-08 * t41));
+  // his finst_0 carried 0.1017438, Meeus prints 0.0107438 for the T
+  // squared term of the moon's anomaly, the typo moved old lunations by
+  // an hour and more
+  a.m2 = norm_rad(kDegToRad * (201.5643 + 385.81693528 * k + 0.0107438 * a.t21 + 0.00001239 * t31 - 5.8e-08 * t41));
   a.fm = norm_rad(kDegToRad * (160.7108 + 390.67050274 * k - 0.0016341 * a.t21 - 2.27e-06 * t31 + 1.1e-08 * t41));
   a.o2 = norm_rad(kDegToRad * (124.7746 - 1.5637558 * k + 0.0020691 * a.t21 + 2.15e-06 * t31));
   a.e = 1.0 - 0.002516 * t11 - 7.4e-06 * a.t21;
@@ -106,6 +109,33 @@ void eclipse_quantities(double k, double& g, double& u) {
   u = 0.0059 + 0.0046 * a.e * cm1 - 0.0182 * cm2 + 0.0004 * c2m2 - 0.0005 * cm12;
 }
 
+// the moment of greatest eclipse in dynamical time, the dj series of
+// finst_1, the solar coefficients for a whole k
+double eclipse_maximum_td(double k) {
+  const LunationArgs a = lunation_args(k);
+  const double f1 = a.fm - kDegToRad * 0.02665 * std::sin(a.o2);
+  const double a1 = kDegToRad * (299.77 + 0.107408 * k - 0.009173 * a.t21);
+  const double sm1 = std::sin(a.m1);
+  const double sm2 = std::sin(a.m2);
+  const double sm12 = std::sin(a.m2 + a.m1);
+  const double sm12_ = std::sin(a.m2 - a.m1);
+  const double s2m2 = std::sin(2.0 * a.m2);
+  const double s2m1 = std::sin(2.0 * a.m1);
+  //RR Korrektur in Tagen für Sonnenfinsternis
+  double dj = k == std::floor(k) ? -0.4075 * sm2 + 0.1721 * a.e * sm1 : -0.4065 * sm2 + 0.1727 * a.e * sm1;
+  dj += 0.0161 * s2m2 - 0.0097 * std::sin(2.0 * f1);
+  dj += 0.0073 * a.e * sm12_ - 0.005 * a.e * sm12 - 0.0023 * std::sin(a.m2 - 2.0 * f1);
+  dj += 0.0021 * a.e * s2m1 + 0.0012 * std::sin(a.m2 + 2.0 * f1) + 0.0006 * a.e * std::sin(2.0 * a.m2 + a.m1);
+  dj += -0.0004 * std::sin(3.0 * a.m2) - 0.0003 * a.e * std::sin(a.m1 + 2.0 * f1) + 0.0003 * std::sin(a1) -
+        0.0002 * a.e * std::sin(a.m1 - 2.0 * f1);
+  dj += -0.0002 * a.e * std::sin(2.0 * a.m2 - a.m1) - 0.0002 * std::sin(a.o2);
+  return a.jde + dj;
+}
+
+double to_ut(double jd_td) {
+  return jd_td - delta_t_minutes(jd_td) / kMinutesPerDay;
+}
+
 // his screen letters for one syzygy
 std::string classify(double k, bool full, bool& eclipse) {
   double g = 0.0;
@@ -160,23 +190,33 @@ std::string classify(double k, bool full, bool& eclipse) {
 
 }  // namespace
 
-// ported from HORCOM finst, neu_voll, finst_0 and finst_1
+double lunation_number(const CalendarDate& d) {
+  return std::floor((d.year + (d.month - 1) / 12.0 + d.day / 365.25 - 2000.0) * 12.3685);
+}
+
+// ported from HORCOM neu_voll with finst_1
+Lunation lunation_at(double k) {
+  Lunation row;
+  row.k = k;
+  row.full = k != std::floor(k);
+  row.jd_ut = to_ut(syzygy_td(k, row.full));
+  row.kind = classify(k, row.full, row.eclipse);
+  if (row.eclipse) {
+    row.max_ut = to_ut(eclipse_maximum_td(k));
+  }
+  return row;
+}
+
+// ported from HORCOM finst, k = k1 - 2 and k1 - 2.5 before the first INC
 std::vector<Lunation> lunations(double jd_start_ut, int count, bool full_moons) {
   std::vector<Lunation> out;
-  const CalendarDate d = calendar_date(jd_start_ut);
-  double k = std::floor((d.year + (d.month - 1) / 12.0 + d.day / 365.25 - 2000.0) * 12.3685);
-  k -= 1.0;
+  double k = lunation_number(calendar_date(jd_start_ut)) - 2.0;
   if (full_moons) {
     k -= 0.5;
   }
   for (int i = 0; i < count; ++i) {
     k += 1.0;
-    Lunation row;
-    row.full = full_moons;
-    const double jd_td = syzygy_td(k, full_moons);
-    row.jd_ut = jd_td - delta_t_minutes(jd_td) / kMinutesPerDay;
-    row.kind = classify(k, full_moons, row.eclipse);
-    out.push_back(std::move(row));
+    out.push_back(lunation_at(k));
   }
   return out;
 }

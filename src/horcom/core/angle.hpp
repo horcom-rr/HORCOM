@@ -34,6 +34,16 @@ namespace horcom {
   return x - 24.0 * std::floor(x / 24.0);
 }
 
+/// A signed difference of two angles folded into one half turn.
+///
+/// @param x the difference in radians
+/// @return the same direction in (-pi, pi], a difference across zero
+///         Aries counts the short way
+[[nodiscard]] inline double fold_rad(double x) noexcept {
+  x = norm_rad(x);
+  return x > kPi ? x - kTwoPi : x;
+}
+
 /// DEFFN wz(x) = x - 30 * FIX(x / 30), degree within the zodiac sign
 [[nodiscard]] inline double deg_in_sign(double x) noexcept {
   return x - kDegPerSign * std::trunc(x / kDegPerSign);

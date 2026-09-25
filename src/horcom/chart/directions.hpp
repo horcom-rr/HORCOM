@@ -10,7 +10,7 @@
 // by his Naibod style rate, three hundred sixty degrees per tropical
 // year of elapsed days over the year length, direct or converse, and
 // the axes and cusps recompute from the directed ARMC at the place. His
-// sidereal time variation for rectification rides on the same turn.
+// sidereal time variation for rectification adds to the turn.
 namespace horcom {
 
 /// One directed axes result.
@@ -28,9 +28,10 @@ struct DirectedAxes {
 /// @param lat_deg      place latitude for the house computation
 /// @param jd_event_ut  the event moment
 /// @param converse     true turns backward, his KONVERS
-/// @param vary_deg     his sidereal time variation in degrees, added at
-///                     the rate of the arc, one degree is four clock
-///                     minutes of birth time
+/// @param vary_deg     his sidereal time variation in degrees, turns the
+///                     directed ARMC degree for degree like the radix
+///                     taken over with it, about four clock minutes of
+///                     birth time a degree
 /// @param sys          the house system for the directed cusps
 /// @return the directed axes
 [[nodiscard]] DirectedAxes direct_axes(const Chart& radix, double lon_deg_east, double lat_deg,

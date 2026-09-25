@@ -63,6 +63,26 @@ Placidus fixed point and keeps the faithful 1e-6 criterion. The three
 recorded cusps should be re-checked against their source screens when
 those are available.
 
+## The true node after the lunar latitude fix
+
+The original added the nutation in obliquity to the Moon's ecliptic
+latitude, a bug the rewrite fixes (docs/architecture.md, Known original
+bugs). The osculating true node is derived from the Moon's position and
+velocity, a latitude offset of a few arc seconds moves its crossing of
+the ecliptic by the offset over the sine of the lunar inclination, so the
+rewrite's DR now lies up to about 92 arc seconds from the original's
+printed minute in 25 of the 50 charts. Against the Swiss Ephemeris
+osculating node (JPL based, astro.com swetest 2.10.03, geocentric like
+both programs) the rewrite is the better one. Over the 26 charts the fix
+moved by 30 arc seconds or more its mean error is 17.6 arc seconds, the
+recording before the fix 60.9, the original about 56, and it is the
+closer of the two in 21 of them. The original's node inherited its own
+latitude bug, which is why it agreed with the earlier recording.
+`compare_golden.py` therefore allows 100 arc seconds on the node rows.
+When the new side is regenerated, charts 07 and 35 also count more
+aspects, AC and MC aspect in the angles only mode like the original's
+`(haw& = 9 OR haw& = 10)` gate, which the earlier recording had silenced.
+
 At polar latitudes (charts 07 and 35) the original lists only AC and MC
 and omits the intermediate Placidus cusps. The rewrite mirrors this
 behaviour. Their new side was computed with `--houses 8`.

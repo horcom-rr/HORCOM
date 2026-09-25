@@ -9,22 +9,28 @@
 
 #include "horcom/core/constants.hpp"
 #include "horcom/data/encoding.hpp"
+#include "horcom/data/file_io.hpp"
 #include "horcom/data/gfa_stream.hpp"
 
 namespace horcom {
 
 ChartSettings Konsta::chart_settings() const {
   ChartSettings s;
-  s.houses = static_cast<HouseSystem>(haw);
+  // his haw& runs from 1 to 10, a stray value falls back to Placidus
+  s.houses = haw >= 1 && haw <= 10 ? static_cast<HouseSystem>(haw) : HouseSystem::kPlacidus;
   s.apparent = static_cast<ApparentMode>(appa);
   s.topocentric_parallax = par == 1.0;
   s.true_apogee = apogw;
   s.true_node = moknw;
   s.apparent_sidereal = stzw == 1;
-  s.nk = nk;
+  // his nk numbers the chosen extras compactly, the engine keeps every
+  // extra in its fixed slot of the standard layout
+  s.nk = {};
   int active = 0;
   for (int i = 1; i <= 22; ++i) {
     if (nk[static_cast<std::size_t>(i)] > 0) {
+      // the extras start at the apogee, nk&(1) is slot 19
+      s.nk[static_cast<std::size_t>(i)] = body::kApogee + i - 1;
       ++active;
     }
   }
@@ -80,7 +86,10 @@ Konsta robert_profile() {
   k.col_dial = 16777088;
   k.col_backg = 8421440;
   k.plinv = 3;
-  k.prenbl = 1;
+  // his KONSTA7P.INT held 1 for the printer at his desk. The shipped
+  // default is off, every output would otherwise stop at a HARDCOPY box,
+  // F8 or DRUCKER-OPTION EIN / AUS switches it on and it persists
+  k.prenbl = 0;
   k.halbs = 1;
   k.comp_hand = true;
   k.selbst_cl_st = true;
@@ -92,10 +101,10 @@ Konsta robert_profile() {
   k.stzw = 1;
   k.erase_ = 1;
   k.fixpunkt = 2;
-  //RR Sonne, Mond und die Achsen (AC, MC) tragen 150, jede andere Wirkstelle 100
-  // die Zeichen-Slots 15..18 (Widder, Krebs, Waage, Steinbock) stehen leer wie
-  // in KONSTA5P.INT und KONSTA8P.INT. KONSTA7P.INT hatte für Merkur den Wert 1
-  // hinterlegt, das war ein versehentlich gespeicherter Testwert, hier zurück auf 100
+  // the Sun, the Moon and the axes AC and MC weigh 150, every other point
+  // 100, the sign slots 15 to 18 for Aries, Cancer, Libra and Capricorn
+  // stay empty like in KONSTA5P.INT and KONSTA8P.INT. KONSTA7P.INT held 1
+  // for Mercury, a test value saved by accident, set back to 100 here
   k.or_weight = {100, 150, 150, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 150,
                  150, 100, 0,   0,   0,   100, 100, 100, 100, 100, 100, 100, 100, 100,
                  100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100};
@@ -265,13 +274,7 @@ std::string format_konsta(const Konsta& k) {
 }
 
 bool save_konsta(const std::filesystem::path& path, const Konsta& k) {
-  std::ofstream f(path, std::ios::binary | std::ios::trunc);
-  if (!f) {
-    return false;
-  }
-  const std::string text = format_konsta(k);
-  f.write(text.data(), static_cast<std::streamsize>(text.size()));
-  return static_cast<bool>(f);
+  return replace_file(path, format_konsta(k));
 }
 
 }  // namespace horcom

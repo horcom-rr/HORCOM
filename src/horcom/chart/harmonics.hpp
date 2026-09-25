@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include "horcom/chart/chart.hpp"
 #include "horcom/chart/settings.hpp"
 
@@ -26,9 +28,10 @@ enum class HarmonicHouses {
 ///
 /// Planets and extras multiply onto the order, the Part of Fortune
 /// among them since harm21 keeps its a901_m rebuild commented out, the
-/// south node follows the transformed north node by half a circle and
-/// Transpluto drops out like the original's CASE list leaves it.
-/// Nodes stay, the original forced the mean ones there.
+/// south node follows the transformed north node by half a circle.
+/// Transpluto, the Hamburg factors and the fixed point drop out like the
+/// original's CASE 1 TO 11 list leaves them. The caller hands in the
+/// radix with the mean nodes his harm forced.
 ///
 /// @param base    the radix
 /// @param n       the ORDNUNGS-ZAHL, an integer order
@@ -56,9 +59,17 @@ enum class MultiMode {
 
 /// The Bezugspunkt of MULTI 3 and MULTI-ARC, his mc_armcb1 choices.
 struct MultiReference {
-  enum class Kind { kBody, kCusp, kRuler, kSignStart };
+  /// The rows of his BEZUGS-FAKTOR box.
+  enum class Kind {
+    kBody,      ///< a body, the fixed point or an angle
+    kCusp,      ///< HAUS NR., a radix cusp
+    kRuler,     ///< HERR v. HAUS NR., the classic ruler of a cusp
+    kSignStart  ///< 0 GRAD eines ZEICHENS
+  };
+  /// which row was chosen
   Kind kind = Kind::kBody;
-  /// body slot for kBody, 13 the ascendant, 14 the midheaven
+  /// body slot for kBody, 0 the fixed point, 13 the ascendant, 14 the
+  /// midheaven, the tenth cusp like his fz(1,ze,10)
   int body = 1;
   /// house number for kCusp and kRuler, the ruler reads the classic
   /// table like his forced alt switch
@@ -70,13 +81,15 @@ struct MultiReference {
 /// Builds one multiple direction over the radix, the multiN1 transforms
 /// with the houses of mc_armcb.
 ///
-/// Bodies and extras follow the mode formula, Transpluto stays dark
-/// like everywhere in the MULTI world, the south node follows the
-/// directed north node. Under kLikeBodies the axes run the same
-/// formula and the intermediate cusps clear, the zero point modes keep
-/// only AC and MC, under kFromNewMc the directed MC hands a fresh ARMC
-/// to the full house computation and a901_m rebuilds the Part of
-/// Fortune from the directed lights.
+/// Bodies, extras and the fixed point follow the mode formula,
+/// Transpluto and the Hamburg factors stay dark like everywhere in the
+/// MULTI world, the zero point modes leave the fixed point dark as well,
+/// the south node follows the directed north node. Under kLikeBodies the
+/// axes run the same formula and the intermediate cusps clear, the zero
+/// point modes keep only AC and MC, under kFromNewMc the directed tenth
+/// cusp hands a fresh ARMC to the full house computation and, outside
+/// the zero point modes, a901_m rebuilds the Part of Fortune from the
+/// directed lights with the day or night rule of the radix.
 ///
 /// @param base    the radix
 /// @param mode    which MULTI
@@ -87,6 +100,33 @@ struct MultiReference {
 /// @param lat_deg latitude for the recomputation
 /// @return the directed chart
 [[nodiscard]] Chart multi_chart(const Chart& base, MultiMode mode, double lja, const MultiReference& ref, HarmonicHouses houses, HouseSystem system, double lat_deg);
+
+/// One line of the halbsm list of the MULTI sheet, a directed pair whose
+/// near midpoint meets a sign axis, a radix cusp or a directed angle.
+struct MultiMidpoint {
+  enum class Target {
+    kSignAxis,    ///< the boundary of two opposite signs, AR/LI and so on
+    kRadixCusp,   ///< a cusp of the radix, HS 1/7 R
+    kMultiAngle,  ///< AC or MC of the directed chart, HS 1/7 M
+  };
+  int u = 0;  ///< first body of the pair
+  int w = 0;  ///< second body
+  Target target = Target::kSignAxis;
+  /// the lower end of the axis, sign 1 to 6 or house 1 to 6
+  int first = 0;
+  /// the upper end, sign 7 to 12 or house 7 to 12
+  int second = 0;
+};
+
+/// Scans the directed pairs of a MULTI or HARMONIC chart like halbsm,
+/// a fifth of a degree times the orb factor around the twelve sign
+/// boundaries, the radix cusps and the directed AC and MC.
+///
+/// @param radix the radix, its cusps are the targets
+/// @param multi the directed chart, its bodies form the pairs
+/// @param orb   the orb factor
+/// @return the lines in his order, pair by pair
+[[nodiscard]] std::vector<MultiMidpoint> multi_midpoints(const Chart& radix, const Chart& multi, double orb);
 
 /// The a12f transform of the 90 degree circle. Every present slot
 /// multiplies by the factor, the axes of the house array ride along and

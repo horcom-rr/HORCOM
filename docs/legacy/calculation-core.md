@@ -216,13 +216,13 @@ yp = y3 + (b+c)*n/2 + f*n²/2 + (h+j)*n*(n²-1)/12 + k*n²*(n²-1)/24
 
 `ipol3` (L48526) is the 3-point quadratic used for velocity. Both contain a branch-cut guard: if `y_i − y_{i+1} > 3` (rad) then `+2π` is added to the following values, needed because the same routines are reused for angle series.
 
-Velocities: `vs(*,j&) = (ys(*,j&+1) − ys(*,j&))/djd` (mid-interval), interpolated at `yip = jdip − djd/2` via `ipol3`. Note that `jdip` is dimensionless and `djd/2` is in days; this offset looks dimensionally inconsistent and should be reviewed when porting (it only affects speed display, not position).
+Velocities: `vs(*,j&) = (ys(*,j&+1) − ys(*,j&))/djd` (mid-interval), interpolated at `yip = jdip − djd/2` via `ipol3`. `jdip` counts steps while `djd/2` is in days, so the velocity was extrapolated far off the data, and `helt/hert/hebt` drop their sign through `ABS`. Both are fixed in the port, see `architecture.md` 3.7.
 
 Output: for Pluto `ar/de/r` then `ko_tr2` → `hel/heb`; for the others `hel = atan2(x2,x1)`, `heb = asin(x3/rd)`, `r = rd`, plus analytic derivatives `helt`, `hert`, `hebt`.
 
 ### 2.5 Genuinely unclear, verify before porting
 
-- `n18&` (Halley) appears in both `CASE n2&,n18&` (B1950) and `CASE n5&,…,n18&,…` (J2000) at L48426/48429. GFA's `SELECT` takes the first matching CASE, so Halley is precessed from B1950, but this is almost certainly an editing accident. Verify against `astronom/HALLEY.LST` before porting.
+- `n18&` (Halley) appears in both `CASE n2&,n18&` (B1950) and `CASE n5&,…,n18&,…` (J2000) at L48426/48429. GFA's `SELECT` takes the first matching CASE, so Halley is precessed from B1950. Verified against his own start elements of `elem_halley` (Montenbruck p. 165, B1950): the shipped file matches them to 0.04° read as B1950 and misses by 0.71° read as J2000, so the B1950 reading is right despite what `HALLEY.LST` suggests.
 - `jdplaneta` (upper) and `jdplanete` (lower) are named as if swapped relative to the range test `IF jd < jdplanete OR jd > jdplaneta`; the code is self-consistent (records descend) but the naming is misleading.
 - The commented-out `k5/k6/k7.eph` (1997 CU26, 1995 GO, 1995 DW2) are dead code.
 
@@ -436,14 +436,16 @@ dd = orb * (orbe! ? orbe(14) : pu)             ' 1° base orb
 
 Counters `halbsz1%…halbsz4%`, duplicate suppression via `drk!(41,41,41)`. Mirror points (`Spiegelungen an Kardinal-Achsen`) in `spieg1` (L42498) with base orb `orbe(13)` (2°).
 
-### 6.6 Mundane aspects (`horm& = 2`)
+### 6.6 The mundane frame (`horm& = 2`) and the MUNDAN-ASPEKTE list
+
+Two different things carry the word mundan. The frame below is the BEZUGS-SYSTEM question of VORGABEN HOROSKOP (`avh`, `horm& = 2`, stored in KONSTA), it projects every chart into house space. The menu entry MUNDAN-ASPEKTE (`muuu& = 75`, `mund`) is something else, see the last bullet.
 
 - `mundh1` (L41992): `g = φ`, `arm = RAMC`, `aric = RAMC+π`, `aoac = RAMC + π/2`.
 - `md11` (L42122) decides left/right half of the chart (`o!`/`w!`).
 - `md` (L42075): ascensional difference `ad = asin(tan φ · tan δ)`, `sad = π/2 + ad` (diurnal semi-arc), `san = π/2 − ad`. Per quadrant `md` = meridian distance, `ade = md·ad/sad` (or `/san`), `phs = atan(sin(ade)/tan δ)` (the pole), `aoe = ar − ade` (oblique ascension) / `doe = ar + ade`.
 - `mundan(la,br,VAR mup,phmu)` (L41998): ecliptic → equatorial → oblique ascension → `mup` = mundane position measured from the MC/IC.
 - `mundhorp` (L42018) converts all `plz(od,ze,·)` to mundane; `mundhorh` (L42049) replaces the cusps by exact 30° divisions and saves the originals in `muh(13)`; `mureh` (L42066) restores.
-- `mund` (L40821) is the UI driver; `mund1` (L40967) the table/graph generator. Change log `// Fehler bei Tabelle mundan verbessert 29.03.10` (L4) is the very last functional change in the listing.
+- `mund` (L40821) is the driver of the MUNDAN-ASPEKTE menu entry, `di$ = " Ekliptikale Mundan-Aspekte "`, and has nothing to do with the frame above. It runs the `a18eing` boxes and then `mund1` (L40967), which lists the exact aspects the running bodies make with each other, "Laufende Faktoren untereinander". Each window of three samples `ca/cb/cc` one step `ival` apart gets a bracket test per pair and multiple, the moment comes from a quadratic through the three differences. The table branch writes both positions `wi1/wi2` beside every row, the combined grids offer the void of course rule `stund_ast!` (`notvoidofcourse`). Change log `// Fehler bei Tabelle mundan verbessert 29.03.10` (L4) is the very last functional change in the listing. The port is `scan_mundane_aspects` in `chart/transit_search.cpp`, its two fixes are listed in `docs/architecture.md` §3.7.
 
 ---
 

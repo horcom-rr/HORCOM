@@ -15,6 +15,20 @@ class QTextBrowser;
 
 namespace horcom {
 
+/// the application property main sets to the chosen edition
+inline constexpr const char* kEnglishEditionProperty = "horcomEnglishEdition";
+
+/// The language rule of the shell. German is the native language of the
+/// program, every other choice reads the English edition.
+///
+/// @param lang the chosen code, de or en, empty follows the system
+/// @return true for the English edition
+[[nodiscard]] bool english_for(const QString& lang);
+
+/// @return true when the shell runs its English edition, the choice
+///         main made from --lang, the settings or the system language
+[[nodiscard]] bool english_edition();
+
 /// The TEXT-DATEI LESEN box over Robert Rettig's commentary texts,
 /// shipped as markdown editions in the data folder and rendered as
 /// such. The picker also reads an original KOMMEN7P folder kept

@@ -27,13 +27,14 @@ double plko12(double l, double b, double l1, double b1, double r, double r1, dou
 
 }  // namespace
 
-GeoResult helio_to_geo(const HelioState& body, const HelioState& earth, double dpsi, double deps) {
+GeoResult helio_to_geo(const HelioState& body, const HelioState& earth, double dpsi) {
   GeoResult out;
   double dr = 0.0;
   const double el = norm_rad(plko12(body.l, body.b, earth.l, earth.b, body.r, earth.r, dr));
   out.dr = dr;
   out.el = norm_rad(el + dpsi);
-  out.eb = deps + std::asin((body.r / (kEps + dr)) * std::sin(body.b));
+  // his eb(g&) = deps + ASIN(...), the nutation belongs to the obliquity
+  out.eb = std::asin((body.r / (kEps + dr)) * std::sin(body.b));
 
   // daily motion from a symmetric step of a tenth of the rates
   double drf = 0.0;

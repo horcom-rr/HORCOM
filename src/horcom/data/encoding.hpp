@@ -19,6 +19,23 @@ namespace horcom {
 /// @return the UTF-8 text
 [[nodiscard]] std::string cp1252_to_utf8(std::string_view in);
 
+/// Decodes the hand typed texts of his archive. They mix the German
+/// letters of the Atari ST character set, typed on his first machine,
+/// with Windows 1252 letters added later. The Atari letters sit in 0x80
+/// to 0x9F where Windows 1252 has only punctuation, so both decode side
+/// by side.
+///
+/// @param in raw bytes from a legacy text
+/// @return the UTF-8 text
+[[nodiscard]] std::string atari_cp1252_to_utf8(std::string_view in);
+
+/// Tells UTF-8 from the legacy encodings. Windows 1252 and Atari bytes
+/// never form valid multi byte UTF-8 in German text.
+///
+/// @param text the bytes of a file or line
+/// @return true when every byte sequence is valid UTF-8
+[[nodiscard]] bool looks_like_utf8(std::string_view text);
+
 /// Encodes UTF-8 text as Windows 1252 bytes.
 ///
 /// @param in UTF-8 text

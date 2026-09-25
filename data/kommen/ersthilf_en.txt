@@ -1,0 +1,52 @@
+           The basic way of OPERATING HORCOM :
+--------------------------------------------------------------------------
+ - You change between the MENU screen, which serves to choose the
+   programs, and the respective OUTPUT screen.
+
+ - The OUTPUT always fills the WHOLE screen.
+   Additional information from this screen only via the FUNCTION keys.
+   PRESSING the SPACE BAR always takes you to the next screen or to the
+   next question and finally back into the menu.
+
+ - A RECORD entered under 'IN-OUT' is at first always interpreted
+   as a RADIX record, you are on the 'RADIX LEVEL'.
+   After choosing programs such as SOLAR, DAY CHART etc. you are on a
+   'RESULT LEVEL', e.g. the 'SOLAR LEVEL', and from there you can choose
+   the menu items that still make sense via the MENU.
+   If you then want to choose something for the RADIX again, you first
+   have to click the record concerned under 'RADIX DATA' in 'IN-OUT'.
+
+ - If you only want to work on the screen, please deactivate the
+   'PRINTER OPTION' under 'CHANGE IN-OUT DEFAULTS...' or the menu item
+   concerned. Switching also works from the outputs with the keys ALT + D.
+
+ - EXPLANATIONS for the respective OUTPUT screen are given by the
+   FUNCTION KEY F1 ( the assignment of the function keys is in the first
+   column of the MENU ).
+
+ - Details of operation are found above all in Explanation 2.
+   As a first more thorough introduction read Explanations 1, 2, 3 and 4,
+   the others of course too when their topics interest you.
+   You should also read the files SHORT MANUAL and NOTES.
+
+ - For a quick start with HORCOM you should also go through all menu
+   items with 'CHANGE DEFAULTS.....' as soon as possible and try out the
+   variations.
+
+ - The assignment of the FUNCTION KEYS is found under 'ABOUT HORCOM' in
+   the main menu.
+
+ If you want to scan many charts for the records of a data file, e.g.
+ MUSTER5.DAT, quickly one after another on the screen, this works via the
+ menu item 'STATISTICS' by making an 'evaluable file' from the data file
+ and then going to the evaluation. You get alphabetical sorting when you
+ enter a blank at the object criterion 'NAME' and then press
+ 'OUTPUT LIST'.
+ When you now click a line of this list you get the chart.
+ At the question 'TAKE OVER ?' you usually answer no.
+
+ Another possibility for this is clicking the item 'ONLY SHOW CHART'
+ at the bottom right of a data file list.
+
+
+Robert Rettig, 27.02.07

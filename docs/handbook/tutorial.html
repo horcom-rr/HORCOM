@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>horcom Handbook — Tutorial</title>
+<title>horcom Handbook, Tutorial</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -22,306 +22,745 @@
 Download the newest release from the GitHub releases page. On Windows
 unpack the zip anywhere and start <code>horcom_gui.exe</code>, on Linux make
 the AppImage executable and start it, <a href="install.html">Installation</a>
-has the details. The menu bar carries the
-original main menu word for word, ÜBER HORCOM for the commentaries,
-EIN-AUSG. for records and files, EPHEMERIDE for the sky tables and
-statistics, HOROSKOPE for the chart views, AUSWERTUNG for returns and
-directions, DIVERSES for the remaining tools, only the Ansicht menu
-is an addition of the rewrite. On Windows the <code>data</code> folder must stay
-beside the program, the AppImage carries its own, it holds the planetary tables, the ephemeris
-files and the place and zone catalogues. The program speaks German on
-a German system and English everywhere else. <b>Sprache / Language</b>
-in the Ansicht menu switches it permanently, effective on the next
-start, and <code>--lang de</code> or <code>--lang en</code> on the command line
-overrides both.
+has the details. On Windows the <code>data</code> folder must stay
+beside the program, the AppImage carries its own. It holds the planetary
+tables, the ephemeris files, the place and zone catalogues and Robert
+Rettig's historical time zone notes.
+</p>
+<p>
+The program speaks German on a German system and English everywhere
+else. <b>SPRACHE / LANGUAGE</b> in the VIEW menu switches it
+permanently, effective on the next start, and <code>--lang de</code> or
+<code>--lang en</code> on the command line overrides both. This tutorial
+names every menu entry and dialog caption as the English edition shows
+it.
+</p>
+<p>
+The menu bar carries the original main menu entry for entry. ABOUT
+HORCOM holds the commentaries, IN-OUT the records and files, EPHEMERIS
+the sky tables and statistics, HOROSCOPES the chart views, EVALUATION
+the returns and directions, MISCELLANEOUS the remaining tools. Only the
+VIEW menu is an addition of the rewrite.
 </p>
 
 <h2>The first chart</h2>
 <p>
-The Eingabe panel on the left is the whole input, the person stands
-first. On top of it sit <b>Zurück</b> and <b>Vor</b>, the walk through the
-panel history. Every settled change counts as one step, a jump to a
-Solar, a loaded record or a slipped field alike, so Zurück doubles as
-the undo key (Alt+Links or Strg+Z, forward Alt+Rechts or Strg+Y). Type Vorname and Name, they land in the record, on the banner
-and on the sheet corner of the wheel. Then a birth date as
-TT.MM.JJJJ, years before Christ with a vC after the year like his
-record list showed them, and a clock time, then the time zone in hours east of Greenwich, the
-little <code>…</code> button beside it opens Robert's zone name catalogue when
-you only know the zone by name. Longitude and latitude take decimal
-degrees, east and north positive, and <b>ORTS-DATEIEN / Ort suchen</b> in the EIN-AUSG. menu
-(Ctrl+L) finds both from his gazetteer of places instead and carries
-the place name onto the sheet. <b>ORT in Orts-Datei eintragen</b> beside
-it writes the current place into a place file of your own for later
-reuse. Choose the
-house system, Placidus is his default, and the chart recomputes with
-every change, there is no calculate button.
+The Input panel on the left is the whole input, the person stands
+first. On top of it sit <b>Back</b> and <b>Forward</b>, the walk
+through the panel history. Every settled change counts as one
+step, a jump to a solar return, a loaded record or a slipped field
+alike, so Back doubles as the undo key (Alt+Left or Ctrl+Z, forward
+Alt+Right or Ctrl+Y). A step remembers the SATZ slot it belonged to,
+walking back over a slot switch makes that slot the active one again and
+the step lands in it like any settled edit, so no slot takes over the
+person of another. The Wahrer and Mittlerer choices of the node and the
+Black Moon come back with their step. CLEAN UP / RESET empties the
+history along with the data of the session. Type the given name and the name, they land in the
+record, on the banner and on the sheet corner of the wheel. Then a birth
+date as DD.MM.YYYY, years before Christ with a vC after the year like
+his record list showed them, and a clock time, then the time zone in
+hours east of Greenwich. The little <code>…</code> button beside it opens
+Robert's zone name catalogue when you only know the zone by name.
+Longitude and latitude take decimal degrees, east and north positive,
+and <b>PLACE FILES / FIND PLACE</b> in the IN-OUT menu (Ctrl+L) finds
+both from his gazetteer of places instead and carries the place name
+onto the sheet. <b>ENTER PLACE into a place file</b> beside it writes
+the current place into a place file of your own for later reuse. Choose
+the house system, Placidus is his default, and the chart recomputes
+with every change, there is no calculate button.
 </p>
 <p>
-The switches under the fields are his classic options. Sommerzeit
-raises the entered clock time by one hour when checked, the same
-shift his SOMMERZEIT-Datei carried, so daylight saving hours reach
-UT without editing the zone. The Häuser dropdown carries his menu of
-house systems, PLACIDUS by default. Parallaxe
-computes topocentrically, his special pride, the positions then carry
-the correction of the observer standing on the Earth's surface rather
-than its centre. Zusatz-Planeten opens the astronomically real extra
+The switches under the fields are his classic options. <b>Summer
+time</b> raises the entered clock time by one hour when
+checked, the same shift his summer time file carried, so daylight saving
+hours reach UT without editing the zone. The houses dropdown carries his
+menu of house systems, PLACIDUS by default. <b>Parallax
+(topocentric)</b> computes the positions for an observer standing on
+the Earth's surface rather than at its centre, his special pride.
+<b>Additional planets CH QU XE</b> opens the astronomically real extra
 bodies Chiron, Quaoar and Xena, the selection of Robert's own final
-profile. Mondknoten and Schwarzer Mond each ride their own row with
-a Wahrer or Mittlerer radio, the check turns the body on and the
-radio picks between the true and the mean formula. Andere Elemente
-opens the Planeten-Auswahl, the same dialog the Ansicht menu carries,
-from which the Asteroiden, die Planetoiden und die Hamburger Faktoren
-are picked one by one. Heliozentrisch turns the whole
-sky sun centred, the Earth appears on the wheel and the houses
-disappear, exactly as the original did it.
+profile. The lunar node and the Black Moon each ride their own row with
+a True or Mean radio, the check turns the body on and the radio picks
+between the true and the mean formula. <b>Other elements</b> opens the
+planet selection, the same dialog the VIEW menu carries, from which the
+asteroids, the planetoids and the Hamburg factors are picked one by
+one. <b>Heliocentric</b> turns the whole sky sun centred, the Earth
+appears on the wheel and the houses disappear, exactly as the original
+did it.
 </p>
 
 <h2>Reading the screen</h2>
 <p>
-The banner on top shows the Julian date, delta T, the sidereal time
-as ARMC and the active house system. The wheel lies like paper on the
-desk, the ascendant on the left, aspect chords in the middle, and the
-birth data written down the left margin of the sheet. The Koordinaten
-table lists every body with longitude, latitude, declination and
-daily motion, an R marks retrograde. The Häuser table lists the
-twelve cusps, and the line under the wheel counts the found aspects,
-lists the mirror points (Spiegelung) and the Moon phase.
-The mouse wheel zooms into the drawing around the cursor, dragging
-with the left button pans the zoomed sheet, and a double click brings
-the whole wheel back.
+The banner on top shows the Julian date, delta T, the sidereal time as
+ARMC and the active house system. The wheel lies like paper on the desk,
+the ascendant on the left, aspect chords in the middle, and the birth
+data written down the left margin of the sheet. The planet coordinates
+table beside it, switched on and off under VIEW, lists every body with
+longitude, latitude, declination and daily motion, an R marks
+retrograde. EPHEMERIS offers his own PLANET COORDINATES and EXTRA
+PLANET COORDINATES screens with every column of the original, his box
+of the house cusps AC, H2, H3, MC, H11 and H12, and the VARY THE TIME
+walk. The house cusps table lists the twelve cusps and comes and goes
+with HOUSE CUSPS ON / OFF in the VIEW menu, and the line under the wheel
+counts the found aspects, lists the mirror points and the Moon phase.
+Both tables can be dragged by their yellow title to another side, laid
+on each other as tabs or floated as windows of their own, the title keeps
+its colours in every state and carries the buttons to float and to close.
+The mouse wheel zooms into the drawing around the cursor, dragging with
+the left button pans the zoomed sheet, and a double click brings the
+whole wheel back.
 </p>
 
 <h2>Records</h2>
 <p>
-<b>Daten-Datei Ein-Ausgabe</b> (Ctrl+O) is the record hub of the
-original. It first asks for the working Daten-Datei, an existing DAT
-collection, a fresh name to start one with the current record, or an
-AAF file whose DAT twin is then built beside it. The bound file and
-its record count stay visible in the Eingabe panel. The hub then asks
-one question per box, exactly like his dialog system:
-<b>Datensätze HOLEN</b> first offers the bound Daten-Datei or an
-<b>Andere Datei wählen</b> shortcut, the same file-switch Robert let
-into every save and load path. For more than 45 records the
-SORTIER-MODUS box asks first whether to list them alphabetically from
-the first, second or third word of the name, by birthday or by date,
-then the chooser lists name, date, UT clock, coordinates and place in
-his fixed columns. Up to five records can be picked, each one passes
-through the EINGABE- und ANZEIGE-BOX on its way into a free RADIX
-slot. <b>AKTUELLEN Datensatz EINTRAGEN</b> appends the panel record to
-the file, a record of the same name raises his overwrite question,
-and where the AAF twin of the file exists it is the pilot, the record
-lands there too and the DAT is rebuilt from it.
-<b>Datensätze LÖSCHEN</b> marks up to ten records for removal,
-optionally together with their AAF twins, a full copy of the file
-survives as RRESERVE.DAT beside it. <b>Datei TRIMMEN</b> drops records
-without a day or without coordinates and <b>Datei MINIMIEREN</b>
-collapses records sharing name and birth clock, both replace the file
-only when something was removed, like the original rename rule.
+<b>DATA FILE IN-OUT</b> (Ctrl+O) is the record hub of the original. It
+first asks for the working data file, an existing DAT collection, a
+fresh name to start one with the current record, or an AAF file whose
+DAT twin is then built beside it. File names are not cut to his eight
+DOS letters, and a new file gets the .DAT or .AAF suffix when none is
+typed. The bound file and its record count
+stay visible in the Input panel. The hub then asks one question per
+box, exactly like his dialog system. <b>FETCH records</b> first offers
+the bound data file or a <b>Choose another file</b> shortcut, the same
+file switch Robert built into every save and load path. For more than
+45 records the sort mode box asks first whether to list them
+alphabetically from the first, second or third word of the name, by
+birthday or by date, then the chooser lists name, date, UT clock,
+coordinates and place in his fixed columns. Record lists and place
+lists sort an umlaut like its base vowel. Up to five records can be
+picked, each one passes through the entry and display box on its way
+into a free RADIX slot. Change a fetched record in that box and OK asks
+<i>SAVE the record In file … ?</i> with the answers SAVE in file …,
+Continue EDITING and ONLY TAKE OVER as a record. Where an AAF file
+stands beside the data file, his warning <i>Make changes in the AAF file only !
+Otherwise DATA may be LOST !!</i> comes first and only CONTINUE ANYWAY
+leads on to the question. <b>SHOW CHART ONLY</b> opens the chart of the
+marked row in a window of its own, Space leads back to the list and F6
+turns it heliocentric. After the first use the list stays a browser,
+the original's way of looking through a whole file without taking any
+record. <b>ENTER the CURRENT record</b> appends the panel record to the
+file, a record of the same name raises his overwrite question, and
+where the AAF twin of the file exists it is the pilot. A record of the
+same name there is found by his aaf_ident rule, the name in 25 capitals
+or the surname alone for a one letter given name like his star. It
+gives way to the new record at the end of the AAF file, and the DAT is
+rebuilt from it. A derived chart on the panel, a SOLAR, a COMBINE or a
+result taken as radix, carries the person's name with a moment of its
+own, so it joins the file beside the birth record and never replaces
+it.
 </p>
 <p>
-The fetched records live in the five <b>RADIX-DATEN</b> slots of the
-EIN-AUSG. menu, SATZ1 to SATZ5, the checked slot is the chart on the
-wheel and clicking another slot switches to it. Every computed return
-chart writes itself back into a <b>SOLAR...-DATEN</b> slot the same
-way, so a Solar stays a menu click away like in the original, and the
-<b>DOPPEL-DATEN</b> rows jump to Composit, Combin and the double
-wheel. <b>ERGEBNIS als RADIX</b> in the DIVERSES menu promotes the
-active derived chart into a fresh RADIX slot with its origin tagged in
-the name, so Transite, Combin and further returns can ride on top of a
-Solar, a Progression or any of the return family. <b>AUFRÄUMEN /
-RÜCKSETZEN</b> empties all slots and returns to the plain wheel. DOPPEL-KREIS / VERGLEICH, 90-GRAD-KREIS,
-COMPOSIT and COMBIN offer the loaded slots first and open the file
-chooser only when the partner is not in memory yet.
-<b>Neu-Eingabe von Datensätzen</b> (Ctrl+N) runs the entry box in a
-loop, every new record lands in the next slot and can be entered into
-the bound file at the end. <b>Datensatz bearbeiten</b> (Ctrl+D) opens
-the record mask with the AAF fields, name, place, country, summer
-time code, and <b>Aktuellen Datensatz eintragen</b> (Ctrl+S) is the
-EINTRAGEN of the hub as a direct key. AAF is the exchange format, so
-your records travel between HORCOM and every program that reads AAF.
-<b>DATEIEN VERKETTEN</b> in the DIVERSES menu merges any mix of DAT and
-AAF collections into one AAF chain file, <b>AAF-DATEI &lt; &gt;
-HORCOM-DATEI</b> beside it converts an exchange file into his fixed
-record layout, and <b>AUSWERTEFÄHIGE DATEI ERSTELLEN</b> in the
-EPHEMERIDE menu computes a whole collection into a research dataset.
+<b>DELETE records</b> marks up to ten records for removal, optionally
+together with their AAF twins, and a full copy of the file survives as
+RRESERVE.DAT beside it. The box <i>CONTINUE in the FILE … DELETING ?</i>
+then offers another round, STOP deleting rebuilds the DAT from its AAF
+twin where one exists. <b>TRIM the file</b> drops records without a
+day or without coordinates and <b>MINIMIZE the file</b> collapses
+records sharing name and birth clock, both replace the file only when
+something was removed, like the original rename rule. Every file the
+program writes goes into a temporary file first, which then takes the
+name of the old one, so a crash never leaves half a file behind.
+</p>
+<p>
+The fetched records live in the five <b>RADIX DATA</b> slots of the
+IN-OUT menu, SATZ1 to SATZ5. The checked slot is the chart on the wheel.
+Clicking a slot in the menu switches to it and opens its ENTRY and
+DISPLAY BOX like the original, OK takes an edit over and its save
+question writes it into the data file, CANCEL just leaves the slot
+active. Inside COMPOSITE, COMBINE and DOUBLE WHEEL the SATZ clicks pick
+the records without that box. Every computed return chart
+writes itself into the <b>SOLAR... DATA</b> row of its radix and
+replaces the return that stood there, so the latest solar return stays
+a menu click away like in the original, and the
+<b>DOUBLE DATA</b> rows jump to the composite, the combine chart and the
+double wheel. <b>RESULT as RADIX</b> in the MISCELLANEOUS menu promotes
+the active derived chart or the combine into a fresh RADIX slot, so
+transits, combines and further returns can ride on top of a solar
+return, a progression or any of the return family. The name stays, the
+slot reads like <i>SATZ2: SOLAR 2000 ALS RADIX NAME</i>, and the entry
+box of the new radix opens with that label. His warning <i>Only for the
+EXPERIENCED ! CHAOS LOOMS !</i> comes first with CANCEL as the default.
+When all five RADIX slots are taken the slot with the number of the
+result gives way after his overwrite question, together with the SOLAR
+entry of that number, and <i>Mistake</i> leaves everything as it was.
+Fetching records into full slots follows the same rule with the number
+of the active chart. <b>CLEAN UP / RESET</b> asks <i>DELETE the DATA
+and STORED PICTURES of this session ?</i> and on OK empties all slots
+and returns to the plain wheel. Once a composite, a combine or a double
+wheel was made, its DOUBLE DATA row names the pair, for example
+<i>DOUBLE WHEEL: NAME ONE-NAME TWO</i> with each name cut to ten
+letters like the original, and a click brings that pair back without
+asking again. An empty DOUBLE WHEEL row asks <i>MODE ?</i> and starts a
+new comparison. DOUBLE WHEEL, 90 DEGREE DIAL, COMPOSITE and COMBINE take
+their records from the filled slots like his SATZ clicks.
+</p>
+
+<h2>Entering new records</h2>
+<p>
+<b>CHANGE IN-OUT DEFAULTS</b> sets the input mode of the edit fields.
+With AUTOMATIC ADVANCE, his default, a field typed to its full length
+hands the focus to the next one, a day after two digits and a year
+after four, while a field entered with the mouse keeps the focus. WITH
+TAB STOP or MOUSE leaves the moving to the user. The same walk sets the
+printer option at program start and the format of the hardcopy, half
+or full page.
+</p>
+<p>
+<b>NEW ENTRY of RECORDS</b> (Ctrl+N) follows his original entry
+routine. When the aafdaten folder holds AAF files it first asks in
+which data format to enter. The AAF format loops through the AAF box
+and asks after each record whether to enter another one. There
+<b>OK = Save</b> writes the record into an AAF file, by default the
+twin of the working data file, asks before it overwrites a record of
+the same name and rebuilds the matching DAT file. Entering the chart
+type, country, summer time or zone field opens his pick list for it.
+In the zone list LMT takes the local time from the longitude, and LTT
+turns true into mean local time like the original, on its own before
+1810 and after his question until 1890. The HORCOM
+format opens one empty mask per call, titled with the RADIX number of
+the slot it claims, and reads the clock as local clock time.
+</p>
+<p>
+Ticking <b>CET and OTHER ZONE TIMES</b> opens his time zone box. Its
+difference field reads like his, zone time plus the value gives UT, so
+CET is -1. A click on a nearby place of the EUROPE or WORLD list takes
+its zone, the SINGLE and DOUBLE SUMMER TIME boxes add one or two hours
+to whatever zone the field holds, and the WORLD button opens the named
+zone catalogue. The mask then shows the zone difference. <b>LOCAL TIME
+(HISTORICAL CHARTS)</b> runs the clock on the longitude with his true
+or mean local time questions, <b>STILL JULIAN ( AFTER 1582 )</b> sets
+the Julian calendar and the local clock with it, and <b>READ TIME
+DETERMINATIONS</b> shows his historical zone and summer time notes per
+country. Those notes are his own German texts and stay in his wording.
+A missing day raises <i>DATE MISSING !</i> and a longitude beyond 180°
+<i>Invalid geographic longitude !</i>, both return to the mask with the
+typed fields kept.
+</p>
+<p>
+Tabbing from the name into the place field opens his place menu, NEW
+PLACE or EDIT PLACE, the PREFERRED PLACE, PLACE FILES :
+FETCH - ENTER - DELETE, DELETE PREFERRED PLACE and UNDO. The preferred
+place is the single place of <code>ort.ext</code> in the data folder, when
+none is set yet the next place typed by hand becomes it. PLACE FILES
+picks a place file and offers his file menu. FETCH record takes a place
+into the mask, DELETE records marks up to ten places with
+<code>RRESERVE.INT</code> as the reserve and the same continue question,
+TRIM the file drops places without a name or without coordinates.
+Tabbing on from the coordinates of a new or changed place asks <i>SAVE
+the PLACE ?</i>, YES enters it into a place file, the third button
+makes it the preferred place. The AAF box opens its own event place menu
+when its place name field is entered.
+</p>
+<p>
+OK then asks <i>SAVE the record ? Or continue EDITING ?</i>. SAVE picks
+the data file, a new name starts a new file with this record, an
+existing one takes it at the end and reports his byte and record count.
+ONLY TAKE OVER as a record, the default, only fills the slot. A record
+whose name already stands in a file with an AAF twin is refused with
+<i>A RECORD of the SAME NAME EXISTS already ! Make CHANGES in the AAF
+FILE !</i>, changes to such a record belong in the AAF file.
+</p>
+<p>
+<b>EDIT RECORD</b> (Ctrl+D) opens the AAF box with the AAF fields,
+name, place, country and summer time code. Opened from there or from
+the AAF format button of the record mask, the box shows the record
+first. <b>Back to HORCOM format</b> takes its fields over, <b>Change
+record</b> opens them for editing and saving through OK = Save, and
+<b>ENTER the CURRENT record</b> (Ctrl+S) is the entry branch of the hub as
+a direct key. AAF is the exchange format, so your records travel between
+HORCOM and every program that reads AAF. <b>CHAIN FILES</b> in the
+MISCELLANEOUS menu merges any mix of DAT and AAF collections into one
+AAF chain file. <b>AAF FILE &lt; &gt; HORCOM
+FILE</b> beside it asks <i>How to convert ?</i>. The import turns an AAF
+file into its DAT twin, the export writes the AAF twin of a DAT file
+after his warning that this only makes sense for exchanging data with
+programs that do not read the HORCOM format. An existing twin is only
+replaced after his question, the export can take a new name instead
+and the DAT follows it so the pair stays a pair, and <b>BUILD an
+EVALUATION FILE</b> in the EPHEMERIS menu computes a whole collection
+into a research dataset.
 </p>
 
 <h2>The running sky</h2>
 <p>
-The Transite switch lays the sky of the transit moment as an outer
-ring over the radix, with the running aspects listed under the wheel.
-<b>Transit-Liste</b> scans a whole date range for exact transit events and
-<b>Ingresse</b> tables the sign entries of the running bodies, the ten
-classic planets plus CH, QU, XE at the tester's request. The AC and MC
-entries walk the daily rotation, the slow bodies reach back to 1500
-(Chiron to 1800 where its orbit stays trustworthy). <b>UHR</b> turns
-the chart into his running clock, redrawn every fifteen seconds for
-the present moment at the panel's place, and on request the running
-clock takes over a RADIX slot as a record that ticks along, his
-zeuhr, though as the original warned it is not recommended.
+The Transits switch lays the sky of the transit moment as an outer ring
+over the radix, with the running aspects listed under the wheel.
+<b>TRANSITS</b> in the EVALUATION menu first asks the output mode,
+TABLE, HOROSCOPE GRAPHIC or LINEAR GRAPHIC. HOROSCOPE GRAPHIC asks
+CHOOSE the RUNNING FACTORS ?, the event place and the DATE-TIME ENTRY,
+then TIME UNIT ? (days, hours or minutes), a number and DIRECTION ?
+start his walk. V and R, D, H and M, plus and minus and Space steer it,
+the wheel follows every step, Esc leads to On with a NEW TIME UNIT ?,
+and the whole walk counts as one Back step. TABLE and LINEAR GRAPHIC
+ask his question boxes in turn. The base aspect comes first (15°, 22.5°, 30°, 45°, 60°, 90°,
+180°, 360° or any other divisor, and the combined grids 30° and 45°,
+60° and 45°, 60° and 90° that keep only the multiples of both angles),
+then which running factors take part (all of them, from Mars or from
+Jupiter outward, chosen ones marked red, or only chosen ones), the start
+and end date, whether the moon joins, and with the parallax on the event
+place. The radix points are the bodies with AC and MC. Following the
+direction defaults they also include the intermediate cusps of houses
+2, 3, 5 and 6, the four cardinal points and the midpoints of every pair.
+Before the list opens the program asks SORT the LIST ? like the
+original, by time, by aspect or in the order found, and the button under
+the table sorts again. The result table sets his symbol before every
+body tag, colours hard aspects red and the sextile and trine green,
+inverts MA SA UR NE PL and shows the hour with minutes only where the
+running body is fast enough for it. The list also carries the retrograde passages,
+marked R, and the transits of the mean node, each exact to about a
+second. Like every direction table it follows the chosen calendar and
+SMALL SYMBOLS in TABLES ?, and under the parallax it names the event
+place. A long run of TRANSITS, MUNDANE ASPECTS, SECONDARY DIRECTION or
+SOLAR (LUNAR) ARC DIRECTION shows a progress window, CANCEL or Esc asks
+before stopping and keeps the list found so far. A double click opens the
+transit view of that moment.
+</p>
+<p>
+<b>MUNDANE ASPECTS</b> first asks <i>Output mode ?</i> with TABLE or
+LINEAR GRAPHIC, then the same boxes. The table lists the exact aspects
+the running bodies make with each other, the positions of both beside
+every row. The linear graph draws the running bodies without radix
+lines, marks each aspect on the first body of the pair and steps on
+with NEXT interval. With a combined grid it offers his void of course
+rule for horary astrology, a body then only counts while it stays in
+the sign it stood in at the moment of the aspect.
+<b>INGRESSES SUN-MOON-MC-AC</b> asks for SUN, MOON, MC or AC, the other
+planets plus Chiron, Quaoar and Xena follow at the tester's request.
+The Sun takes a calendar year, the Moon and the planets a date, MC and
+AC a date and place in the record mask with three days side by side.
+Space, plus or PgDn page on and R, minus or PgUp back, the Sun by a
+year, the Moon 29 days on or 28 days back from the Pisces ingress of
+the table shown, the added planets by one orbital period but at least
+a year, the angles by three days. In the MC and AC tables the longitude
+column shows the axis computed at the found moment.
+<b>CLOCK</b> first shows the system time and asks whether it is right,
+then, the first time in a session, the place of the clock in his mask
+with the coordinates only. The clock reads UT from the system, his zone box for
+the system time is not needed. As long as the clock runs, a strip under
+the main screen shows its UT time, AC, MC and sidereal time every
+second. He then offers to take the running clock over as a record,
+though as he warned this is not recommended. Taken over it fills a
+RADIX slot that ticks every five seconds while it leads, otherwise his
+clock screen redraws the chart every fifteen seconds until ESC. While
+the clock record ticks, the menu entry reads <i>=&gt; RECORD
+'CLOCK'</i> in grey, the panel shows its moment, and the record pauses
+while a dialog is open. Called again the clock offers to delete itself,
+and ESC on its first box keeps a running clock as it is.
 </p>
 
 <h2>Returns</h2>
 <p>
-The AUSWERTUNG menu carries the whole return family grouped by kind,
-the return charts and the Münchner Rhythmenlehre block first (SOLAR
-with its Liste, LUNAR with its Liste, PLANETAR, PERSONAR, TAGES-HOROSKOP,
-DYNAMOGRAMM, MÜNCHNER RHYTHMENLEHRE, and SEPTAR beside the rhythm
-where it belongs), then the direction block (PROGRESSIONS-HOROSKOP,
-PRIMÄR-DIREKTION and the symbolic directions with the GRAD-DATUM-LISTE),
-then the transit block (LINEAR-GRAPHIK, TRANSIT-LISTE, MUNDAN-ASPEKTE).
-<b>Solar</b> finds the moment the transiting sun returns exactly onto its
-radix degree in a chosen year and draws that chart, and it carries a
-Vorheriges Jahr and Nächstes Jahr shortcut so a childhood year can be
-walked without leaving the dialog. <b>Lunar</b> does the same with the
-moon in a chosen month or, by number, counts the n-th lunar from birth
-for the Troinsky tertiaries. Both use his backward search, the same
-machinery his plant routine drove. <b>Solar-Liste</b> and
-<b>Lunar-Liste</b> table up to 84 return dates at once, and an
-ambiguous <b>Planetar</b> offers all its retrograde crossings to choose
-from. CH, QU and XE ride the Planetar body list unconditionally so the
-family's Zusatz-Planeten stay available even when the panel switch is
-off.
+The EVALUATION menu carries the whole return family grouped by kind.
+The return charts and the Munich rhythm block come first (SOLAR with
+its list, LUNAR with its list, PLANETAR, PERSONAR, DAY HOROSCOPE,
+DYNAMOGRAM, MUNICH RHYTHM THEORY, and SEPTAR beside the rhythm where it
+belongs), then the direction block (PROGRESSED HOROSCOPE, SECONDARY
+DIRECTION, SOLAR (LUNAR) ARC DIRECTION, PRIMARY DIRECTION and the
+symbolic directions with the DEGREE DATE LIST), then the transit block
+(LINEAR GRAPHIC, TRANSITS, MUNDANE ASPECTS). <b>SOLAR</b> finds the
+moment the transiting sun returns exactly onto its radix degree in a
+chosen year and draws that chart, and it carries a Previous year and
+Next year button so a childhood year can be walked without leaving the
+dialog. <b>LUNAR</b> does the same with the moon. Its box <i>SEARCH
+with :</i> offers DATE, NO. FUTURE and NO. PAST with his hints, by
+number it counts the n-th lunar return from birth for the Troinsky
+tertiaries, and Previous lunar and Next lunar step it. Number 0 is the
+radix itself, in PLANETAR as well. Both use his backward search, the
+same machinery his original routine drove. SOLAR, LUNAR and PLANETAR
+show the event place with a <b>Choose place…</b> button that opens
+<i>EVENT place = BIRTH place ?</i>. The return is searched and cast at
+that place while its target stays the radix position at the birth
+place, and the birth record keeps its own place. Every result carries
+the count of returns since birth, like 32.SOLAR, 668.LUNAR or 3.TERRAR,
+and replaces the SOLAR... DATA row of its radix, so the stepping
+buttons never fill further rows. <b>SOLAR LIST</b> and <b>LUNAR
+LIST</b> draw up to 84 return dates on one sheet, the lunar list from
+the last lunar before four days past the start date, and a click takes
+exactly the return of the clicked row over.
+<b>PLANETAR</b> searches by date or by number, then lists the passages
+of that return, a body in a retrograde loop crosses its radix point
+three times, the last row walks on to the return before. Pick a moment
+to view the chart or to take the time over. <b>PERSONAR</b> asks for
+the planet, then the place, shows the chart until a key and closes with
+<i>CREATE a FURTHER PERSONAR ?</i>. With the heliocentric
+switch on, SOLAR becomes <b>TERRAR</b>, the Earth's return in a chosen
+year. Chiron, Quaoar and Xena ride the planetar body
+list unconditionally so the additional planets stay available even when
+the panel switch is off.
 </p>
 
 <h2>Two people</h2>
 <p>
-<b>Vergleich</b> asks for a second record and rides it as an outer ring
-over the radix, with the cross aspects listed below. <b>Composit</b>
-builds the midpoint chart of both, the house mode follows his
-profile, and <b>Combin</b> averages moment and place into one chart. The
-<b>90°-Kreis</b> shows the comparison on the 90 degree dial, everything
-multiplied by four so the hard aspects of both charts stand side by
-side, the three sign qualities colour the band.
+<b>DOUBLE WHEEL / 90 DEGREE DIAL</b> asks for the mode, then for the
+record of the inner circle and the record of the outer circle, each
+one of the filled RADIX or SOLAR slots, just like his clicks on the
+SATZ entries. The sheet shows both coordinate columns on the left,
+INNER and OUTER with their house cusps, the grid of the cross aspects
+under them, exact ones included, and both records in the corners. The
+90 degree dial multiplies the wheel by four so the hard aspects of both
+charts
+stand side by side, the columns and the grid keep the natal longitudes.
+<b>COMPOSITE</b> asks for the house system of the midpoint chart, the
+mean sidereal time of both, Robert Hand at the place where the pair
+lives or the schematic halves from the MC midpoint, then for partner
+one and partner two from the slots, and under Robert Hand for that
+residence. <b>COMBINE</b> takes two to five records one click after the
+other, asking after each whether to fetch another or to output, and
+averages moment and place into one chart, its place stored under the
+name <code>COMBIN-ORT</code> like in his data files. COMPOSITE and
+COMBINE switch Heliocentric off and carry the fixed point along.
 </p>
 
 <h2>Special charts</h2>
 <p>
-<b>Direktionen</b> turns the axes at his Naibod rate to an event date,
-direct or converse, with the sidereal time variation he used for
-rectification. <b>Mundan</b> switches to the horm 2 view, every body
-projected along its semi arc into house space. <b>Harmonic</b> asks for an
-order and lays the harmonic chart, every longitude multiplied, as an
-outer ring over the radix, and <b>Multi-Direktionen</b> does the same with
-the six age directed wheels of the MULTI menu. <b>Septar</b> asks for the
-interested Lebensjahr and the phase (7 Monate is the family's default
-per <code>a17eing11</code>) and jumps to the solar of the corresponding
-year, the running Ergebnis line naming the covered life span so the
-first solar keeps its "1. SEPTAR = RADIX" meaning clearly. <b>Planetar</b>
-and <b>Personar</b> extend the returns beyond solar and lunar, and
-<b>Progressions-Horoskop</b> and <b>Tages-Horoskop</b> bring the day for a
-year clock and the chart of any day at the birth's true solar time.
+<b>* PRIMARY DIRECTED AXES *</b> in the CORRECTION box turns the axes
+at his Naibod rate to an event date, direct or converse, with the
+sidereal time variation he used for rectification. The event date box
+also asks a UT time, and the variation turns the axes exactly as far as
+the corrected radix will turn them. The wheel carries his texts, the
+sidereal time difference, the event moment, direct or converse, the
+directed sidereal time, radix or event planets and, once a variation
+was made, its value, running sum and mean. The REFERENCE SYSTEM
+of CHANGE HOROSCOPE DEFAULTS switches to his mundane frame, every body
+projected along its semi arc into house space, and the wheel carries
+Mundane in its centre. <b>MULTIPLE DIRECTIONS / HARMONICS</b> asks for
+one of his seven modes. The MULTI modes ask the event date, whether the
+houses move like the planets or come new from the directed MC, and for
+MULTI 3 and MULTI-ARC the reference factor, the FIXED POINT among
+them, then draw the directed chart outside the radix with both
+coordinate columns, the tight cross aspects and the list of directed
+midpoints on the axes and cusps. HARMONICS asks the order instead of a
+date and asks again for an order of 0. The session always draws a
+geocentric radix in the ecliptic frame with the mean node and the mean
+Black Moon, whatever the panel says, and the panel stays as it is. The
+MULTI modes direct the fixed point, the harmonics and the zero point
+modes leave it out, and the Hamburg factors never show. After a key
+the birth time can walk in hours, minutes or seconds while the sheet
+follows, and after the next key another date or order follows or the
+session ends.
+<b>SEPTAR</b> asks for the year of life of interest and the phase
+(seven months is the family's default, as in the original) and jumps to
+the solar return of the corresponding year. The result line names the
+covered life span, so the first solar return keeps its meaning of "1st
+SEPTAR = RADIX". <b>PLANETAR</b> and
+<b>PERSONAR</b> extend the returns beyond solar and lunar, and
+<b>PROGRESSED HOROSCOPE</b> and <b>DAY HOROSCOPE</b> bring the day for
+a year clock and the chart of any day at the birth's true solar time,
+both with Heliocentric switched off.
 </p>
 
 <h2>Direction evaluations</h2>
 <p>
-<b>Direktionen-Auswertung</b> lists arcs as ages for the symbolic methods
-and the Kühr primaries, and dated events for the secondary, sun arc
-and moon arc directions. <b>Rhythmenlehre</b> walks the seven year phases
-of the Döbereiner school and tables every trigger, and the
-<b>Dynamogramm</b> draws the summed intensity curves after Krafft-Goerner
-over five years of life. The <b>Linear-Graphik</b> spreads directions or
-transits as curves over a time axis in the manner of the Ebertin life
-diagram, every crossing with a radix line a direction becoming exact,
-and the <b>Grad-Datum-Liste</b> maps every half degree onto its age with
-the Gruppenschicksals-Grade marked and own degrees definable.
+<b>CHANGE DIRECTION DEFAULTS</b> heads the EVALUATION menu like in the
+original. Pick a topic and it walks that one and every topic after it,
+EXIT ends the walk. The topics are the sextile of the Munich rhythm
+theory, the paging of long tables, small or large
+symbols, the marking of the heavy planets and the aspect colours in the
+tables, the intermediate cusps and the cardinal points as direction and
+transit targets, the latitude of significator and promissor in the
+primary directions, the midpoints in the tables, all of them or only
+those with three different factors, and the ordinate direction of the
+linear graphs, upward or downward after R. Ebertin. The answers are
+written into <code>konsta.int</code> with the rest of the defaults when
+the walk ends.
+</p>
+<p>
+The direction block of EVALUATION carries his entries one by one.
+<b>SECONDARY DIRECTION</b> and <b>SOLAR (LUNAR) ARC DIRECTION</b> first ask
+the output mode. TABLE lists the dated directions. HOROSCOPE GRAPHIC
+asks CHOOSE the RUNNING FACTORS ? and Enter the SEARCH DATE !, read at
+the birth clock, and lays the progressed chart or the radix moved by the
+solar arc as an outer ring over the radix. The secondary direction also
+asks CALCULATION MODE ?, house rotation by one day for one year or the
+strictly proportional conversion, and neither asks a place. The same
+walk as for the transits follows, with symbolic years, months and days
+as further units, and HOROSCOPE GRAPHIC stays grey for the lunar arc.
+LINEAR GRAPHIC
+opens the linear graph of that kind. The linear boxes follow his a18eing
+with lin!, the combined grids and the small bases stay grey, MARK
+SINGLE … RED stays grey as well, and neither OUTPUT FORMAT ? nor the
+Black Moon question is asked. The
+transits open on the first of the month with a window of one, four or
+sixteen months, the directions count from a year of life over 5 to 80
+years, then his orientation box, hit lines, a fixed grid or none, and
+whether to mark the signs, both kept with the defaults, and FINE or
+THICKER lines. Each date of the axis sits over its own day tick and the
+hit lines wear his colours. The graph carries no stationary marks, no
+moon hits on the four and sixteen month axes, no hits of the true node
+or the true Black Moon and no Part of Fortune curve for the transits
+and the secondary direction. After the graph NEXT and PREVIOUS interval
+move the window. <b>PRIMARY DIRECTION ( E.C.KÜHR )</b>,
+<b>SYMB. DIRECTION: EQUATORIAL</b> (with his MUNDANE or RA SYSTEM
+question) and <b>SYMB. DIRECTION: ECLIPT.</b> list arcs as dates, as
+years of life with the month, or as the bare arc. All of them ask the
+same question boxes as the transits, the output format, the base aspect,
+for the arc methods the key number (one year per degree, NAIBOD or any
+other key), which planets take part, and the years of life to count from
+and to. The headings of the symbolic and primary lists always show the
+key as Key:… Y/°, and choosing a single factor there answers
+<i>CHOOSE AT LEAST 2 FACTORS !</i> and asks again. The secondary
+direction, the solar and lunar arcs, the primary and the symbolic
+directions in the RA SYSTEM or MUNDANE switch Heliocentric off. The
+secondary direction lists the retrograde passages and the mean node
+like the transits and asks whether to include the moon, the
+arc methods always take the moon along like the original. The
+intermediate cusps, the cardinal points and the midpoints join as the
+direction defaults say, the midpoints only in the ecliptic methods, and
+the primary list names the latitude choice of significator and promissor
+under the table. Every list asks SORT the LIST ? before it opens and
+sorts again from its button, by time or by aspect.
+</p>
+<p>
+The <b>MUNICH RHYTHM THEORY</b> switches Heliocentric off and walks the
+seven year phases of the Döbereiner school. After a hint when the house
+system is not Placidus, his EVALUATION MODE box offers the GRAPHIC, one
+wheel per phase with the rulers of the phase inverted unless they also
+stand in its house, the triggers on a time axis beside it and Space to
+walk on, the TRIGGER
+TABLE and the DEGREE DATE LIST, and it defines or deletes own degrees
+for the list. The boxes that follow ask the direction, the date or year
+and month format, the beginning phase, the time unit and the period per
+house, then the SPECIAL POINT, kept from the last run, defined as an
+ecliptic degree or through a date, or none. A SEPTAR asks the same unit
+and period, then the year of life of interest and the special point in
+a box that names the Septar being cast, and names the years it governs.
+The <b>DYNAMOGRAM</b> draws the summed intensity curves after
+Krafft-Goerner over five years of life, and with <i>WATCH the SINGLE
+ARCS ?</i> it first shows one screen per pass of its analysis. The
+<b>LINEAR GRAPHIC</b> spreads directions or transits as curves over a
+time axis in the manner of the Ebertin life diagram, every crossing
+with a radix line a direction becoming exact, and the <b>DEGREE DATE
+LIST</b> maps every half degree onto its age with the group destiny
+degrees marked and own degrees definable.
 </p>
 
 <h2>Sky tables</h2>
 <p>
-Under Ephemeride, <b>Fixsterne</b> lists his sixty two stars with their
-aspects to the chart, an aspected star wears his cyan band on the
-name. <b>Arabische Teile</b> tables the thirty seven sensitive
-points with the day and night formulas, the aspects of every point in
-his stelk manner and the same cyan band on the aspected rows,
-<b>Grad-Liste</b> the sorted
-degrees and <b>Ingresse</b> the sign entries. Under Diverses,
-<b>Aufgang/Untergang</b> tables the rising, meridian and setting clocks,
-<b>Finsternisse</b> the new and full moons with the eclipse letters and,
-on demand, their aspects to the valid record, and <b>Großes Jahr</b> the
-precession driven age point. <b>Histogramme</b> in the EPHEMERIDE menu
-counts the element and quality columns with his point weights. Feuer,
-Erde, Luft, Wasser wear his zeich_col shades, and Kardinal, Fix,
-Veränderlich carry the kard_fix_gem colours in the same key so the
-qualities read as a matching row (the family reads Veränderlich rather
-than his old Gemischt).
+Under EPHEMERIS, <b>FIXED STAR POSITIONS</b> lists his sixty two stars,
+always computed in APPARENT 2 whatever the defaults say, with their
+contacts to the chart as aspect symbols, each symbol before the body tag
+like his stelk, the fixed point and the axes included. Right ascension and declination stand in columns of their
+own, the longitudes read in degrees and minutes, an aspected star wears
+his red on cyan band on the name, and the footer names the person, the
+date, the kind of chart such as RADIX and the ephemeris mode. <b>ARABIC PARTS ( SENS.POINTS )</b> tables the thirty
+seven sensitive points with the day and night formulas, the aspects of
+every point in his manner and the same cyan band on the aspected rows,
+the <b>DEGREE LIST G/H</b> the sorted degrees and the <b>INGRESSES</b>
+the sign entries.
+Under MISCELLANEOUS, <b>RISE / SET</b> tables the rising, meridian and
+setting clocks, <b>ECLIPSES</b> the new and full moons with the eclipse
+letters, his Sun or Moon symbol on every seventh row, and, on demand, their aspects to the valid record, and
+<b>GREAT ( = PLATONIC ) YEAR</b> the precession driven age point.
+</p>
+<p>
+<b>HISTOGRAMS</b> in the VIEW menu counts the element and quality
+columns with his point weights. Fire, earth, air and water wear his sign
+colours, and cardinal, fixed and mutable carry the matching quality
+colours in the same key so the qualities read as a matching row (the
+family reads that row as mutable rather than his old mixed). The
+window is his point weight table, the point value row takes a digit
+from 0 to 9 per point, the last cell weighs every additional planet,
+and the two switches POINTS in the 1st HOUSE DOUBLE and 1st BIRTH RULER
+DOUBLE double the planets of the first house and the ruler of the
+ascendant sign. Whatever you set there feeds the histograms of the A4
+print and is written into <code>konsta.int</code> when the window
+closes. A row without any weight for SU to MC counts each
+of them once, like the original did when it read such a file.
 </p>
 
-<h2>The Aspektarium</h2>
+<h2>The aspectarium</h2>
 <p>
-<b>ASPEKTARIUM</b> in the HOROSKOPE menu opens his triangular aspect
-matrix, exact separations above the diagonal, the named aspects below
-it, the hit count of every body on the diagonal, and the divisor
-table with angle and orb beside it. The Maximaler Teiler box rescans
-with eight, twelve or sixteen divisors on the spot.
-<b>Halbsummen-Bäume</b> lists every point with its place on the 45 degree
-dial and the midpoints landing on it, close company on the dial
-glows red.
+<b>ASPECTARIUM</b> in the HOROSCOPES menu asks for the maximum divisor,
+eight, twelve or sixteen, and draws his triangular aspect matrix, exact
+separations in whole minutes above the diagonal, the named aspects
+below it, the hit count of every body on the diagonal, the divisor
+table with angle and orb beside it and the planet weights under it.
+<b>MIDPOINT GRAPHIC</b> draws a tree for every point with the pairs
+whose midpoint falls on it, page by page with Space, Enter or Page
+Down, and offers the sort by the 45 degree dial at the end. The
+midpoints of both screens include the fixed point when one is set. The
+right mouse button on the chart or on the trees opens the
+choice of single planets, shown red or alone with their aspects or
+midpoints, NORMAL OUTPUT returns to all of them.
 </p>
 
 <h2>Fine tuning</h2>
 <p>
-<b>VORGABEN HOROSKOP ÄNDERN</b> in the HOROSKOPE menu edits the orb factor,
-the maximal divisor, the equal probability mode and the planet
-weights, and places the Fixpunkt, a chosen ecliptic degree that rides
-the chart as the point <code>FP</code>. A checkbox writes everything as
-<code>konsta.int</code> beside the data so the next start keeps it.
-<b>KORREKTUR</b> in the DIVERSES menu rectifies the birth time, pick
-sidereal time, MC, AC, an intermediate cusp, sun or moon, give the
-target value, and the panel clock shifts until the chosen quantity
-reaches it. The Direktionen dialog collects trial shifts in a sum
-memory and applies their mean to the radix on demand. <b>Zeit-Wandern</b>
-and <b>Ort-Wandern</b> step the chart through time or place with the
-Schiemenz counters summing along, and <b>Planeten-Auswahl</b> in the
-Ansicht menu shows single planets alone or red, highlights the birth
-ruler and picks the drawn aspect lines per divisor. The Vorgaben
-dialog also chooses the length mode, apparent with light time, with
-aberration, or true.
+<b>CHANGE HOROSCOPE DEFAULTS</b> in the HOROSCOPES menu is the
+original's wizard of eleven topics. Pick one and the questions run on
+from there, R or PgUp steps back a question, WEIGHTING of the PLANET
+ORBS and ADD the MIDPOINT LIST ? included, EXIT ends. The topics set
+the reference frame, the size of the symbols, the orbs (the HORCOM
+count of twelve degrees over the divisor, or an own table with his
+button for equally probable orbs, the planet weights and the orb
+factor), the degrees and retrograde marks, where the chart begins, the
+old or new sign rulers, the colours of the ring and the histograms with
+every row of SET COLOURS showing its colour, the histogram weights, the
+counted divisors with the compact midpoint list, the line colour and
+style of every aspect family in the ASPECT LINES screen, where Enter or
+Space ends the wizard, and the colour of the outer symbols. His
+<i>SAVE slow SCREENS ?</i> still asks and notes that it has no effect in
+this version. With the compact list on,
+the summary box under the house cusps lists the midpoints of the chart
+after the aspects, direct, square and semisquare, as body on the
+midpoint of a pair.
+<b>CHANGE EPHEMERIS DEFAULTS</b> runs as a chain like the original,
+each answer opens the next topic, R or PgUp steps back and EXIT or ESC
+ends it. It chooses the length mode, apparent with light time, with
+aberration, or true, and places the fixed point, a chosen ecliptic
+degree entered by sign and degree that rides the chart as the point
+<code>FP</code>, a defined point can be kept or deleted. Like the
+original, every change of the defaults is written at once as
+<code>konsta.int</code> beside the data, and again when the program
+closes, so the next start keeps it. <b>CORRECTION</b> in the
+MISCELLANEOUS menu rectifies the birth time. Pick the sidereal time,
+MC, AC, an intermediate cusp, the sun or the moon, give the target
+value, and the panel clock shifts until the chosen quantity reaches
+it. A correction near midnight UT still lands on the moment nearest
+the birth, never a sidereal day away, and the moon takes its crossing
+nearest the birth. The correction
+switches to Placidus houses and geocentric positions while it runs and
+restores the house system at its end, and after a sun or moon
+correction the PLANET COORDINATES table opens. The directions
+dialog collects trial shifts in a sum memory and applies their mean to
+the radix on demand. <b>TIME WANDERING</b> and <b>PLACE WANDERING</b>
+step the chart through time or place with the Schiemenz counters
+summing along, every step flashing the strip at the bottom of the
+window. A time walk adds a single Back step to the panel history, and
+only when its varied time is taken over, the MULTI time walk likewise.
+<b>PLANET SELECTION</b> in the VIEW menu shows single
+planets alone or red and highlights the birth ruler.
 </p>
 
 <h2>Statistics</h2>
 <p>
-<b>STATISTIK</b> in the EPHEMERIDE menu loads one of his STATIST7 datasets,
-lists the charts and shows the sign distribution of any object over
-the whole set. Below that the search conditions of his stat_ausw
-world wait, pick an object, a body, a ruler, a midpoint, an aspect, a
-mirror point, a name fragment or an arabic part, say where it must
-stand, and apply. Conditions chain, UND keeps only records that
-survived the previous ones, and the record list filters to the hits.
-The <b>Zeigen</b> button draws the highlighted horoscope into the panel
-without closing the dialog so dozens can be browsed one after another
-before OK finally hands the pick back to the shell.
+<b>STATISTICS G/H</b> in the EPHEMERIS menu opens his statistics hub.
+First create an evaluable file from a data file of the SPEZIAL folder,
+every record is computed with the current settings, so set them before
+you answer PARAMETERS SET CORRECTLY ? with YES. The run locks the
+program until it ends, ESC or the close button ask whether to discard
+it, and records whose latitude the house system cannot handle are left
+out and counted in the report. A dataset of any size can be evaluated.
+START
+the EVALUATION then opens the dataset and asks one condition after the
+other, first the object, a planet or cusp, a house ruler, a midpoint, an
+aspect, a mirror point, a name or letter sequence or an arabic part,
+then where it must stand, at a degree, in a sign, in a house, at a
+planet or anywhere. Further conditions join with OR, AND INCLUSIVE or
+AND EXCLUSIVE, and the output list shows every match on his list screen,
+the records that meet all AND conditions in inverse video. A search
+without a match shows its notice and goes straight on to the next
+evaluation. Click a row to view that chart or to take it over as a
+RADIX, press W for another condition and ESC to end.
 </p>
 
 <h2>Output</h2>
 <p>
-<b>HOROSKOP als SVG SPEICHERN</b> writes the wheel as a vector file.
-<b>HOROSKOP als PDF SPEICHERN</b> and <b>DRUCKEN</b> (Ctrl+P) first ask
-his DRUCKER-GRAPHIK question, DIN A5 or DIN A4. A5 is the classic
-landscape sheet, the wheel with the margin table. A4 is the big
-upright page of the original, the wheel over the bes_big boxes,
-positions with velocity and the p and w marks, the aspect list with
-the mirror contacts, the house cusps, the Halbsummen in their three
-families and the sign quality and element counts with the little
-bars. <b>F9</b> activates the DOPPEL-AUSDRUCK, press it once to store
-the current sheet, set up the second horoscope, press it again and
-both print half size on one page like his mehrf buffers. Transits,
+<b>SAVE HOROSCOPE as SVG</b> writes the wheel as a vector file in
+Robert Rettig's own colours and lines, the same as the program window.
+<b>SAVE HOROSCOPE as PDF</b> and <b>PRINT</b> (Ctrl+P) first ask his
+printer graphic question, DIN A5 or DIN A4, and PRINT then runs the
+same printer setup boxes and page geometry as the PRINTER GRAPHIC of an
+output. A5 is the classic sheet,
+the wheel with the margin table. A4 is the big upright page of
+the original, the wheel over his large tables, positions with velocity
+and the p and w marks, the aspect list with the mirror contacts, the
+house cusps, the midpoints in their three families and his
+cardinal-fixed-mutable and element columns. HISTOGRAMS for ELEMENTS in
+CHANGE HOROSCOPE DEFAULTS decides whether those columns count the signs
+only, stack the house counts on top, or stay off the page. Transits,
 dial and comparison print like they show.
+</p>
+<p>
+The <b>PRINTER OPTION</b> decides how the outputs meet the printer,
+like in the original. It starts off, PRINT (Ctrl+P) and
+the PDF export work at any time. F8 or PRINTER OPTION ON / OFF in the
+IN-OUT menu switch it on for users who print most outputs, the choice is
+kept with the defaults. While it is on,
+leaving an output page with Space, Return, PgUp or PgDn first shows the
+small <b>HARDCOPY ?</b> box at the lower right, NO is preselected, YES
+prints the page, then any key goes on. HOROSCOPE GRAPHIC and the linear
+graphic first ask SCREEN, PRINTER GRAPHIC DIN A5 or DIN A4, the paired
+charts and the SOLAR and LUNAR tables SCREEN or DIN A5. Every print
+first asks PRINTER READY ? and names the paper to set up, then the
+system print dialog opens. Switch the option off and the charts simply
+stand on the main window without any of these boxes. <b>F9</b> (F9 =
+ACTIVATE DOUBLE PRINT) collects two pictures for one page, the first
+press explains it and keeps the output in front, the second keeps the
+next one, the third offers the print, both stacked on one DIN A4 page.
+The PRINT button of a record list and of the explanation reader prints
+the rows, 53 to a page with the page number on top. <b>SHOW / or SAVE the
+LAST PICTURE</b> in the IN-OUT menu brings back the page of the last
+output until a key, a chart that simply stood on the main window with
+the printer option off included, then saves it as a picture in the
+<code>bilder</code> folder of the data folder, loads a stored one or
+deletes one. Before any output it still offers the stored pictures,
+and right after STATISTICS or TIME WANDERING it refuses once with
+<i>Not for this application !</i> like the original.
 </p>
 
 <h2>Comfort</h2>
 <p>
-The Ansicht menu scales the text of the whole shell, Schrift größer
-and kleiner (Ctrl+Plus, Ctrl+Minus), remembered between runs. Under
-<b>Farben</b> the shell wears one of two dresses, <b>Schwarz auf Weiß</b>
-like the working screens of the original, the default, or
-<b>Nachthimmel</b>, the dark theme with gold headings and the starry
-banner of his splash screen. Under
-Hilfe the <b>Original-Kommentare</b> open Robert Rettig's own commentary
-texts, shipped with the program and readable like a handbook. They
-stay in his German wording on purpose, also in the English version. They are his writing, from the introduction to the
-Erläuterungen on directions and the Münchner Rhythmenlehre, and they
+The VIEW menu scales the text of the whole shell, LARGER TEXT and SMALLER
+TEXT (Ctrl+Plus, Ctrl+Minus), remembered between runs. Under
+<b>COLOURS</b> the shell wears one of two dresses, <b>BLACK on WHITE</b>
+like the working screens of the original, the default, or <b>NIGHT
+SKY</b>, the dark theme with gold headings and the starry banner of his
+splash screen. The third choice there, <b>BACKGROUND COLOURS</b>, asks
+his two colours, the background of the dialogs and the passive screen
+behind the wheel paper, keeps them in KONSTA and lays them over the
+dress, and text on those colours switches to black or white so it
+stays readable. Choosing a dress again gives the dress its own colours
+back. <b>RESET EVERYTHING…</b> at the foot of the VIEW menu, an addition
+of the rewrite, asks <i>RESET HORCOM to the STATE of its FIRST START ?</i>
+and on RESET and RESTART returns the text size, the colours, the windows
+and the DEFAULTS of Robert Rettig's own profile, then starts the program
+anew. The data of the session are lost like under CLEAN UP / RESET, the
+records, places and own files stay, and so does the language. Under ABOUT HORCOM the <b>INTRODUCTION = EXPLANATION 1</b>
+opens Robert Rettig's own commentary texts, shipped with the program and
+readable like a handbook. The English edition shows English translations
+of them where one exists, the German edition keeps his original
+wording. They are his writing, from the introduction to the
+commentaries on directions and the Munich rhythm theory, and they
 remain the best companion to this program.
+</p>
+<p>
+The grey rows under ABOUT HORCOM are his legend of the function keys,
+and the keys work like his. <b>F1</b> on the main screen, or the right
+mouse button there, opens his <i>First aid and introduction</i> list
+with the way on to the short manual, F1 inside an output opens the
+explanation of the menu the output came from. <b>F2</b> shows the chart
+in between only in the outputs where the original allowed it. There a
+derived chart asks whether it or the radix shows, the returns and the
+day charts show the radix at once, and F2, Alt+A or ESC closes it
+again. <b>F3</b> starts the calculator of the system, <b>F5</b> the
+angle conversion, <b>F6</b> switches between heliocentric and
+geocentric and says so, <b>F7</b> copies the window in front to the
+clipboard, where his program handed the screen to MSPAINT, and offers
+to save it as a PNG picture in the <code>bilder</code> folder of the
+data folder, <b>F8</b> switches the printer option and keeps it with
+the defaults, <b>F9</b> activates the double print. The menu bar keeps
+HORCOM's own access letters, so Alt+H, D, C, R, F, Z and M reach the
+function keys of his legend from the main screen, and inside any output
+Alt+E, A, C, R, F, D or Z and M act like F1, F2, F3, F5, F7, F8 and F9.
+A chart on the main window waits for a key only where one of his
+questions follows it, the PLANETAR, PERSONAR and TERRAR returns before the
+next one and MULTI before its next date, or while the printer option
+offers the HARDCOPY. Then the menu greys, a bar at the foot of the chart
+reads <i>ON with SPACE or a mouse click</i>, the title shows his hints,
+F1 opens the matching commentary and the right mouse button picks
+planets. Every other chart simply stays with the menu free, and the
+LAST PICTURE, the HARDCOPY and the double print preview show the same
+bar while they wait. <b>ESC</b> on the main screen, the close
+box of the window and every other way of closing HORCOM ask his
+question <i>END the PROGRAM HORCOM ?</i>, and
+<b>DESKTOP ( QUIT HORCOM )</b> in the MISCELLANEOUS menu carries the
+quit key of the system. ESC in one of his question boxes cancels the
+box and the flow it belongs to, the usual meaning on today's desktops,
+where his alert boxes took ESC as a click on the preselected button.
+CHANGES / NOTES / QUICK
+GUIDE offers his change list and the short manual, his Windows notes
+belonged to the historical installation and are not shipped.
 </p>
 
 </main>

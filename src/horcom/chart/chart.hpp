@@ -84,4 +84,22 @@ struct Chart {
 ///       correction, horg11 and bes111 stay dark there
 [[nodiscard]] Chart compute_chart(const ChartInput& in, const ChartSettings& s, const VsopTables& vsop, const Ephemerides& eph);
 
+/// The daily motion and its change of the true lunar node and the true
+/// apogee, his vel_om_pd.
+struct LunarRates {
+  double node_tb = 0.0;
+  double node_ttb = 0.0;
+  double apogee_tb = 0.0;
+  double apogee_ttb = 0.0;
+};
+
+/// Differentiates the true node and the true apogee over one hour either
+/// side of the chart's epoch, whatever the chart settings chose. The
+/// coordinate table shows both variants beside each other.
+///
+/// @param chart the computed chart, its ET epoch and its lunar points
+/// @param cal   the calendar rule of the chart
+/// @return the rates in radians per day
+[[nodiscard]] LunarRates lunar_rates(const Chart& chart, Calendar cal);
+
 }  // namespace horcom

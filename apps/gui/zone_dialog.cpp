@@ -10,6 +10,8 @@
 #include <QTableWidget>
 #include <QVBoxLayout>
 
+#include "table_fit.hpp"
+
 namespace horcom {
 
 ZoneDialog::ZoneDialog(const std::filesystem::path& catalogue, QWidget* parent) : QDialog(parent) {
@@ -77,6 +79,7 @@ void ZoneDialog::refresh() {
   }
   table_->resizeColumnToContents(0);
   table_->resizeColumnToContents(1);
+  fit_columns(table_);
 }
 
 void ZoneDialog::accept_row(int row) {

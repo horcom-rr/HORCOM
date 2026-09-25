@@ -54,12 +54,25 @@ struct ProgressedMoment {
 /// @return the progressed moment
 [[nodiscard]] ProgressedMoment progressed_moment(const Chart& radix, double jd_event_ut, ProgressionMode mode, const SearchContext& ctx);
 
+/// The event moment of taho_proho_ini, the chosen day at the radix
+/// clock.
+///
+/// @param radix       the birth chart
+/// @param jd_day0_ut  0h UT of the chosen day
+/// @param progression true for proho, whose event reads noon when the
+///                    radix clock stands at exactly midnight
+/// @return Julian day UT of the event
+[[nodiscard]] double event_at_radix_clock(const Chart& radix, double jd_day0_ut, bool progression);
+
 /// The day chart of taho, the moment on the chosen day whose true
 /// solar time equals the birth's.
 ///
 /// @param radix     the birth chart
-/// @param jd_day_ut any moment of the chosen day, the seed
-/// @param ctx       observer and settings
+/// @param jd_day_ut the seed, the chosen day at the radix clock from
+///                  event_at_radix_clock. The damped walk settles within
+///                  the solar day around the seed, a noon seed pushed a
+///                  morning birth onto the next day
+/// @param ctx       observer and settings, the place of the day chart
 /// @return the solved moment
 [[nodiscard]] ProgressedMoment day_chart_moment(const Chart& radix, double jd_day_ut, const SearchContext& ctx);
 
@@ -75,26 +88,36 @@ struct DirectedEvent {
 /// radix targets over a life window, the a180 sweep run on the day for
 /// a year axis and mapped back.
 ///
-/// @param radix        the birth chart
-/// @param jd_from_ut   life window start
-/// @param jd_to_ut     life window end
-/// @param base_angle_deg the aspect grid in degrees
-/// @param ctx          observer and settings
+/// @param radix the birth chart
+/// @param life  the life window in jd_from_ut and jd_to_ut with the
+///              grid, the choices and the targets of the a18eing boxes
+/// @param ctx   observer and settings
 /// @return the events ordered by life time
-[[nodiscard]] std::vector<DirectedEvent> secondary_direction_events(const Chart& radix, double jd_from_ut, double jd_to_ut, double base_angle_deg, const SearchContext& ctx);
+[[nodiscard]] std::vector<DirectedEvent> secondary_direction_events(const Chart& radix, const TransitScan& life, const SearchContext& ctx);
 
 /// The sun or moon arc direction list. The whole radix moves rigidly by
 /// the progressed light's arc, so every directed contact is a crossing
 /// of that light alone over shifted targets.
 ///
-/// @param radix        the birth chart
-/// @param moon_arc     true takes the moon's arc, the tertiary flavour
-/// @param jd_from_ut   life window start
-/// @param jd_to_ut     life window end
-/// @param base_angle_deg the aspect grid in degrees
-/// @param ctx          observer and settings
+/// @param radix    the birth chart
+/// @param moon_arc true takes the moon's arc, the tertiary flavour
+/// @param life     the life window in jd_from_ut and jd_to_ut with the
+///                 grid, the choices and the targets of the a18eing
+///                 boxes, the choices pick the directed bodies
+/// @param ctx      observer and settings
 /// @return the events ordered by life time, the directed body in the
 ///         transiting field, the reached radix point in the radix field
-[[nodiscard]] std::vector<DirectedEvent> arc_direction_events(const Chart& radix, bool moon_arc, double jd_from_ut, double jd_to_ut, double base_angle_deg, const SearchContext& ctx);
+[[nodiscard]] std::vector<DirectedEvent> arc_direction_events(const Chart& radix, bool moon_arc, const TransitScan& life, const SearchContext& ctx);
+
+/// The radix moved by the sun or moon arc of a life date, the directed
+/// ring of the HOROSKOP-GRAPHIK branch of a19. The moon arc leaves AC
+/// and MC in place like the lists.
+///
+/// @param radix       the birth chart
+/// @param moon_arc    true takes the moon's arc
+/// @param jd_life_ut  the life date the arc belongs to
+/// @param ctx         observer and settings of the progressed light
+/// @return the directed chart, ok false outside the ephemeris
+[[nodiscard]] Chart arc_directed_chart(const Chart& radix, bool moon_arc, double jd_life_ut, const SearchContext& ctx);
 
 }  // namespace horcom

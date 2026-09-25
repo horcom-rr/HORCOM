@@ -155,6 +155,74 @@ TEST_CASE("the sign window and the house window read the record") {
   CHECK(hr.distribution[10] == 1);
 }
 
+TEST_CASE("the house orb widens a house over 0 Aries instead of inverting it") {
+  // the first house runs from 340 to 10 degrees. His stat_ausw took
+  // dw = (w2 - w1) * obp / 100 from the raw cusps, -33 degrees at ten
+  // percent, and searched 13 to 337 degrees, the rest of the circle. The
+  // house is 30 degrees wide, the orb adds 3 on either side, 337 to 13
+  StatSet set;
+  const double sun[3] = {350.0, 11.5, 100.0};
+  for (const double s : sun) {
+    StatRecord r;
+    r.ac = 340.0 * kDegToRad;
+    r.h2 = 10.0 * kDegToRad;
+    r.h3 = 40.0 * kDegToRad;
+    r.mc = 250.0 * kDegToRad;
+    r.h5 = 110.0 * kDegToRad;
+    r.h6 = 140.0 * kDegToRad;
+    r.el[body::kSun] = s * kDegToRad;
+    set.records.push_back(r);
+  }
+  StatQuery q;
+  q.object = StatObject::kBody;
+  q.a.body = body::kSun;
+  q.window = StatWindow::kInHouse;
+  q.house = 1;
+  q.house_orb_pct = 10.0;
+  std::vector<double> mask;
+  const StatEvalResult r = run(set, q, mask);
+  // the Sun inside the house and the one within the orb past its end
+  // match, the Sun at 100 degrees, which his window took, does not
+  REQUIRE(r.matches.size() == 2);
+  CHECK(r.matches[0].record == 0);
+  CHECK(r.matches[1].record == 1);
+  CHECK(mask[2] == 0.0);
+  // without an orb the Sun at 11.5 degrees stands in the second house
+  q.house_orb_pct = 0.0;
+  std::vector<double> plain;
+  const StatEvalResult p = run(set, q, plain);
+  REQUIRE(p.matches.size() == 1);
+  CHECK(p.matches[0].record == 0);
+}
+
+TEST_CASE("only a record without the Sun reads as heliocentric") {
+  // his stat2 flagged AC, MC and house 2 at zero, a file of house system
+  // 9 or 10 without angles switched the program to HELIO. The helio
+  // writer of stat1 empties the Sun as well
+  StatRecord none;
+  none.el[body::kSun] = 1.0;
+  CHECK_FALSE(none.heliocentric());
+  StatRecord helio;
+  helio.el[body::kMoon] = 2.0;
+  CHECK(helio.heliocentric());
+  StatSet set;
+  set.records.push_back(none);
+  CHECK_FALSE(stat_heliocentric(set));
+  set.records.push_back(helio);
+  CHECK(stat_heliocentric(set));
+  // the Sun of a heliocentric file never takes part in SO / MO / AC
+  StatQuery q;
+  q.object = StatObject::kLights;
+  q.window = StatWindow::kAnywhere;
+  std::vector<double> mask;
+  const StatEvalResult r = run(set, q, mask);
+  bool sun_of_helio = false;
+  for (const StatMatch& m : r.matches) {
+    sun_of_helio = sun_of_helio || (m.record == 1 && m.slot == body::kSun);
+  }
+  CHECK_FALSE(sun_of_helio);
+}
+
 TEST_CASE("the ruler of the first house obeys the ascendant sign") {
   const StatSet set = sample();
   StatQuery q;
@@ -207,6 +275,33 @@ TEST_CASE("the aspect windows fold the separation and honour the filter") {
   CHECK(sr.matches[0].record == 0);
 }
 
+TEST_CASE("the divisor inputs keep the limits of stat_ausw") {
+  // a single aspect reaches twelve, a range stops at eight, beyond that
+  // the UND flags of one record ran past their twelve slots
+  const StatSet set = sample();
+  StatQuery wide;
+  wide.object = StatObject::kAspect;
+  wide.a.body = body::kSun;
+  wide.b.body = body::kMars;
+  wide.combine_and = true;
+  wide.asp_low = 1;
+  wide.asp_high = 16;
+  StatQuery eight = wide;
+  eight.asp_high = kStatMaxRangeDivisor;
+  std::vector<double> m1(set.records.size(), 1.0);
+  std::vector<double> m2(set.records.size(), 1.0);
+  const StatEvalResult r1 = run(set, wide, m1);
+  const StatEvalResult r2 = run(set, eight, m2);
+  CHECK(r1.matches.size() == r2.matches.size());
+  CHECK(m1 == m2);
+  StatQuery single = wide;
+  single.asp_low = 16;
+  single.asp_high = 16;
+  std::vector<double> m3(set.records.size(), 1.0);
+  (void)run(set, single, m3);
+  CHECK(kStatMaxSingleDivisor == 12);
+}
+
 TEST_CASE("UND chaining keeps only the survivors of both conditions") {
   const StatSet set = sample();
   StatQuery first;
@@ -233,6 +328,56 @@ TEST_CASE("UND chaining keeps only the survivors of both conditions") {
   third.sign = 8;
   (void)run(set, third, mask);
   CHECK(mask[0] == 0.0);
+}
+
+TEST_CASE("the Aries window with an orb reaches both sides of 0 Aries") {
+  // venus of the second chart at 20, of the first at 358, the sun of
+  // the first at 15. His w1 = ABS(wu) skipped 0 to 5 degrees
+  StatSet set = sample();
+  set.records[1].el[body::kVenus] = 3.0 * kDegToRad;
+  StatQuery q;
+  q.object = StatObject::kBody;
+  q.a.body = body::kVenus;
+  q.window = StatWindow::kInSign;
+  q.sign = 1;
+  // the sign window takes its orb in whole degrees like his numw
+  q.orb = 5.0;
+  std::vector<double> mask;
+  const StatEvalResult r = run(set, q, mask);
+  REQUIRE(r.matches.size() == 2);
+  CHECK(mask[0] > 0.0);
+  CHECK(mask[1] > 0.0);
+}
+
+TEST_CASE("UND over a window around 0 Aries keeps the survivors") {
+  // his two passes cleared each other's survivors, nothing ever stayed
+  StatSet set = sample();
+  set.records[1].el[body::kVenus] = 3.0 * kDegToRad;
+  StatQuery any;
+  any.object = StatObject::kBody;
+  any.a.body = body::kSun;
+  any.window = StatWindow::kAnywhere;
+  std::vector<double> mask;
+  (void)run(set, any, mask);
+  REQUIRE(mask[0] > 0.0);
+  REQUIRE(mask[1] > 0.0);
+  StatQuery around;
+  around.object = StatObject::kBody;
+  around.a.body = body::kVenus;
+  around.window = StatWindow::kAtDegree;
+  around.degree = 0.5 * kDegToRad;
+  around.orb = 5.0 * kDegToRad;
+  around.combine_and = true;
+  (void)run(set, around, mask);
+  // venus at 358 lies in the wrapped part, venus at 3 in the first pass
+  CHECK(mask[0] > 0.0);
+  CHECK(mask[1] > 0.0);
+  // a window that misses both still clears them
+  StatQuery miss = around;
+  miss.degree = 180.0 * kDegToRad;
+  (void)run(set, miss, mask);
+  CHECK(mask[0] == 0.0);
+  CHECK(mask[1] == 0.0);
 }
 
 TEST_CASE("names, midpoints, mirrors and the arabic part all answer") {
@@ -286,18 +431,72 @@ TEST_CASE("names, midpoints, mirrors and the arabic part all answer") {
   CHECK(pr.matches[0].record == 0);
 }
 
-TEST_CASE("the lights and all bodies walks never write the mask") {
+TEST_CASE("UND keeps a record for an aspect condition only when it holds") {
+  // his bed_erf_asp cleared only after an earlier hit of the same multiple,
+  // both records below kept their mask for a conjunction neither has
+  const StatSet set = sample();
+  StatQuery q;
+  q.object = StatObject::kAspect;
+  q.a.body = body::kSun;
+  q.b.body = body::kMars;
+  q.combine_and = true;
+  q.asp_low = 1;
+  q.asp_high = 1;
+  std::vector<double> mask(set.records.size(), 1.0);
+  (void)run(set, q, mask);
+  CHECK(mask[0] == 0.0);
+  CHECK(mask[1] == 0.0);
+  // square and opposition hold, both records stay
+  q.asp_high = 4;
+  std::vector<double> kept(set.records.size(), 1.0);
+  (void)run(set, q, kept);
+  CHECK(kept[0] > 0.0);
+  CHECK(kept[1] > 0.0);
+}
+
+TEST_CASE("SO MO AC under UND keeps a record when any light matches") {
+  // the first chart has the Sun and the AC in Aries but the Moon in
+  // Cancer, his walk cleared it on the Moon's miss
+  const StatSet set = sample();
+  StatQuery q;
+  q.object = StatObject::kLights;
+  q.window = StatWindow::kInSign;
+  q.sign = 1;
+  q.combine_and = true;
+  std::vector<double> mask(set.records.size(), 1.0);
+  (void)run(set, q, mask);
+  CHECK(mask[0] > 0.0);
+  CHECK(mask[1] == 0.0);
+}
+
+TEST_CASE("LAGE Bei PLANET reaches over 0 Aries") {
+  // the first chart's Sun at 15 stands 17 degrees from Venus at 358, his
+  // unnormalised window ran from 338 to 378 and never matched
+  const StatSet set = sample();
+  StatQuery q;
+  q.object = StatObject::kBody;
+  q.a.body = body::kSun;
+  q.window = StatWindow::kNearBody;
+  q.near_body.body = body::kVenus;
+  q.orb = 20.0 * kDegToRad;
+  std::vector<double> mask;
+  const StatEvalResult r = run(set, q, mask);
+  REQUIRE(r.matches.size() == 1);
+  CHECK(r.matches[0].record == 0);
+}
+
+TEST_CASE("the lights and all bodies walks answer as an OR over the group") {
   const StatSet set = sample();
   StatQuery q;
   q.object = StatObject::kAllBodies;
   q.window = StatWindow::kAnywhere;
   std::vector<double> mask;
   // seven filled slots on the first chart, six on the second, the
-  // empty slots fail the zero guard
+  // empty slots fail the zero guard, a hit keeps the record's mask
   const StatEvalResult r = run(set, q, mask);
   CHECK(r.matches.size() == 13);
   for (const double v : mask) {
-    CHECK(v == 0.0);
+    CHECK(v > 0.0);
   }
   // the sign distribution counted every tested longitude
   CHECK(r.distribution[0] == 13);

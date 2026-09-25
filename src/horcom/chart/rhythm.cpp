@@ -4,6 +4,7 @@
 
 #include "horcom/chart/rhythm.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <fstream>
@@ -17,6 +18,14 @@
 namespace horcom {
 
 namespace {
+
+using body::cardinal;
+
+// ported from a1720, the divisor the folded aspect angle stands for,
+// his kk lifts a quotient just under the whole number
+int aspect_family(double folded_rad) {
+  return static_cast<int>(kEps + kTwoPi / folded_rad);
+}
 
 struct Walk {
   const Chart& chart;
@@ -33,30 +42,39 @@ struct Walk {
       return opt.special;
     }
     if (slot == body::kAscendant) {
-      //RR AC und MC hauchdünn ins Haus gelegt
+      // AC and MC lie a hair inside their house
       return chart.houses.cusp[1] + (opt.leftward ? kEps : -kEps);
     }
     if (slot == body::kMc) {
       return chart.houses.cusp[10] + (opt.leftward ? kEps : -kEps);
+    }
+    if (cardinal(slot)) {
+      return (slot - body::kAriesPoint) * kHalfPi;
     }
     return chart.b[static_cast<std::size_t>(slot)].el;
   }
 
   [[nodiscard]] bool usable(int slot) const {
     if (slot == 0) {
-      //RR der Sonderpunkt, nur direkte Auslösungen wie die Kardinalpunkte
+      // lpkt sets aa& = 0, the Sonderpunkt walks and chains like a body
       return opt.special >= 0.0;
     }
     if (slot == body::kAscendant || slot == body::kMc) {
       return chart.houses.ok;
+    }
+    if (cardinal(slot)) {
+      // IF dbr& < 3 && kard! = FALSE && pl& = 15, pl& = 19
+      return opt.cardinals;
     }
     const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
     return b.present && b.valid;
   }
 
   // the age stamp of a171, the phase gives the years, the body's
-  // place within its own house the fraction
-  void stamp(int slot, int source, RhythmKind kind, double angle_deg, double w3_raw) {
+  // place within its own house the fraction, an aspect row carries its
+  // folded angle
+  void stamp(int slot, int source, RhythmKind kind, double folded_rad, double w3_raw) {
+    const int family = folded_rad > 0.0 ? aspect_family(folded_rad) : 0;
     for (int a = 1; a <= 12; ++a) {
       double w1 = chart.houses.cusp[static_cast<std::size_t>(a)];
       double w2 = chart.houses.cusp[static_cast<std::size_t>(a) + 1];
@@ -66,10 +84,12 @@ struct Walk {
         RhythmTrigger t;
         t.phase = phase;
         t.house = house;
+        t.body_house = a;
         t.slot = slot;
         t.source = source;
         t.kind = kind;
-        t.angle_deg = angle_deg;
+        t.angle_deg = folded_rad * kRadToDeg;
+        t.family = family;
         const double vp = opt.phase_years;
         if (opt.leftward) {
           t.value = (house - 1) * vp + vp * (w3 - w1) / (kEps + w2 - w1);
@@ -77,7 +97,7 @@ struct Walk {
           t.value = (12 - house) * vp + vp * (w2 - w3) / (kEps + w2 - w1);
         }
         if (opt.months) {
-          t.value /= 12.0;
+          t.value /= kMonthsPerYear;
         }
         rows.push_back(t);
       }
@@ -100,24 +120,28 @@ struct Walk {
       if (folded > kPi && folded < kTwoPi) {
         folded = kTwoPi - folded;
       }
-      stamp(o, ps, RhythmKind::kAspect, folded * kRadToDeg, position(o));
+      stamp(o, ps, RhythmKind::kAspect, folded, position(o));
     };
+    // the cardinal points carry no aspects of their own
     for (int o = 0; o < ps; ++o) {
-      if (usable(o) && o != body::kNodeDesc) {
+      if (usable(o) && o != body::kNodeDesc && !cardinal(o)) {
         follow(o, aspects.asp[static_cast<std::size_t>(o)][static_cast<std::size_t>(ps)]);
       }
     }
     for (int o = 0; o < body::kSlotCount; ++o) {
-      if (usable(o) && o != body::kNodeDesc) {
+      if (usable(o) && o != body::kNodeDesc && !cardinal(o)) {
         follow(o, aspects.asp[static_cast<std::size_t>(ps)][static_cast<std::size_t>(o)]);
       }
     }
   }
 
-  // the mirror chain of a173
+  // the mirror chain of a173, IF dbr& < 3 && horm& = 1
   void mirror_chain(int ss) {
+    if (opt.mundane) {
+      return;
+    }
     for (int r = 0; r < body::kSlotCount; ++r) {
-      if (!usable(r) || r == body::kNodeDesc) {
+      if (!usable(r) || r == body::kNodeDesc || cardinal(r)) {
         continue;
       }
       if (mirror[static_cast<std::size_t>(r)][static_cast<std::size_t>(ss)] ||
@@ -128,7 +152,7 @@ struct Walk {
   }
 
   void ruler_row(double sign_point, RhythmKind kind) {
-    const int kp = sign_ruler(sign_point, false);
+    const int kp = sign_ruler(sign_point, opt.classic_rulers);
     if (kp <= 0 || !usable(kp)) {
       return;
     }
@@ -141,15 +165,16 @@ struct Walk {
 // ported from spieg1, marks pairs whose longitudes sum onto the whole
 // or the half circle within the doubled orb
 void build_mirrors(Walk& w, const AspectSettings& a) {
-  //RR Spiegelung
   const double dd = a.orb * 2.0 * kDegToRad;
-  for (int t = 1; t < body::kSlotCount - 1; ++t) {
-    if (!w.usable(t) || t == body::kNodeDesc) {
+  // FOR t& = aa& TO bb& - 1, the Sonderpunkt on slot zero included, the
+  // cardinal points stay outside his as() positions
+  for (int t = 0; t < body::kSlotCount - 1; ++t) {
+    if (!w.usable(t) || t == body::kNodeDesc || cardinal(t)) {
       continue;
     }
     const double o1 = org(a, t, 1);
     for (int u = t + 1; u < body::kSlotCount; ++u) {
-      if (!w.usable(u) || u == body::kNodeDesc) {
+      if (!w.usable(u) || u == body::kNodeDesc || cardinal(u)) {
         continue;
       }
       const double o2 = org(a, u, 1);
@@ -175,23 +200,9 @@ std::vector<RhythmTrigger> rhythm_triggers(const Chart& chart, const AspectResul
   Walk w{chart, aspects, opt, {}, {}, 0, 0};
   build_mirrors(w, a);
   const auto cusp = [&chart](int h) { return chart.houses.cusp[static_cast<std::size_t>(h)]; };
-  int from = 0;
-  int to = 0;
-  int step = 0;
-  if (opt.leftward) {
-    from = opt.begin_house;
-    to = 12;
-    step = 1;
-  } else {
-    from = 12 - opt.begin_house + 1;
-    to = 1;
-    step = -1;
-  }
-  int l = from - step;
-  int phase = 0;
-  do {
-    l += step;
-    ++phase;
+  const int phases = rhythm_phase_count(opt);
+  for (int phase = 1; phase <= phases; ++phase) {
+    const int l = rhythm_phase_house(opt, phase);
     w.phase = phase;
     w.house = l;
 
@@ -211,7 +222,8 @@ std::vector<RhythmTrigger> rhythm_triggers(const Chart& chart, const AspectResul
       }
     } else {
       int m1r = m1;
-      if (m1r - m2 > 6) {
+      // IF m2& - m1& > 6, the house runs over 0 Aries
+      if (m2 - m1r > 6) {
         m1r += 12;
       }
       const int span = m1r - m2;
@@ -222,14 +234,13 @@ std::vector<RhythmTrigger> rhythm_triggers(const Chart& chart, const AspectResul
       }
     }
 
-    // every body standing in the phase's house, the direct triggers
+    // every body standing in the phase's house, the direct triggers,
+    // FOR pl& = aa& TO npm& with the descending node and on demand the
+    // cardinal points
     double w1 = cusp(l);
     double w2 = cusp(l + 1);
     for (int pl = 0; pl < body::kSlotCount; ++pl) {
-      if (pl >= 15 && pl <= 18) {
-        continue;
-      }
-      if (!w.usable(pl) || pl == body::kNodeDesc) {
+      if (!w.usable(pl)) {
         continue;
       }
       double w3 = norm_rad(w.position(pl));
@@ -244,6 +255,7 @@ std::vector<RhythmTrigger> rhythm_triggers(const Chart& chart, const AspectResul
           RhythmTrigger t;
           t.phase = phase;
           t.house = l;
+          t.body_house = l;
           t.slot = pl;
           t.kind = RhythmKind::kDirect;
           if (opt.leftward) {
@@ -252,13 +264,13 @@ std::vector<RhythmTrigger> rhythm_triggers(const Chart& chart, const AspectResul
             t.value = (12 - l) * vp + vp * (a2 - a3) / (kEps + a2 - a1);
           }
           if (opt.months) {
-            t.value /= 12.0;
+            t.value /= kMonthsPerYear;
           }
           w.rows.push_back(t);
           w.aspect_chain(pl);
           w.mirror_chain(pl);
         }
-        //RR das Apogäum spricht auch am Gegenpunkt an
+        // the apogee also triggers at its opposite point
         if (pl == body::kApogee && opt.apogee_opposite && !opposite) {
           w3 = norm_rad(w3 + kPi);
           opposite = true;
@@ -267,14 +279,25 @@ std::vector<RhythmTrigger> rhythm_triggers(const Chart& chart, const AspectResul
         break;
       }
     }
-  } while (l != to);
+  }
   return w.rows;
+}
+
+int rhythm_phase_count(const RhythmOptions& opt) {
+  return 13 - opt.begin_house;
+}
+
+int rhythm_phase_house(const RhythmOptions& opt, int phase) {
+  return opt.leftward ? opt.begin_house + phase - 1 : 12 - opt.begin_house + 1 - (phase - 1);
 }
 
 namespace {
 
 // the published Gruppenschicksals-Grade of W. Döbereiner, half degree
-// index with the planet pair of the characteristic, his a174g calls
+// index with the planet pair of the characteristic, his a174g calls.
+// His gs& list of a17_3, which answered the BEREITS VORHANDEN test of an
+// own degree, lacked 214 although a174 marks it MO-SA, so 107 degrees
+// could be defined a second time. One list serves both here
 struct Gsp {
   int half;
   int p;
@@ -306,12 +329,32 @@ constexpr Gsp kGsp[] = {
 
 }  // namespace
 
+bool degree_known(int half, const std::vector<CustomDegree>& own) {
+  for (const Gsp& g : kGsp) {
+    if (g.half == half) {
+      return true;
+    }
+  }
+  for (const CustomDegree& c : own) {
+    if (static_cast<int>(c.degree * 2.0 + 0.5) == half) {
+      return true;
+    }
+  }
+  return false;
+}
+
 std::vector<CustomDegree> read_degrees(const std::filesystem::path& file) {
   std::vector<CustomDegree> out;
   std::ifstream in(file);
   if (!in) {
     return out;
   }
+  // his WRITE #30 quoted every field, INPUT #30 read them back like VAL
+  const auto field = [](std::string s) {
+    s.erase(std::remove_if(s.begin(), s.end(), [](char ch) { return ch == '"' || ch == ' ' || ch == '\r'; }),
+            s.end());
+    return s;
+  };
   std::string line;
   while (std::getline(in, line)) {
     // his INPUT gr$,p1$,p2$ rows, commas separate the three values
@@ -321,9 +364,9 @@ std::vector<CustomDegree> read_degrees(const std::filesystem::path& file) {
       continue;
     }
     try {
-      const double deg = std::stod(line.substr(0, c1));
-      const int p = std::stoi(line.substr(c1 + 1, c2 - c1 - 1));
-      const int q = std::stoi(line.substr(c2 + 1));
+      const double deg = std::stod(field(line.substr(0, c1)));
+      const int p = std::stoi(field(line.substr(c1 + 1, c2 - c1 - 1)));
+      const int q = std::stoi(field(line.substr(c2 + 1)));
       out.push_back({deg, p, q});
     } catch (...) {
       continue;
@@ -333,12 +376,16 @@ std::vector<CustomDegree> read_degrees(const std::filesystem::path& file) {
 }
 
 bool write_degrees(const std::filesystem::path& file, const std::vector<CustomDegree>& rows) {
-  std::ofstream out(file, std::ios::trunc);
+  std::ofstream out(file, std::ios::trunc | std::ios::binary);
   if (!out) {
     return false;
   }
+  // WRITE #30,gr$,p1$,p2$ with gr$ = STR$(g,5,1) and the two planets in
+  // two places, every field quoted, the lines end in CR LF
   for (const CustomDegree& r : rows) {
-    out << r.degree << "," << r.p << "," << r.q << "\n";
+    char buf[64];
+    std::snprintf(buf, sizeof(buf), "\"%5.1f\",\"%2d\",\"%2d\"\r\n", r.degree, r.p, r.q);
+    out << buf;
   }
   return static_cast<bool>(out);
 }
@@ -352,8 +399,9 @@ std::vector<DegreeDate> degree_dates(const Chart& chart, const RhythmOptions& op
   std::array<double, 14> fz = chart.houses.cusp;
   if (mundane) {
     //RR im Mundan-Horoskop ... äquale Häuser von je 30 Grad auf dem ÄQUATOR
+    // with his kk on every cusp, 0 Aries then falls into house twelve
     for (int i = 1; i <= 12; ++i) {
-      fz[static_cast<std::size_t>(i)] = (i - 1) * kPi / 6.0;
+      fz[static_cast<std::size_t>(i)] = (i - 1) * kPi / 6.0 + kEps;
     }
   }
   fz[13] = fz[1];
@@ -370,7 +418,12 @@ std::vector<DegreeDate> degree_dates(const Chart& chart, const RhythmOptions& op
         break;
       }
     }
+    // his SELECT m& names a Gruppenschicksals-Grad before any own degree
+    const bool published = row.p > 0;
     for (const CustomDegree& c : own) {
+      if (published) {
+        break;
+      }
       const int half = static_cast<int>(c.degree * 2.0 + 0.5);
       if (half == i) {
         row.p = c.p;
@@ -393,7 +446,8 @@ std::vector<DegreeDate> degree_dates(const Chart& chart, const RhythmOptions& op
       double w2 = fz[static_cast<std::size_t>(a) + 1];
       double v3 = w3;
       vergl2(w1, w2, v3);
-      if (v3 > w1 && v3 < w2) {
+      // IF (w3 > w1 && w1 > 0 && w3 < w2)
+      if (v3 > w1 && w1 > 0.0 && v3 < w2) {
         row.house = a;
         if (opt.leftward) {
           row.value = (a - 1) * vp + vp * (v3 - w1) / (kEps + w2 - w1);
@@ -401,7 +455,7 @@ std::vector<DegreeDate> degree_dates(const Chart& chart, const RhythmOptions& op
           row.value = (12 - a) * vp + vp * (w2 - v3) / (kEps + w2 - w1);
         }
         if (opt.months) {
-          row.value /= 12.0;
+          row.value /= kMonthsPerYear;
         }
         break;
       }
@@ -418,8 +472,13 @@ double degree_at_age(const Chart& chart, const RhythmOptions& opt, double years)
     return -1.0;
   }
   const double vp = opt.phase_years;
-  double step = years / vp;
-  step -= 12.0 * std::floor(step / 12.0);
+  // lpk = (lpkt - sn) * fm& / vp, the month unit counts twelve a year
+  const double step = years * (opt.months ? kMonthsPerYear : 1.0) / vp;
+  // IF l& => 0 && l& < 12, the walk has no degree before birth or
+  // beyond its twelve phases
+  if (step < 0.0 || step >= 12.0) {
+    return -1.0;
+  }
   int a = static_cast<int>(std::floor(step)) + 1;
   const double frac = step - (a - 1);
   if (!opt.leftward) {
@@ -433,6 +492,39 @@ double degree_at_age(const Chart& chart, const RhythmOptions& opt, double years)
   const double span = w2 - w1;
   const double deg = opt.leftward ? w1 + frac * span : w2 - frac * span;
   return norm_rad(deg);
+}
+
+double septar_offset(int sen, const RhythmOptions& opt) {
+  // a Septar walks twelve houses, vp months are vp twelfths of a year
+  return (sen - 1) * opt.phase_years * (opt.months ? 1.0 : kMonthsPerYear);
+}
+
+double rhythm_jd(const RhythmClock& c, double years) {
+  // l = lj(u&,w&) * tja, jd = jd(1,ze) + l
+  return c.base_jd + years * c.tja;
+}
+
+double rhythm_years(const RhythmClock& c, double jd) {
+  return (jd - c.base_jd) / c.tja;
+}
+
+// ported from a175 and a178, one signed age read by sign and magnitude
+RhythmAge rhythm_age(double years, double sn, bool whole_months) {
+  RhythmAge out;
+  const double v = sn + years;
+  out.negative = v < 0.0;
+  const double a = std::abs(v);
+  double y = std::trunc(a);
+  // aa = FN d(12 * FRAC(lj)) with d = 1, mon = CINT(12 * FRAC(l))
+  const double scale = whole_months ? 1.0 : 10.0;
+  double m = std::floor(kMonthsPerYear * (a - y) * scale + 0.5) / scale;
+  if (m >= kMonthsPerYear) {
+    m = 0.0;
+    y += 1.0;
+  }
+  out.years = static_cast<int>(y);
+  out.months = m;
+  return out;
 }
 
 }  // namespace horcom

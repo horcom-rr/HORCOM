@@ -15,21 +15,23 @@ namespace horcom {
 
 /// The three house modes of the a13 dialog.
 enum class CompositeHouses {
-  kMeanSidereal = 1,  // comp_mstz, mean sidereal time, longitude, latitude
-  kRobertHand = 2,    // comp_hand, the armc from the MC midpoint at the residence
-  kSchematic = 3,     // schematic halbsummen from the MC midpoint
+  kMeanSidereal = 1,  ///< comp_mstz, mean sidereal time, longitude, latitude
+  kRobertHand = 2,    ///< comp_hand, the armc from the MC midpoint at the residence
+  kSchematic = 3,     ///< schematic halbsummen from the MC midpoint
 };
 
 /// The near side midpoint of two longitudes, ported from halbsmin.
 ///
 /// @param p1 first longitude, radians
 /// @param p2 second longitude
-/// @return the midpoint on the shorter arc with his far side tie rule
+/// @return the midpoint on the shorter arc, an exact opposition takes
+///         the second candidate like his tie
 [[nodiscard]] double midpoint_near(double p1, double p2);
 
 /// Builds the composite of two charts, ported from a13.
 ///
-/// Body positions are near side midpoints, the south node follows the
+/// Body positions are near side midpoints, the fixed point among them
+/// when both charts carry one on slot zero, the south node follows the
 /// north by half a circle, the AC and MC midpoints flip to the side of
 /// their cusps, and the houses follow the chosen mode. The result
 /// carries longitudes only, latitudes and speeds stay zero because a
@@ -46,8 +48,16 @@ enum class CompositeHouses {
 [[nodiscard]] Chart composite_chart(const Chart& a, const ChartInput& ia, const Chart& b, const ChartInput& ib,
                                     CompositeHouses mode, double residence_lat_deg, const ChartSettings& s);
 
-/// The combin mean of a14, plain averages of moment and place for two
-/// to five records, the chart then runs the normal pipeline.
+/// The mean of geographic longitudes on the side where the places lie,
+/// the plain mean of a14 unless the group straddles the date line.
+///
+/// @param lons east longitudes in degrees, at least one
+/// @return the mean in degrees, east positive, within half a circle
+[[nodiscard]] double mean_longitude(std::vector<double> lons);
+
+/// The combin mean of a14, plain averages of moment and latitude for
+/// two to five records and the longitude mean of mean_longitude, the
+/// chart then runs the normal pipeline.
 ///
 /// @param parts the inputs to average
 /// @param cal   calendar rule for the averaged moment

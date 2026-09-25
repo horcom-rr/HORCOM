@@ -1,0 +1,98 @@
+-----------------------------------------------------------------------------     
+      FRANKREICH
+-----------------------------------------------------------------------------
+     
+     Für umfassende Informationen weltweit,siehe unter :
+        http://www.themamundi.de/aws/tabellen/zeitzonen.htm
+
+ 
+      PARIS  Br.:48.5049 N   Lg.:02.2015 ö  =  0h 09m 21s
+      
+      am 20.12.1582  0h wurde der Gregorianische Kalender eingeführt
+      am 24.11.1793  bis 31.12.1805 wurde der Französische Kalender benutzt
+      ab 01.01.1806  wurde wieder der Gregorianische Kalender benutzt
+      bis 1891 wurde Ortszeit geführt
+      vom 15.03.1891  0h  bis 10.03.1911  GMT = Ereig.Zeit -0h 09m 20s
+      vom 11.03.1911  0h  bis 24.02.1940  GMT = Ereig.Zeit -0h
+      vom 25.02.1940  2h  GMT = Ereig.Zeit -1h
+
+      SOMMERZEITEN
+      
+      vom
+      14.06.1916  23h  bis  01.10.1916  24h  GMT = Ereig.Zeit -1h
+      24.03.1917  23h  bis  07.10.1917  24h  GMT = Ereig.Zeit -1h
+      09.03.1918  23h  bis  06.10.1918  24h  GMT = Ereig.Zeit -1h
+      01.03.1919  23h  bis  05.10.1919  24h  GMT = Ereig.Zeit -1h
+      14.02.1920  23h  bis  23.10.1920  24h  GMT = Ereig.Zeit -1h
+      14.03.1921  23h  bis  25.10.1921  24h  GMT = Ereig.Zeit -1h
+      25.03.1922  23h  bis  07.10.1922  24h  GMT = Ereig.Zeit -1h
+      26.05.1923  23h  bis  06.10.1923  24h  GMT = Ereig.Zeit -1h
+      29.03.1924  23h  bis  04.10.1924  24h  GMT = Ereig.Zeit -1h
+      04.04.1925  23h  bis  03.10.1925  24h  GMT = Ereig.Zeit -1h
+      17.04.1926  23h  bis  02.10.1926  24h  GMT = Ereig.Zeit -1h
+      09.04.1927  23h  bis  01.10.1927  24h  GMT = Ereig.Zeit -1h
+      14.04.1928  23h  bis  06.10.1928  24h  GMT = Ereig.Zeit -1h
+      20.04.1929  23h  bis  05.10.1929  24h  GMT = Ereig.Zeit -1h
+      12.04.1930  23h  bis  04.10.1930  24h  GMT = Ereig.Zeit -1h
+      18.04.1931  23h  bis  03.10.1931  24h  GMT = Ereig.Zeit -1h
+      02.04.1932  23h  bis  01.10.1932  24h  GMT = Ereig.Zeit -1h
+      25.03.1933  23h  bis  07.10.1933  24h  GMT = Ereig.Zeit -1h
+      07.04.1934  23h  bis  06.10.1934  24h  GMT = Ereig.Zeit -1h
+      30.03.1935  23h  bis  05.10.1935  24h  GMT = Ereig.Zeit -1h
+      18.04.1936  23h  bis  03.10.1936  24h  GMT = Ereig.Zeit -1h
+      03.04.1937  23h  bis  02.10.1937  24h  GMT = Ereig.Zeit -1h
+      26.03.1938  23h  bis  01.10.1938  24h  GMT = Ereig.Zeit -1h
+      15.04.1939  23h  bis  18.11.1939  24h  GMT = Ereig.Zeit -1h
+      BESETZTE ZONEN
+      25.02.1940   2h  bis  16.06.1940       GMT = Ereig.Zeit -1h
+      16.06.1940       bis  02.11.1942   3h  GMT = Ereig.Zeit -2h
+      02.11.1942   2h  bis  28.03.1943       GMT = Ereig.Zeit -1h
+      FREIE ZONEN
+      25.02.1940   2h  bis  05.05.1941   0h  GMT = Ereig.Zeit -1h
+      04.05.1941  23h  bis  06.10.1941   0h  GMT = Ereig.Zeit -2h
+      05.10.1941  23h  bis  09.03.1942   0h  GMT = Ereig.Zeit -1h
+      08.03.1942  23h  bis  02.11.1942   3h  GMT = Ereig.Zeit -2h
+      02.11.1942       bis  29.03.1943   2h  GMT = Ereig.Zeit -1h
+      ALLE ZONEN
+      29.03.1943   2h  bis  04.10.1943   3h  GMT = Ereig.Zeit -2h
+      04.10.1943   2h  bis  03.04.1944   2h  GMT = Ereig.Zeit -1h
+      03.04.1944   2h  bis  08.10.1944   1h  GMT = Ereig.Zeit -2h
+      07.10.1944   0h  bis  02.04.1945   2h  GMT = Ereig.Zeit -1h
+      02.04.1945   2h  bis  16.09.1945   3h  GMT = Ereig.Zeit -2h
+      16.09.1945   2h  bis  28.03.1976  2h  GMT = Ereig.Zeit -1h
+      
+      28.03.1976   1h  bis  26.09.1976  1h  GMT = Ereig.Zeit -2h
+      03.04.1977   2h  bis  25.09.1977  3h  GMT = Ereig.Zeit -2h
+      02.04.1978   2h  bis  01.10.1978  3h  GMT = Ereig.Zeit -2h
+      01.04.1979   2h  bis  30.09.1979  3h  GMT = Ereig.Zeit -2h
+      06.04.1980   2h  bis  28.09.1980  3h  GMT = Ereig.Zeit -2h
+      29.03.1981   2h  bis  27.09.1981  3h  GMT = Ereig.Zeit -2h
+      28.03.1982   2h  bis  26.09.1982  3h  GMT = Ereig.Zeit -2h
+      27.03.1983   2h  bis  25.09.1983  3h  GMT = Ereig.Zeit -2h
+      25.03.1984   2h  bis  30.09.1984  3h  GMT = Ereig.Zeit -2h
+      31.03.1985   2h  bis  29.09.1985  3h  GMT = Ereig.Zeit -2h
+      30.03.1986   2h  bis  28.09.1986  3h  GMT = Ereig.Zeit -2h
+      29.03.1987   2h  bis  27.09.1987  3h  GMT = Ereig.Zeit -2h
+      27.03.1988   2h  bis  25.09.1988  3h  GMT = Ereig.Zeit -2h
+      26.03.1989   2h  bis  24.09.1989  3h  GMT = Ereig.Zeit -2h
+      25.03.1990   2h  bis  30.09.1990  3h  GMT = Ereig.Zeit -2h
+      31.03.1991   2h  bis  29.09.1991  3h  GMT = Ereig.Zeit -2h
+      29.03.1992   2h  bis  27.09.1992  3h  GMT = Ereig.Zeit -2h
+      28.03.1993   2h  bis  26.09.1993  3h  GMT = Ereig.Zeit -2h
+      27.03.1994   2h  bis  25.09.1994  3h  GMT = Ereig.Zeit -2h
+      26.03.1995   2h  bis  24.09.1995  3h  GMT = Ereig.Zeit -2h
+      31.03.1996   2h  bis  27.10.1996  3h  GMT = Ereig.Zeit -2h
+      30.03.1997   2h  bis  26.10.1997  3h  GMT = Ereig.Zeit -2h
+      29.03.1998   2h  bis  25.10.1998  3h  GMT = Ereig.Zeit -2h
+      28.03.1999   2h  bis  31.10.1999  3h  GMT = Ereig.Zeit -2h 
+      26.03.2000   2h  bis  29.10.2000  3h  GMT = Ereig.Zeit -2h 
+      31.03.2001   2h  bis  28.10.2001  3h  GMT = Ereig.Zeit -2h 
+      31.03.2002   2h  bis  27.10.2002  3h  GMT = Ereig.Zeit -2h 
+      30.03.2003   2h  bis  26.10.2003  3h  GMT = Ereig.Zeit -2h 
+      28.03.2004   2h  bis  31.10.2004  3h  GMT = Ereig.Zeit -2h 
+      27.03.2005   2h  bis  30.10.2005  3h  GMT = Ereig.Zeit -2h 
+      26.03.2006   2h  bis  29.10.2006  3h  GMT = Ereig.Zeit -2h 
+      25.03.2007   2h  bis  28.10.2007  3h  GMT = Ereig.Zeit -2h 
+      30.03.2008   2h  bis  26.10.2008  3h  GMT = Ereig.Zeit -2h 
+      29.03.2009   2h  bis  25.10.2009  3h  GMT = Ereig.Zeit -2h 
+      28.03.2010   2h  bis  31.10.2010  3h  GMT = Ereig.Zeit -2h 

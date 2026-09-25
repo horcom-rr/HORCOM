@@ -5,22 +5,25 @@
 #include "painter.hpp"
 
 #include <QBuffer>
+#include <QFontMetricsF>
 #include <QHash>
 #include <QImage>
 #include <QPainter>
 #include <QPainterPath>
 #include <QString>
 #include <algorithm>
+#include <cmath>
 
 #include "horcom/core/constants.hpp"
+#include "theme.hpp"
 
 namespace horcom {
 
-namespace {
-
-QColor rgb(Rgb c, int alpha = 255) {
+QColor to_qcolor(Rgb c, int alpha) {
   return QColor((c >> 16) & 0xFF, (c >> 8) & 0xFF, c & 0xFF, alpha);
 }
+
+namespace {
 
 // Robert Rettig's own symbol drawings, the glyph text keys his sprite
 // stems from symbbmp. Unmapped texts fall back to the font.
@@ -43,7 +46,8 @@ const QHash<QString, QString>& sprite_stems() {
       {QStringLiteral("PO"), QStringLiteral("PO")}, {QStringLiteral("QU"), QStringLiteral("QU")},
       {QStringLiteral("☄"), QStringLiteral("HL")},  {QStringLiteral("PH"), QStringLiteral("PH")},
       {QStringLiteral("DA"), QStringLiteral("DA")}, {QStringLiteral("NS"), QStringLiteral("NS")},
-      {QStringLiteral("XE"), QStringLiteral("XE")}, {QStringLiteral("♈"), QStringLiteral("ZAR")},
+      {QStringLiteral("XE"), QStringLiteral("XE")}, {QStringLiteral("AC"), QStringLiteral("AC")},
+      {QStringLiteral("MC"), QStringLiteral("MC")}, {QStringLiteral("♈"), QStringLiteral("ZAR")},
       {QStringLiteral("♉"), QStringLiteral("ZTA")}, {QStringLiteral("♊"), QStringLiteral("ZGM")},
       {QStringLiteral("♋"), QStringLiteral("ZCN")}, {QStringLiteral("♌"), QStringLiteral("ZLE")},
       {QStringLiteral("♍"), QStringLiteral("ZVI")}, {QStringLiteral("♎"), QStringLiteral("ZLI")},
@@ -66,9 +70,119 @@ const QImage& sprite(const QString& stem, Rgb color) {
   if (color != 0x000000 && !img.isNull()) {
     QPainter tint(&img);
     tint.setCompositionMode(QPainter::CompositionMode_SourceIn);
-    tint.fillRect(img.rect(), rgb(color));
+    tint.fillRect(img.rect(), to_qcolor(color));
   }
   return *cache.insert(key, std::move(img));
+}
+
+// the fitted sprites of all window sizes seen, emptied once this many
+constexpr int kFittedSprites = 4096;
+
+// his drawing at the device size it lands on, averaged down once from
+// the 384 pixel sprite. The bilinear drawImage of the raster engine reads
+// four source pixels whatever the reduction and thins his strokes at
+// twenty fold, the area filter of QImage::scaled keeps their weight
+QImage fitted_sprite(const QString& stem, Rgb color, QSize px) {
+  static QHash<QString, QImage> cache;
+  const QString key = stem + QChar(':') + QString::number(color, 16) + QChar(':') + QString::number(px.width()) +
+                      QChar('x') + QString::number(px.height());
+  const auto it = cache.constFind(key);
+  if (it != cache.constEnd()) {
+    return *it;
+  }
+  const QImage& full = sprite(stem, color);
+  if (full.isNull()) {
+    return {};
+  }
+  // premultiplied so the averaged rim keeps the tint instead of darkening
+  QImage img = full.convertToFormat(QImage::Format_ARGB32_Premultiplied)
+                   .scaled(px, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+  if (cache.size() >= kFittedSprites) {
+    cache.clear();
+  }
+  cache.insert(key, img);
+  return img;
+}
+
+// a canvas box on whole device pixels, empty while the painter rotates
+// or shears, so sprites and their grounds share one pixel grid
+QRect device_box(const QPainter& p, const QRectF& r) {
+  const QTransform dt = p.deviceTransform();
+  if (dt.type() > QTransform::TxScale) {
+    return {};
+  }
+  const QRectF d = dt.mapRect(r);
+  const int left = static_cast<int>(std::lround(d.left()));
+  const int top = static_cast<int>(std::lround(d.top()));
+  const int right = static_cast<int>(std::lround(d.right()));
+  const int bottom = static_cast<int>(std::lround(d.bottom()));
+  return {QPoint(left, top), QSize(std::max(1, right - left), std::max(1, bottom - top))};
+}
+
+// lifts the world transform and returns what stays between the painter
+// and the device, the offset of a child widget in its window and the
+// ratio of a high density screen
+QTransform lift_world(QPainter& p) {
+  p.resetTransform();
+  return p.deviceTransform();
+}
+
+// the Courier New of the old IDE days, bold so the sheet reads at wheel
+// sizes
+QFont sheet_face() {
+  QFont f = theme::mono_font();
+  f.setFixedPitch(true);
+  f.setWeight(QFont::Bold);
+  return f;
+}
+
+// one text set at a device scale
+struct SetText {
+  QFont font;
+  int px = 0;
+  double width = 0.0;  // device pixels
+};
+
+// Sheet text renders at a whole device pixel size so the raster face
+// stays sharp like his SYSTEM_FIXED_FONT did at its native strike. His
+// FONT WIDTH is the room his layouts budget a character, the face steps
+// text_advance, the stretch lands on whole percents and a letter spacing
+// closes the rest so every character steps exactly one cell and his
+// columns hold
+SetText set_text(const Primitive& item, double scale, const QFont& face) {
+  SetText s;
+  s.font = face;
+  s.px = std::max(6, static_cast<int>(std::lround(item.size * scale)));
+  s.font.setPixelSize(s.px);
+  s.font.setStretch(QFont::Unstretched);
+  s.font.setLetterSpacing(QFont::AbsoluteSpacing, 0.0);
+  const QString text = QString::fromStdString(item.text);
+  if (item.pitch > 0.0) {
+    // the cell the boxes and exports of the sheet are laid out with, not
+    // the advance a rounded pixel size happens to give the face
+    const double cell = text_advance(item) * scale;
+    s.font.setHintingPreference(QFont::PreferNoHinting);
+    const double natural = QFontMetricsF(s.font).horizontalAdvance(QLatin1Char('M'));
+    if (natural > 0.0) {
+      s.font.setStretch(std::clamp(static_cast<int>(std::lround(100.0 * cell / natural)), 1, 4000));
+      s.font.setLetterSpacing(QFont::AbsoluteSpacing, cell - QFontMetricsF(s.font).horizontalAdvance(QLatin1Char('M')));
+    }
+    s.width = cell * static_cast<double>(text.size());
+  } else {
+    s.width = QFontMetricsF(s.font).horizontalAdvance(text);
+  }
+  return s;
+}
+
+// the left edge of a horizontal text in device pixels
+double text_left(const Primitive& item, double x, double width) {
+  if (item.align_right) {
+    return x - width;
+  }
+  if (item.align_left) {
+    return x;
+  }
+  return x - width / 2.0;
 }
 
 Qt::PenStyle pen_style(Primitive::Style s) {
@@ -82,26 +196,33 @@ Qt::PenStyle pen_style(Primitive::Style s) {
 
 }  // namespace
 
+QRectF text_box(const Primitive& item, double scale) {
+  if ((item.kind != Primitive::Kind::kText && item.kind != Primitive::Kind::kGlyph) || scale <= 0.0) {
+    return {};
+  }
+  const SetText s = set_text(item, scale, sheet_face());
+  const double w = s.width / scale;
+  if (item.vertical) {
+    return {item.x1 - item.size / 2.0, item.y1 - w, item.size, w};
+  }
+  return {text_left(item, item.x1, w), item.y1 - item.size / 2.0, w, item.size};
+}
+
 void paint_display_list(QPainter& p, const DisplayList& dl) {
   // the fixed font of his SYSTEM_FIXED_FONT screens for the labels,
   // the symbol face only for the glyphs
-  // the Courier New of the old IDE days, bold so the sheet reads at
-  // wheel sizes, rendered on whole device pixels below
-  QFont text_font(QStringLiteral("Courier New"));
-  text_font.setStyleHint(QFont::Monospace);
-  text_font.setFixedPitch(true);
-  text_font.setWeight(QFont::Bold);
-  QFont glyph_font = p.font();
+  const QFont text_font = sheet_face();
+  const QFont glyph_font = p.font();
   for (const Primitive& item : dl.items) {
     switch (item.kind) {
       case Primitive::Kind::kCircle: {
-        p.setPen(QPen(rgb(item.color), item.width));
+        p.setPen(QPen(to_qcolor(item.color), item.width));
         p.setBrush(Qt::NoBrush);
         p.drawEllipse(QPointF(item.x1, item.y1), item.r1, item.r1);
         break;
       }
       case Primitive::Kind::kLine: {
-        QPen pen(rgb(item.color), item.width);
+        QPen pen(to_qcolor(item.color), item.width);
         pen.setStyle(pen_style(item.style));
         p.setPen(pen);
         p.drawLine(QPointF(item.x1, item.y1), QPointF(item.x2, item.y2));
@@ -126,7 +247,7 @@ void paint_display_list(QPainter& p, const DisplayList& dl) {
         path.closeSubpath();
         // fill only, the sign borders and ring circles draw the edges
         p.setPen(Qt::NoPen);
-        p.setBrush(rgb(item.fill));
+        p.setBrush(to_qcolor(item.fill));
         p.drawPath(path);
         break;
       }
@@ -136,53 +257,74 @@ void paint_display_list(QPainter& p, const DisplayList& dl) {
           const QString key = QString::fromStdString(item.text);
           const auto stem = sprite_stems().find(key);
           if (stem != sprite_stems().end()) {
+            const double side = item.size * kSpriteBox;
+            const QRectF cell(item.x1 - side / 2.0, item.y1 - side / 2.0, side, side);
+            const QRect box = device_box(p, cell);
+            if (!box.isEmpty()) {
+              QImage img = fitted_sprite(*stem, item.color, box.size());
+              if (!img.isNull()) {
+                p.save();
+                const QTransform base = lift_world(p);
+                img.setDevicePixelRatio(base.m11());
+                p.drawImage(base.inverted().map(QPointF(box.topLeft())), img);
+                p.restore();
+                break;
+              }
+            }
             const QImage& img = sprite(*stem, item.color);
             if (!img.isNull()) {
-              const double side = item.size * 1.1;
               p.setRenderHint(QPainter::SmoothPixmapTransform, true);
-              p.drawImage(QRectF(item.x1 - side / 2.0, item.y1 - side / 2.0, side, side), img);
+              p.drawImage(cell, img);
               break;
             }
           }
         }
-        p.setPen(QPen(rgb(item.color)));
-        QFont& font = item.kind == Primitive::Kind::kGlyph ? glyph_font : text_font;
-        // sheet text renders at a whole device pixel size with the
-        // transform lifted, the raster face stays sharp like his
-        // SYSTEM_FIXED_FONT did at its native strike
+        p.setPen(QPen(to_qcolor(item.color)));
+        // the text is set with the transform lifted, on device pixels
         const QTransform tf = p.transform();
         const double sc = std::hypot(tf.m11(), tf.m12());
-        const int px = std::max(6, static_cast<int>(std::lround(item.size * sc)));
-        font.setPixelSize(px);
+        const SetText s = set_text(item, sc, item.kind == Primitive::Kind::kGlyph ? glyph_font : text_font);
         p.save();
         const QPointF dev = tf.map(QPointF(item.x1, item.y1));
         p.resetTransform();
-        p.setFont(font);
-        const double half =
-            std::max(60.0, 0.5 * static_cast<double>(item.text.size()) * px);
-        if (item.align_right) {
-          const QRectF box(dev.x() - 2.0 * half, dev.y() - 2.0 * px, 2.0 * half, 4.0 * px);
-          p.drawText(box, Qt::AlignRight | Qt::AlignVCenter, QString::fromStdString(item.text));
-        } else if (item.align_left) {
-          const QRectF box(dev.x(), dev.y() - 2.0 * px, 2.0 * half, 4.0 * px);
-          p.drawText(box, Qt::AlignLeft | Qt::AlignVCenter, QString::fromStdString(item.text));
+        p.setFont(s.font);
+        // the box is one text height of slack wider than the text so
+        // the face never wraps or elides, the left edge alone places it
+        const double slack = s.px;
+        constexpr int kFlags = Qt::AlignLeft | Qt::AlignVCenter | Qt::TextDontClip | Qt::TextSingleLine;
+        if (item.vertical) {
+          // his escapement 900 font, the line reads upward from the point
+          p.translate(dev);
+          p.rotate(-90.0);
+          p.drawText(QRectF(0.0, -2.0 * s.px, s.width + slack, 4.0 * s.px), kFlags, QString::fromStdString(item.text));
         } else {
-          const QRectF box(dev.x() - half, dev.y() - 2.0 * px, 2.0 * half, 4.0 * px);
-          p.drawText(box, Qt::AlignCenter, QString::fromStdString(item.text));
+          const double left = text_left(item, dev.x(), s.width);
+          p.drawText(QRectF(left, dev.y() - 2.0 * s.px, s.width + slack, 4.0 * s.px), kFlags,
+                     QString::fromStdString(item.text));
         }
         p.restore();
         break;
       }
       case Primitive::Kind::kDot: {
         p.setPen(Qt::NoPen);
-        p.setBrush(rgb(item.color));
+        p.setBrush(to_qcolor(item.color));
         p.drawEllipse(QPointF(item.x1, item.y1), item.r1, item.r1);
         break;
       }
       case Primitive::Kind::kRect: {
         p.setPen(Qt::NoPen);
-        p.setBrush(rgb(item.fill));
-        p.drawRect(QRectF(item.x1 - item.r1, item.y1 - item.r2, 2.0 * item.r1, 2.0 * item.r2));
+        p.setBrush(to_qcolor(item.fill));
+        const QRectF r(item.x1 - item.r1, item.y1 - item.r2, 2.0 * item.r1, 2.0 * item.r2);
+        const QRect box = device_box(p, r);
+        if (box.isEmpty()) {
+          p.drawRect(r);
+          break;
+        }
+        // the sprite grounds on the pixel grid of their sprites
+        p.save();
+        const QTransform base = lift_world(p);
+        p.drawRect(base.inverted().mapRect(QRectF(box)));
+        p.restore();
         break;
       }
     }
@@ -197,6 +339,20 @@ QImage glyph_sprite(const QString& glyph, Rgb color) {
   // a plain body tag like SO or MO is already a sprite stem
   if (glyph.size() <= 3 && glyph.toUpper() == glyph) {
     return sprite(glyph, color);
+  }
+  return {};
+}
+
+QImage glyph_sprite_fitted(const QString& glyph, Rgb color, QSize px) {
+  if (px.isEmpty()) {
+    return {};
+  }
+  const auto stem = sprite_stems().find(glyph);
+  if (stem != sprite_stems().end()) {
+    return fitted_sprite(*stem, color, px);
+  }
+  if (glyph.size() <= 3 && glyph.toUpper() == glyph) {
+    return fitted_sprite(glyph, color, px);
   }
   return {};
 }
@@ -236,7 +392,9 @@ void paint_fitted(QPainter& p, const DisplayList& dl, const QRectF& target) {
   p.translate(ox, oy);
   p.scale(s, s);
   // the warm paper of the sheet, the glyph cutouts blend into it
-  p.fillRect(QRectF(0, 0, dl.width, dl.height), rgb(kPaperColor));
+  p.fillRect(QRectF(0, 0, dl.width, dl.height), to_qcolor(kPaperColor));
+  // his page ended the drawing at its edge like his window did
+  p.setClipRect(QRectF(0, 0, dl.width, dl.height), Qt::IntersectClip);
   paint_display_list(p, dl);
   p.restore();
 }

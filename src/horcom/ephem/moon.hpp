@@ -20,7 +20,7 @@ namespace horcom {
 // Result of the lunar position computation, all angles radians.
 struct MoonPosition {
   double el = 0.0;         // apparent ecliptic longitude, includes dpsi
-  double eb = 0.0;         // latitude, includes the original's deps term
+  double eb = 0.0;         // latitude
   double r = 0.0;          // distance in AU
   double parallax = 0.0;   // the original pm(2), equatorial horizontal parallax
   double elp = 0.0;        // the original tb(2), longitude rate per day

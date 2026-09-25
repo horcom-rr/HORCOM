@@ -133,3 +133,124 @@ TEST_CASE("the multi directions run every mode over the radix") {
   REQUIRE(mh.houses.ok);
   CHECK(deg(mh.houses.angles.mc) == doctest::Approx(300.0).epsilon(1e-6));
 }
+
+TEST_CASE("halbsm finds directed midpoints on 0 Aries, the radix cusps and the directed angles") {
+  Chart radix = synthetic();
+  Chart multi;
+  multi.ok = true;
+  const auto put = [&multi](int slot, double deg) {
+    BodyState& b = multi.b[static_cast<std::size_t>(slot)];
+    b.present = true;
+    b.valid = true;
+    b.el = deg * kDegToRad;
+  };
+  // Sun and Moon meet at 0 Aries, Mercury and Venus on the second radix
+  // cusp at 40, Mars and Jupiter on the directed MC at 150
+  put(body::kSun, 350.0);
+  put(body::kMoon, 10.0);
+  put(body::kMercury, 30.0);
+  put(body::kVenus, 50.0);
+  put(body::kMars, 140.0);
+  put(body::kJupiter, 160.0);
+  multi.houses.ok = true;
+  multi.houses.cusp[1] = 60.0 * kDegToRad;
+  multi.houses.cusp[10] = 150.0 * kDegToRad;
+  const std::vector<MultiMidpoint> lines = multi_midpoints(radix, multi, 1.0);
+  const auto has = [&](int u, int w, MultiMidpoint::Target target, int first) {
+    for (const MultiMidpoint& m : lines) {
+      if (m.u == u && m.w == w && m.target == target && m.first == first) {
+        return true;
+      }
+    }
+    return false;
+  };
+  // his loop from aa& = 1 never tested 0 degrees, the axis AR/LI stood
+  // only at its 180 degree end
+  CHECK(has(body::kSun, body::kMoon, MultiMidpoint::Target::kSignAxis, 1));
+  CHECK(has(body::kMercury, body::kVenus, MultiMidpoint::Target::kRadixCusp, 2));
+  CHECK(has(body::kMars, body::kJupiter, MultiMidpoint::Target::kMultiAngle, 4));
+  // a fifth of a degree times the orb factor, 0.3 degrees away misses
+  put(body::kMoon, 10.6);
+  bool sun_moon = false;
+  for (const MultiMidpoint& m : multi_midpoints(radix, multi, 1.0)) {
+    sun_moon = sun_moon || (m.u == body::kSun && m.w == body::kMoon);
+  }
+  CHECK_FALSE(sun_moon);
+}
+
+TEST_CASE("the MULTI world directs the fixed point and leaves the Hamburg factors dark") {
+  Chart base = synthetic();
+  const auto put = [&base](int slot, double deg) {
+    BodyState& b = base.b[static_cast<std::size_t>(slot)];
+    b.present = true;
+    b.valid = true;
+    b.el = deg * kDegToRad;
+  };
+  put(body::kFixpunkt, 100.0);
+  put(body::kCupido, 50.0);
+  put(body::kPoseidon, 250.0);
+  const MultiReference sun{MultiReference::Kind::kBody, body::kSun, 1, 1};
+  // multi11 to multiarc1 run CASE aa& TO 11, the fixed point directs,
+  // 100 plus twice its ten degrees within Cancer
+  const Chart m1 = multi_chart(base, MultiMode::kMulti1, 2.0, sun, HarmonicHouses::kLikeBodies, HouseSystem::kPlacidus, 48.0);
+  REQUIRE(m1.b[body::kFixpunkt].present);
+  CHECK(deg(m1.b[body::kFixpunkt].el) == doctest::Approx(120.0));
+  // their CASE lists skip n9 to n16, the Hamburg factors fall to DEFAULT
+  CHECK_FALSE(m1.b[body::kCupido].present);
+  CHECK_FALSE(m1.b[body::kPoseidon].present);
+  // the zero point modes know no anchor for the fixed point
+  const Chart me = multi_chart(base, MultiMode::kZeroEast, 2.0, sun, HarmonicHouses::kLikeBodies, HouseSystem::kPlacidus, 48.0);
+  CHECK_FALSE(me.b[body::kFixpunkt].present);
+  // harm21 runs CASE 1 TO 11, the fixed point stays empty there
+  const Chart h = harmonic_chart(base, 3.0, HarmonicHouses::kLikeBodies, HouseSystem::kPlacidus, 48.0);
+  CHECK_FALSE(h.b[body::kFixpunkt].present);
+  CHECK_FALSE(h.b[body::kCupido].present);
+  CHECK(h.b[body::kChiron].present);
+}
+
+TEST_CASE("the new MC of mc_armcb reads the tenth cusp") {
+  // the equal systems keep the true midheaven apart from the tenth cusp,
+  // fz(1,ze,10) is the cusp. The port read angles.mc before
+  Chart base = synthetic();
+  base.houses.angles.mc = 305.0 * kDegToRad;
+  const MultiReference sun{MultiReference::Kind::kBody, body::kSun, 1, 1};
+  const Chart mh = multi_chart(base, MultiMode::kMulti1, 2.0, sun, HarmonicHouses::kFromNewMc, HouseSystem::kPlacidus, 48.0);
+  REQUIRE(mh.houses.ok);
+  // cusp ten at 280 plus twice its ten degrees within Capricorn, the true
+  // MC would have given 305 plus twice five
+  CHECK(deg(mh.houses.angles.mc) == doctest::Approx(300.0).epsilon(1e-6));
+  const Chart hh = harmonic_chart(base, 5.0, HarmonicHouses::kFromNewMc, HouseSystem::kPlacidus, 48.0);
+  REQUIRE(hh.houses.ok);
+  CHECK(deg(hh.houses.angles.mc) == doctest::Approx(norm_deg(5.0 * 280.0)).epsilon(1e-6));
+}
+
+TEST_CASE("the south node reference of mc_armcb1 directs from the node") {
+  // his BEZUGS-FAKTOR box offers MONDKNOTEN S, mc_armcb1 has no CASE for
+  // it and ran MULTI 3 from e = 0, Mars at 200 went to 0 + 2 * 20 = 40.
+  // The port reads the south node at 220
+  const Chart base = synthetic();
+  const MultiReference ds{MultiReference::Kind::kBody, body::kNodeDesc, 1, 1};
+  const Chart m3 = multi_chart(base, MultiMode::kMulti3, 2.0, ds, HarmonicHouses::kLikeBodies, HouseSystem::kPlacidus, 48.0);
+  CHECK(deg(m3.b[body::kMars].el) == doctest::Approx(260.0));
+  CHECK(deg(m3.b[body::kMars].el) != doctest::Approx(40.0));
+}
+
+TEST_CASE("a901_m rebuilds the Glueckspunkt with the day rule of the radix") {
+  // a day birth, the Sun at 280 stands above the horizon of the AC at 10
+  Chart base = synthetic();
+  base.b[body::kSun].el = 280.0 * kDegToRad;
+  const MultiReference sun{MultiReference::Kind::kBody, body::kSun, 1, 1};
+  const Chart m1 = multi_chart(base, MultiMode::kMulti1, 2.0, sun, HarmonicHouses::kFromNewMc, HouseSystem::kPlacidus, 48.0);
+  REQUIRE(m1.houses.ok);
+  const double ac = m1.houses.cusp[1];
+  const double so = m1.b[body::kSun].el;
+  const double mo = m1.b[body::kMoon].el;
+  // multi11 had zeroed pl(13) before ta_na read it, every chart took the
+  // night formula AC - MO + SO. The port takes the day formula of the birth
+  CHECK(m1.b[body::kFortune].el == doctest::Approx(norm_rad(ac + mo - so)));
+  CHECK(m1.b[body::kFortune].el != doctest::Approx(norm_rad(ac - mo + so)));
+  // the zero point modes never call a901_m, the point keeps its anchor run
+  const Chart me = multi_chart(base, MultiMode::kZeroEast, 2.0, sun, HarmonicHouses::kFromNewMc, HouseSystem::kPlacidus, 48.0);
+  // 0 + 2 * 1 degree within Cancer
+  CHECK(deg(me.b[body::kFortune].el) == doctest::Approx(2.0));
+}

@@ -27,6 +27,9 @@
 
 #include "aaf_mask_dialog.hpp"
 #include "aspektarium_dialog.hpp"
+#include "horcom/render/aspektarium.hpp"
+#include "horcom/render/stat_sheet.hpp"
+#include "wheel_widget.hpp"
 #include "choice_dialog.hpp"
 #include "kommen_dialog.hpp"
 #include "record_list_dialog.hpp"
@@ -35,10 +38,9 @@
 #include "horcom/core/constants.hpp"
 #include "main_window.hpp"
 #include "place_dialog.hpp"
-#include "record_dialog.hpp"
-#include "statist_dialog.hpp"
 #include "theme.hpp"
 #include "transit_list_dialog.hpp"
+#include "zeitzon_dialog.hpp"
 #include "zone_dialog.hpp"
 
 namespace {
@@ -65,8 +67,13 @@ std::filesystem::path find_data_dir() {
 // read from the shipped folder. An AppImage counts as read only even
 // when unpacked to a temporary folder
 std::filesystem::path working_dir(const std::filesystem::path& shipped) {
+  // the data of a source tree is what ships, a development build works
+  // in its own copy so a session never rewrites the shipped konsta.int
+  std::error_code tree_ec;
+  const bool source_tree = std::filesystem::exists(shipped.parent_path() / "CMakeLists.txt", tree_ec) &&
+                           std::filesystem::exists(shipped.parent_path() / "src" / "horcom", tree_ec);
   QTemporaryFile probe(QString::fromStdWString((shipped / "probe").wstring()));
-  if (!qEnvironmentVariableIsSet("APPIMAGE") && probe.open()) {
+  if (!qEnvironmentVariableIsSet("APPIMAGE") && !source_tree && probe.open()) {
     return shipped;
   }
   const std::filesystem::path own =
@@ -136,7 +143,8 @@ int main(int argc, char** argv) {
   if (lang.isEmpty()) {
     lang = QSettings().value("language").toString();
   }
-  const bool german = lang.isEmpty() ? QLocale::system().language() == QLocale::German : lang == "de";
+  const bool german = !horcom::english_for(lang);
+  app.setProperty(horcom::kEnglishEditionProperty, !german);
   QTranslator translator;
   if (!german && translator.load(":/i18n/horcom_en.qm")) {
     QApplication::installTranslator(&translator);
@@ -215,53 +223,45 @@ int main(int argc, char** argv) {
   }
   const int shot_record = args.indexOf("--shot-record");
   if (shot_record >= 0 && shot_record + 1 < args.size()) {
-    std::vector<horcom::GermanCountry> countries;
-    if (const auto c = horcom::load_german_countries(data / "laender.int")) {
-      countries = *c;
-    }
     horcom::AafRecord sample;
     sample.surname = "Muster";
     sample.given = "Max";
     sample.place = "Eichenau";
     sample.country = "D";
-    horcom::RecordDialog dialog(sample, countries);
+    horcom::AafMaskDialog dialog(sample, horcom::AafMaskDialog::Mode::kEdit, data);
     dialog.grab().save(args[shot_record + 1]);
     return 0;
   }
   const int shot_statist = args.indexOf("--shot-statist");
-  if (shot_statist >= 0 && shot_statist + 2 < args.size()) {
-    horcom::StatistDialog dialog;
-    bool ok = false;
-    if (args[shot_statist + 2] == "-") {
-      // a synthetic capture set, invented charts, no real people
-      horcom::StatSet set;
-      const char* names[3] = {"ANNA MUSTER", "BERND BEISPIEL", "CARLA DEMO"};
-      for (int i = 0; i < 3; ++i) {
-        horcom::StatRecord r;
-        r.name = names[i];
-        r.place = "EICHENAU";
-        r.day = 1 + 10 * i;
-        r.month = 1 + i;
-        r.year = 1960 + 10 * i;
-        r.ac = (10.0 + 120.0 * i) * horcom::kDegToRad;
-        r.mc = (280.0 + 120.0 * i) * horcom::kDegToRad;
-        r.h2 = (40.0 + 120.0 * i) * horcom::kDegToRad;
-        r.h3 = (70.0 + 120.0 * i) * horcom::kDegToRad;
-        r.h5 = (130.0 + 120.0 * i) * horcom::kDegToRad;
-        r.h6 = (160.0 + 120.0 * i) * horcom::kDegToRad;
-        for (int slot = 1; slot <= 10; ++slot) {
-          r.el[static_cast<std::size_t>(slot)] = horcom::norm_rad((15.0 + 37.0 * slot + 55.0 * i) * horcom::kDegToRad);
-        }
-        set.records.push_back(r);
-      }
-      dialog.load_set(set);
-      ok = true;
-    } else {
-      ok = dialog.load(args[shot_statist + 2]);
+  if (shot_statist >= 0 && shot_statist + 1 < args.size()) {
+    // his list_ausg page of a synthetic set, invented charts, no real people
+    std::vector<horcom::StatSheetRow> rows;
+    const char* names[3] = {"ANNA MUSTER", "BERND BEISPIEL", "CARLA DEMO"};
+    for (int i = 0; i < 3; ++i) {
+      horcom::StatSheetRow r;
+      r.slot = 1;
+      r.value = (15.0 + 55.0 * i) * horcom::kDegToRad;
+      r.label = names[i];
+      r.moment = QString::asprintf("%2d.%2d.%5d  %2d h %2d'", 1 + 10 * i, 1 + i, 1960 + 10 * i, 12, 30).toStdString();
+      r.has_angle = true;
+      r.angle = (10.0 + 120.0 * i) * horcom::kDegToRad;
+      rows.push_back(r);
     }
-    if (ok) {
-      dialog.grab().save(args[shot_statist + 1]);
-    }
+    horcom::StatSheetText text;
+    text.heads = "Datum     Zeit(UT)    AC";
+    text.file = " Datei : DEMO.STA ";
+    text.object_line = "Länge SO";
+    text.window_line = "In ZEICHEN";
+    text.bars = true;
+    text.sums = {3, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1};
+    text.object_tag = " SO ";
+    text.total = 3;
+    text.partial_count = 3;
+    text.footer = "* Blättern: Leertaste | Zurück mit 'R'|Weitere Beding: 'W'|ENDE: Mit 'ESC' *";
+    horcom::WheelWidget w;
+    w.set_plain_list(horcom::build_stat_page(rows, text));
+    w.resize(1280, 960);
+    w.grab().save(args[shot_statist + 1]);
     return 0;
   }
   const int shot_aspektarium = args.indexOf("--shot-aspektarium");
@@ -272,7 +272,16 @@ int main(int argc, char** argv) {
     in.lat_deg = 48.1742;
     const horcom::ChartSettings cs;
     const horcom::Chart chart = horcom::compute_chart(in, cs, vsop, eph);
-    horcom::AspektariumDialog dialog(chart, cs, {}, "13.10.1992");
+    const horcom::AspectResult scan = horcom::scan_aspects(chart, cs, {});
+    horcom::AspektariumInput sheet;
+    sheet.chart = &chart;
+    sheet.settings = cs;
+    sheet.aspects = &scan;
+    sheet.weights.fill(100);
+    horcom::AspektariumText text;
+    text.title = "Geozentrisches Aspektarium  | RADIX";
+    text.date = "13.10.1992";
+    horcom::AspektariumDialog dialog(horcom::build_aspektarium(sheet, text));
     dialog.grab().save(args[shot_aspektarium + 1]);
     return 0;
   }
@@ -328,53 +337,67 @@ int main(int argc, char** argv) {
   }
   const int shot_mask = args.indexOf("--shot-mask");
   if (shot_mask >= 0 && shot_mask + 1 < args.size()) {
-    // the reference example of his screenshots, historical data
+    // an invented sample record, no real person
     horcom::AafRecord r;
-    r.surname = "MOZART WOLFGANG AMADEUS";
-    r.place = "SALZBURG";
-    r.day = 27;
-    r.month = 1;
-    r.year = 1756;
-    r.hour = 19;
-    r.minute = 0;
+    r.surname = "MUSTER MAX ADAM";
+    r.place = "EICHENAU";
+    r.day = 12;
+    r.month = 4;
+    r.year = 1950;
+    r.hour = 8;
+    r.minute = 30;
     r.second = 1;
-    r.lon_deg = 13;
-    r.lon_min = 3;
+    r.lon_deg = 11;
+    r.lon_min = 19;
     r.lon_sec = 0;
-    r.lat_deg = 47;
-    r.lat_min = 47;
-    r.lat_sec = 48;
-    r.comment = "KORRIGIERT: 20H08 =19H UT";
+    r.lat_deg = 48;
+    r.lat_min = 10;
+    r.lat_sec = 12;
+    r.comment = "BEISPIEL: 9H30 =8H30 UT";
     horcom::RecordMaskDialog dialog(r, "EINGABE- und ANZEIGE-BOX | RADIX NR.1",
                                     horcom::RecordMaskDialog::Mode::kShow);
     dialog.grab().save(args[shot_mask + 1]);
     return 0;
   }
+  const int shot_entry = args.indexOf("--shot-entry");
+  if (shot_entry >= 0 && shot_entry + 1 < args.size()) {
+    horcom::RecordMaskDialog dialog(horcom::AafRecord{}, "NEU-EINGABE von DATENSÄTZEN  :   |  RADIX NR.1",
+                                    horcom::RecordMaskDialog::Mode::kEntry, data);
+    dialog.grab().save(args[shot_entry + 1]);
+    return 0;
+  }
+  const int shot_zeitzon = args.indexOf("--shot-zeitzon");
+  if (shot_zeitzon >= 0 && shot_zeitzon + 1 < args.size()) {
+    horcom::ZeitzonDialog dialog(data);
+    dialog.grab().save(args[shot_zeitzon + 1]);
+    return 0;
+  }
   const int shot_aaf = args.indexOf("--shot-aaf");
   if (shot_aaf >= 0 && shot_aaf + 1 < args.size()) {
+    // an invented sample record, no real person
     horcom::AafRecord r;
-    r.surname = "MOZART";
-    r.given = "WOLFGANG AMADEUS";
+    r.surname = "MUSTER";
+    r.given = "MAX ADAM";
     r.sex = "m";
-    r.day = 27;
-    r.month = 1;
-    r.year = 1756;
-    r.hour = 19;
-    r.minute = 0;
+    r.day = 12;
+    r.month = 4;
+    r.year = 1950;
+    r.hour = 9;
+    r.minute = 30;
     r.second = 1;
-    r.place = "SALZBURG";
-    r.country = "A";
-    r.lat_deg = 47;
-    r.lat_min = 47;
-    r.lat_sec = 48;
-    r.lon_deg = 13;
-    r.lon_min = 3;
+    r.place = "EICHENAU";
+    r.country = "D";
+    r.lat_deg = 48;
+    r.lat_min = 10;
+    r.lat_sec = 12;
+    r.lon_deg = 11;
+    r.lon_min = 19;
     r.zone = "01hE00:00";
-    r.comment = "KORRIGIERT: 20H08 =19H UT";
-    r.source = "Pratl, Astro-Databank";
-    r.quality = "AA";
-    r.catchword = "Komponist";
-    horcom::AafMaskDialog dialog(r, data / "kommen");
+    r.comment = "BEISPIEL: 9H30 =8H30 UT";
+    r.source = "Beispiel";
+    r.quality = "A";
+    r.catchword = "Muster";
+    horcom::AafMaskDialog dialog(r, data);
     dialog.grab().save(args[shot_aaf + 1]);
     return 0;
   }
@@ -395,9 +418,13 @@ int main(int argc, char** argv) {
     sctx.vsop = &vsop;
     sctx.eph = &eph;
     const horcom::Chart radix = horcom::compute_chart(sctx.base, sctx.settings, vsop, eph);
-    horcom::TransitListDialog dialog(radix, sctx);
-    dialog.preset(QDate(2026, 9, 1), QDate(2026, 10, 1));
-    dialog.run_scan();
+    horcom::TransitScan scan;
+    scan.jd_from_ut = horcom::julian_day({1, 9, 2026, 0, 0.0});
+    scan.jd_to_ut = horcom::julian_day({1, 10, 2026, 0, 0.0});
+    horcom::A18Display display;
+    display.heading = {" TRANSITE  |Grund-Aspekt: 30°   Ab 01.09.2026"};
+    display.settings = sctx.settings;
+    horcom::TransitListDialog dialog(horcom::scan_transits(radix, scan, sctx), display);
     dialog.grab().save(args[shot_list + 1]);
     return 0;
   }
@@ -447,6 +474,12 @@ int main(int argc, char** argv) {
     if (f.size() == 3) {
       window.preset_extras(f[0] == "1", f[1] == "1", f[2] == "1");
     }
+  }
+
+  // --houses N presets the house system, his hausw numbering 1 to 9
+  const int houses_arg = args.indexOf("--houses");
+  if (houses_arg >= 0 && houses_arg + 1 < args.size()) {
+    window.preset_houses(args[houses_arg + 1].toInt());
   }
 
   // --shot FILE saves a capture of the window and quits, the hook for
@@ -555,11 +588,11 @@ int main(int argc, char** argv) {
         for (QWidget* w : QApplication::topLevelWidgets()) {
           if (auto* d = qobject_cast<QDialog*>(w); d != nullptr && d->windowTitle().contains(QStringLiteral("Planeten"))) {
             d->grab().save(target);
-            QApplication::quit();
+            QCoreApplication::exit(0);
             return;
           }
         }
-        QApplication::quit();
+        QCoreApplication::exit(0);
       });
       window.open_planet_selection();
     });
@@ -602,9 +635,11 @@ int main(int argc, char** argv) {
   }
   if (will_shoot) {
     const QString target = args[shot + 1];
+    // exit, not quit, a quit would close the window and meet the quit
+    // question of the close box
     QTimer::singleShot(1200, &window, [&window, target]() {
       window.grab().save(target);
-      QApplication::quit();
+      QCoreApplication::exit(0);
     });
   }
   return QApplication::exec();

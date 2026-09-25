@@ -70,7 +70,9 @@ struct StatQuery {
   /// the kNearBody target, his m(4)
   StatOperand near_body;
   /// aspect divisor range naspe to nas, and the fixed single orb obas
-  /// in radians, zero takes the orb table
+  /// in radians, zero takes the orb table. Equal ends ask for one single
+  /// aspect up to kStatMaxSingleDivisor, a range stops at
+  /// kStatMaxRangeDivisor like the two inputs of stat_ausw
   int asp_low = 1;
   int asp_high = 12;
   double asp_orb = 0.0;
@@ -84,6 +86,11 @@ struct StatQuery {
   /// his UND chaining over the survivors of the previous condition
   bool combine_and = false;
 };
+
+/// The divisor limits of stat_ausw, TEILER (z.B QUADRAT=4) for a single
+/// aspect and MAX. TEILER ? (NICHT ZU GROß !) for every aspect up to it.
+inline constexpr int kStatMaxSingleDivisor = 12;
+inline constexpr int kStatMaxRangeDivisor = 8;
 
 /// One satisfied test.
 struct StatMatch {

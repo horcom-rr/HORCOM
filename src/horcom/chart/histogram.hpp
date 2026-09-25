@@ -27,6 +27,14 @@ struct HistogramOptions {
   bool classic_rulers = false;
 };
 
+/// His elem switch of HISTOGRAMME für ELEMENTE, which columns a chart
+/// sheet carries.
+enum class HistogramMode {
+  kSigns = 1,           ///< Nur für ZEICHEN
+  kSignsAndHouses = 2,  ///< Für ZEICHEN und HÄUSER
+  kNone = 3,            ///< HISTOGRAMME WEGLASSEN
+};
+
 /// The counted columns, index 1 through 4 for fire earth air water and
 /// 1 through 3 for cardinal fixed mutable.
 struct Histogram {
@@ -39,8 +47,8 @@ struct Histogram {
 };
 
 /// Expands the stored weight row onto the body slots. Entries 1 to 14
-/// weigh their slot, entry 15 weighs every extra body, all zero falls
-/// back to his old fixed values.
+/// weigh their slot, entry 15 weighs every extra body. A row without
+/// any weight for SO to MC counts each of them once, like kon_dhol.
 ///
 /// @param pn the konsta row, index 1 through 15
 /// @return one weight per body slot

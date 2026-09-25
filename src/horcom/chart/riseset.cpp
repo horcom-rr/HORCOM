@@ -10,14 +10,13 @@
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
 #include "horcom/time/calendar.hpp"
-#include "horcom/time/delta_t.hpp"
 #include "horcom/time/sidereal.hpp"
 
 namespace horcom {
 
 namespace {
 
-//RR 360.985647, the sky's turn per day in degrees
+// his 360.985647, the sky's turn per day in degrees
 constexpr double kTurnPerDay = 360.985647;
 
 // keeps a day fraction inside its day, the original mtrim
@@ -36,7 +35,16 @@ struct DayPos {
   double ar = 0.0;  // degrees
   double de = 0.0;  // degrees
   double h0 = 0.0;  // the standard altitude, degrees
+  double el = 0.0;  // the display values of auf_unt3, radians
+  double eb = 0.0;
+  double ar_rad = 0.0;
+  double de_rad = 0.0;
 };
+
+// his loop closes at 0.00001 of a day and gives up after thirty seconds
+// on his machine, the port counts iterations instead
+constexpr double kClosed = 0.00001;
+constexpr int kMaxIterations = 40;
 
 // one body at a moment through the full chart pipeline, the standard
 // altitude of the moon rides its own parallax like auf_pl
@@ -52,14 +60,20 @@ DayPos position_at(double jd_ut, int slot, bool true_position, const SearchConte
   out.ok = true;
   out.ar = norm_rad(b.ar) * kRadToDeg;
   out.de = b.de * kRadToDeg;
-  if (true_position) {
+  out.el = b.el;
+  out.eb = b.eb;
+  out.ar_rad = b.ar;
+  out.de_rad = b.de;
+  // auf_pl sets the moon's depth on every call whatever the WAHR or
+  // SCHEINBAR answer, the other bodies keep the value of the answer
+  if (slot == body::kMoon) {
+    // his hh0 = 0.7275 * pm(2) * up - 0.56666666
+    out.h0 = 0.7275 * c.moon.parallax * kRadToDeg - 0.56666666;
+  } else if (true_position) {
     out.h0 = 0.0;
   } else if (slot == body::kSun) {
     //RR GRAD
     out.h0 = -0.8333333;
-  } else if (slot == body::kMoon) {
-    //RR hh0 = 0.7275 * pm(2) * up - 0.56666666
-    out.h0 = 0.7275 * c.moon.parallax * kRadToDeg - 0.56666666;
   } else {
     out.h0 = -0.566667;
   }
@@ -71,7 +85,8 @@ DayPos position_at(double jd_ut, int slot, bool true_position, const SearchConte
 // ported from HORCOM auf_unt with auf_unt2 and auf_2
 RiseSet rise_transit_set(double jd_day_ut, int slot, bool true_position, const SearchContext& in_ctx) {
   RiseSet out;
-  //RR par = 2 //ohne Par.
+  // his par = 2
+  //RR ohne Par.
   // auf_unt forces its own modes, geocentric positions whatever the
   // panel says, hrg! = 0, and appa& = 1 apparent or 3 true, the
   // standard altitude carries the parallax instead
@@ -111,7 +126,7 @@ RiseSet rise_transit_set(double jd_day_ut, int slot, bool true_position, const S
   const double arg = (std::sin(h0 * kDegToRad) - std::sin(lat * kDegToRad) * std::sin(d2 * kDegToRad)) /
                      (std::cos(lat * kDegToRad) * std::cos(d2 * kDegToRad));
   if (std::abs(arg) > 1.0) {
-    //RR AUßER BEREICH !
+    // his AUßER BEREICH ! box
     out.circumpolar = true;
     return out;
   }
@@ -119,17 +134,20 @@ RiseSet rise_transit_set(double jd_day_ut, int slot, bool true_position, const S
   while (hg0 < 0.0 && hg0 > -180.0) {
     hg0 += 180.0;
   }
-  while (hg0 > 180.0 && hg0 < 360.0) {
+  while (hg0 > 180.0 && hg0 < kDegPerCircle) {
     hg0 -= 180.0;
   }
-  double m0 = mtrim((a2 - lon - te0) / 360.0);
-  double m1 = mtrim(m0 - hg0 / 360.0);
-  double m2 = mtrim(m0 + hg0 / 360.0);
-  const double delt = delta_t_minutes(jde);
+  double m0 = mtrim((a2 - lon - te0) / kDegPerCircle);
+  double m1 = mtrim(m0 - hg0 / kDegPerCircle);
+  double m2 = mtrim(m0 + hg0 / kDegPerCircle);
 
-  // one refinement of the interpolation of auf_unt2
+  // one refinement of the interpolation of auf_unt2. His n = m + delt
+  // follows Meeus for positions tabulated at 0h TD, the three positions
+  // above stand at 0h UT already, the chain converted them. The port
+  // interpolates at m itself, his second delt moved the moon's clock by
+  // seconds today and by hours in antiquity
   const auto refine = [&](int kind, double m, double te) {
-    const double n = m + delt * 0.0006944444444;
+    const double n = m;
     double a = a2 - a1;
     double b = a3 - a2;
     double c = b - a;
@@ -140,49 +158,55 @@ RiseSet rise_transit_set(double jd_day_ut, int slot, bool true_position, const S
     const double de = d2 + (n / 2.0) * (a + b + n * c);
     double hg = te + lon - ar;
     while (hg < -180.0) {
-      hg += 360.0;
+      hg += kDegPerCircle;
     }
     while (hg > 180.0) {
-      hg -= 360.0;
+      hg -= kDegPerCircle;
     }
     const double h = std::asin(std::sin(lat * kDegToRad) * std::sin(de * kDegToRad) +
                                std::cos(lat * kDegToRad) * std::cos(hg * kDegToRad) * std::cos(de * kDegToRad)) *
                      kRadToDeg;
     double dm = 0.0;
     if (kind == 2) {
-      dm = -hg / 360.0;
+      dm = -hg / kDegPerCircle;
     } else {
-      dm = (h - h0) / (360.0 * std::cos(de * kDegToRad) * std::cos(lat * kDegToRad) * std::sin(hg * kDegToRad));
+      dm = (h - h0) / (kDegPerCircle * std::cos(de * kDegToRad) * std::cos(lat * kDegToRad) * std::sin(hg * kDegToRad));
     }
     return mtrim(m + dm);
   };
 
-  // the outer loop of the original, the moon's depth refreshes with
-  // every recomputed moment
+  // the outer loop of the original with auf_2 after every step, the
+  // moon's depth refreshes with every recomputed moment and the last
+  // position is the one his auf_unt3 block prints
   const auto solve = [&](int kind, double m) {
-    for (int i = 0; i < 40; ++i) {
+    RiseSetMoment at;
+    for (int i = 0; i < kMaxIterations; ++i) {
       const double ms = m;
       m = refine(kind, m, te0 + kTurnPerDay * m);
-      if (slot == body::kMoon && !true_position) {
-        const DayPos now = position_at(jde + m, slot, true_position, ctx);
-        if (now.ok) {
+      const DayPos now = position_at(jde + m, slot, true_position, ctx);
+      if (now.ok) {
+        if (slot == body::kMoon) {
           h0 = now.h0;
         }
+        at.el = now.el;
+        at.eb = now.eb;
+        at.ar = now.ar_rad;
+        at.de = now.de_rad;
       }
-      if (std::abs(ms - m) < 0.00001) {
-        return m;
+      if (std::abs(ms - m) < kClosed) {
+        at.ok = now.ok;
+        break;
       }
     }
-    return m;
+    at.jd_ut = jde + m;
+    at.gst_deg = norm_deg(te0 + kTurnPerDay * m);
+    return at;
   };
 
-  m1 = solve(1, m1);
-  m0 = solve(2, m0);
-  m2 = solve(3, m2);
   out.ok = true;
-  out.jd_rise_ut = jde + m1;
-  out.jd_transit_ut = jde + m0;
-  out.jd_set_ut = jde + m2;
+  out.rise = solve(1, m1);
+  out.transit = solve(2, m0);
+  out.set = solve(3, m2);
   return out;
 }
 

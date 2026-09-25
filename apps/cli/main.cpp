@@ -15,6 +15,7 @@
 
 #include "horcom/chart/aspects.hpp"
 #include "horcom/chart/chart.hpp"
+#include "horcom/chart/signs.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
 #include "horcom/render/svg.hpp"
@@ -24,19 +25,12 @@ namespace {
 
 using namespace horcom;
 
-// the sign tags of the original zei$ table
-constexpr const char* kSignTag[12] = {"AR", "TA", "GM", "CN", "LE", "VI", "LI", "SC", "SG", "CP", "AQ", "PS"};
-
+// the zodiac form of his coordinate screen, the rounded second carries
+// into the next sign like his grze_0
 std::string format_zodiac(double rad) {
-  double deg = norm_deg(rad * kRadToDeg);
-  const int sign = static_cast<int>(deg / kDegPerSign);
-  const double in_sign = deg - sign * kDegPerSign;
-  int total_sec = static_cast<int>(in_sign * 3600.0 + 0.5);
-  const int d = total_sec / 3600;
-  const int m = (total_sec / 60) % 60;
-  const int sec = total_sec % 60;
+  const ZodiacSplit z = split_zodiac(rad, true);
   char buf[32];
-  std::snprintf(buf, sizeof(buf), "%2d %s %02d'%02d\"", d, kSignTag[sign], m, sec);
+  std::snprintf(buf, sizeof(buf), "%2d %s %02d'%02d\"", z.deg, kSignTag[z.sign], z.min, z.sec);
   return buf;
 }
 
@@ -173,7 +167,7 @@ int main(int argc, char** argv) {
                 angle_slot ? "" : format_deg(b.de).c_str(), vel,
                 (!angle_slot && b.tb < 0.0) ? "  R" : "");
   }
-  if (!(s.houses == HouseSystem::kAcMcOnly || s.houses == HouseSystem::kNone)) {
+  if (s.houses < HouseSystem::kAcMcOnly) {
     std::printf("\nHAEUSER (%s)\n", std::string(chart.houses.name).c_str());
     for (int i = 1; i <= 12; ++i) {
       std::printf("%2d   %s\n", i, format_zodiac(chart.houses.cusp[static_cast<std::size_t>(i)]).c_str());

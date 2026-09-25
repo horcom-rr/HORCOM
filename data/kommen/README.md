@@ -5,7 +5,8 @@ writing, shipped with the original HORCOM as the KOMMEN7P folder. An
 introduction, the Erläuterungen on input, ephemeris, chart types,
 solars, the Münchner Rhythmenlehre, directions, houses, statistics and
 the AAF world, plus his change log, notes and the short manual. The
-program shows them under Hilfe, Original-Kommentare.
+program shows them through the EXPLANATION entries at the end of every
+menu, F1 inside an output and CHANGES / NOTES / SHORT MANUAL.
 
 His wording is unchanged. The conversion from his DOS era text files
 only reflows the hard wrapped lines, turns his underlined captions into
@@ -20,6 +21,12 @@ title, the HINWEIS5 notes consisted of such material entirely and are
 not part of the shipped set. Prices, ordering hints and website
 addresses inside the remaining texts are historical, they describe his
 distribution of the original program and remain part of his writing.
+
+`ersthilf.txt` is his Erste Hilfe list of the INTERN folder, the one
+F1 and the right mouse button open on the main screen. It keeps his
+lines, the paragraph on screen resolutions of the era and the place
+name in his signature are left out. `ersthilf_en.txt` is the English
+edition.
 
 The original byte exact `.TXT` files stay local beside these editions
 and are not tracked. The reading dialog prefers the markdown editions

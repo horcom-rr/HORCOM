@@ -435,19 +435,24 @@ Planet index 0 (Fixpunkt) is never a bitmap — it is the letter `"F"` in `RGB(2
 
 Called from `asp1` (20531). Endpoints always on the r = 90 circle (`aspz0`). The whole block is skipped if `asp1!` (table-only mode), `nasp& <= 1` or `horm& <> 1`.
 
-| `n&` (aspect) | Colour | `DEFLINE` style `ls&` | `ml&` legend index |
+`aspz1_0(ml&,ls&)` takes the row first and the style second, the style
+is the Windows pen number of `DEFLINE`, 0 solid, 1 dash, 2 dot, 3 dash dot.
+The first and last multiple of a divisor take the base row, the compound
+multiples the rows 13 to 19.
+
+| `n&` (aspect) | Colour | `DEFLINE` style `ls&` | `ml&` row, base / compound (multiples) |
 |---|---|---|---|
-| 2 Opposition | `RGB(255,0,0)` | 2 | 2 |
-| 3 Trigon | `RGB(0,200,0)` | 3 (2 if custom) | 3 |
-| 4 Quadrat | `RGB(255,0,0)` | 4 (0) | 4 |
-| 5 Quintil | `RGB(0,0,200)` | 13 / 5 | 13 / 5 |
-| 6 Sextil | `RGB(0,200,0)` | 6 (2) | 6 |
-| 7 Septil | `RGB(0,0,200)` | 14 / 7 (3) | 14 / 7 |
-| 8 Halbquadrat | `RGB(255,0,0)` | 15 / 8 | 15 / 8 |
-| 9 Novil | `RGB(255,0,0)` | 16 / 9 | 16 / 9 |
-| 10 Dezil | `RGB(0,0,200)` | 17 / 10 | 17 / 10 |
-| 11 | `RGB(0,0,0)` | 18 / 11 | 18 / 11 |
-| 12 Quinkunx | `RGB(0,200,0)` | 19 / 12 | 19 / 12 |
+| 2 Opposition | `RGB(255,0,0)` | 0 | 2 |
+| 3 Trigon | `RGB(0,200,0)` | 2 | 3 |
+| 4 Quadrat | `RGB(255,0,0)` | 0 | 4 |
+| 5 Quintil | `RGB(0,0,200)` | 0 | 5 / 13 (2,3) |
+| 6 Sextil | `RGB(0,200,0)` | 2 | 6 |
+| 7 Septil | `RGB(0,0,200)` | 3 | 7 / 14 (2..5) |
+| 8 Halbquadrat | `RGB(255,0,0)` | 0 | 8 / 15 (3,5), none under `ryt!` |
+| 9 Novil | `RGB(255,0,0)` | 2 | 9 / 16 (2,4,5,7) |
+| 10 Dezil | `RGB(0,0,200)` | 2 | 10 / 17 (2,3,4,6,7,8) |
+| 11 | `RGB(0,0,0)` | 2 | 11 / 18 (2..9) |
+| 12 Quinkunx | `RGB(0,200,0)` | 2 | 12 / 19 (5,7), none under `ryt!` |
 
 `aspz1_2` gates each line on the per-aspect visibility flags `aspli%()` / `aspli|()`; `aspz1_0` substitutes the user's own line style `aspst|(ml&)` when `selbst_cl_st!` ("Eigenvorgabe benutzen", `avh` case 20). Line primitives: `aspz1_1_1` uses native `DEFLINE ls&,1` on screen; on the printer it falls back to `p_line` (20950, `//gestrichelt`, 4-px dash by even/odd segment index) or `sp_line` (20976, `//strichpunk`, period 10 with a dot at 0.4–0.6 phase). `pline` (20924, `//punktiert`) plots every 4th pixel.
 

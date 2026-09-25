@@ -35,6 +35,8 @@ different offsets, finds the midpoint contacts.
   <tr><td><code>org, orbis_discr2, orbis_discr3</code></td><td>public orb helpers, shared with the statistics engine</td></tr>
   <tr><td><code>halbs1, halbs11, halbs111</code></td><td><code>scan_midpoints</code></td></tr>
   <tr><td><code>aspdis</code></td><td><code>aspect_symbol</code></td></tr>
+  <tr><td><code>aspar, aspsenk, aspsenk1, aspwag, aspwag1, nam, klplanz</code></td><td><code>build_aspektarium</code></td><td><code>src/horcom/render/aspektarium.*</code></td></tr>
+  <tr><td><code>aspar2 with the trees of halbs111 and halbsa</code></td><td><code>midpoint_trees</code>, drawn by <code>build_midpoint_trees</code></td><td><code>src/horcom/chart/aspects.*</code>, <code>src/horcom/render/midpoint_trees.*</code></td></tr>
   <tr><td><code>orb, nasp&amp;, orbe!, orbe(), or&amp;()</code></td><td><code>AspectSettings</code></td><td><code>src/horcom/chart/aspects.hpp</code></td></tr>
   <tr><td><code>a18st</code></td><td>internal slot walker</td><td><code>src/horcom/chart/aspects.cpp</code></td></tr>
 </table>
@@ -42,15 +44,15 @@ different offsets, finds the midpoint contacts.
 <h2>The orb system</h2>
 <p>
 The default window of a divisor is a thirtieth of its base angle scaled by
-the global ORBIS-FAKTOR, twelve degrees for the conjunction, six for the
+the global ORB FACTOR, twelve degrees for the conjunction, six for the
 opposition, four for the trine. Each body carries a percentage weight, the
 pair takes the LARGER of the two weights, and a weight of zero silences a
-body entirely. His alternative mode, the gleichwahrscheinliche Aspekte,
+body entirely. His alternative mode, the equally probable aspects,
 swaps in a user table of orbs and restricts each divisor to its classical
 multiples, twelve keeps only 1, 5, 7 and 11, eight keeps the odd ones. His
 dialog explains the intent in his own words
 </p>
-<blockquote class="rr">...werden Orbes gewählt, die etwa GLEICHE Wahrscheinlichkeit für alle Aspekte mit Teiler 1 bis 12 aufweisen ! ( 1930 bis 2050 )
+<blockquote class="rr">...orbs are chosen that give about EQUAL probability to all aspects with divisor 1 to 12 ! ( 1930 to 2050 )
 <footer>from the settings dialog of the equal probability mode</footer>
 </blockquote>
 
@@ -63,7 +65,11 @@ the square family tests ninety and two hundred seventy and the sixth
 only sixty and three hundred, the base orb pn over thirty regardless of
 the equal probability mode, and on the transit wheel the flat rule of
 one degree scaled by the radix body's weight. A near side guard keeps a
-pair from matching the same angle twice. The shell lists the hits under
+pair from matching the same angle twice. His guards took a zero for an
+empty slot, so an exact aspect and every body at 0° Aries dropped out
+and a chart laid over itself lost all its conjunctions. The port asks
+the slot like the single scan, and the double wheel comparison lists
+exact aspects. The shell lists the hits under
 the transit view as running body, separation and radix body, the way
 his screen wrote T and R columns beside the wheel.
 </p>
@@ -77,9 +83,9 @@ counts twice. The grand trine counter searches triples of divisor three
 hits whose endpoints close a triangle, with a degeneracy guard against
 three bodies standing in one spot.
 </p>
-<blockquote class="rr">// Schiemenz Triga-Zähler:
-// Schiemenz Großtrigon-Zähler:
-// Schiemenzschen Aspektezähler eingebaut                    04.01.03
+<blockquote class="rr">// Schiemenz Triga counter:
+// Schiemenz grand trine counter:
+// Schiemenz aspect counter built in                         04.01.03
 <footer>his section markers and the change log entry</footer>
 </blockquote>
 
@@ -88,43 +94,89 @@ three bodies standing in one spot.
 Three passes, direct, square and the semi square family, test every body
 against the half sum of every pair, each with the midpoint's antipode, one
 degree of base orb. A shared cube of flags spans the passes so the square
-that also fits the semi square family counts once. Two quirks are kept
-knowingly, the third body's weight only gates positivity in
-orbis_discr3, and a body standing at exactly zero degrees Aries never
-aspects at all because the original tests the raw position against zero.
-The tests document both. A fourth pass over the 45 degree level opens
+that also fits the semi square family counts once. The orb of a midpoint
+contact follows orbis_discr3, the larger weight of the pair sets it and
+the third body's weight only decides whether it takes part. His scans
+took a position of zero for an empty slot and a zero distance for no
+aspect, so a body at exactly 0° Aries, the fixed point typed as 0 Aries
+or a 90 degree dial position folding onto zero never aspected, and two
+bodies on the same degree never formed their conjunction. The port asks
+the slot whether it is filled and counts the exact conjunction. The
+midpoints of the ASPECTARIUM and the MIDPOINT GRAPHIC include the fixed
+point when one is set. A fourth pass over the 45 degree level opens
 on demand for the midpoint tree screen, the three counters stay with
 the classic passes.
 </p>
 
 <h2>The midpoint trees</h2>
 <p>
-The Halbsummen-Bäume screen lists every point with its longitude, its
-place on the 45 degree dial, eight times the longitude folded back
-into the circle, and the tree of midpoints landing on it with their
-level, 360, 180, 90 or 45. A dial value turns red when another point
-stands within the divisor eight orb on the eight fold circle, his red
-rows for close company, the node's south end stays out of the walk.
-Under the table the three pass counters read direct, square and semi
-square.
+The MIDPOINT GRAPHIC draws the trees of his aspar2, eleven in each of
+two bands and 22 a page. Every body gets a tree, the fixed point when it
+is set and the south node included, and the geocentric chart adds the
+cusps two, three, five and six as H2 to H6. Each tree shows its degree
+and sign on top, a trunk with nine branches and on each branch the pair
+whose midpoint falls on the point, lettered D, Q, H or V for the levels
+360, 180, 90 and 45 degrees, found by the same halbs111 pass as the
+midpoint list, one shared flag cube per screen and the tree walked
+level by level. A tenth hit only frames the ninth branch like his box.
+The cusp trees weigh a normal 100 percent. His or&amp;() slots 15 to 18
+behind them were never reachable in the orb dialog, 15 doubled as the
+EXTRA PLANETS row and 16 to 18 stayed zero, so his program drew H3,
+H5 and H6 without a branch and gave H2 the weight of the extra bodies.
+Space, Enter or Page Down turn the page, ESC
+ends. After the last page the geocentric chart asks whether to sort by
+eight times the longitude folded to the circle, which lines up the
+planetary pictures, and the sorted pass prints that dial value under
+each tree, red when another point stands within the larger level eight
+orb of the two. The right mouse opens einzel_plan_wahl in its MIDPOINTS
+wording, the chosen bodies turn red or the others leave the pairs, the
+trees themselves always stand.
+</p>
+<p>
+The counts of his halbs_zaehl_gr stand as a line under the trees,
+<i>Number of midpoints :</i> with the direct, square, semi square and
+quarter square hits, their sum, the base orb and the orb factor. His
+program popped the counter up over the screen once every tree stood,
+and under COMPACT EVALUATION after HOROSCOPE GRAPHIC too, to be clicked
+away or switched off with <i>SUPPRESS this DISPLAY !</i>. The rewrite
+keeps the numbers in view without the popup, and the COMPACT EVALUATION
+lists the midpoints beside the chart anyway.
 </p>
 
-<h2>The Aspektarium</h2>
+<h2>The Aspectarium</h2>
 <p>
-aspar draws the whole scan as one triangular matrix and the shell keeps
-it as its own dialog. Exact separations in degrees and minutes stand
-above the diagonal, only for pairs the scan matched, the named aspect
-below it, the per body hit counts on the diagonal, beside it the
-divisor table with angle and orb and under it his planet weights. The
-naming runs through aspdis, ported as <code>aspect_symbol</code>, which folds
-the matched angle to the near side and divides it down through every
-divisor until a known aspect degree appears, the main aspects and the
-named minors get their glyph, everything else prints as divisor and
-rounded angle exactly like his DEFAULT branch. The maximal divisor
-choice of eight, twelve or sixteen rescans on the spot, sixteen only
-outside the equal probability orbs like his selection box, and the
-matrix folds its truncation quirks along, a five elevenths angle
-truncates onto the forty degree family just as his FIX did.
+aspar asks MAXIMUM divisor first, eight, twelve or sixteen, sixteen only
+outside the equal probability orbs, twelve preset, under his orb banner,
+and the choice holds for this sheet alone. Then
+<code>build_aspektarium</code> draws his sheet, the matrix of 26 by 20
+cells with the sprites along the top and down the left, the whole block
+under the title line. Every matched pair shows its exact separation in
+the upper cell, degrees and minutes on two lines, with his hook under a
+main aspect and a tick under any other, and the name in the mirrored
+lower cell, the sprite of the main aspects and the named minors, divisor
+over rounded angle for everything else like his DEFAULT branch. The
+separations round to whole minutes, his minutes could round up to 60,
+the port carries them into the degree. A body at exactly 0° Aries takes
+its place in the matrix like any other, and the true Black Moon stands
+inverted like on the wheel.
+The hit count of every body stands on the hatched diagonal, the grid
+runs one column past the last body like his loop. On the right follow
+the divisor table with angle and orb, the orb factor, his legend, the
+name split at its first space and the date, under the matrix the planet
+weights with the percent after MC, the node weights kept in the
+heliocentric mode too, and, with extras, their weight and up to five of
+their sprites. Without extras and fixed point the aspect histogram of
+asphist sits in the empty corner, the grab of his bitmap leaving out
+its first heading, and the Munich Rhythm mode leaves that inset out.
+The matrix holds nineteen columns like
+his, so five extras fit beside MC. The Planet selection colours the
+chosen bodies red, and the right mouse opens einzel_plan_wahl and draws
+the sheet again. The naming runs through aspdis, ported as
+<code>aspect_symbol</code>, which folds the matched angle to the near side
+and names the family of the smallest divisor that holds it as an exact
+multiple. His aspdis divided the angle down with FIX and named five
+elevenths by the ninth, the port corrects that, see the list of known
+original bugs.
 </p>
 
 <h2>Verification</h2>
@@ -135,9 +187,9 @@ smaller divisor claiming a pair before a larger one can, the silent node
 pair, silent zero weight bodies, the orb factor scaling, the equal
 probability multiple filter, a chained conjunction for the Triga counter,
 a closed grand trine, midpoint hits in all three passes, the antipode
-rule and the cross pass duplicate guard. The aspdis transcription pins
-every named angle, the multiples folding back onto their divisors and
-the truncation onto CASE 22.
+rule and the cross pass duplicate guard. The aspdis pins cover every
+named angle, the multiples folding back onto their divisors and the four
+fractions his truncation misnamed.
 </p>
 
 </main>

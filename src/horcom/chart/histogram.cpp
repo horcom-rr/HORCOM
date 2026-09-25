@@ -4,6 +4,9 @@
 
 #include "horcom/chart/histogram.hpp"
 
+#include <algorithm>
+
+#include "horcom/chart/bodies.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
 #include "horcom/data/statist_eval.hpp"
@@ -12,16 +15,13 @@ namespace horcom {
 
 namespace {
 
-// his old fixed values before the weights became editable
-constexpr std::array<int, 16> kOldPoints = {0, 6, 6, 3, 3, 3, 2, 2, 1, 1, 1, 1, 1, 6, 6, 0};
-
 // the common skip of both counters, kardinal slots geocentric, node
 // block and the axisless extras heliocentric
 bool skipped(int t, const ChartSettings& s) {
-  if (!s.heliocentric && t > 14 && t < 19) {
+  if (!s.heliocentric && body::cardinal(t)) {
     return true;
   }
-  if (s.heliocentric && ((t > 10 && t < 19) || t == s.nk[1] || t == s.nk[4])) {
+  if (s.heliocentric && ((t > body::kPluto && t < body::kApogee) || t == s.nk[1] || t == s.nk[4])) {
     return true;
   }
   return false;
@@ -61,17 +61,22 @@ std::array<int, body::kSlotCount> factors(const Chart& chart, const ChartSetting
 }  // namespace
 
 std::array<int, body::kSlotCount> histogram_points(const std::array<int, 16>& pn) {
+  std::array<int, 16> row = pn;
   bool any = false;
-  for (int i = 1; i <= 15; ++i) {
-    any = any || pn[static_cast<std::size_t>(i)] != 0;
+  for (int i = 1; i <= 14; ++i) {
+    any = any || row[static_cast<std::size_t>(i)] != 0;
   }
-  const std::array<int, 16>& row = any ? pn : kOldPoints;
+  if (!any) {
+    for (int i = 1; i <= 14; ++i) {
+      row[static_cast<std::size_t>(i)] = 1;
+    }
+  }
   std::array<int, body::kSlotCount> out{};
   for (int slot = 1; slot <= 14; ++slot) {
     out[static_cast<std::size_t>(slot)] = row[static_cast<std::size_t>(slot)];
   }
   // his entry 15 weighs every extra body at once
-  for (int slot = 19; slot < body::kSlotCount; ++slot) {
+  for (int slot = body::kApogee; slot < body::kSlotCount; ++slot) {
     out[static_cast<std::size_t>(slot)] = row[15];
   }
   return out;
@@ -81,7 +86,8 @@ std::array<int, body::kSlotCount> histogram_points(const std::array<int, 16>& pn
 Histogram chart_histogram(const Chart& chart, const ChartSettings& s, const HistogramOptions& opt) {
   Histogram out;
   const std::array<int, body::kSlotCount> f = factors(chart, s, opt);
-  const double p = kPi / 6.0;
+  // his p = PI / 6, one sign in radians
+  constexpr double p = kPi / 6.0;
 
   // his aa to bb walk reached the axes at 13 and 14, the present flags
   // already carry which slots the settings computed
@@ -91,26 +97,12 @@ Histogram chart_histogram(const Chart& chart, const ChartSettings& s, const Hist
       continue;
     }
     const int score = opt.points[static_cast<std::size_t>(t)] * f[static_cast<std::size_t>(t)];
-    for (int u = 0; u < 12; ++u) {
-      double w1 = u * p;
-      double w2 = w1 + p;
-      // his kk edges at the zero point, an exact zero never counts
-      if (u == 0) {
-        w1 += kEps;
-      }
-      if (u == 11) {
-        w2 -= kEps;
-      }
-      double w3 = b.el;
-      if (w3 <= kEps) {
-        continue;
-      }
-      vergl2(w1, w2, w3);
-      if (w1 < w3 && w3 < w2) {
-        out.element_sign[static_cast<std::size_t>(u % 4 + 1)] += score;
-        out.quality_sign[static_cast<std::size_t>(u % 3 + 1)] += score;
-      }
-    }
+    // his open windows between kk edges let a body at exactly 0 Aries or
+    // on a sign boundary fall out of every sign, a sign runs from its
+    // first degree up to the next
+    const int u = std::min(static_cast<int>(norm_rad(b.el) / p), 11);
+    out.element_sign[static_cast<std::size_t>(u % 4 + 1)] += score;
+    out.quality_sign[static_cast<std::size_t>(u % 3 + 1)] += score;
   }
 
   // house columns only below his haw bar, the axis only modes stay out
@@ -128,9 +120,9 @@ Histogram chart_histogram(const Chart& chart, const ChartSettings& s, const Hist
         double w1 = fz[static_cast<std::size_t>(u)];
         double w2 = fz[static_cast<std::size_t>(u + 1)];
         double w3 = b.el;
-        if (w3 <= kEps) {
-          continue;
-        }
+        // his w3 > kk test dropped a body at exactly 0 Aries. A point on a
+        // cusp stays out as in the original, AC and MC stand on their own
+        // cusps and would only add the same houses to every chart
         vergl2(w1, w2, w3);
         if (w1 < w3 && w3 < w2) {
           out.element_house[static_cast<std::size_t>((u - 1) % 4 + 1)] += score;

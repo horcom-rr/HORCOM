@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <string>
+#include <string_view>
 #include <vector>
 
 // The sort modes of the record chooser, ported from a210, a211 and
@@ -31,12 +32,19 @@ struct OrderKeySource {
   int year = 0;
 };
 
+/// The sort key of a name under his QSORT collation table vg|, capitals
+/// with Ä, Ö and Ü sorting as A, O and U and ß as S.
+///
+/// @param utf8 the name
+/// @return the key, compared bytewise
+[[nodiscard]] std::string collation_key(std::string_view utf8);
+
 /// Builds the display permutation for the chooser list.
 ///
 /// The name modes key on the words of the name like a211_nnam, the
 /// second and third mode truncate each word key to five characters like
-/// the original did. The original ran the keys through its own QSORT
-/// collation table, the port compares the keys case blind.
+/// the original did. The keys run through collation_key like his QSORT
+/// WITH vg|.
 ///
 /// @param records the key sources in file order
 /// @param order   the chosen mode

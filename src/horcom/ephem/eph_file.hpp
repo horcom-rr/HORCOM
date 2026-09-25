@@ -29,9 +29,26 @@ namespace horcom {
 enum class EphFrame {
   kEquatorialJ2000,  // pluto.eph
   kEclipticJ2000,    // asteroids, centaurs, quaoar, xena
-  kEclipticB1950,    // chiron.eph, and halley.eph through the original's
-                     // duplicated CASE, preserved knowingly
+  kEclipticB1950,    // chiron.eph and halley.eph
 };
+
+/// Signed rates of a heliocentric state, per day.
+struct SphericalRates {
+  double lont = 0.0;  // longitude, the original helt
+  double latt = 0.0;  // latitude, hebt
+  double rt = 0.0;    // radius, hert
+};
+
+/// The derivatives of longitude, latitude and radius of a cartesian
+/// state, ported from the helt, hert and hebt lines of ephem_auswert.
+///
+/// @param x position vector in AU
+/// @param v velocity vector in AU per day, same frame
+/// @return the rates with their sign
+/// @note the original wrapped all three in ABS, which lost the sign of a
+///       falling radius, a southward latitude and Halley's retrograde
+///       longitude, the geocentric speed and the R marker went wrong
+[[nodiscard]] SphericalRates spherical_rates(const std::array<double, 3>& x, const std::array<double, 3>& v);
 
 /// Static description of one ephemeris body.
 struct EphBodyInfo {
@@ -46,6 +63,7 @@ struct EphBodyInfo {
 /// @return the description, or nullptr for an unknown name
 [[nodiscard]] const EphBodyInfo* eph_body(std::string_view name);
 
+/// One of his ephemeris files, read whole and interpolated on demand.
 class EphFile {
  public:
   /// Opens and slurps an ephemeris file.
@@ -61,19 +79,19 @@ class EphFile {
                        // right ascension for the equatorial frame
     double lat = 0.0;  // latitude, declination for the equatorial frame
     double r = 0.0;    // heliocentric distance, AU
-    double lont = 0.0; // absolute rates per day like the original helt
+    double lont = 0.0; // signed rates per day, see spherical_rates
     double latt = 0.0;
     double rt = 0.0;
     std::array<double, 3> xyz{};  // interpolated cartesian vector of date
+    std::array<double, 3> vxyz{}; // interpolated velocity, AU per day
   };
 
   /// Interpolates the body position for an epoch.
   ///
   /// Five samples around the epoch are individually precessed to date,
   /// combined with the original's Newton Stirling formula, velocities come
-  /// from first differences at interval midpoints. The velocity midpoint
-  /// argument mixes a dimensionless offset with half a step in days, the
-  /// original does the same and it only affects displayed speeds.
+  /// from first differences at interval midpoints, interpolated around the
+  /// midpoint half a step after the centre sample.
   ///
   /// @param jd      epoch in Ephemeris Time
   /// @param fplanet scale factor of the body

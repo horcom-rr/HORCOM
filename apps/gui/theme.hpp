@@ -6,6 +6,7 @@
 
 #include <QApplication>
 #include <QColor>
+#include <QFont>
 #include <QSettings>
 #include <QString>
 #include <algorithm>
@@ -18,18 +19,97 @@
 // the same way.
 namespace horcom::theme {
 
-//RR RGB($C0,$DC,$C0)
+/// the green of his main menu panel, RGB($C0,$DC,$C0)
 inline constexpr const char* kPanelGreen = "#C0DCC0";
 
 /// the settings key of the theme choice, true is the night theme
+/// the settings group of every choice of the ANSICHT menu but the
+/// language, ALLES ZURÜCKSETZEN clears it whole
+inline constexpr const char* kViewGroup = "view";
 inline constexpr const char* kDarkKey = "view/darkTheme";
 
-/// The desk behind the wheel paper per theme.
+/// the settings key that puts the KONSTA colours of HINTERGRUND-FARBEN
+/// over the dress
+inline constexpr const char* kOwnColorsKey = "view/ownColors";
+
+/// The fixed pitch face of his tables and sheets, Courier New or its
+/// metric stand in on Linux.
+///
+/// @param point_size the size in points, zero keeps the default
+/// @return the font
+inline QFont mono_font(int point_size = 0) {
+  QFont f(QStringLiteral("Courier New"));
+  f.setStyleHint(QFont::Monospace);
+  if (point_size > 0) {
+    f.setPointSize(point_size);
+  }
+  return f;
+}
+
+/// His RGB() value, the Windows COLORREF with red in the low byte.
+///
+/// @param v the stored value
+/// @return the colour
+inline QColor from_colorref(int v) {
+  return QColor(v & 0xFF, (v >> 8) & 0xFF, (v >> 16) & 0xFF);
+}
+
+/// @param c the colour
+/// @return his RGB() value of it
+inline int to_colorref(const QColor& c) {
+  return c.red() | (c.green() << 8) | (c.blue() << 16);
+}
+
+/// The dialog colour of HINTERGRUND-FARBEN, his color_dial fallback
+/// while KONSTA holds none yet.
+///
+/// @param colorref his col_dial%, zero when never chosen
+/// @return the colour
+inline QColor dialog_color(int colorref) {
+  // his IF col_dial% = 0, col_dial% = RGB(100,100,255)
+  return colorref != 0 ? from_colorref(colorref) : QColor(100, 100, 255);
+}
+
+/// The passive screen colour of HINTERGRUND-FARBEN, his color_dial
+/// fallback while KONSTA holds none yet.
+///
+/// @param colorref his col_backg%, zero when never chosen
+/// @return the colour
+inline QColor passive_color(int colorref) {
+  // his IF col_backg% = 0, col_backg% = RGB(192,192,192)
+  return colorref != 0 ? from_colorref(colorref) : QColor(192, 192, 192);
+}
+
+/// the Rec. 601 luma above which a background counts as light
+inline constexpr double kLightLuma = 0.5;
+
+/// The ink that reads on a background of his choice, black on a light
+/// colour and white on a dark one.
+///
+/// @param background the colour the text stands on
+/// @return black or white
+inline QColor ink_on(const QColor& background) {
+  const double luma = 0.299 * background.redF() + 0.587 * background.greenF() + 0.114 * background.blueF();
+  return luma > kLightLuma ? QColor(Qt::black) : QColor(Qt::white);
+}
+
+/// The desk behind the wheel paper, his passive screen colour once
+/// HINTERGRUND-FARBEN put it over the dress.
+///
+/// @param dark true for the night theme
+/// @return the desk colour
 inline QColor desk_color(bool dark) {
+  const QVariant own = qApp != nullptr ? qApp->property("horcomDesk") : QVariant();
+  if (own.isValid()) {
+    return own.value<QColor>();
+  }
   return dark ? QColor(0x10, 0x17, 0x2B) : QColor(0xE7, 0xE4, 0xD8);
 }
 
-/// The frame line around the wheel paper per theme.
+/// The frame line around the wheel paper.
+///
+/// @param dark true for the night theme
+/// @return the edge colour
 inline QColor paper_edge_color(bool dark) {
   return dark ? QColor(0x23, 0x2D, 0x4A) : QColor(0xB9, 0xB4, 0xA2);
 }
@@ -150,6 +230,64 @@ QDockWidget::title {
   padding: 5px 10px;
   font-weight: bold;
 }
+/* The title bar widget of the docks, the same yellow box while a dock
+   floats or is dragged, where the system would put its own grey title */
+QWidget#dockTitleBar {
+  background: @headBg@;
+  border: 1px solid @edge@;
+}
+QLabel#dockTitle {
+  color: @headInk@;
+  font-family: "Courier New", monospace;
+  font-size: @12px@;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+QToolButton#dockTitleButton {
+  border: none;
+  border-radius: 3px;
+  padding: 1px;
+  background: transparent;
+}
+QToolButton#dockTitleButton:hover {
+  background: @btnHover@;
+}
+/* The bar under a chart that waits for a key like his wart */
+QLabel#waitBar {
+  background: @headBg@;
+  color: @headInk@;
+  border: 1px solid @edge@;
+  padding: 6px 16px;
+  font-family: "Courier New", monospace;
+  font-size: @13px@;
+  font-weight: bold;
+}
+/* The tabs of docks laid on each other. The chosen one wears the yellow
+   box of the dock titles, the others the panel, so the bar keeps the
+   dress instead of the grey of the platform style. */
+QTabBar {
+  background: @base@;
+}
+QTabBar::tab {
+  background: @panel@;
+  color: @ink@;
+  border: 1px solid @edge@;
+  padding: 5px 12px;
+  margin: 0px 2px 0px 0px;
+  font-family: "Courier New", monospace;
+  font-size: @12px@;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+QTabBar::tab:selected {
+  background: @headBg@;
+  color: @headInk@;
+}
+QTabBar::tab:hover:!selected {
+  background: @btnHover@;
+}
 QGroupBox {
   font-weight: bold;
   border: 1px solid @edge@;
@@ -184,6 +322,13 @@ QTableView::item:selected,
 QTableView::item:selected:!active {
   background: @selBg@;
   color: @selInk@;
+}
+/* Any item rule hands the cells to the style sheet box model, whose
+   padding is zero, and the text lost the margin of the native style and
+   stood on the grid line. The padding gives it back on both sides, the
+   size hints grow with it so no column cuts its text. */
+QTableView::item {
+  padding: 0px 4px;
 }
 QHeaderView {
   background: @field@;
@@ -480,12 +625,42 @@ inline bool dark_theme() {
 /// on the application object for the painting widgets.
 inline void apply(int percent, bool dark) {
   qApp->setProperty("horcomDark", dark);
-  qApp->setStyleSheet(stylesheet(percent, dark));
+  QString qss = stylesheet(percent, dark);
+  const QVariant own = qApp->property("horcomDialog");
+  if (own.isValid()) {
+    // his DLG FILL col_dial% painted the dialogs without their edit
+    // fields, the text standing on that colour takes the ink that reads
+    // on it whatever the dress, the fields and buttons keep the dress
+    const QColor back = own.value<QColor>();
+    const QString ink = ink_on(back).name();
+    qss += QString(" QDialog { background: %1; }").arg(back.name());
+    qss += QString(" QDialog QLabel, QDialog QCheckBox, QDialog QRadioButton, QDialog QGroupBox { color: %1; }")
+               .arg(ink);
+    qss += QString(" QDialog QGroupBox::title { background: %1; color: %2; }").arg(back.name(), ink);
+  }
+  qApp->setStyleSheet(qss);
+}
+
+/// Puts the colours of HINTERGRUND-FARBEN over the dress or, with two
+/// invalid colours, gives the dress its own back.
+///
+/// @param dialog the background of the dialogs
+/// @param desk   the passive screen behind the wheel paper
+inline void set_own_colors(const QColor& dialog, const QColor& desk) {
+  qApp->setProperty("horcomDialog", dialog.isValid() ? QVariant(dialog) : QVariant());
+  qApp->setProperty("horcomDesk", desk.isValid() ? QVariant(desk) : QVariant());
+  apply(QSettings().value(kTextScaleKey, kTextScaleNormal).toInt(), qApp->property("horcomDark").toBool());
 }
 
 /// @return the active theme as the painting widgets need it per frame
 inline bool dark_now() {
   return qApp->property("horcomDark").toBool();
+}
+
+/// @return the ink of the table texts and their sprites, black on paper
+///         and the paper tone at night like the @ink@ of the style sheet
+inline QColor ink_now() {
+  return dark_now() ? QColor(0xE9, 0xE5, 0xD9) : QColor(0x00, 0x00, 0x00);
 }
 
 /// A heading of the info lines, gold text at night, his yellow label
@@ -494,10 +669,9 @@ inline bool dark_now() {
 /// @param text the heading, already translated
 /// @return the rich text span for a QLabel
 inline QString heading_span(const QString& text) {
-  // Die Titel der Abteilungen tragen jetzt fett und etwas größer, wie der
-  // Tester es sich für seine Kurs-Kärtchen wünscht. Dunkler Modus lässt
-  // die gelbe Schrift auf schwarzem Grund stehen, der weiße Modus hält
-  // die gelbe Bandfarbe des Originals
+  // the section titles are bold and a little larger, as the tester wants
+  // them for his course cards. The dark mode keeps the yellow text on
+  // black, the white mode keeps the yellow band colour of the original
   return dark_now()
              ? QString("<span style='color:#FFFF00;font-weight:bold;font-size:110%'>%1</span>").arg(text)
              : QString("<span style='background-color:#FFFF00;color:#000000;font-weight:bold;font-size:110%'>&nbsp;%1&nbsp;</span>").arg(text);

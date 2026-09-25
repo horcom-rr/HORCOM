@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "horcom/time/calendar.hpp"
@@ -21,6 +22,21 @@
 //RR ein Komma "übersetzt" wird,kann der betr. Datensatz nicht mehr
 //RR korrekt interpretiert werden.
 namespace horcom {
+
+/// An angle as whole degrees, minutes and seconds.
+struct Dms {
+  int deg = 0;
+  int min = 0;
+  int sec = 0;
+};
+
+/// Splits the absolute value of an angle into degrees, minutes and
+/// rounded seconds. The rounding carries into the minutes and degrees,
+/// his horcom_aaf3 could write a sixtieth second.
+///
+/// @param degrees decimal degrees, the sign is dropped
+/// @return the three fields
+[[nodiscard]] Dms split_dms(double degrees);
 
 /// One AAF record, text already UTF-8, empty strings for the * fields.
 struct AafRecord {
@@ -60,6 +76,16 @@ struct AafRecord {
 
   /// @return longitude in decimal degrees, west negative
   [[nodiscard]] double longitude() const;
+
+  /// Stores a latitude in the degree, minute, second and N or S fields.
+  ///
+  /// @param degrees decimal degrees, south negative
+  void set_latitude(double degrees);
+
+  /// Stores a longitude in the degree, minute, second and E or W fields.
+  ///
+  /// @param degrees decimal degrees, west negative
+  void set_longitude(double degrees);
 };
 
 /// Composes the zone field from hours east of Greenwich, the shape
@@ -68,6 +94,28 @@ struct AafRecord {
 /// @param hours_east the zone in hours, east positive
 /// @return the verbatim zone string
 [[nodiscard]] std::string aaf_zone(double hours_east);
+
+/// Reads the zone field back into hours east of Greenwich, ported from
+/// the ZZD branch of aaf_horcom2.
+///
+/// @param zone the verbatim zone string like 05hE30:00 or 5E
+/// @return hours east, west negative, zero without a side letter
+[[nodiscard]] double aaf_zone_hours(std::string_view zone);
+
+/// The summer time shift of the dst code, ported from the korr_sommz
+/// table of aaf_horcom2.
+///
+/// @param dst the code, 1 and w one hour, 2 two hours, h half an hour
+/// @return hours to add to the zone, zero for 0, *, m, L and unknown codes
+[[nodiscard]] double aaf_dst_hours(std::string_view dst);
+
+/// The moment a record stands for, ported from aaf_horcom2. The julian
+/// date outranks the clock fields, else the clock of the record's
+/// calendar runs back over the zone and the summer time.
+///
+/// @param r the record
+/// @return Julian day UT
+[[nodiscard]] double aaf_moment_jd_ut(const AafRecord& r);
 
 /// Parses AAF text.
 ///
@@ -80,14 +128,26 @@ struct AafRecord {
 [[nodiscard]] std::vector<AafRecord> parse_aaf(std::string_view text);
 
 /// Reads an .AAF file.
+///
+/// @param path the file
+/// @return all records in order, or std::nullopt when the file cannot be
+///         read
 [[nodiscard]] std::optional<std::vector<AafRecord>> read_aaf(const std::filesystem::path& path);
 
 /// Formats records exactly like the original make_aaf, the A93 and B93
 /// lines with star placeholders, the julian date as STR$(jd,13,5), and
 /// only the filled optional tags.
+///
+/// @param records the records in file order
+/// @return the text with CR LF line ends, still UTF-8
 [[nodiscard]] std::string format_aaf(const std::vector<AafRecord>& records);
 
-/// Writes an .AAF file in Windows 1252 like the original.
+/// Writes an .AAF file in Windows 1252 like the original. The old file
+/// is replaced in one step, a failed write leaves it untouched.
+///
+/// @param path    the file
+/// @param records the records in file order
+/// @return true on success
 bool write_aaf(const std::filesystem::path& path, const std::vector<AafRecord>& records);
 
 /// The AAF twin of a chart collection, ported from bilde_aaffile$.
@@ -95,7 +155,8 @@ bool write_aaf(const std::filesystem::path& path, const std::vector<AafRecord>& 
 /// The original swapped SPEZIAL for AAFDATEN under its fixed root. The
 /// port keeps that swap when the collection lives in a SPEZIAL folder
 /// with an AAFDATEN folder beside it and otherwise places the twin next
-/// to the collection, same base name, AAF extension.
+/// to the collection, same base name, AAF extension. Folder and file
+/// are found regardless of case, a new twin gets the capital extension.
 ///
 /// @param dat_path the .DAT collection
 /// @return where its .AAF twin lives or would live

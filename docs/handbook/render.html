@@ -36,8 +36,9 @@ cyan grey and blue, verified against captures of the original running
 under emulation. The sign glyphs keep the white ground of his SRCCOPY
 sprite stamps as a small box on the coloured band. The true apogee Lilith and both birth rulers of <code>geb_herr</code>,
 the ascendant sign ruler and, when a whole sign lies intercepted in the
-first house, the ruler of that sign, sit inverted on a dark patch like
-his SRCINVERT stamping. The true node pair carried the same stamp in
+first house, the ruler of that sign, sit inverted on a dark square,
+the whole sprite cell his SRCINVERT stamping inverted, the same in the
+aspektarium, the midpoint trees and the rhythm strip. The true node pair carried the same stamp in
 the original and the builder still offers it, but the shell draws the
 nodes as normal planets on the wish of the author's family. Retrograde bodies carry his red R, and AC and
 MC stack the rounded degree in sign below their tag like
@@ -47,36 +48,101 @@ MC stack the rounded degree in sign below their tag like
 The symbols themselves are his. The original shipped six size variants
 of every planet, sign and aspect drawing in <code>symbbmp</code>, loaded
 by <code>Symbhol</code> and stamped by <code>putbm</code>. The rewrite
-carries the large 24 pixel variants, smoothly upscaled so the pixel
-staircase becomes a rounded stroke, and draws them
-wherever the original stamped a sprite, with a paper cutout underneath
-so no line runs through a symbol, exactly the erasing his white sprite
+carries the large 24 pixel variants, upscaled with one scale3x pass that
+straightens single pixel stairs without inventing curves, and draws them
+wherever the original stamped a sprite. Every sprite is averaged down
+once to the exact device pixels it lands on and set on the pixel grid
+together with its ground, the bilinear stretch of the raster engine
+thinned his strokes when it shrank the large sprite twenty fold. Under
+each sprite lies a paper cutout so no line runs through a symbol, exactly the erasing his white sprite
 backgrounds did. Each body also gets the two position marks of
 <code>plein11</code>, one at the sign band and one on the aspect circle,
-and the chords follow his <code>aspz1</code> table in colour and line
-style, dashed opposition, dotted trigon, dash dotted quadrat.
+and the chords follow the ASPECT LINES rows of his <code>aspz1</code>.
+Every hit maps to a row, the first and last multiple of a divisor to
+its base row two to twelve, the compound multiples to the rows 13 to
+19 from the biquintile to the quincunx, and each row carries a colour
+and a DEFLINE style. HORCOM's standard draws the opposition, square and
+quintile solid, the trine, sextile and the higher families dotted and
+the septiles dash dotted, in red, green, blue and black. His own profile
+ran the OWN SETTINGS of that screen, the colours and styles he
+picked per row, and the port starts with them. The conjunction is his
+red ring of radius 3 at radius 85, the Munich rhythm theory leaves the
+eighth and twelfth divisors out. Everything asp1 draws needs a divisor above
+one and the ecliptic frame, the chords, the inner position marks at
+radius 90, the blue dashed node line and the black dashed line of the
+Black Moon through the centre, so WITHOUT ASPECT LINES and the mundane
+frame leave all of them out. bes2 writes the name of the chart into the
+centre, RADIX, the SOLAR or SEPTAR label, COMPOSITE with its house method
+under it, 90° DIAL, Mundane under the name in the mundane frame, and
+nothing on the plain double wheel, the transit, clock, MULTI and
+direction screens keep their own centre text.
 </p>
 <p>
 On screen the wheel sits centred on a square sheet, the record notes in
 the corner, since the coordinate and house tables live in their own
-panels now. The name rides top-left, the mode top-centre, the STZ
-top-right, and per the tester's v5 mockup the Ort block, the moment
+panels now. The name rides top-left, the mode top-centre, the sidereal
+time top-right, and per the tester's v5 mockup the Place block, the moment
 block and the credit stamp share the bottom-right corner. The paired
-sheets of Composit, Combin, Doppel-Kreis and 90-Grad-Kreis follow the
-a13aus corners of the original: the first chart stands as a numbered
+sheets of Composite and Combine follow the
+a13aus corners of the original, the first chart stands as a numbered
 name row in place of the Name: block, the second chart stacks its name
-and moment as short rows above the bottom-left corner, the Composit
-adds its house method and the Combin its COMBIN-UT mean there, and no
-row is wide enough to reach the wheel. The double wheel itself draws
+and moment as short rows above the bottom-left corner, the Combine adds
+its COMBINE UT mean there, and no row is wide enough to reach the wheel.
+A Combine of more than two writes RECORDS: with the slot numbers in place
+of the name and stacks the names there instead, its Place block names
+the stored mean place <code>COMBIN-ORT</code> with the mean coordinates.
+The Composite names its house method only in the centre like bes2_comp
+and keeps the Place block for the residence of ROBERT HAND, the other
+modes have no place of their own. With real houses its first cusp reads
+H1 and the AC midpoint gets a thick axis of its own, his two tags stood
+on one spot when the midpoint came close to the cusp, the port then
+stacks the AC tag above H1. The exported sheet of a composite drops the
+Vel. column and lists the AC row under H1 like bes111. The double wheel itself draws
 at the original a12 scale km 0.8 (multi and harmonics at their 0.82),
 so the outer house band and its axis labels stay inside the sheet
 instead of riding over the corner text. The export
 paths, SVG, PDF and printing, still produce his classic 640 by 480
 sheet, the body table with velocities down the left margin, the house
-summary and the record corners around the wheel on the right, one page
-and no separate table sheet. The GUI hands its tinted sprite cache into
+summary, the Mirror: pairs of spieg1 two to a row as MO-CH, and the
+record corners around the wheel on the right, one page and no separate
+table sheet. The left panel matches his HOROSCOPE GRAPHIC screen of 7P,
+the histograms of the older 5P screenshot on his web pages no longer
+stood there. The GUI hands its tinted sprite cache into
 the SVG writer as embedded images, so the export carries his symbols
-like the screen, while the Qt free CLI falls back to font glyphs.
+like the screen, while the Qt free CLI falls back to font glyphs. Both
+the SVG export and the command line wheel wear Robert Rettig's own
+colours and aspect lines, the same as the program window.
+</p>
+<p>
+His text procedures gave every height a width of their own through
+textg, seven for the heights up to 14, eight for 15 and 16, ten up to 20
+and sixteen up to 30, and stood each text on its bottom line
+(<code>TA_BOTTOM</code>). Every list and graph screen is laid out on
+these metrics, a heading centred as <code>(640 - tw * LEN) / 2</code>, a
+column rule where his cells end. One port of his routines in
+<code>items.hpp</code> builds the texts of these screens,
+<code>screen_text</code> for <code>text</code> and <code>textc</code>,
+<code>screen_text_centred</code> for <code>textzent</code>,
+<code>screen_text_vertical</code> for the upward <code>texts</code> and
+<code>add_screen_text_boxed</code> for the framed
+<code>textzentrl</code>. They take his y as the bottom line and carry
+his width as the <code>pitch</code> of the primitive.
+</p>
+<p>
+The pitch is the room his layout gives a character, a ceiling. Where
+Courier New is wider, as from height 12 on, the face narrows to it.
+Where it is narrower, as for the small cell texts, it keeps its own
+advance, since his vector font stretched a height 9 text to seven units
+and ran the degree of an ASPEKTARIUM cell over the rule.
+<code>text_advance</code> gives that step. The painter narrows the face
+to it and closes the rest with a letter spacing, so every character
+steps exactly one cell whatever pixel size the view rounds to, and the
+SVG writer sets the same length. Boxes laid out around a text, such as
+the MULTI midpoint boxes, count with the same advance and hold their
+text. His windows clipped every drawing to their client area, and the
+screen and the printed page clip a sheet to its paper the same way, so
+a DYNAMOGRAMM curve or arc running past the frame ends at the edge
+instead of on the desk.
 </p>
 
 <h2>Origin map</h2>
@@ -84,10 +150,18 @@ like the screen, while the Qt free CLI falls back to font glyphs.
   <tr><th>original</th><th>ported as</th><th>file</th></tr>
   <tr><td><code>horg, horg1, horg10, horg11, zein, zein1, plein1, plein11, aspz0, aspz1</code></td><td><code>build_wheel</code></td><td><code>src/horcom/render/wheel.*</code></td></tr>
   <tr><td>the a20 transit screen, <code>plein1(212)</code>, <code>plmk</code> at 182, the centre label of <code>zeitwi</code></td><td><code>build_transit_wheel</code></td><td><code>src/horcom/render/wheel.*</code></td></tr>
+  <tr><td>the <code>drgrph!</code> screen of <code>a20_horg</code> and <code>zeitwi</code> with <code>bes11</code>, <code>bes111</code>, <code>bes1</code> and <code>a12asp</code></td><td><code>MainWindow::a20_sheet</code>, <code>add_pair_bodies</code>, <code>add_cross_grid</code></td><td><code>apps/gui/main_window_a18.cpp</code>, <code>src/horcom/render/pair_sheet.*</code></td></tr>
   <tr><td>the a12 comparison screen, <code>plein1(204)</code>, <code>plmk</code> at 180, the second <code>horg11</code> pass</td><td><code>build_double_wheel</code></td><td><code>src/horcom/render/wheel.*</code></td></tr>
   <tr><td><code>plentz, plsort, plentz1, plentz10, plentz11, plentz2, plentz21</code></td><td>the de clumping inside <code>build_wheel</code></td><td><code>src/horcom/render/wheel.cpp</code></td></tr>
   <tr><td>screen, printer and BMP outputs</td><td><code>to_svg</code>, and <code>paint_display_list</code> behind screen, printer and PDF</td><td><code>src/horcom/render/svg.*</code>, <code>apps/gui/painter.*</code></td></tr>
+  <tr><td><code>druck_einr_anz, dr_fehl, hardcopy, datei_pr, lese_text_pr, print_font</code>, the VIEWPORT and StretchBlt geometry</td><td><code>prepare_printer, printer_failed, robert_page_rect, robert_a4_rect, paint_output, print_text_rows</code></td><td><code>apps/gui/print_pages.*</code></td></tr>
+  <tr><td><code>pr_enabel, druck_enbl_alt, start_hardc, hardc_kompl, druck_graph_ein, druck_horm, mehrf_1, mehrf_aus, mehrf_aus_1, mehrf_a</code></td><td><code>printer_option_entry, hardcopy_offer, wart, ask_graphic_output, chart_output, multi_print_offer, double_capture, double_offer, double_print_run</code></td><td><code>apps/gui/main_window_print.cpp</code></td></tr>
+  <tr><td><code>drad2, dradst</code></td><td><code>stamp_credit</code></td><td><code>src/horcom/render/wheel.*</code></td></tr>
+  <tr><td><code>screen, scget, bildst, bildld, bilder_loesch</code></td><td><code>remember_picture, last_picture, show_picture</code></td><td><code>apps/gui/main_window_print.cpp</code></td></tr>
+  <tr><td><code>textg</code>, the FONT WIDTH of <code>text</code> and <code>textc</code></td><td><code>font_pitch</code>, <code>text_advance</code>, <code>Primitive::pitch</code></td><td><code>src/horcom/render/wheel.*</code></td></tr>
+  <tr><td><code>text, textc, textzent, textzentc, texts, textzentrl</code></td><td><code>screen_text, screen_text_centred, screen_text_vertical, add_screen_text_boxed</code></td><td><code>src/horcom/render/items.hpp</code></td></tr>
   <tr><td><code>a18_lin, a180trpr_lin, a18_line_col</code></td><td><code>build_linear_graph</code></td><td><code>src/horcom/render/linear.*</code></td></tr>
+  <tr><td><code>avh, orbis_asp, orbis_pla, punkte_pla, hor_farb, asp_li, balken</code></td><td><code>MainWindow::vorgaben_horoskop</code>, read by <code>WheelOptions</code> through <code>horbeg, planziff1, plsyver, fill_color, zein, zeichp_dspl</code></td><td><code>apps/gui/main_window_avh.cpp</code>, <code>src/horcom/render/wheel.*</code></td></tr>
 </table>
 
 <h2>Deliberate modernisations, each documented</h2>
@@ -98,9 +172,56 @@ explicit annular sector paths. His bitmap glyphs in six sizes become text
 glyphs, Unicode astrological symbols where they exist and his two letter
 tags where they do not, which realises the resolution independent vector
 symbols he himself prototyped in SYMBGEN. And the tiled screen dump
-persistence is replaced by real SVG export. The element colours stay his,
-fire red, earth olive, air teal, water cyan, and the aspect chords keep
-the colour table of aspz1 with the blue dashed node axis.
+persistence is replaced by real SVG export. The sign band keeps the
+colour modes of his COLOURS question, hatched standard colours, his own
+colours hatched or solid, or no fill at all with the sign symbols black
+or dressed in their element colour. His own profile hatched red, green,
+cyan and blue, which his screen showed as salmon, green, pale cyan grey
+and blue, and the band draws exactly those shades. Any other colour
+takes the ink share of the same hatch pattern, 45 percent for fire, 92
+for earth, 13 for air and 73 for water, blended onto white. The aspect
+chords keep the rows of aspz1 with the blue dashed node axis.
+</p>
+
+<h2>The chart defaults</h2>
+<p>
+CHANGE HOROSCOPE DEFAULTS, his avh, sets how the wheel is drawn, and the
+display list reads every answer. SMALL SYMBOLS shrink the body glyphs
+to five sevenths, his plsyver half width of 5 against 7, and plentz11
+staggers them at seven tenths, the sign glyphs keep their size. DEGREES
+and RETROGRADES writes the degree under each glyph and the R of a
+retrograde body beside it, ONLY the DEGREES drops the R, NEITHER OF THEM
+both, and the mundane frame shows neither like planziff1. The R marks
+every retrograde planet and extra body, never the nodes, in the colour
+of the outer symbols like planziff2. The outer symbols themselves wear
+that colour on the transit, TIME WANDERING and DOUBLE WHEEL rings, MULTI
+and HARMONICS keep them black.
+BEGINNING of the CHART turns the wheel like horbeg, the ascendant, the MC,
+zero Aries or zero Libra on the left, or any degree, the mundane frame and
+the heliocentric chart keep their own origin. The ASSIGNMENT of SIGN
+RULERS picks the modern or the old rulers of Scorpio,
+Aquarius and Pisces for the session, and every reader of his ze_pl
+follows it, the inverted birth rulers of the wheel, the histograms, the
+Arabic parts, the rhythm theory and the statistics conditions.
+</p>
+
+<h2>His full sheets</h2>
+<p>
+The DOUBLE WHEEL, the 90 DEGREE DIAL, MULTI and HARMONICS show the whole
+sheet of the original instead of the centred wheel, the double wheel on
+the right and <code>render/pair_sheet</code> on the left. Two narrow
+coordinate columns like bes11 and bes111 in their dppel and mult dress,
+rows nine apart in size nine, "SO 12 AR 34" or with more than one extra
+"SO 12°AR 34'", the P of the parallax, M or W behind node and Black
+Moon, the fixed point red, the house cusps AC to H12, only AC and MC on
+the dial and in the zero point modes. Under them the comparison grid of
+a12asp, exact aspects included, the first body, the aspect sprite over
+the rounded separation and the second body in the colour of the outer
+symbols, rows 18 apart,
+four sub columns of 55, " MORE " where the page ends, the MULTI sheet
+four rows to a column. The DOUBLE WHEEL corners name INNER and OUTER
+with sol$, name, place, Lon and Lat, date and UT. The export takes the
+sheet as it is.
 </p>
 
 <h2>The transit double wheel</h2>
@@ -115,6 +236,27 @@ partner's glyphs at 204 with markers at 180 and the partner's house
 lines drawn over the shared ring like the original's second horg11
 pass, without a second set of axis labels.
 </p>
+<p>
+The walks of TRANSITE, SEKUNDÄR and SONNEN-BOGEN draw his whole zeitwi
+screen as the TRANSITE screenshot of his own web pages shows it. The radix column of
+bes11 stands at the left edge and the running column beside it, headed
+Transit:, Progress.: or SO-Bog.Dir:, each with its cusps, the a12asp
+grid of the running bodies against the radix below them with the T or P
+over the running body, the name right of the rule at 220, the
+Ereig.-Ort of bes111 top right and the moment of the radix bottom right.
+The running AC and MC ride the outer ring as his AC and MC sprites with
+their degree, like every factor plein1(212) drew. A retrograde R that
+meets the number or glyph of a neighbour in a crowded stretch of a ring
+turns to the other side of its own glyph when that side is free, the
+glyphs and the numbers stay where plentz set them.
+</p>
+<p>
+The 640 wide classic sheet of the exports and of the Rhythmenlehre
+keeps the place block where bes1 wrote it, at the lower left of the
+wheel, since the lower right lies inside the wheel there and met the IC
+label. The wider screen sheet sets it over the moment at the lower
+right.
+</p>
 
 <h2>The heliocentric wheel</h2>
 <p>
@@ -124,14 +266,16 @@ centred sky does not have, the whole horg11 house block stays dark, and
 horg1 marks the Sun as the small unscaled circle in the wheel's centre.
 The Moon's slot wears the crossed circle glyph of the Earth, the swap
 of pls&(2) for symbol twenty two in plsyls1, and the label line under
-the date reads Heliozentrisch like his settings screen.
+the date reads Heliocentric like his settings screen.
 </p>
 
 <h2>The 90 degree circle</h2>
 <p>
 Under dop 4 the sign band collapses to the three qualities like the
 zein fill, three sectors wearing the first three element colours with
-the first sign of each quality as its glyph, the dividers land on
+the first sign of each quality as its glyph. Under his own colours the
+third sector keeps the hatch of air but wears the water colour, as his
+fill_color took it under dop 4. The dividers land on
 their shared boundaries, and only AC and MC survive as axes since DC
 and IC multiply onto them, aeqh blanks their labels. Everything else,
 rings, glyph ring, de clumping and chords, runs unchanged over the
@@ -155,38 +299,192 @@ The screen widget adds what the fixed Atari canvas never could. The
 mouse wheel zooms around the cursor up to twelve fold, a left drag
 pans the zoomed sheet, a double click resets the view, and the export
 and print paths always see the whole sheet regardless of the zoom.
-The Planeten-Auswahl carries his right mouse selection over, single
-bodies red or alone on the ring, the birth ruler highlighted like his
-inverse glyph, and the aspect lines chosen per divisor like his
-selection box.
+The Planet selection carries his right mouse selection over, single
+bodies red or alone on the ring and the birth ruler highlighted like his
+inverse glyph. Which aspect lines the wheel draws is set where he set
+it, in the ASPECT LINES screen of CHANGE HOROSCOPE DEFAULTS.
 </p>
 
-<h2>The Linear-Graphik</h2>
+<h2>The rhythm theory strip</h2>
+<p>
+<code>render/rhythm_panel</code> draws the left strip of the GRAPHIC
+mode of his a17, one phase at a time beside the classic wheel. The
+time axis stands at x 101 from the phase start at y 416 to its end at
+y 80, <code>rhythm_axis_y</code> maps an age onto it like his c3&amp;.
+The direct and ruler triggers carry their date or YR/MO text and the
+body glyph left of the axis, the rulers inverted unless they also stand
+in the phase's house, as his note on the screen says, the aspect and
+mirror partners stand right of it with the aspect sprite or his S and
+the glyph of the body that pulled them in. Every label keeps its tick
+at the exact height while <code>rhythm_label_rows</code> pushes the
+labels upward sixteen pixels apart like a17911. The wheel itself takes
+two options for the phase, <code>phase_house</code> arcs the house in
+red at radius 154 like a1795 and <code>flip_inverted</code> stamps the
+phase's rulers once more like his plinv, so a birth ruler that rules
+the phase turns back to plain. Pinned in <code>test_render.cpp</code>.
+</p>
+
+<h2>The linear graphic</h2>
 <p>
 The life diagram in the manner of R. Ebertin, ported from a18_lin and
 a180trpr_lin as one more display list. Every radix factor becomes a
-horizontal line at its position folded by the chosen Grundwinkel, his
+horizontal line at its position folded by the chosen base angle, his
 three colour classes on the lines, the running bodies of the chosen
 movement trace curves over the time axis, secondary, sun arc, moon
 arc or transits, and every crossing is a direction becoming exact.
 The curves split cleanly at the fold wrap like his edge
 interpolation, glyphs stamp along the path with his collision memory,
-the ordinate flips downward for the Ebertin reading, sign lines and
-the intermediate cusps ride along on demand, and the whole spans 5 to
-160 years from any starting age.
+and a sign beside every glyph when the signs are marked. The time axis
+runs in his pixel steps, 16, 4 or 1 pixels a day for the transit
+windows of one, four or sixteen months opening on the first of a month,
+96 down to 6 pixels a year for the life windows of 5 to 80 years, with
+the month names, the red day numbers and his day ticks under the band,
+each date standing over its own tick, or the years of life with the
+birthday of each year beneath. The degree
+scale of skalv runs up the left edge, the header of a18kopf names the
+movement, the record and the start. Every exact hit of the table scan
+stands on its radix line with the aspect sprite, and with his hit lines
+a vertical line runs from it down to the axis in the colours of his
+rot_grn_line, solid red for Mars and Saturn to Pluto, dotted green for
+the lights, Mercury, Venus, Jupiter, the nodes and the axes, dotted blue
+for the rest, and in the mundane graph red only where both bodies are
+heavy, while the fixed grid draws dotted green columns instead. A click
+on the graph drops his blue or red reading line. The graph draws no
+stationary marks, no moon hits on the four and sixteen month axes, no
+hits of the true node or the true Black Moon and no Part of Fortune
+curve for the transits and the secondary direction.
+<code>linear_sign_lines</code> folds every sign
+boundary on its own, his loop multiplied the first folded boundary and
+under 45 degrees kept only one line. The linear graph of MUNDANE
+ASPECTS draws the running bodies without radix lines and marks each
+aspect on the first body of the pair.
 </p>
 
 <h2>Printing and PDF</h2>
 <p>
-The original asked AUSGABE auf BILDSCHIRM oder als DRUCKER-GRAPHIK and
+The original asked OUTPUT on the SCREEN or as a PRINTER GRAPHIC and
 drove a GDI printer context through the same drawing procedures. The
 port keeps that shape with one shared painter, the primitive loop lives
-in paint_display_list and feeds the screen widget, the printer dialog
-behind Drucken and the A4 landscape page behind Horoskop als PDF, so
-whatever the wheel currently shows, radix, transits, a comparison, the
-90 degree circle, prints exactly as drawn. A second page carries the
-bes_big data sheet, the coordinate block, the houses and the midpoint
-list, like his GANZSEITEN graphic with the Halbsummenliste.
+in paint_display_list and feeds the screen widget, the printer and the
+PDF writer. DIN A5 prints the classic sheet, so whatever the wheel
+currently shows, radix, transits, a comparison, the 90 degree circle,
+prints exactly as drawn. DIN A4 is <code>a4_print_sheet</code>, the
+upright 640 by 980 page of his a11 with the wheel over the bes_big
+boxes, positions, aspects with the mirror contacts, house cusps and the
+three midpoint families.
+</p>
+<p>
+Everything printed goes through his druck_einr_anz first, the box
+<i>PRINTER READY ?</i>, then his setup box naming the paper and the
+orientation, <i>HARDCOPY - FORMAT : DIN A5</i> for a hardcopy, <i>With
+'SETUP'</i> and <i>SET UP and WAIT until the PRINTER WORKS !</i>,
+and then the system print dialog. PRINT… runs the same setup boxes and
+the same page geometry as the PRINTER GRAPHIC of an output. A print
+that fails or is cancelled
+says <i>PRINTER ABORTED</i> like dr_fehl, only the record list returns
+quietly like his datei path. The pages keep his geometry,
+<code>robert_page_rect</code> maps the 640 by 459 screen at 0.8 points a
+unit from a twentieth of the printable width and a ninetieth of its
+height, about 180.6 by 129.5 mm, the a11 chart graphic starts at a
+fifteenth of the width, the full page HARDCOPY and the A4 linear graphic
+grow by 1.4 in landscape, and the a11 A4 page lies at 0.75 points a unit
+from a fourteenth and an eightieth. Every printed page carries the date
+and time behind its credit like drad2, a table without a credit gets the
+dradst line centred at its foot. The screen and the SVG export stay
+without the stamp so the golden comparisons keep holding.
+</p>
+<p>
+His PRINTER OPTION rules the rest. His final defaults had it on for the
+printer at his desk, the port ships it off so no output stops at a box
+nobody asked for, PRINT and the PDF export print at any time. F8,
+Alt+D or Alt+Z switch it everywhere and the choice persists, the menu entry PRINTER OPTION ON /
+OFF of IN-OUT says <i>PRINTER OPTION for HORCOM : ON !</i>, and the
+DEFAULTS OVERVIEW shows the line and the hardcopy format in inverse
+video. While it is on, every output window of his menu offers the small
+<i> HARDCOPY ?</i> box at its lower right when a key leaves the page,
+Tab, Return, Space, PgUp, PgDn, R, V, plus or minus, and the statistics
+pages also W, S and H. NO keeps the focus, ESC, PgUp and PgDn answer
+it, F1 opens his COMMENTARY 2. YES prints the page on half a page or on
+the full page by the hardcopy format, the title reads <i>| ON with
+SPACE</i> and the bar at the foot of the page <i>ON with SPACE or a
+mouse click</i> until a key, the menu greyed meanwhile, and then the
+key does what it was pressed for. His converters, defaults, explanations and the tools of MISCELLANEOUS
+stay without the box unless a paired chart is up. HOROSCOPE GRAPHIC and
+the linear graphic ask SCREEN, DIN A5 or DIN A4 first, the three
+paired charts and the SOLAR and LUNAR tables SCREEN or DIN A5, and
+the screen answer then waits for a key with the HARDCOPY behind it. The
+tables print his three columns of 28 after <i>Printing starts only after
+the COMPLETE list is computed !</i>, the linear graphic asks FINE,
+MEDIUM or STRONG for the printer, and MULTI and HARMONICS end with <i>Print
+the last picture as a PRINTER GRAPHIC in DIN A5 ?</i> like druck_horm. With
+the option off the charts simply stand on the main window.
+</p>
+<p>
+F9 or Alt+M is his DOUBLE PRINT. The first press in an output explains
+it and keeps the picture, the second keeps the second one, the third
+offers <i>2 SINGLE PICTURES PRESENT !</i> with CONTINUE = PRINT, CANCEL
+and CLEAR THE DOUBLE IMAGE STORE. The preview shows both pictures side
+by side, the page stacks them on DIN A4 portrait at the size of the half
+page hardcopy, and <i>DELETE the DOUBLE PICTURE ?</i> follows. While the store
+collects, no HARDCOPY box comes. The main window counts as his chart
+screen, F9 there keeps the chart. The text lists print like datei_pr and
+lese_text_pr, 53 rows a page in a bold fixed pitch font a sixtieth of the
+page high with the page number above them. His font forced a ninetieth
+of the width on each character and cut the long rows of the record list,
+the port narrows the pitch until the longest row fits, and his reader
+texts wrap at eighty columns first. The record list closes after its
+print, the COMMENTARY reader too.
+</p>
+<p>
+His SHOW / or SAVE the LAST PICTURE of IN-OUT comes back as well.
+Every output window of his menu leaves its page behind when it closes,
+like scget kept the screen of the output, and the chart screen of the
+main window does after its wart, a chart that simply stood on the main
+window with the printer option off included. The entry shows that page
+again until a key, or says <i>No output screen present yet !</i> and
+still offers the stored pictures, and then asks <i>SAVE the picture in
+a FILE ?</i>. Right after STATISTICS or TIME WANDERING his scrout!
+lock answers <i>Not for this application !</i> once. SAVE keeps it in the
+folder <code>bilder</code> of the data folder, his <code>\BILDER</code>, a
+name already there says <i>Name exists already !</i>. Once pictures are
+stored LOAD shows one again and DELETE a picture shows one, deletes it and
+asks for the next while any remain, under his reminder to clear the
+folder now and then. His pictures were BMP files of the screen
+resolution with FORMAT.BLD refusing those of another one, the port keeps
+PNG files twice the size of his screen that any screen reads, so the
+format check falls away. F7 copies the window in front to the
+clipboard, where his program handed the screen to MSPAINT, and offers
+to save it as a PNG picture in the same folder. CLEAN UP / RESET clears
+the last picture and the double memory with the session data like his
+areg.
+</p>
+<p>
+The A4 page also carries his two histograms, Card-Fix-Mut at the top
+left and Elements below the wheel, drawn like kard_fix_gem1 and
+elemhist1. Each class is a column fourteen units wide that stands sixty
+high at the group maximum, its sum above it and the class letter below.
+The counts come from <code>chart_histogram</code> with the pn point
+weights of punkte_pla and his two switches POINTS in the 1st HOUSE DOUBLE
+and 1st BIRTH RULER DOUBLE. The elem switch of CHANGE HOROSCOPE DEFAULTS
+picks the dress. Only for SIGNS draws the sign counts alone, For
+SIGNS and HOUSES halves the column and stacks the house count two
+units above the sign count, the number then carries both, and
+LEAVE OUT the HISTOGRAMS leaves both out. A heliocentric chart has no
+houses, so the second mode falls back to the full sign columns like his
+hrg branch. The aspect box of the page carries the asp1 histogram of
+asphist, a bar per counted divisor seventy units long at the maximum in
+his colours per divisor, the own line colours under OWN
+SETTINGS with grey for a row without colour, the count right of
+each bar and the sum under them, then the line and the mirrorings of
+spieg1. The columns wear the element colours in force, his own
+colours under OWN COLOURS and the standard ones otherwise, the three
+qualities take the first three of them like elem_col, and the WHITE modes
+leave the frames empty. A three digit total turns on its side over the
+narrow column and reads upward like his printer set it. One detail
+differs from the original, the family reads the mutable signs as
+changeable rather than mixed, so the third quality column says V and the
+heading Kard-Fix-Ver, the initials of the German words, instead of his
+G and Gem.
 </p>
 
 <h2>The command line front end</h2>

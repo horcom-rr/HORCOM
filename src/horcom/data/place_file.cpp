@@ -4,13 +4,17 @@
 
 #include "horcom/data/place_file.hpp"
 
+#include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
-#include <fstream>
+#include <string>
+#include <system_error>
 
 #include "horcom/core/constants.hpp"
 #include "horcom/data/encoding.hpp"
+#include "horcom/data/file_io.hpp"
 
 namespace horcom {
 
@@ -47,22 +51,30 @@ std::string rset(std::string_view s, std::size_t len) {
 
 }  // namespace
 
+// ported from zeitzon with his FUNCTION VAL, which keeps only the signs,
+// the comma, the dot and the digits of the last five name bytes, so a
+// long name reaching into the zone bytes still reads. A name cut with a
+// dot left ".-1" there and GFA's VAL read that as zero, the port takes
+// the trailing signed number instead
 std::optional<double> PlaceRecord::zone_to_ut() const {
-  if (name.size() < 1) {
-    return std::nullopt;
-  }
   const std::size_t take = name.size() < 5 ? name.size() : 5;
-  const std::string tail = name.substr(name.size() - take);
-  bool has_digit = false;
-  for (const char c : tail) {
-    if (std::isdigit(static_cast<unsigned char>(c)) != 0) {
-      has_digit = true;
+  std::string kept;
+  for (const char c : name.substr(name.size() - take)) {
+    // CASE 43,44,45,46,48 TO 57
+    if (c == '+' || c == ',' || c == '-' || c == '.' || std::isdigit(static_cast<unsigned char>(c)) != 0) {
+      kept += c;
     }
   }
-  if (!has_digit) {
+  std::size_t start = kept.size();
+  while (start > 0 && (std::isdigit(static_cast<unsigned char>(kept[start - 1])) != 0 || kept[start - 1] == '.')) {
+    --start;
+  }
+  const std::string number = kept.substr(start);
+  if (number.find_first_of("0123456789") == std::string::npos) {
     return std::nullopt;
   }
-  return val(tail);
+  const double value = val(number);
+  return start > 0 && kept[start - 1] == '-' ? -value : value;
 }
 
 PlaceRecord decode_place_record(std::string_view bytes) {
@@ -87,38 +99,38 @@ std::string encode_place_record(const PlaceRecord& r) {
 }
 
 std::optional<std::vector<PlaceRecord>> read_place_file(const std::filesystem::path& path) {
-  std::ifstream f(path, std::ios::binary);
-  if (!f) {
-    return std::nullopt;
-  }
-  std::string bytes((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
-  if (bytes.size() % kPlaceRecordBytes != 0) {
+  const auto bytes = read_file_bytes(path);
+  if (!bytes || bytes->size() % kPlaceRecordBytes != 0) {
     return std::nullopt;
   }
   std::vector<PlaceRecord> out;
-  out.reserve(bytes.size() / kPlaceRecordBytes);
-  for (std::size_t off = 0; off < bytes.size(); off += kPlaceRecordBytes) {
-    out.push_back(decode_place_record(std::string_view(bytes).substr(off, kPlaceRecordBytes)));
+  out.reserve(bytes->size() / kPlaceRecordBytes);
+  for (std::size_t off = 0; off < bytes->size(); off += kPlaceRecordBytes) {
+    out.push_back(decode_place_record(std::string_view(*bytes).substr(off, kPlaceRecordBytes)));
   }
   return out;
 }
 
 bool write_place_file(const std::filesystem::path& path, const std::vector<PlaceRecord>& records) {
-  std::ofstream f(path, std::ios::binary | std::ios::trunc);
-  if (!f) {
-    return false;
-  }
+  std::string bytes;
+  bytes.reserve(records.size() * kPlaceRecordBytes);
   for (const PlaceRecord& r : records) {
-    const std::string rec = encode_place_record(r);
-    f.write(rec.data(), static_cast<std::streamsize>(rec.size()));
+    bytes += encode_place_record(r);
   }
-  return static_cast<bool>(f);
+  return replace_file(path, bytes);
 }
 
-// ported from the EINTRAGEN branch of a2ort
+// ported from the EINTRAGEN branch of a2ort. His PUT added one record to
+// the open file, a file the reader refuses is never rewritten with the
+// new place alone
 bool append_place(const std::filesystem::path& path, const PlaceRecord& record) {
   std::vector<PlaceRecord> records;
-  if (const auto existing = read_place_file(path)) {
+  std::error_code ec;
+  if (std::filesystem::exists(path, ec)) {
+    const auto existing = read_place_file(path);
+    if (!existing) {
+      return false;
+    }
     records = *existing;
   }
   records.push_back(record);
@@ -126,14 +138,11 @@ bool append_place(const std::filesystem::path& path, const PlaceRecord& record) 
 }
 
 std::optional<PlaceRecord> read_preferred_place(const std::filesystem::path& path) {
-  std::ifstream f(path, std::ios::binary);
-  if (!f) {
+  const auto file = read_file_bytes(path);
+  if (!file || file->size() < kPlaceRecordBytes) {
     return std::nullopt;
   }
-  std::string bytes((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
-  if (bytes.size() < kPlaceRecordBytes) {
-    return std::nullopt;
-  }
+  const std::string& bytes = *file;
   PlaceRecord r;
   const std::string lon = trimmed(std::string_view(bytes).substr(0, kLonLen));
   const std::string lat = trimmed(std::string_view(bytes).substr(kLonLen, kLatLen));
@@ -150,6 +159,54 @@ std::optional<PlaceRecord> read_preferred_place(const std::filesystem::path& pat
   }
   r.name = cp1252_to_utf8(trimmed(std::string_view(bytes).substr(kLonLen + kLatLen, kNameLen)));
   return r;
+}
+
+void trim_places(std::vector<PlaceRecord>& places) {
+  delete_places(places, {});
+}
+
+// ported from a2f_tr_ort
+void delete_places(std::vector<PlaceRecord>& places, const std::vector<std::size_t>& doomed) {
+  std::vector<PlaceRecord> kept;
+  kept.reserve(places.size());
+  for (std::size_t i = 0; i < places.size(); ++i) {
+    if (std::find(doomed.begin(), doomed.end(), i) != doomed.end()) {
+      continue;
+    }
+    const PlaceRecord& p = places[i];
+    const std::string name = trimmed(p.name);
+    // IF ABS(VAL(ggl$)) > kk && ASC(goo$) > 31
+    const bool placed = std::abs(p.lon) > kEps || std::abs(p.lat) > kEps;
+    if (placed && !name.empty() && static_cast<unsigned char>(name.front()) > 31) {
+      kept.push_back(p);
+    }
+  }
+  places = std::move(kept);
+}
+
+// ported from ortp
+bool write_preferred_place(const std::filesystem::path& path, const PlaceRecord& place) {
+  // his STR$(CINT(gl * 1000000),8,0) overflows the eight bytes west of
+  // ten degrees, a decimal then fills the field, the reader takes both
+  const auto field = [](double deg) {
+    const long long micro = std::llround(deg * 1000000.0);
+    std::string s = std::to_string(micro);
+    if (s.size() > kLonLen) {
+      char buf[32];
+      std::snprintf(buf, sizeof(buf), "%.*f", 4, deg);
+      s = buf;
+      while (s.size() > kLonLen && s.back() != '.') {
+        s.pop_back();
+      }
+    }
+    return rset(s, kLonLen);
+  };
+  std::string rec = field(place.lon) + field(place.lat);
+  const std::string name = utf8_to_cp1252(place.name);
+  for (std::size_t i = 0; i < kNameLen; ++i) {
+    rec += (i < name.size()) ? name[i] : ' ';
+  }
+  return replace_file(path, rec);
 }
 
 }  // namespace horcom

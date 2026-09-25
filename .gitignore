@@ -11,12 +11,22 @@ CMakeUserPresets.json
 
 # Working instructions, kept local
 /CLAUDE.md
+/.claude/settings.local.json
 
 # tool logs
 aqtinstall.log
 
 # the byte exact original commentary files stay local, the repository
-# carries their markdown editions beside them
+# carries their markdown editions beside them. The curated Erste Hilfe
+# lists ship, a case insensitive checkout would match them too
 data/kommen/*.TXT
+!data/kommen/ersthilf.txt
+!data/kommen/ersthilf_en.txt
 
 /issues/
+
+# local comparison drivers with charts of the private archive
+/tests/gui/local/
+
+# python caches of the tools
+__pycache__/

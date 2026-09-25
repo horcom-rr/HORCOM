@@ -4,17 +4,34 @@
 
 #include "kommen_dialog.hpp"
 
+#include <QApplication>
 #include <QFile>
+#include <QFileDialog>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QLocale>
+#include <QPrinter>
 #include <QPushButton>
-#include <QFileDialog>
+#include <QSettings>
 #include <QTextBrowser>
 #include <QVBoxLayout>
+#include <QVariant>
+
+#include "print_pages.hpp"
+#include "theme.hpp"
 
 namespace horcom {
+
+bool english_for(const QString& lang) {
+  return lang.isEmpty() ? QLocale::system().language() != QLocale::German : lang != QStringLiteral("de");
+}
+
+bool english_edition() {
+  const QVariant chosen = qApp->property(kEnglishEditionProperty);
+  return chosen.isValid() ? chosen.toBool() : english_for(QSettings().value("language").toString());
+}
 
 KommenDialog::KommenDialog(const std::filesystem::path& dir, const QString& preselect, bool english,
                            QWidget* parent)
@@ -45,9 +62,23 @@ KommenDialog::KommenDialog(const std::filesystem::path& dir, const QString& pres
   auto* find_button = new QPushButton(tr("Suchen"), this);
   bottom->addWidget(find_, 1);
   bottom->addWidget(find_button);
+  //RR DRUCKEN
+  // lese_text_pr puts the text on paper and closes the reader
+  auto* print = new QPushButton(tr("DRUCKEN"), this);
+  bottom->addWidget(print);
   // whoever keeps the original texts elsewhere points the reader there
   auto* pick = new QPushButton(tr("Ordner wählen…"), this);
   bottom->addWidget(pick);
+  connect(print, &QPushButton::clicked, this, [this]() {
+    QPrinter printer(QPrinter::HighResolution);
+    // his list_druck! = TRUE and druck& = @druck_einr_anz
+    if (!prepare_printer(this, printer, PrintPage::kList, true) ||
+        !print_text_rows(printer, wrap_text_rows(text_->toPlainText(), kTextColumns))) {
+      printer_failed(this);
+    }
+    // his GOTO les_e, the reader closes after the print
+    reject();
+  });
   v->addLayout(bottom);
 
   connect(list_, &QListWidget::currentRowChanged, this, &KommenDialog::show_entry);
@@ -141,9 +172,8 @@ void KommenDialog::show_entry(int row) {
     text_->setPlainText(tr("Datei fehlt !"));
     return;
   }
-  //RR FIXEDSYS, his reading box was fixed width
-  QFont mono("Courier New");
-  mono.setStyleHint(QFont::Monospace);
+  // his FIXEDSYS reading box was fixed width
+  QFont mono = theme::mono_font();
   mono.setBold(true);
   text_->setFont(mono);
   text_->setLineWrapMode(QTextEdit::NoWrap);

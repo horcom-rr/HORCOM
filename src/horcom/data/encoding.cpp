@@ -29,6 +29,22 @@ std::uint32_t cp1252_code_point(unsigned char b) {
   return b;  // 0xA0 to 0xFF match Latin-1
 }
 
+// the German letters of the Atari ST set that his texts use, the rest
+// of 0x80 to 0x9F falls back to Windows 1252
+std::uint32_t atari_code_point(unsigned char b) {
+  switch (b) {
+    case 0x81: return 0x00FC;  // ü
+    case 0x83: return 0x00E2;  // â
+    case 0x84: return 0x00E4;  // ä
+    case 0x8E: return 0x00C4;  // Ä
+    case 0x94: return 0x00F6;  // ö
+    case 0x99: return 0x00D6;  // Ö
+    case 0x9A: return 0x00DC;  // Ü
+    case 0x9E: return 0x00DF;  // ß
+    default: return cp1252_code_point(b);
+  }
+}
+
 void append_utf8(std::string& out, std::uint32_t cp) {
   if (cp < 0x80) {
     out += static_cast<char>(cp);
@@ -51,6 +67,41 @@ std::string cp1252_to_utf8(std::string_view in) {
     append_utf8(out, cp1252_code_point(static_cast<unsigned char>(ch)));
   }
   return out;
+}
+
+std::string atari_cp1252_to_utf8(std::string_view in) {
+  std::string out;
+  out.reserve(in.size());
+  for (const char ch : in) {
+    append_utf8(out, atari_code_point(static_cast<unsigned char>(ch)));
+  }
+  return out;
+}
+
+bool looks_like_utf8(std::string_view text) {
+  std::size_t i = 0;
+  while (i < text.size()) {
+    const auto b = static_cast<unsigned char>(text[i]);
+    std::size_t follow = 0;
+    if (b < 0x80) {
+      follow = 0;
+    } else if ((b & 0xE0) == 0xC0) {
+      follow = 1;
+    } else if ((b & 0xF0) == 0xE0) {
+      follow = 2;
+    } else if ((b & 0xF8) == 0xF0) {
+      follow = 3;
+    } else {
+      return false;
+    }
+    for (std::size_t k = 1; k <= follow; ++k) {
+      if (i + k >= text.size() || (static_cast<unsigned char>(text[i + k]) & 0xC0) != 0x80) {
+        return false;
+      }
+    }
+    i += follow + 1;
+  }
+  return true;
 }
 
 std::string utf8_to_cp1252(std::string_view in) {

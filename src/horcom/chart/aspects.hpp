@@ -19,6 +19,10 @@
 // asp1 and ride along.
 namespace horcom {
 
+/// The largest divisor the equal probability orbs know, the original
+/// folds a sixteen back to twelve when orbe! is on.
+inline constexpr int kMaxEqualOrbDivisor = 12;
+
 /// Orb configuration, the original orb, or&() and orbe() world.
 struct AspectSettings {
   /// the original orb, the ORBIS-FAKTOR, 1 equals 100 percent
@@ -87,6 +91,15 @@ struct AspectResult {
 /// @return the orb fraction, zero switches the body off
 [[nodiscard]] double org(const AspectSettings& a, int slot, int nh);
 
+/// The base orb of one divisor, the dd of asp1 and of the Aspektarium
+/// divisor table.
+///
+/// @param a orb configuration
+/// @param n the divisor, 1 to 16
+/// @return orb times orbe(n) in the equal probability mode, orb times the
+///         base angle over thirty otherwise, radians
+[[nodiscard]] double divisor_orb(const AspectSettings& a, int n);
+
 /// The pair orb of the original orbis_discr2.
 ///
 /// @param o1 first body orb fraction
@@ -116,9 +129,8 @@ struct AspectResult {
 
 /// Names a matched angle for the Aspektarium, the original aspdis.
 ///
-/// The angle folds to the near side, then every divisor up to the scan
-/// limit divides it down until a known aspect degree appears, which
-/// maps multiples back onto their divisor.
+/// The angle folds to the near side, then the smallest divisor up to the
+/// scan limit that holds it as an exact multiple names its family.
 ///
 /// @param w        the matched angle from the asp matrix, radians, two
 ///                 pi for the conjunction
@@ -151,6 +163,39 @@ struct CrossAspectHit {
 /// @return the hits in scan order
 [[nodiscard]] std::vector<CrossAspectHit> scan_aspects_between(const Chart& first, const Chart& second, const AspectSettings& a, bool transit_orbs);
 
+/// The orb rules of a12asp.
+enum class CrossOrbs {
+  kNormal,    ///< orbis_discr2 of both weights times orb pn / 30
+  kTransit,   ///< drgrph, the first body's weight times one degree
+  kMulti,     ///< mult, a fifth of a degree times the orb factor
+  kHarmonic   ///< harm, one degree times the orb factor
+};
+
+/// The ranges and orbs of one a12asp run.
+struct CrossScanOptions {
+  CrossOrbs orbs = CrossOrbs::kNormal;
+  /// his klpl!, the extras take part on both sides, otherwise the
+  /// second chart stops at the south node like np& = 12
+  bool extras = false;
+  /// aspmult!, the pairs within the first chart, the second is ignored
+  bool within = false;
+  /// hrg!, the nodes, the Black Moon and the Glückspunkt stay silent
+  bool heliocentric = false;
+};
+
+/// The a12asp scan with his slot ranges. The first chart runs from the
+/// fixed point, when set, over the angles and the chosen extras, the
+/// second from the Sun to the south node or over the extras too, the
+/// south node itself never pairs, MULTI leaves Transpluto out.
+///
+/// @param first  the standing chart
+/// @param second the running or compared chart
+/// @param a      orb configuration
+/// @param opt    ranges and orb rule
+/// @return the hits in his scan order
+[[nodiscard]] std::vector<CrossAspectHit> scan_aspects_between(const Chart& first, const Chart& second, const AspectSettings& a,
+                                                               const CrossScanOptions& opt);
+
 /// One found midpoint contact.
 struct MidpointHit {
   int t = 0;   // body on the midpoint
@@ -181,5 +226,44 @@ struct MidpointResult {
 /// with_45 opens the fourth pass of the midpoint tree screen, the 45
 /// degree level, the three pass counters stay untouched by it
 [[nodiscard]] MidpointResult scan_midpoints(const Chart& chart, const ChartSettings& s, const AspectSettings& a, bool with_45 = false);
+
+/// One tree of the HALBSUMMEN-GRAPHIK, a point with the midpoints that
+/// fall on it.
+struct MidpointTree {
+  /// the body slot, 15 to 18 carry the cusps like his pl(t&)
+  int slot = 0;
+  /// the house of a cusp tree, 2, 3, 5 or 6, zero for a body
+  int cusp = 0;
+  /// ecliptic longitude in radians
+  double lon = 0.0;
+  /// the midpoints in his order, levels 1, 2, 4 and 8 one after another
+  std::vector<MidpointHit> hits;
+};
+
+/// The orb weights of the HALBSUMMEN-GRAPHIK trees.
+///
+/// The cusp trees H2, H3, H5 and H6 stand on the slots 15 to 18. His orb
+/// dialog orbis_pla never edits those weights, slot 15 doubles as its
+/// ZUSATZ-PLANETEN row and 16 to 18 stayed zero, so H3, H5 and H6 never
+/// carried a branch. They weigh NORMAL = 100 % as his dialog names it.
+///
+/// @param a orb configuration
+/// @return the configuration with the four cusp trees at 100 percent
+[[nodiscard]] AspectSettings tree_orb_settings(AspectSettings a);
+
+/// Scans the trees of the original aspar2. Every body, the fixed point
+/// when set, the south node and in the geocentric chart the cusps two,
+/// three, five and six get a tree, each running the four levels of
+/// halbs111 on one shared drk! cube.
+///
+/// @param chart    the computed chart
+/// @param s        the chart settings, the extras decide the partners
+/// @param a        orb configuration, the cusp trees weigh as
+///                 tree_orb_settings sets them
+/// @param partners the bodies allowed as midpoint pairs, his asp_wahl
+///                 filter, the trees themselves always stand
+/// @return the trees in slot order
+[[nodiscard]] std::vector<MidpointTree> midpoint_trees(const Chart& chart, const ChartSettings& s, const AspectSettings& a,
+                                                       const std::array<bool, body::kSlotCount>& partners);
 
 }  // namespace horcom

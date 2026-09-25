@@ -2,6 +2,7 @@ add_library(horcom STATIC
   horcom/time/calendar.cpp
   horcom/time/delta_t.cpp
   horcom/time/sidereal.cpp
+  horcom/time/local_time.cpp
   horcom/ephem/vsop.cpp
   horcom/ephem/sunmoon.cpp
   horcom/ephem/moon.cpp
@@ -17,6 +18,7 @@ add_library(horcom STATIC
   horcom/chart/chart.cpp
   horcom/chart/transit_search.cpp
   horcom/chart/composite.cpp
+  horcom/chart/rectification.cpp
   horcom/chart/directions.cpp
   horcom/chart/dynamogram.cpp
   horcom/chart/harmonics.cpp
@@ -28,10 +30,18 @@ add_library(horcom STATIC
   horcom/chart/stars.cpp
   horcom/chart/symbolic.cpp
   horcom/chart/aspects.cpp
+  horcom/chart/great_year.cpp
+  horcom/chart/degree_list.cpp
   horcom/chart/histogram.cpp
   horcom/chart/planet_points.cpp
   horcom/render/wheel.cpp
   horcom/render/linear.cpp
+  horcom/render/rhythm_panel.cpp
+  horcom/render/aspektarium.cpp
+  horcom/render/grad_sheet.cpp
+  horcom/render/midpoint_trees.cpp
+  horcom/render/pair_sheet.cpp
+  horcom/render/stat_sheet.cpp
   horcom/render/svg.cpp
   horcom/data/encoding.cpp
   horcom/data/chart_file.cpp
@@ -41,10 +51,13 @@ add_library(horcom STATIC
   horcom/data/countries.cpp
   horcom/data/statist.cpp
   horcom/data/statist_eval.cpp
+  horcom/data/statist_list.cpp
   horcom/data/gfa_stream.cpp
   horcom/data/kommen.cpp
   horcom/data/konsta.cpp
   horcom/data/aaf.cpp
+  horcom/data/file_io.cpp
+  horcom/data/collection.cpp
 )
 
 target_include_directories(horcom PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

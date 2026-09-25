@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <array>
 
 #include "horcom/time/calendar.hpp"
@@ -22,8 +23,15 @@ enum class HouseSystem {
   kEqualAsc = 6,      //RR ÄQUAL EKLIPTIKAL ab AC
   kEqualVehlow = 7,
   kAcMcOnly = 8,      //RR KEINE Häuser, NUR AC und MC
-  kNone = 9,
+  kNone = 9,          //RR WEDER HÄUSER noch  AC oder MC
+  kNoneNoNodes = 10,  //RR WEDER HÄUSER noch  AC oder MC noch MONDKNOTEN
 };
+
+/// @param h a house system
+/// @return true when the system drops AC and MC as well, his haw& 9 and 10
+[[nodiscard]] constexpr bool without_angles(HouseSystem h) {
+  return h == HouseSystem::kNone || h == HouseSystem::kNoneNoNodes;
+}
 
 /// Apparent position mode, the original appa&.
 enum class ApparentMode {
@@ -65,15 +73,17 @@ struct ChartSettings {
   }
 
   /// @return the highest active body slot, the original np&
+  /// @note His np& counted the chosen extras because his layout packed
+  ///       them from slot 19 on. The port keeps every extra in its fixed
+  ///       slot, so the bound is the highest chosen slot and the scans
+  ///       step over the gaps
   [[nodiscard]] int body_count() const {
     if (!extra_bodies) {
       return 12;
     }
     int np = 18;
     for (int i = 1; i <= 22; ++i) {
-      if (nk[static_cast<std::size_t>(i)] > 0) {
-        ++np;
-      }
+      np = std::max(np, nk[static_cast<std::size_t>(i)]);
     }
     return np;
   }

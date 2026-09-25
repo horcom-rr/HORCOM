@@ -294,7 +294,7 @@ Resolved from `HORCOM7P.lst:48309–48440` cross-checked against `EPHEMER5.LST` 
 | Chiron (`nk&(2)`) | `chiron.eph`, 20 d, `f = …/20` | ecliptic B1950 | `praez_kartes_ekln(f&, jd, 2433282.423)` |
 | Ceres / Pallas / Juno / Vesta (`nk&(5..8)`) | `.eph`, 10 d, `f = …/5` | ecliptic J2000 | `…ekln(…, 2451545.0)` |
 | Quaoar (`nk&(17)`) | `quaoar.eph`, 40 d, `f = …/60` | ecliptic J2000 | `…ekln(…, 2451545.0)` |
-| Halley (`nk&(18)`) | `halley.eph`, 20 d, `f = …/40` | ecliptic J2000 (per `HALLEY.LST`) | ⚠ `…ekln(…, 2433282.423)` — B1950. `n18&` appears in both CASE lists; GFA takes the first, so Halley is precessed from the wrong equinox (~0.7° error). Fix knowingly in the port. |
+| Halley (`nk&(18)`) | `halley.eph`, 10 d in the shipped file, `f = …/40` | ecliptic B1950 in fact (`HALLEY.LST` says J2000) | `…ekln(…, 2433282.423)`, B1950 through the first CASE. The shipped file meets his B1950 start elements only read this way (0.04° against 0.71°), so the reader is right. |
 | Pholus / Damocles / Nessus (`nk&(19..21)`) | `.eph`, 10 d, `f = …/40` | ecliptic J2000 | `…ekln(…, 2451545.0)` |
 | Xena/Eris (`nk&(22)`) | `xena.eph`, 40 d, `f = …/100` | ecliptic J2000 | `…ekln(…, 2451545.0)` |
 | Transpluto, Uranian bodies CU…PO (`nk&(9..16)`) | analytic, `plelem` — mean-element circular/Keplerian formulae | — | — |

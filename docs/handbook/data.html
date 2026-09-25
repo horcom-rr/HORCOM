@@ -24,9 +24,15 @@ level in the legacy analysis and verified against real files before a
 loader was written. Text arrives as Windows 1252 and is normalised to
 UTF-8 on read, numbers are right aligned like RSET STR$, text left
 aligned like LSET, and overlong text truncates exactly where his fields
-truncated it. He knew about that himself
+truncated it. Every writer goes through <code>replace_file</code>, the
+bytes land in a temporary file beside the target which then takes its
+name, so a crash never leaves half a file. File names keep their full
+length instead of his eight DOS letters, a new collection gets the .DAT
+or .AAF suffix when none is typed, and on Linux a file is found
+whatever case its name carries, his twins in capitals as well as a
+copied archive in small letters. He knew about the truncation himself
 </p>
-<blockquote class="rr">HORCOM speichert z.B. die Zeit immer nur als GMT = UT , Bemerkungen werden nach 51 Zeichen abgeschnitten.Das stammt noch aus der Zeit als Speicher-Platz knapp war.Heute kann man dies vergessen.
+<blockquote class="rr">HORCOM, for example, always stores the time only as GMT = UT, remarks are cut off after 51 characters. That still dates from the time when storage space was scarce. Today one can forget about this.
 <footer>from his commentary on the file formats</footer>
 </blockquote>
 
@@ -38,10 +44,13 @@ truncated it. He knew about that himself
   <tr><td><code>SPEZ_ORT\*.INT</code>, 36 byte records, the picker zone suffix, <code>ORT.EXT</code> with both encodings</td><td><code>PlaceRecord, read_place_file, read_preferred_place</code></td><td><code>src/horcom/data/place_file.*</code></td></tr>
   <tr><td><code>stat_ausw, stat_ausw_1, bed_erf, bed_erf_asp, haus_def, haus_sel, ze_pl, sum_z_h, stat_ausg_ar</code></td><td><code>evaluate_statistics, stat_houses, sign_ruler</code></td><td><code>src/horcom/data/statist_eval.*</code></td></tr>
   <tr><td><code>komm_les, lese_text</code> and the <code>ae</code> menu</td><td><code>kommen_entries, read_kommen</code></td><td><code>src/horcom/data/kommen.*</code></td></tr>
-  <tr><td>Datei TRIMMEN, MINIMIEREN and LÖSCHEN, <code>a2f_tr_dat, minim_dat</code></td><td><code>trim_records, minimize_records, delete_records</code></td><td><code>src/horcom/data/chart_file.*</code></td></tr>
+  <tr><td>TRIM the file, MINIMIZE the file and DELETE records, <code>a2f_tr_dat, minim_dat</code></td><td><code>trim_records, minimize_records, delete_records</code></td><td><code>src/horcom/data/chart_file.*</code></td></tr>
   <tr><td>Overwrite by name, <code>a22ueberschrb</code></td><td><code>remove_records_by_name</code></td><td><code>src/horcom/data/chart_file.*</code></td></tr>
   <tr><td>The chooser sort keys, <code>a210, a211, a211_nnam</code></td><td><code>RecordOrder, record_order</code></td><td><code>src/horcom/data/record_order.*</code></td></tr>
   <tr><td>The AAF twin of a collection, <code>bilde_aaffile$, bilde_horcfile$</code></td><td><code>aaf_twin_path, dat_twin_path</code></td><td><code>src/horcom/data/aaf.*</code></td></tr>
+  <tr><td>The DAT and AAF pair, <code>aaf_horcom2, horcom_aaf3, aaf_ident</code></td><td><code>chart_record_from_aaf, aaf_export_record, aaf_ident, aaf_same_name, write_dat_from_aaf</code></td><td><code>src/horcom/data/collection.*</code></td></tr>
+  <tr><td>The file writes of every routine</td><td><code>read_file_bytes, replace_file, find_case_blind</code></td><td><code>src/horcom/data/file_io.*</code></td></tr>
+  <tr><td>The statistics output list, <code>bed_erf_1, list_ausg, list_zeil_loe</code> and the <code>vg|</code> table</td><td><code>sort_stat_entries, stat_collation_key, stat_out_of_range</code></td><td><code>src/horcom/data/statist_list.*</code></td></tr>
 </table>
 
 <h2>The chart record</h2>
@@ -58,7 +67,7 @@ uses. There is no header and no index, sorting was always in memory.
 <p>
 Eight bytes longitude, eight latitude, twenty name. The picker files
 carry the time zone difference in the last five name bytes, stored as
-the correction that leads from zone time to UT, so MEZ reads minus one.
+the correction that leads from zone time to UT, so CET reads minus one.
 The preferred place file has two coordinate encodings in the wild,
 integer micro degrees from the write once writer and plain decimals from
 older files, the reader takes the original's branch on the missing
@@ -96,30 +105,53 @@ against the archive file through the writer, and the Qt shell starts on
 it, parallax on, true node and true apogee, his own orb table in the
 equal probability mode. A konsta file placed next to the data still
 overrides the profile, the historical file name included. The shell's
-Vorgaben dialog edits the live values, orb factor, maximal divisor,
-the equal probability mode, the planet weights and the fixed point,
-and writes them back as konsta.int beside the data on request, so the
-next start keeps them.
+CHANGE HOROSCOPE DEFAULTS dialog edits the live values, orb factor,
+maximal divisor, the equal probability mode, the planet weights and the
+fixed point, and like his kon_dsp writes them back as konsta.int beside
+the data after every change of the defaults and at the end of the
+session, so the next start keeps them.
 </p>
 
 <h2>The statistics store</h2>
 <p>
 STATIST7 keeps one dataset as three files. The .STA carries 210 byte
 records, name, place, a packed clock and 34 int32 angles in radians
-times ten million, the .STH twin adds the six late extras under the
-eight characters plus one naming rule, and the .PAR parameters give the
-extra slots their meaning, without it a .STA cannot be read. The loader
-maps everything onto body slots, detects heliocentric files by the
-zeroed axes, and the writer packs byte for byte, pinned by a round
+times ten million, the .STH twin adds the six late extras under his
+naming rule of seven letters of the name plus a 1, and the .PAR
+parameters give the extra slots their meaning, without it a .STA cannot
+be read. Two datasets sharing their first seven letters shared his
+twin, the second overwrote the extras of the first and deleting one
+took the other's, so the port gives a colliding dataset a twin of its
+whole base name and spares a shared twin on delete. The loader maps
+everything onto body slots, detects heliocentric files by the empty Sun
+beside the zeroed axes, so a dataset computed without houses and angles
+stays geocentric, and the writer packs byte for byte, pinned by a round
 trip. Verified locally against his real datasets, over sixteen hundred
 charts parse with each sun standing where its calendar date demands.
-The shell's Statistik browser lists a dataset, shows the sign
-distribution of any object over the whole set and hands a chart back to
-the panel. Statistik-Datei erstellen builds a dataset from any DAT or
-AAF collection, every record computed through the full chart pipeline
-and packed by the byte exact writer, and Datei durchzählen walks a
-loaded dataset through the aspect and midpoint scanners, the Schiemenz
-counters with their sums and means over the whole file.
+</p>
+<p>
+STATISTICS G/H in the EPHEMERIS menu opens his hub, <i>WHAT DO YOU WANT
+TO DO ?</i>, with the DEFAULTS, the creation, the evaluation and the
+deletion of a dataset, the evaluation preset once a dataset exists. The
+DEFAULTS ask whether saved records join the dataset of their file and
+whether the list prints SMALL with more details or LARGE, the helio list
+stays LARGE. CREATE an EVALUABLE FILE asks <i>PARAMETERS SET
+CORRECTLY ?</i>, takes a DAT of the SPEZIAL folder and writes
+<code>statist7/&lt;NAME&gt;.STA</code>, <code>.PAR</code> and the
+<code>.STH</code> twin, every record with a day and a month computed
+with the current settings, the progress in his yellow box while the
+program stays locked, ESC or the close button asking <i>REALLY DISCARD
+?</i>. Records whose latitude the house system cannot handle are left
+out and their number is reported. His DISCARD deleted the .PAR alone
+and left a torn .STA, the port removes all three. The .PAR carries his
+short house name, App.1, App.2 or Wahr, gen 2 with Maximal and the
+parallax as 1 for With and 2 for Without. Once UPDATE NEW RECORDS is
+on, a record saved into a DAT offers itself to the dataset of the same
+name, computed with the parameters of its .PAR, a record of the same
+name is overwritten. His name compare saw the case, the upper case field
+never matched a record typed in small letters and every save doubled
+it, and his append put the .STH row at record zero, the port compares
+without case and appends both files.
 </p>
 
 <h2>The search conditions</h2>
@@ -132,37 +164,98 @@ a midpoint, mirror points around both axes, a name fragment and the
 arabic parts with their day and night formula swap. The condition menu
 places the object at a degree, in a sign, in a house, near another
 body or anywhere. Windows that cross the zero point run as extra
-passes exactly like his two follow up loops. haus_def rebuilds all
+passes exactly like his two follow up loops, and In HOUSE with an orb
+works for a house that runs over 0° Aries as well. haus_def rebuilds all
 twelve cusps from the six the record stores, ze_pl hands each sign its
 ruler with the alt switch to the classical ones, and the aspect
 windows share org, orbis_discr and the equal probability multiple
 filter with the aspect engine, including his sticky per record flags
-under UND. Conditions chain through the mz survivor mask, UND keeps
-only records that carried a previous match, and the lights and all
-bodies walks never write the mask on a match, only their failures
-clear it, his split kept knowingly. sum_z_h tallies every tested value
-into a sign or house distribution as the baseline the counts compare
-against. The Statistik dialog builds the conditions with UND chaining,
-filters the record list to the survivors and prints hit count and
-distribution.
+under AND. Conditions chain through the mz survivor mask, AND keeps
+only records that carried a previous match. SO / MO / AC and ALL
+PLANETS read as an OR over their bodies like KOMMSTAT describes them,
+his bed_erf kept their mask at the list index and made the group an
+AND under AND. sum_z_h tallies every tested value into a sign or house
+distribution as the baseline the counts compare against. A SINGLE
+ASPECT takes no orb box, its orb is the orbe row of the divisor without
+the orb factor, ALL ASPECTS up to DIVISOR runs every divisor up to eight
+with the orb factor. The NAME search looks into the padded 25 letter
+field, a lone blank lists every name shorter than the field, and the
+typed letters count in capitals like the field.
+</p>
+
+<h2>The evaluation screens</h2>
+<p>
+START the EVALUATION follows stat2. The dataset opens after his checks,
+at any size since his cap of 15975 records falls away, a torn .STH or
+an unreadable file asks for a new dataset, and a file written in the
+other mode switches the program to heliocentric or geocentric first.
+Each condition then walks his boxes, <i>n. CHOOSE the OBJECT !</i>, the
+factor list of ausw_pl_hs with the extras of the dataset, HOUSE NO. and
+RULER of HOUSE NO. behind their digit boxes, which like the orb box
+show the condition being built above the question, and SO / MO / AC and
+ALL PLANETS for the
+first object only, <i>Where shall the OBJECT be SEARCHED ?</i> with his
+greyed rows, and the inputs of stat_ausw. <i>* FURTHER CONDITION ?
+*</i> joins the next one with OR, AND INCLUSIVE or AND EXCLUSIVE or
+opens the list, up to twelve conditions.
+</p>
+<p>
+The list keeps his entries, one per match and condition, the name
+padded to 25 places with the number of the condition, under AND the
+chain like 1u2u3 in place of the end of the name. INCLUSIVE keeps the
+earlier entries, EXCLUSIVE cuts the list to the chains, and the entries
+that end the longest chain print in inverse video. His usuch compared
+the last digit of the chain alone, from the tenth condition on no chain
+counted as complete, the port reads the whole number. A list WITHOUT
+RESTRICTION sorts by the longitude, SO / MO / AC and ALL PLANETS
+keep their order and every other list sorts by the label with his
+folding of Ä, Ö, Ü and ß. The page draws his 640 by 480 screen, 24 rows
+under the grey header, the glyph and position of the match, the name,
+the moment and in the LARGE list the AC, or the MC when the AC itself
+was searched, the SMALL list prints the coordinates and SO, MO, AC and
+MC in decimal degrees. A single condition gets the box of the object
+and the window and his bars of the sign or house distribution in the
+element colours, the SO / MO / AC and ALL PLANETS lists included,
+several get the vertical boxes with the counts and
+the conditions. His rows printed the last value of a record on every
+row of it, the port prints the value of each entry. Space turns the
+page, R turns back, S jumps six pages forward as the footer says, H
+returns to the first, W asks another condition, the right mouse shows
+the counts except under WITHOUT RESTRICTION ( 0-360° ), ESC asks
+<i>END 'STATISTICS' ?</i>. An extra outside its ephemeris file at the
+date shows dashes and a click names it <i>OUT OF RANGE !</i>. A click
+on a row opens kotab_sta, DO NOT TAKE OVER shows the chart with the
+parameters of the dataset until a key, the first time behind his
+counter box. CANCEL in its <i>CHOOSE SINGLE PLANETS for the CHART ?</i>
+box keeps the previous selection, the chart still shows and the list
+returns. <i>EVALUATE the COUNTER for the WHOLE LIST</i> first shows the
+clicked chart, then counts every listed record once in a progress
+window that ESC or the close button stop. TAKE OVER takes
+the record into the next RADIX slot with <i>DATA TAKEN OVER FROM the
+'STATISTICS' FILE</i>. After the list <i>FURTHER EVALUATION With THIS FILE
+?</i> starts over, ends or returns to the list. A search without a
+match says <i>NO record MEETS ALL CONDITIONS !</i>, marks the condition
+DUD and goes straight on to the next evaluation without an empty list
+page.
 </p>
 
 <h2>The commentary texts</h2>
 <p>
 The KOMMEN7P folder holds Robert Rettig's own German essays, an
-introduction and Erläuterungen on input, the ephemeris, the chart
-types, solars, the Münchner Rhythmenlehre, directions, houses,
+introduction and commentaries on input, the ephemeris, the chart
+types, solars, the Munich Rhythm Theory, directions, houses,
 statistics, the AAF world and assorted notes, plus the change log and
 the short manual at the program root. They are not an interpretation
 engine, the original had none, they are his writing shown in the
-TEXT-DATEI LESEN box. The texts ship with the repository in
+READ TEXT FILE box. The texts ship with the repository in
 data/kommen as markdown editions, published by his family with the
 wording unchanged, only reflowed and curated, one private postal
 address of a third person removed, the parts behind his mid file
 separators included that the original reader always stopped at, and
 the era bound passages about installation, printer control and crash
 recovery of the historical program left out. The
-shell renders them under the Hilfe menu. His byte exact text files
+shell opens them from the EXPLANATION entries at the end of every
+menu, from F1 inside an output and from ABOUT HORCOM. His byte exact text files
 still work, the ported lese_text rules read them, tilde lines and
 overlong lines drop, a leading dash ends the file, the bytes decode
 from Windows 1252, and a folder picker in the dialog opens an
@@ -182,15 +275,24 @@ person, the place name, the country abbreviation and the summer time
 code of the original sommerzeit table, the clock stays civil with the
 zone string beside it composed like zeitzon, and saving into an
 existing file can append to the collection instead of replacing it.
-Dateien verketten carries his chaining tool over, any mix of DAT and
+In the AAF box OK = Save writes into an AAF file, by default the twin
+of the working data file, asks before it overwrites a record of the
+same name and rebuilds the matching DAT like aaf_horcom2. Entering the
+chart type, country, summer time or zone field opens the pick list of
+hor_art, laender, sommerzeit or the zone catalogue. His same name rule
+of a22dat held only at radix level, so a derived chart, a SOLAR, a
+COMBINE or a result taken as radix, joins the data file beside the
+birth record and never replaces it. Record lists and place lists sort
+an umlaut like its base vowel.
+CHAIN FILES carries his chaining tool over, any mix of DAT and
 AAF collections reads in sequence and writes out as one AAF chain
 file, the way he merged collections for the statistics work. The AAF
 to HORCOM conversion presses exchange records into the fixed 128 byte
 layout with the Julian flag on the remark, and his two maintenance
-passes survive as Datei trimmen, empty records out and leading blanks
-off the names, and Datei minimieren, duplicates of name and birth
+passes survive as TRIM the file, empty records out and leading blanks
+off the names, and MINIMIZE the file, duplicates of name and birth
 clock collapsed. The collections browser deletes marked records and
-writes the file back, his Löschen of up to ten at a time without the
+writes the file back, his DELETE of up to ten at a time without the
 count limit.
 </p>
 
@@ -215,7 +317,10 @@ ten characters the difference from zone time to UT in the shape minus
 eleven h twenty three m. The sign lives only in the first character
 because VAL of the hour field drops it, the parser keeps exactly that
 arithmetic. The LMT and LTT rows carry no number, there local time
-follows from the longitude. The catalogue ships as
+follows from the longitude. In the AAF box LMT takes the clock straight
+from the longitude, and LTT turns true into mean local time with the
+equation of time like his zuo, on its own before 1810 and after his
+question until 1890. The catalogue ships as
 <code>data/zonnamen.int</code> and the shell's zone picker reads it,
 still under his dialog title.
 </p>
@@ -231,7 +336,7 @@ its 465 places with Agram at minus one, and his profile is pinned on
 every switch and round trips through the writer and reader unchanged.
 <code>test_statist_eval.cpp</code> runs invented charts through every object
 and window, the cusp mirroring, the twelve rulers with the alt switch,
-the zero wrap, the aspect fold with the multiple filter, the UND
+the zero wrap, the aspect fold with the multiple filter, the AND
 survivors and the mask silence of the collective walks.
 </p>
 

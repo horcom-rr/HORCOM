@@ -1,1 +1,4 @@
 *.sh text eol=lf
+# fixed 36 byte record files, never line converted
+data/places/*.int binary
+data/spez_ort/*.int binary

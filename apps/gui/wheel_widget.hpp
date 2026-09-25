@@ -17,6 +17,9 @@ class WheelWidget : public QWidget {
   Q_OBJECT
 
  public:
+  /// Builds an empty canvas.
+  ///
+  /// @param parent the owning widget
   explicit WheelWidget(QWidget* parent = nullptr);
 
   /// Replaces the drawing and repaints. The screen shows the wheel
@@ -28,8 +31,36 @@ class WheelWidget : public QWidget {
   /// axes off the paper.
   void set_plain_list(DisplayList dl);
 
+  /// Shows what another canvas shows in the same way, a centred wheel as
+  /// a centred wheel and a full sheet as delivered, the walk windows
+  /// follow the main wheel with it.
+  ///
+  /// @param other the canvas to copy
+  void show_like(const WheelWidget& other);
+
   /// @return the classic sheet drawing, the print and PDF paths read it
   [[nodiscard]] const DisplayList& display_list() const { return classic_; }
+
+  /// @return the sheet as the last paint laid it out, the wheel centred
+  ///         on the paper with its corner notes moved to the edges, the
+  ///         delivered list before the first paint
+  [[nodiscard]] const DisplayList& shown_list() const { return dl_.items.empty() ? classic_ : dl_; }
+
+  /// A widget point on the plain canvas, his screen coordinates.
+  ///
+  /// @param at the point in widget pixels
+  /// @return the point on the virtual canvas
+  [[nodiscard]] QPointF to_canvas(const QPointF& at) const;
+
+  /// A canvas point in widget pixels, the inverse of to_canvas.
+  ///
+  /// @param at the point on the virtual canvas
+  /// @return the point in widget pixels
+  [[nodiscard]] QPointF from_canvas(const QPointF& at) const;
+
+ signals:
+  /// The right mouse button went down on the sheet, his MOUSEK = 2.
+  void right_clicked();
 
  protected:
   void paintEvent(QPaintEvent* event) override;
@@ -40,6 +71,16 @@ class WheelWidget : public QWidget {
   void mouseDoubleClickEvent(QMouseEvent* event) override;
 
  private:
+  /// The scale and offset that fit a canvas into the widget.
+  struct Fit {
+    double scale = 1.0;
+    double x = 0.0;
+    double y = 0.0;
+  };
+  /// @param d the list, its own size or the wheel canvas when it has none
+  /// @return the aspect preserving fit inside the paper margin
+  [[nodiscard]] Fit fit_of(const DisplayList& d) const;
+
   DisplayList classic_;
   DisplayList dl_;       // the centred screen view of classic_
   double sheet_w_ = 0.0;  // the sheet width dl_ was built for

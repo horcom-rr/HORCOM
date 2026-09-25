@@ -118,14 +118,24 @@ struct Konsta {
 [[nodiscard]] std::optional<Konsta> load_konsta(const std::filesystem::path& path);
 
 /// Parses a KONSTA stream from memory.
+///
+/// @param text the whole stream, Windows 1252 bytes
+/// @return the settings read in stream order
 [[nodiscard]] Konsta parse_konsta(std::string_view text);
 
 /// Writes the stream exactly like kon_dsp, same line grouping, strings
 /// quoted, booleans as -1 and 0, the orb table only in equal probability
 /// mode.
+///
+/// @param k the settings
+/// @return the stream text
 [[nodiscard]] std::string format_konsta(const Konsta& k);
 
-/// Saves to file.
+/// Saves the stream to file, the old file is replaced in one step.
+///
+/// @param path the INTERN KONSTA7P.INT style file
+/// @param k    the settings
+/// @return true on success
 bool save_konsta(const std::filesystem::path& path, const Konsta& k);
 
 }  // namespace horcom

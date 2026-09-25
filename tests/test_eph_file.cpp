@@ -2,6 +2,8 @@
 // horcom, the C++ rewrite of HORCOM by Robert Rettig (1989 to 2010)
 // Copyright (c) 2026 Dominik Schwimmbeck
 
+#include <algorithm>
+#include <array>
 #include <cmath>
 #include <initializer_list>
 #include <string>
@@ -10,6 +12,7 @@
 #include "horcom/core/constants.hpp"
 #include "horcom/core/coords.hpp"
 #include "horcom/ephem/eph_file.hpp"
+#include "horcom/ephem/precession.hpp"
 #include "horcom/ephem/pluto_chapront.hpp"
 #include "horcom/ephem/sunmoon.hpp"
 #include "horcom/time/calendar.hpp"
@@ -107,4 +110,102 @@ TEST_CASE("Chiron stays on a sane heliocentric arc") {
     CHECK(s.r > 8.4);
     CHECK(s.r < 18.9);
   }
+}
+
+namespace {
+
+double angle_between(const std::array<double, 3>& a, const std::array<double, 3>& b) {
+  const double dot = a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const double na = std::sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
+  const double nb = std::sqrt(b[0] * b[0] + b[1] * b[1] + b[2] * b[2]);
+  return std::acos(std::clamp(dot / (na * nb), -1.0, 1.0));
+}
+
+// the numeric derivative of the interpolated longitude, the yardstick
+// for the interpolated velocity
+double lon_rate(const EphFile& f, const EphBodyInfo& info, double jd) {
+  constexpr double kHalfStep = 0.01;
+  const EphFile::Sample a = f.evaluate(jd - kHalfStep, info.fplanet, info.frame);
+  const EphFile::Sample b = f.evaluate(jd + kHalfStep, info.fplanet, info.frame);
+  double d = b.lon - a.lon;
+  if (d > kPi) {
+    d -= kTwoPi;
+  } else if (d < -kPi) {
+    d += kTwoPi;
+  }
+  return d / (2.0 * kHalfStep);
+}
+
+}  // namespace
+
+TEST_CASE("Halley's shipped file is B1950 like the reader's CASE n2&,n18&") {
+  // the start elements of elem_halley, Montenbruck page 165, B1950,
+  // osculating at 10.02.1986, give the direction of the perihelion
+  const double inc = 162.2384 * kDegToRad;
+  const double node = 58.1540 * kDegToRad;
+  const double peri = 111.8570 * kDegToRad;
+  std::array<double, 3> p = {
+      std::cos(node) * std::cos(peri) - std::sin(node) * std::sin(peri) * std::cos(inc),
+      std::sin(node) * std::cos(peri) + std::cos(node) * std::sin(peri) * std::cos(inc),
+      std::sin(peri) * std::sin(inc)};
+  const EphFile halley = open_body("halley");
+  const EphBodyInfo* info = eph_body("halley");
+  REQUIRE(info != nullptr);
+  CHECK(info->frame == EphFrame::kEclipticB1950);
+  // the perihelion passage of the file, the smallest radius
+  double best_jd = 0.0;
+  double best_r = 1.0e9;
+  for (double jd = 2446465.0; jd <= 2446476.0; jd += 0.01) {
+    const EphFile::Sample s = halley.evaluate(jd, info->fplanet, info->frame);
+    REQUIRE(s.in_range);
+    if (s.r < best_r) {
+      best_r = s.r;
+      best_jd = jd;
+    }
+  }
+  //RR q = 0.587157
+  CHECK(best_r == doctest::Approx(0.587157).epsilon(2e-4));
+  precess_ecliptic(p, best_jd, kJdB1950);
+  const EphFile::Sample right = halley.evaluate(best_jd, info->fplanet, EphFrame::kEclipticB1950);
+  const EphFile::Sample wrong = halley.evaluate(best_jd, info->fplanet, EphFrame::kEclipticJ2000);
+  // read as B1950 the file meets his elements, the J2000 reading the
+  // generator listing suggests lands about 0.7 degrees away, fifty years
+  // of precession. The duplicated CASE looked like an editing accident,
+  // the shipped data proves the reader right
+  CHECK(angle_between(right.xyz, p) * kRadToDeg < 0.05);
+  CHECK(angle_between(wrong.xyz, p) * kRadToDeg > 0.6);
+}
+
+TEST_CASE("the interpolated rates follow the positions with their sign") {
+  // Ceres steps every ten days, the original's yip = jdip - djd / 2 read
+  // the velocity four and a half steps away and wrapped it in ABS
+  const EphFile ceres = open_body("ceres");
+  const EphBodyInfo* ci = eph_body("ceres");
+  REQUIRE(ci != nullptr);
+  for (double jd = 2451545.0; jd < 2451545.0 + 2000.0; jd += 37.0) {
+    const EphFile::Sample s = ceres.evaluate(jd, ci->fplanet, ci->frame);
+    REQUIRE(s.in_range);
+    CAPTURE(jd);
+    // first differences at the interval midpoints plus the quadratic
+    // interpolation carry about 2e-4 of relative error at a ten day step,
+    // the far extrapolation of the original was off by whole percents
+    CHECK(s.lont == doctest::Approx(lon_rate(ceres, *ci, jd)).epsilon(5e-4));
+  }
+  // Halley runs retrograde, its heliocentric longitude falls, and the
+  // radius shrinks on the way in to the perihelion of 9 February 1986
+  const EphFile halley = open_body("halley");
+  const EphBodyInfo* hi = eph_body("halley");
+  REQUIRE(hi != nullptr);
+  const EphFile::Sample in = halley.evaluate(2446440.5, hi->fplanet, hi->frame);
+  REQUIRE(in.in_range);
+  CHECK(in.lont < 0.0);
+  CHECK(in.lont == doctest::Approx(lon_rate(halley, *hi, 2446440.5)).epsilon(5e-3));
+  CHECK(in.rt < 0.0);
+  const EphFile::Sample out = halley.evaluate(2446500.5, hi->fplanet, hi->frame);
+  CHECK(out.rt > 0.0);
+  // the rates come from one helper shared with the equatorial rotation
+  const SphericalRates r = spherical_rates({1.0, 0.0, 0.0}, {0.0, 0.01, -0.02});
+  CHECK(r.lont == doctest::Approx(0.01));
+  CHECK(r.latt == doctest::Approx(-0.02));
+  CHECK(r.rt == doctest::Approx(0.0));
 }

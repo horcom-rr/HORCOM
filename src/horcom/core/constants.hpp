@@ -50,6 +50,16 @@ inline constexpr double kSolarToSiderealRate = 1.002737908;
 
 inline constexpr double kDegPerHour = 15.0;
 inline constexpr double kDegPerSign = 30.0;
+inline constexpr double kDegPerCircle = 360.0;
+
+inline constexpr double kDegPerQuadrant = 90.0;
+inline constexpr double kArcminPerDeg = 60.0;
+inline constexpr double kArcsecPerDeg = 3600.0;
+inline constexpr double kMonthsPerYear = 12.0;
+
+/// the tropical month in days, his tmo, the Moon's return to the same
+/// longitude
+inline constexpr double kTropicalMonthDays = 27.321582;
 
 /// civil hours of one solar day, the divisor from clock hours to day
 /// fraction that the panel, the transits and the progressions all lean on
@@ -64,6 +74,16 @@ inline constexpr double kPercent = 100.0;
 
 /// the default aspect orb is the base angle over thirty, his pn / 30
 inline constexpr double kDefaultOrbDivisor = 30.0;
+
+/// his w4d default, the GRUNDWINKEL of the transit and direction runs in
+/// degrees, the multiples of it are the aspects searched
+inline constexpr double kDefaultBaseAngleDeg = 30.0;
+
+/// seconds of one clock hour, the time twin of kArcsecPerDeg
+inline constexpr double kSecondsPerHour = 3600.0;
+
+/// the zone text of Greenwich time in his AAF field, 00 hours east
+inline constexpr const char* kUtZoneText = "00hE00:00";
 
 /// clock seconds of one civil day, the clamp ceiling of the panels
 inline constexpr int kSecondsPerDay = 86400;

@@ -40,6 +40,15 @@ def parse_new(cid):
         if m: jd = float(m.group(1))
     return {"bodies": bodies, "houses": houses, "armc": armc, "jd": jd}
 
+# The original built its true node on a lunar latitude that carried the
+# nutation in obliquity, a documented bug the rewrite fixes. Its printed
+# node therefore sits up to about 95 arc seconds from the rewrite's, which
+# lies about 3.5 times closer to the Swiss Ephemeris osculating node, see
+# tests/golden/README.md. The node rows get that allowance
+NODE_TOL_LON_SEC = 100.0
+NODE_TOL_DEKL = 0.02
+
+
 def compare(cid, tol_lon_sec=1.5, tol_house_min=1.0, tol_dekl=0.01, tol_lat=0.01):
     orig = json.load(open(os.path.join(GOLD, f"chart{cid}_original_koordinaten.json"), encoding="utf-8"))
     new = parse_new(cid)
@@ -53,6 +62,9 @@ def compare(cid, tol_lon_sec=1.5, tol_house_min=1.0, tol_dekl=0.01, tol_lat=0.01
         d = abs(od - n["lon"]) * 3600
         if d > 360 * 3600 - 5400: d = abs(d - 360 * 3600)
         tol = tol_lon_sec if len(o["lon"]) > 3 else 35.0
+        node = b in ("dr", "ds")
+        if node:
+            tol = max(tol, NODE_TOL_LON_SEC)
         line = f"  {b}: lon diff {d:6.1f}\""
         if d > tol: line += "  <-- MISMATCH"; ok = False
         if o.get("lat") is not None and n["lat"] is not None:
@@ -62,7 +74,7 @@ def compare(cid, tol_lon_sec=1.5, tol_house_min=1.0, tol_dekl=0.01, tol_lat=0.01
         if o.get("dekl") is not None and n["dekl"] is not None:
             dd = abs(o["dekl"] - n["dekl"])
             line += f"  dekl {dd:.4f}"
-            if dd > tol_dekl: line += " <-- DEKL"; ok = False
+            if dd > (NODE_TOL_DEKL if node else tol_dekl): line += " <-- DEKL"; ok = False
         report.append(line)
     for h, o in orig.get("houses", {}).items():
         n = new["houses"].get(int(h))

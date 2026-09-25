@@ -4,6 +4,7 @@
 
 #include "horcom/render/svg.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <sstream>
@@ -106,6 +107,17 @@ std::string to_svg(const DisplayList& dl, const GlyphImageResolver& sprites) {
         s << "<text x=\"" << num(p.x1) << "\" y=\"" << num(p.y1) << "\" font-size=\"" << num(p.size)
           << "\" text-anchor=\"" << (p.align_right ? "end" : p.align_left ? "start" : "middle")
           << "\" dominant-baseline=\"middle\" fill=\"" << hex(p.color) << "\"";
+        if (p.vertical) {
+          s << " transform=\"rotate(-90 " << num(p.x1) << " " << num(p.y1) << ")\"";
+        }
+        if (p.pitch > 0.0) {
+          // his FONT WIDTH as the ceiling, one advance per character of
+          // the UTF-8 text like the screen
+          const auto chars = std::count_if(p.text.begin(), p.text.end(),
+                                           [](char ch) { return (static_cast<unsigned char>(ch) & 0xC0) != 0x80; });
+          s << " textLength=\"" << num(text_advance(p) * static_cast<double>(chars))
+            << "\" lengthAdjust=\"spacingAndGlyphs\"";
+        }
         if (p.kind == Primitive::Kind::kText) {
           // the fixed font of his screens, the glyphs keep the symbol face
           s << " font-family=\"Courier New, monospace\" font-weight=\"bold\"";

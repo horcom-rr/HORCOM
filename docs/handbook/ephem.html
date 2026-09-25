@@ -53,7 +53,7 @@ planet, three coordinates times six powers of time. The dat file holds
 triples of doubles A, B, C of A&nbsp;cos(B&nbsp;+&nbsp;C&nbsp;t), 2637 records. Robert
 names his source in the program's own commentary
 </p>
-<blockquote class="rr">Für die grossen Planeten ME,VE,ERDE (SONNE) MA,JU,SA,UR,NE, wird in HORCOM eine abgekürzte Version der neuesten analytischen Theorie VSOP87 des BUREAU DES LONGITUDES,PARIS ( P.BRETAGNON ) verwendet.Diese wurde nun durch JEAN MEEUS ("ASTRONOMISCHE ALGORITHMEN") einem größeren Kreis zugänglich gemacht.
+<blockquote class="rr">For the major planets ME, VE, EARTH (SUN) MA, JU, SA, UR, NE, HORCOM uses an abbreviated version of the latest analytical theory VSOP87 of the BUREAU DES LONGITUDES, PARIS ( P.BRETAGNON ). This has now been made accessible to a wider circle by JEAN MEEUS ("ASTRONOMISCHE ALGORITHMEN").
 <footer>from his commentary file on the ephemeris</footer>
 </blockquote>
 <p>
@@ -71,11 +71,11 @@ three scaled heliocentric rectangular coordinates, newest record first. The
 integrator behind them is documented in his tool sources with a header he
 repeated in every generator
 </p>
-<blockquote class="rr">' STÖRMER/STIEFEL  BIS ZUR 12. DIFFERENZ          (  31.7.92 )   28.11.97
-' NUMERISCHE INTEGRATION NACH KONSTANTEN 40-TAGESCHRITTEN  MÄRZ 1952
-' Nach ASTRONOMICAL PAPERS Vol. XII "Coordinates of the outer Planets 1653-2060"
+<blockquote class="rr">' STÖRMER/STIEFEL  UP TO THE 12TH DIFFERENCE          (  31.7.92 )   28.11.97
+' NUMERICAL INTEGRATION IN CONSTANT 40-DAY STEPS  MARCH 1952
+' After ASTRONOMICAL PAPERS Vol. XII "Coordinates of the outer Planets 1653-2060"
 ' Washington 1951
-' Staatsbibl.Signatur :  4° Eph.Astr.86f/12
+' State libr. shelf mark :  4° Eph.Astr.86f/12
 <footer>the method header of his ephemeris generators, cited down to the library shelf mark</footer>
 </blockquote>
 <p>
@@ -87,9 +87,10 @@ documentation, because the shipped binaries disagree with the listings in
 three places. The shipped halley.eph steps every 10 days where its generator
 listing says 20. The shipped pluto.eph reaches JD 2525280, newer than the
 coverage comment in the program. And the original precesses Halley from
-B1950 through a duplicated CASE branch although the file is written for
-J2000, an error of about 0.7 degrees that the port reproduces knowingly
-until a golden test against the original program justifies the fix.
+B1950 through a duplicated CASE branch although the generator listing
+says J2000. The shipped halley.eph meets his B1950 start elements only
+when read as B1950, 0.04 degrees against 0.71, so the reader was right
+and the port reads it the same way.
 </p>
 
 <h2>The Moon and the true node</h2>
@@ -99,20 +100,26 @@ with their analytic time derivatives, so the result is a full state vector.
 From its angular momentum the original derives the TRUE node and, through
 the osculating ellipse, the true apogee, the Black Moon
 </p>
-<blockquote class="rr">c = SQR(c1 * c1 + c2 * c2 + c3 * c3)  //Flächengeschw.
-el11 = ...   //wahrer Knoten
-i4 = ...     //MONT. S.78 oben
-g = 0.0002959122083  //Grav.Konst
-m = 3.0404332E-06    //Masse Erde +Mond
-el24 = FN nb(PI + u4 - wa + el11)  //Apogäum
+<blockquote class="rr">c = SQR(c1 * c1 + c2 * c2 + c3 * c3)  //areal veloc.
+el11 = ...   //true node
+i4 = ...     //MONT. p.78 top
+g = 0.0002959122083  //grav.const
+m = 3.0404332E-06    //mass Earth +Moon
+el24 = FN nb(PI + u4 - wa + el11)  //apogee
 <footer>the annotated core of moko, his Montenbruck page references included</footer>
 </blockquote>
 <p>
 The tables themselves were extracted mechanically from the listing into
-<code>moon_tables.inc</code>, no hand transcription. One quirk is preserved
-and documented, the original folds the obliquity nutation deps into the
-lunar LATITUDE, and it stores a latitude computed at the node on the apogee
-slot with the comment Breite des Knotens.
+<code>moon_tables.inc</code>, no hand transcription. Two of his steps are
+fixed. The original added the nutation in obliquity deps to the ecliptic
+latitude of the Moon, the Sun and every planet, up to 9.2 arcseconds,
+although nutation turns the equator and leaves the ecliptic latitude
+alone, Meeus' Moon example comes out exact without it. And the true
+apogee took the latitude of the Moon itself, his u4 under the comment
+latitude of the node, so the declination of the Black Moon could be
+degrees off. The port takes the argument of latitude of the apogee, the
+same angle its longitude rests on, and meets the eccentricity vector of
+the state.
 </p>
 
 <h2>Lunations and eclipses</h2>
@@ -128,9 +135,89 @@ each day with three positions, opens with the standard hour angle and
 iterates the Meeus interpolation with the altitude correction, the sun
 with its refraction depth, the moon with the depth of its own
 parallax refreshed as the iteration moves, pinned on the solstice
-clocks of the year two thousand. On demand every lunation row also
-carries the suchas aspects, the syzygy light against every factor of
-the valid record, base aspect and orb factor chosen like his boxes.
+clocks of the year two thousand.
+</p>
+<p>
+RISE / SET asks first for one body over running days or for all real
+bodies at one date, then for true or apparent positions, true is the
+default. The mask of his eingabe takes the place and the date, the
+clock stays locked because the day starts at 0h UT. A latitude beyond
+the polar circle is refused like his box, the limit checked for the
+date entered in the mask. The single body
+comes from his object list, the angles, points and hypothetical bodies
+read as dashes there, the extras appear when chosen in PLANET
+SELECTION. Every screen holds five blocks in the three columns rising,
+meridian passage and setting, each block with the date and UT clock,
+the Greenwich sidereal time of the moment, the longitude with the sign
+glyph, the latitude and the right ascension with the declination.
+Seconds show for true positions except for the moon and Jupiter to
+Pluto, like his ze$ and ze1$. His three columns filled the display,
+so the text of the screen grows with its window, never below the size of
+the theme, the notes under the columns grow along. Space moves on by five days or five
+bodies, R goes back five days or to the first bodies. A body that
+never crosses the horizon reads OUT OF RANGE in its block, his box
+ended the whole screen there. The moon keeps its own standard altitude
+from its parallax under both answers, like his auf_pl. Pinned in
+<code>test_transit_search.cpp</code> and <code>test_diverses.cpp</code>.
+</p>
+<p>
+The ECLIPSES screen follows finst row for row. With a valid record it
+first asks whether to study the aspects, then the base aspect with its
+maximal divisor and the orb factor, the search date comes last. Its
+lunation number k1 opens the new moon column one lunation earlier and
+the full moon column one and a half, twenty seven rows each. Every
+lunation row prints the UT moment and the position of the light, the
+first row of every week of rows wears the sun or moon tag like his
+plein2 marker. An eclipse adds an inverse row at the moment of greatest
+eclipse from finst_1 with its letters, ZT or EX, TOT or RF, N or S for
+the sun, KERNSCH or HALBSCH for the moon. With aspects the suchas rows
+follow every lunation and eclipse row in inverse, the light of the
+syzygy against the Sun through the MC of the active chart without the
+south node, harmonic by harmonic up to the maximal divisor, the orb
+of the stronger partner times the orb factor. The conjunction row stays
+short like his LEFT$ cut, the seventh and eleventh harmonics print one
+decimal and the higher multiples their fraction of the circle. Space,
+plus and PgDn move on by four fifths of the lunation and eclipse rows,
+minus, R and PgUp move back by twice that, ESC ends. Pinned in
+<code>test_diverses.cpp</code> on the August 1999 eclipse at 11:03 UT, the
+July 1999 umbral eclipse at 11:34 UT and the paging arithmetic.
+</p>
+
+<h2>The coordinate screens</h2>
+<p>
+PLANET COORDINATES and EXTRA PLANET COORDINATES are his a91 and
+a10 screens drawn by ko_ta. Four header lines of hsa0 name the chart in
+his yellow box, the date and clock with the years of life of a derived
+chart, the sidereal time of 0h, ARMC, JD and T counted from 1900 at the
+UT moment, the place and the Moon phase, then the title names the frame
+and the ephemeris mode. The table carries his columns Pl, Ecl. Long.,
+Latitude, Vel.', A, Dist., R.A.°, Decl.°, Node N, Node S, Apsides and
+Pl. The node stands twice, the mean node marked Mean with his fixed
+daily motion and the true node marked True in whole minutes with its
+motion from vel_om_pd, whatever the node setting says. The distances
+read in percent of his mean values or in AU, Mercury to Saturn red on
+cyan within five percent of their nearest or farthest distance, the
+right ascension shows three decimals, latitude and declination two,
+and the apsides stand as two lines in his text form. Both screens carry
+his box of the house cusps AC, H2, H3, MC, H11 and H12. His screen
+filled the display, so the text of the table grows with the window
+until the columns fill its width or the rows its height, never below the
+size of the theme, and the header lines and the cusp box grow along. A
+window too small for the table keeps the theme size and scrolls. The EXTRA screen
+lists all 22 extra bodies whatever the panel chose, the Black Moon as
+MEAN and TRUE, with his name column. After a key his question VARY THE
+TIME ? opens the walk of a9zw, a time unit, a step and a
+direction, his key sheet, then the table steps every two seconds with
+V, R, D, H, M, plus, minus, Space and the mouse steering it, and every
+new time unit starts again with the two second wait. At the end YES to
+<i>TAKE the VARIED TIME into the RADIX ?</i> writes the moment into the
+RADIX set of the same number, as the question says, also when the
+table showed a SOLAR set. Zodiac positions round once at the last unit
+shown and carry, here and in every other table and sheet, so
+29°59'59.6" of a sign reads 0° of the next like his grze_0, ported as
+<code>split_zodiac</code>. The permanent coordinate dock beside the
+wheel is a rewrite addition under VIEW. Pinned in
+<code>test_coord.cpp</code>.
 </p>
 
 <h2>Verification</h2>

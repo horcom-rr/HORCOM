@@ -4,6 +4,7 @@
 
 #include "horcom/chart/stars.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 
@@ -17,7 +18,7 @@ namespace horcom {
 
 namespace {
 
-//RR nach MONT., his annual aberration constant
+// his annual aberration constant bb of stella
 constexpr double kAberration = 0.000099338;
 
 // the catalogue rows of stella, right ascension and declination in
@@ -181,16 +182,21 @@ std::vector<std::pair<int, char>> point_aspects(const Chart& chart, double la, d
     const double cd = norm_rad(la + 3.0 * kPi / 2.0 - p);
     const double ce = norm_rad(la + 2.0 * kPi / 3.0 - p);
     const double cf = norm_rad(la + 4.0 * kPi / 3.0 - p);
-    if (ca > 0.0 && (ca < h || ca > kTwoPi - h)) {
+    // his conjunction window spans both sides of the exact point, the
+    // other aspects only the side before it, so an opposition half a
+    // degree past exact went unseen. The port opens every window both ways
+    // his x > 0 dropped a body standing exactly on the star
+    const auto near = [](double x, double orb_window) { return std::min(x, kTwoPi - x) < orb_window; };
+    if (near(ca, h)) {
       out.emplace_back(k, 'K');
     }
-    if (cb > 0.0 && cb < h / 2.0) {
+    if (near(cb, h / 2.0)) {
       out.emplace_back(k, 'O');
     }
-    if ((cc > 0.0 && cc < h / 4.0) || (cd > 0.0 && cd < h / 4.0)) {
+    if (near(cc, h / 4.0) || near(cd, h / 4.0)) {
       out.emplace_back(k, 'Q');
     }
-    if ((ce > 0.0 && ce < h / 3.0) || (cf > 0.0 && cf < h / 3.0)) {
+    if (near(ce, h / 3.0) || near(cf, h / 3.0)) {
       out.emplace_back(k, 'T');
     }
   }

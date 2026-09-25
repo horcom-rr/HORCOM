@@ -8,16 +8,21 @@
 #include <cctype>
 #include <cmath>
 
+#include "horcom/data/statist_list.hpp"
+
 namespace horcom {
 
-namespace {
-
-std::string upper(std::string s) {
-  for (char& c : s) {
+// the vg| table of his QSORT, shared with the statistics lists. His names
+// were capitals already, the keys of the port are made so
+std::string collation_key(std::string_view utf8) {
+  std::string out = stat_collation_key(std::string(utf8));
+  for (char& c : out) {
     c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
   }
-  return s;
+  return out;
 }
+
+namespace {
 
 std::string trim(const std::string& s) {
   const std::size_t a = s.find_first_not_of(' ');
@@ -37,7 +42,7 @@ std::string after_first_blank(const std::string& s) {
 // ported from a211_nnam, the original split the 25 byte padded field,
 // so a name without a third word keys on blanks and sorts to the top
 std::string name_key(const std::string& name, RecordOrder order) {
-  std::string n = upper(name);
+  std::string n = collation_key(name);
   if (n.size() < 25) {
     n.resize(25, ' ');
   }
@@ -58,10 +63,10 @@ std::string name_key(const std::string& name, RecordOrder order) {
 // ported from a211
 long date_key(const OrderKeySource& r, RecordOrder order) {
   if (order == RecordOrder::kBirthday) {
-    //RR GEBURTSTAG
+    // GEBURTSTAG
     return r.day + 31 * r.month;
   }
-  //RR DATUM
+  // DATUM
   return std::lround(365.25 * ((r.year + r.month / 12.0 + r.day / 365.25) + 4713.0));
 }
 

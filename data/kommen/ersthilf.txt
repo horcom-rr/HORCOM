@@ -1,0 +1,53 @@
+           Die grundlegende BEDIENUNGSWEISE von HORCOM :
+--------------------------------------------------------------------------
+ - Wechsel zwischen dem MENÜ - Bildschirm,der zur Auswahl der
+   Programme dient,und dem jeweiligen AUSGABE - Bildschirm.
+
+ - Die AUSGABE füllt immer den GANZEN Bildschirm aus.
+   Zusatz-Information aus diesem Bildschirm nur über die FUNKTIONS-Tasten.
+   Mit DRÜCKEN der LEERTASTE kommen Sie immer zum nächsten Bildschirm bzw.
+   zur nächsten Abfrage und letztlich zurück ins Menü.
+
+ - Ein DATENSATZ der unter 'EIN-AUSG.' eingegeben wurde wird zunächst immer
+   als RADIX-Datensatz interpretiert,Sie befinden sich in der 'RADIX-EBENE'.
+   Nach Wahl von Programmen wie z.B. SOLAR,TAGES-HOROSKOP usw.befinden Sie
+   sich in einer 'ERGEBNIS-EBENE',z.B. 'SOLAR-EBENE' und können von dort aus
+   über das MENÜ die dann noch sinnvollen Menüpunkte anwählen.
+   Wollen Sie danach wieder für die RADIX etwas anwählen,müssen Sie zuvor
+   unter 'EIN-AUSG.' den betreffenden Datensatz unter 'RADIX-DATEN'
+   anklicken.
+
+ - Falls Sie nur am Bildschirm arbeiten wollen,deaktivieren Sie bitte unter
+   'VORGABEN EIN-AUSGABE...' oder den betr. Menüpunkt die 'DRUCKER-OPTION'.
+   Das Umschalten geht auch aus den Ausgaben mit den Tasten ALT + D.
+
+ - ERLÄUTERUNGEN zu dem jeweiligen AUSGABE-Bildschirm erhalten Sie über die
+   FUNKTIONSTASTE F1 ( Belegung der Funktionstasten in der ersten Spalte des
+   MENÜS ).
+
+ - Einzelheiten zur Bedienung finden Sie vor allem in der Erläuterung 2.
+   Als erste gründlichere Einführung lesen Sie die Erläuterungen 1,2,3 und 4,
+   die übrigen natürlich auch,wenn deren Themen interessieren.
+   Auch die Dateien KURZ-ANLEITUNG und HINWEISE sollten Sie lesen.
+
+ - Für den schnellen Einstieg in HORCOM sollten Sie auch alle Menü-Punkte
+   mit 'VORGABEN.....ÄNDERN' baldmöglichst durchgehen und die Variationen
+   erproben.
+
+ - Die Belegung der FUNKTIONS-TASTEN finden Sie bei 'ÜBER HORCOM' im
+   Hauptmenü.
+
+ Wollen Sie viele Horoskope für die Datensätze einer Daten-Datei,z.b.
+ MUSTER5.DAT ,schnell hintereinander am Bildschirm durchmustern,so geht dies
+ über den Menüpunkt 'STATISTIK' indem Sie aus der Datendatei eine 'auswerte-
+ fähige Datei' herstellen und dann auf Auswertung gehen.Alphabetische Sortie-
+ rung erreichen Sie,wenn Sie beim Objekt-Kriterium 'NAME' eine Leerstelle
+ eingeben und dann 'AUSGABELISTE' drücken.
+ Wenn Sie nun eine Zeile dieser Liste anklicken erhalten Sie das Horoskop.
+ Bei der Abfrage 'ÜBERNEHMEN ?' verneinen Sie in der Regel.
+
+ Eine weitere Möglichkeit hierfür haben sie wenn Sie rechts unten in einer
+ Datendatei-Liste den Punkt 'NUR HOROSKOP ANSCHAUEN' anklicken.
+
+
+Robert Rettig, 27.02.07

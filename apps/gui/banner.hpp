@@ -14,6 +14,9 @@ class Banner : public QWidget {
   Q_OBJECT
 
  public:
+  /// Builds the banner at its fixed height, empty until the lines are set.
+  ///
+  /// @param parent the owning widget
   explicit Banner(QWidget* parent = nullptr);
 
   /// Sets the right hand information line, JD, delta T, ARMC, houses.
@@ -22,6 +25,8 @@ class Banner : public QWidget {
   /// Sets the centre line, the loaded record or a notice. Shown in the
   /// green of his main menu panel when not empty.
   void set_record(const QString& record);
+  /// @return the record line shown now
+  [[nodiscard]] const QString& record() const { return record_; }
 
  protected:
   void paintEvent(QPaintEvent* event) override;

@@ -8,9 +8,9 @@
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
-#include <fstream>
 
 #include "horcom/data/encoding.hpp"
+#include "horcom/data/file_io.hpp"
 
 namespace horcom {
 
@@ -28,9 +28,9 @@ constexpr FieldSpec kHour{9, 2};
 constexpr FieldSpec kMinute{11, 5};
 constexpr FieldSpec kLon{16, 8};
 constexpr FieldSpec kLat{24, 8};
-constexpr FieldSpec kName{32, 25};
-constexpr FieldSpec kPlace{57, 20};
-constexpr FieldSpec kRemark{77, 51};
+constexpr FieldSpec kName{32, kDatNameLength};
+constexpr FieldSpec kPlace{57, kDatPlaceLength};
+constexpr FieldSpec kRemark{77, kDatRemarkLength};
 
 std::string_view slice(std::string_view bytes, FieldSpec f) {
   return bytes.substr(f.off, f.len);
@@ -86,11 +86,16 @@ void lset_text(std::string& rec, FieldSpec f, const std::string& utf8) {
 
 }  // namespace
 
+// IF UPPER$(LEFT$(bem$,9)) = "(JULIAN.)" of a2113 and horcom_aaf3
 Calendar ChartRecord::calendar() const {
-  if (remark.rfind("(JULIAN.)", 0) == 0) {
+  std::string head = remark.substr(0, std::min<std::size_t>(remark.size(), 9));
+  for (char& c : head) {
+    c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+  }
+  if (head == "(JULIAN.)") {
     return Calendar::kJulian;
   }
-  if (remark.rfind("(GREGOR.)", 0) == 0) {
+  if (head == "(GREGOR.)") {
     return Calendar::kGregorian;
   }
   return Calendar::kAuto;
@@ -127,32 +132,27 @@ std::string encode_chart_record(const ChartRecord& r) {
 }
 
 std::optional<std::vector<ChartRecord>> read_chart_file(const std::filesystem::path& path) {
-  std::ifstream f(path, std::ios::binary);
-  if (!f) {
-    return std::nullopt;
-  }
-  std::string bytes((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
-  if (bytes.size() % kChartRecordBytes != 0) {
+  const auto bytes = read_file_bytes(path);
+  if (!bytes || bytes->size() % kChartRecordBytes != 0) {
     return std::nullopt;
   }
   std::vector<ChartRecord> out;
-  out.reserve(bytes.size() / kChartRecordBytes);
-  for (std::size_t off = 0; off < bytes.size(); off += kChartRecordBytes) {
-    out.push_back(decode_chart_record(std::string_view(bytes).substr(off, kChartRecordBytes)));
+  out.reserve(bytes->size() / kChartRecordBytes);
+  for (std::size_t off = 0; off < bytes->size(); off += kChartRecordBytes) {
+    out.push_back(decode_chart_record(std::string_view(*bytes).substr(off, kChartRecordBytes)));
   }
   return out;
 }
 
+// his passes wrote a scratch file and swapped it in with NAME, a failed
+// write leaves the old collection untouched
 bool write_chart_file(const std::filesystem::path& path, const std::vector<ChartRecord>& records) {
-  std::ofstream f(path, std::ios::binary | std::ios::trunc);
-  if (!f) {
-    return false;
-  }
+  std::string bytes;
+  bytes.reserve(records.size() * kChartRecordBytes);
   for (const ChartRecord& r : records) {
-    const std::string rec = encode_chart_record(r);
-    f.write(rec.data(), static_cast<std::streamsize>(rec.size()));
+    bytes += encode_chart_record(r);
   }
-  return static_cast<bool>(f);
+  return replace_file(path, bytes);
 }
 
 // ported from a2f_tr_dat, the trim and the delete branch share one

@@ -76,8 +76,7 @@ void Banner::paintEvent(QPaintEvent* /*event*/) {
   // the logo and the name
   const QPixmap logo = QIcon(":/logo.svg").pixmap(40, 40);
   p.drawPixmap(14, (height() - 40) / 2, logo);
-  QFont title("Courier New");
-  title.setStyleHint(QFont::Monospace);
+  QFont title = theme::mono_font();
   title.setPixelSize(20);
   title.setBold(true);
   title.setLetterSpacing(QFont::AbsoluteSpacing, 7.0);
@@ -85,12 +84,10 @@ void Banner::paintEvent(QPaintEvent* /*event*/) {
   p.setPen(dark ? QColor(0xFF, 0xFF, 0x00) : QColor(0x00, 0x00, 0x00));
   p.drawText(QRect(66, 0, 260, height()), Qt::AlignVCenter | Qt::AlignLeft, "HORCOM");
 
-  // the record, spoken on the green of his main menu panel. Der Name
-  // trägt jetzt fett und etwas größer, damit die Überschrift oben in
-  // der Mitte klar ins Auge sticht
+  // the record, spoken on the green of his main menu panel. The name is
+  // bold and a little larger so the heading at the top centre stands out
   if (!record_.isEmpty()) {
-    QFont rec("Courier New");
-    rec.setStyleHint(QFont::Monospace);
+    QFont rec = theme::mono_font();
     rec.setPixelSize(15);
     rec.setBold(true);
     p.setFont(rec);
@@ -100,15 +97,14 @@ void Banner::paintEvent(QPaintEvent* /*event*/) {
     // left of the true centre so the box stays clear of the epoch line
     const QRect box((width() - w) / 2 - 60, (height() - h) / 2, w, h);
     p.setPen(Qt::NoPen);
-    p.setBrush(QColor(0xC0, 0xDC, 0xC0));
+    p.setBrush(QColor::fromString(theme::kPanelGreen));
     p.drawRoundedRect(box, 5, 5);
     p.setPen(QColor(0x1C, 0x2B, 0x1C));
     p.drawText(box, Qt::AlignCenter, record_);
   }
 
   // the epoch data on the right
-  QFont mono("Courier New");
-  mono.setStyleHint(QFont::Monospace);
+  QFont mono = theme::mono_font();
   mono.setPixelSize(12);
   mono.setBold(true);
   p.setFont(mono);

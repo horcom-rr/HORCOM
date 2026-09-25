@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "doctest.h"
+#include "horcom/time/local_time.hpp"
 #include "horcom/ephem/eclipses.hpp"
 #include "horcom/time/calendar.hpp"
 #include "horcom/core/constants.hpp"
@@ -44,8 +45,10 @@ TEST_CASE("Moon against the Meeus example for 1992-04-12 0h TD") {
   // geometric longitude 133.162655 degrees, the apparent value carries
   // dpsi like the original el(2)
   CHECK((m.el - s.dpsi) * kRadToDeg == doctest::Approx(133.162655).epsilon(2e-6));
-  // latitude -3.229126 degrees, the original folds deps into eb(2)
-  CHECK((m.eb - s.deps) * kRadToDeg == doctest::Approx(-3.229126).epsilon(5e-5));
+  // latitude -3.229126 degrees, nutation leaves the ecliptic latitude
+  // alone. The original added deps into eb(2), 9.44 arcseconds here
+  CHECK(m.eb * kRadToDeg == doctest::Approx(-3.229126).epsilon(5e-5));
+  CHECK(std::abs((m.eb - (-3.229126 * kDegToRad)) / kArcsecToRad) < 0.6);
   // distance 368409.7 km
   CHECK(m.r * 149600000.0 == doctest::Approx(368409.7).epsilon(1e-6));
   // equatorial horizontal parallax 0.991990 degrees
@@ -109,4 +112,44 @@ TEST_CASE("the lunation series finds the 1999 total eclipse") {
     }
   }
   CHECK(umbral);
+}
+
+TEST_CASE("the eclipse rows carry the moment of greatest eclipse") {
+  // finst starts one lunation before the search date's floored k1, a
+  // search from the first of August opens with the June new moon
+  const std::vector<Lunation> nm = lunations(julian_day({1, 8, 1999, 0, 0.0}), 3, false);
+  REQUIRE(nm.size() == 3);
+  CHECK(calendar_date(nm[0].jd_ut).month == 6);
+  // greatest eclipse of 1999 August 11 at 11:03 UT, four minutes before
+  // the conjunction the new moon row shows
+  const Lunation aug = nm[2];
+  REQUIRE(aug.eclipse);
+  const CalendarDate m = calendar_date(aug.max_ut);
+  CHECK(m.day == 11);
+  CHECK(m.hour * 60.0 + m.minute == doctest::Approx(11.0 * 60 + 3.1).epsilon(0.002));
+  // the umbral eclipse of 2000 January 21 peaked at 4:44 UT
+  const Lunation jan = lunation_at(aug.k + 5.5);
+  REQUIRE(jan.full);
+  REQUIRE(jan.eclipse);
+  const CalendarDate j = calendar_date(jan.max_ut);
+  CHECK(j.day == 21);
+  CHECK(j.hour * 60.0 + j.minute == doctest::Approx(4.0 * 60 + 44).epsilon(0.003));
+  // a lunation without an eclipse has no maximum
+  CHECK(lunation_at(aug.k + 1.0).max_ut == 0.0);
+}
+
+TEST_CASE("zuo turns a historic local clock into UT") {
+  //RR ab 1890 MITTLERE Ortszeit, davor fragte er, vor 1810 WAHRE
+  CHECK(local_time_rule(1799) == LocalTimeRule::kTrue);
+  CHECK(local_time_rule(1850) == LocalTimeRule::kAsk);
+  CHECK(local_time_rule(1890) == LocalTimeRule::kMean);
+  // mean local time at 15 degrees east runs exactly one hour ahead
+  const double noon = julian_day({3, 11, 1792, 12, 0.0}, Calendar::kAuto);
+  CHECK(ut_from_local_clock(noon, 15.0, ClockKind::kMeanLocal) == doctest::Approx(noon - 1.0 / 24.0));
+  // early November the sundial runs some sixteen minutes ahead of the
+  // mean clock, true local noon is mean 11:43
+  const double eot = equation_of_time_days(noon) * 24.0 * 60.0;
+  CHECK(eot == doctest::Approx(16.4).epsilon(0.02));
+  CHECK(ut_from_local_clock(noon, 15.0, ClockKind::kTrueLocal) ==
+        doctest::Approx(noon - 1.0 / 24.0 - eot / (24.0 * 60.0)).epsilon(1e-9));
 }

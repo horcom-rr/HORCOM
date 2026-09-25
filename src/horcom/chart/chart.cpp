@@ -82,7 +82,8 @@ void compute_sun(const Ctx& c, BodyState& b) {
   b.heb = e.b;
   b.r = e.r;
   b.el = norm_rad(e.l + kPi + c.smo.dpsi);
-  b.eb = -e.b + c.smo.deps;
+  // his eb(1) = -heb(1) + deps, the nutation belongs to the obliquity
+  b.eb = -e.b;
   b.tb = e.lt;
   b.dr = e.r;
   par_ap_ktr(c, body::kSun, b, b.el, b.eb);
@@ -102,7 +103,7 @@ void compute_planet(const Ctx& c, int slot, const HelioState& earth, double sun_
     helio_display(c, h, b);
     return;
   }
-  const GeoResult g = helio_to_geo(h, earth, c.smo.dpsi, c.smo.deps);
+  const GeoResult g = helio_to_geo(h, earth, c.smo.dpsi);
   b.el = g.el;
   b.eb = g.eb;
   b.dr = g.dr;
@@ -112,7 +113,7 @@ void compute_planet(const Ctx& c, int slot, const HelioState& earth, double sun_
 }
 
 // a body served by one of his ephemeris files, heliocentric spherical
-// state of date plus absolute rates
+// state of date plus signed rates
 bool eph_helio(const Ctx& c, std::string_view name, double jd, HelioState& out) {
   const EphBodyInfo* info = eph_body(name);
   const EphFile* file = c.eph.get(name);
@@ -125,7 +126,15 @@ bool eph_helio(const Ctx& c, std::string_view name, double jd, HelioState& out) 
   }
   if (info->frame == EphFrame::kEquatorialJ2000) {
     const Ecliptic ec = equatorial_to_ecliptic(smp.lon, smp.lat, c.smo.ekls);
-    out = {ec.lon, ec.lat, smp.r, smp.lont, smp.latt, smp.rt};
+    // the rates belong to the ecliptic too, the original took the right
+    // ascension rate for the longitude rate
+    const double ce = std::cos(c.smo.ekls);
+    const double se = std::sin(c.smo.ekls);
+    const auto to_ecliptic = [ce, se](const std::array<double, 3>& q) {
+      return std::array<double, 3>{q[0], q[1] * ce + q[2] * se, -q[1] * se + q[2] * ce};
+    };
+    const SphericalRates rates = spherical_rates(to_ecliptic(smp.xyz), to_ecliptic(smp.vxyz));
+    out = {ec.lon, ec.lat, smp.r, rates.lont, rates.latt, rates.rt};
   } else {
     out = {smp.lon, smp.lat, smp.r, smp.lont, smp.latt, smp.rt};
   }
@@ -160,7 +169,7 @@ void compute_eph_body(const Ctx& c, int slot, std::string_view name, double jd, 
     helio_display(c, h, b);
     return;
   }
-  const GeoResult g = helio_to_geo(h, earth, c.smo.dpsi, c.smo.deps);
+  const GeoResult g = helio_to_geo(h, earth, c.smo.dpsi);
   b.el = g.el;
   b.eb = g.eb;
   b.dr = g.dr;
@@ -191,7 +200,7 @@ void compute_kepler_body(const Ctx& c, int slot, int nk_index, double jd, const 
     helio_display(c, h, b);
     return;
   }
-  const GeoResult g = helio_to_geo(h, earth, c.smo.dpsi, c.smo.deps);
+  const GeoResult g = helio_to_geo(h, earth, c.smo.dpsi);
   b.el = g.el;
   b.eb = g.eb;
   b.dr = g.dr;
@@ -201,37 +210,61 @@ void compute_kepler_body(const Ctx& c, int slot, int nk_index, double jd, const 
 }
 
 // the original vel_om_pd, node and apogee speeds from a symmetric hour
-void node_apogee_speeds(const ChartSettings& s, double jd_et, Chart& chart) {
+// his vel_om_pd chose vergl2 or vergl2r by IF w2 > w1 OR w2 < w1 + PI,
+// which always holds, so a retrograde step over zero Aries was never
+// folded and the speed jumped by a full circle. The three samples are
+// brought next to the middle one in either direction
+void unwrap_around(double& w1, double& w2, double& w3) {
+  w1 = w3 - std::remainder(w3 - w1, kTwoPi);
+  w2 = w3 + std::remainder(w2 - w3, kTwoPi);
+}
+
+// ported from vel_om_pd, the one hour finite difference of both points
+LunarRates rates_at(const LunarPoints& here, double jd_et, Calendar cal) {
   //RR 1h
   const double djd = kOneHourDays;
   const auto lunar_at = [&](double jd) {
     const TimeArguments t = time_arguments(jd);
-    const SunMoonState st = somo(t, calendar_date(jd, s.calendar));
+    const SunMoonState st = somo(t, calendar_date(jd, cal));
     return lunar_points(moon_position(t, st), st, t);
   };
   const LunarPoints l1 = lunar_at(jd_et - djd);
   const LunarPoints l2 = lunar_at(jd_et + djd);
+  LunarRates r;
+  double w1 = l1.true_apogee;
+  double w2 = l2.true_apogee;
+  double w3 = here.true_apogee;
+  unwrap_around(w1, w2, w3);
+  r.apogee_tb = (w2 - w1) / (2.0 * djd);
+  r.apogee_ttb = ((w2 - w3) / djd) - ((w3 - w1) / djd);
+  w1 = l1.true_node;
+  w2 = l2.true_node;
+  w3 = here.true_node;
+  unwrap_around(w1, w2, w3);
+  r.node_tb = (w2 - w1) / (2.0 * djd);
+  r.node_ttb = ((w2 - w3) / djd) - ((w3 - w1) / djd);
+  return r;
+}
+
+void node_apogee_speeds(const ChartSettings& s, double jd_et, Chart& chart) {
+  const LunarRates r = rates_at(chart.lunar, jd_et, s.calendar);
   if (s.true_apogee && s.nk[1] > 0) {
-    double w1 = l1.true_apogee;
-    double w2 = l2.true_apogee;
-    double w3 = chart.lunar.true_apogee;
-    vergl2(w1, w2, w3);
     const int slot = s.nk[1];
-    chart.b[static_cast<std::size_t>(slot)].tb = (w2 - w1) / (2.0 * djd);
-    chart.b[static_cast<std::size_t>(slot)].ttb = ((w2 - w3) / djd) - ((w3 - w1) / djd);
+    chart.b[static_cast<std::size_t>(slot)].tb = r.apogee_tb;
+    chart.b[static_cast<std::size_t>(slot)].ttb = r.apogee_ttb;
   }
   if (s.true_node) {
-    double w1 = l1.true_node;
-    double w2 = l2.true_node;
-    double w3 = chart.lunar.true_node;
-    vergl2(w1, w2, w3);
-    chart.b[body::kNodeAsc].tb = (w2 - w1) / (2.0 * djd);
-    chart.b[body::kNodeAsc].ttb = ((w2 - w3) / djd) - ((w3 - w1) / djd);
+    chart.b[body::kNodeAsc].tb = r.node_tb;
+    chart.b[body::kNodeAsc].ttb = r.node_ttb;
     chart.b[body::kNodeDesc].tb = chart.b[body::kNodeAsc].tb;
   }
 }
 
 }  // namespace
+
+LunarRates lunar_rates(const Chart& chart, Calendar cal) {
+  return rates_at(chart.lunar, chart.jd_et, cal);
+}
 
 //RR GL
 // ported from HORCOM ta_na
@@ -394,7 +427,7 @@ Chart compute_chart(const ChartInput& in, const ChartSettings& s, const VsopTabl
     if (s.heliocentric) {
       helio_display(c, h, pl);
     } else {
-      const GeoResult g = helio_to_geo(h, earth, chart.smo.dpsi, chart.smo.deps);
+      const GeoResult g = helio_to_geo(h, earth, chart.smo.dpsi);
       pl.el = g.el;
       pl.eb = g.eb;
       pl.dr = g.dr;

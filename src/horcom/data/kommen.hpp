@@ -45,4 +45,14 @@ struct KommenEntry {
 /// @return the text with newline joined lines, nullopt when unreadable
 [[nodiscard]] std::optional<std::string> read_kommen(const std::filesystem::path& file);
 
+/// Reads one of his ZEITBEST texts, the historical zone and summer time
+/// rules per country. The lese_text rules of its own file handle apply,
+/// dash lines stay since the texts frame their headings with them. The
+/// shipped editions are UTF-8, his originals decode from the Atari and
+/// Windows 1252 mix.
+///
+/// @param file the text file
+/// @return the text with newline joined lines, nullopt when unreadable
+[[nodiscard]] std::optional<std::string> read_zeitbest(const std::filesystem::path& file);
+
 }  // namespace horcom

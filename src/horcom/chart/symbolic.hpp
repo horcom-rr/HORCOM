@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "horcom/chart/chart.hpp"
+#include "horcom/chart/transit_search.hpp"
 
 // Symbolic and primary directions, ported from the original asymb,
 // ar_sys and aprim world. A direction turns arcs into years of life,
@@ -30,22 +31,19 @@ enum class DirectionMethod {
   kPrimary,
 };
 
-/// What stands beside the bodies as targets on slots 15 to 18.
-enum class DirectionExtras {
-  kNone,
-  /// the intermediate cusps of houses two, three, five and six
-  kCusps,
-  /// the four cardinal points, zero Aries to zero Capricorn
-  kCardinal,
-};
-
 /// One found direction, an arc that became an age.
 struct DirectionHit {
   /// the moving significator, a body slot, 13 and 14 the angles, 15 to
-  /// 18 the extras when they are switched on
+  /// 18 the cardinal points 0 AR to 0 CP
   int directed = 0;
+  /// an intermediate cusp 2, 3, 5 or 6 as the significator, directed 0
+  int directed_cusp = 0;
   /// the radix point it reaches
   int target = 0;
+  /// the second factor when the target is a midpoint
+  int target2 = 0;
+  /// an intermediate cusp as the promissor of the primary, target 0
+  int target_cusp = 0;
   /// which multiple of the base angle, zero the conjunction
   int multiple = 0;
   /// the arc in degrees
@@ -56,19 +54,34 @@ struct DirectionHit {
   bool converse = false;
 };
 
-/// The inputs of the direction run, his a18eing panel.
+/// The inputs of the direction run, his a18eing answers and the
+/// switches of VORGABEN DIREKTIONEN.
 struct DirectionRange {
   /// the age window in years, hits outside stay silent
   double from_years = 0.0;
   double to_years = 90.0;
   /// the aspect grid in degrees, his w4d, thirty by default
-  double base_angle_deg = 30.0;
-  /// years per degree of arc, the classic key one
+  double base_angle_deg = kDefaultBaseAngleDeg;
+  /// the combined GRUND-ASPEKT filter over the base angle
+  AspectGrid grid = AspectGrid::kPlain;
+  /// years per degree of arc, the classic key one, NAIBOD 1.0146
   double key = 1.0;
-  /// aspect points of bodies with latitude keep a faded latitude in
-  /// the primary frame, his mit Breite switch
+  /// PROMISSOREN mit Breite, the faded latitude of the aspect points
+  /// in the primary frame, his brep
   bool with_latitude = true;
-  DirectionExtras extras = DirectionExtras::kNone;
+  /// SIGNIFIKAT. MIT Breite, his bres
+  bool significator_latitude = true;
+  /// DIREKTIONEN MIT ZWISCHENHÄUSERN, the cusps 2, 3, 5 and 6 direct
+  bool house_targets = false;
+  /// MIT KARDINAL-PUNKTEN, the ecliptic methods reach 0 AR to 0 CP
+  bool cardinal_targets = false;
+  /// his pl1, the first body of the walk, 5 from Mars, 6 from Jupiter
+  int first_slot = 0;
+  /// NUR DIESE DARSTELLEN, the chosen significators, empty runs all
+  std::vector<int> chosen;
+  /// his halbs_dir for the ecliptic frame, 1 every midpoint, 2 only
+  /// those the directed body is no factor of
+  int midpoints = 0;
 };
 
 /// Runs one direction method over a chart and lists every arc inside

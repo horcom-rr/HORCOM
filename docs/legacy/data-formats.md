@@ -57,6 +57,8 @@ Time is always UT. Rettig states this in `KOMMEN7P\AAF_KOMM.TXT`:
 
 > „HORCOM speichert z.B. die Zeit immer nur als GMT = UT , Bemerkungen werden nach 51 Zeichen abgeschnitten.Das stammt noch aus der Zeit als Speicher-Platz knapp war.Heute kann man dies vergessen."
 
+In English: "HORCOM for example always stores the time as GMT = UT only, remarks are cut after 51 characters. That dates from the time when storage space was scarce. Today one can forget about it."
+
 ### Owning procedures
 
 | Line | Proc | Role |
@@ -138,7 +140,7 @@ ELSE
   gl = kk + VAL(glm$)
 ```
 
-> Bug: `ortp` is guarded by `IF NOT EXIST(hrc$ + "\ORT.EXT") = TRUE` — GFA evaluates `EXIST(...)=TRUE` first, so the write only happens when the file is missing; it is effectively write-once.
+> Not a bug: `ortp` is guarded by `IF NOT EXIST(hrc$ + "\ORT.EXT") = TRUE`. GFA evaluates `EXIST(...)=TRUE` first, so the write only happens when the file is missing. That is the design. Every caller that replaces the preferred place first asks `BISHERIGEN VORZUGSORT LÖSCHEN|Und AKTUELLEN ORT dafür eintragen ?` and `KILL`s the old file on JA (`eingabe` CASE 111), or deletes it through `VORZUGSORT LÖSCHEN`. The real flaw is the field width. `STR$(CINT(gl*1000000),8,0)` needs nine bytes west of −9.999999°, so a place in the Americas cannot be stored. The port writes a decimal into the eight bytes then, which the reader's decimal branch takes (`write_preferred_place`).
 
 ### 2.5 Search mechanism
 
@@ -430,13 +432,19 @@ Rettig's own warning about a real hazard in this format (`AAF_KOMM.TXT`) — wor
 >  Im AAF-Format sind Kommata wichtige Trennzeichen ! Wenn an der falschen Stelle ein Komma "entsteht",z.B. weil statt eines Umlauts ein Komma "übersetzt" wird,kann der betr. Datensatz nicht mehr korrekt interpretiert werden.
 >  Sie erkennen das daran,daß beim Datum der 1.1.-4712 12h erscheint."
 
+In English: "ATTENTION! Umlauts keep producing wrong translations that seem hardly avoidable, since the files may have been made with different code tables. In the AAF format commas are important separators! When a comma "appears" in the wrong place, for example because an umlaut is "translated" into a comma, the record concerned can no longer be read correctly. You recognise this by the date showing 1.1.-4712 12h."
+
 and the JD priority rule:
 
 > „Das Juldatum hat gegenüber anderen Zeitangaben PRIORITÄT. Wird primär ein JULDATUM eingegeben,so wird automatisch gesetzt: ZNAM = GMT / ZONE(ZZD) = 00hW00 oder 00hE00 oder "*" / SOMMERZEIT = "*""
 
+In English: "The Julian date takes PRIORITY over all other time data. When a JULIAN DATE is entered first, the program sets ZNAM = GMT / ZONE(ZZD) = 00hW00 or 00hE00 or "*" / SUMMER TIME = "*" automatically."
+
 ### Pairing rule and helpers
 
 > „Ist z.B eine neue AAF-Datei namens ..\AAFDATEN\NEUDAT.AAF gefunden worden, so wird eine HORCOM-Datei namens...\HORCOM\SPEZIAL\NEUDAT.DAT gebildet. Die parallele HORCOM-Datei GLEICHEN NAMENS dient als Pilot."
+
+In English: "If for example a new AAF file named ..\AAFDATEN\NEUDAT.AAF was found, a HORCOM file named ...\HORCOM\SPEZIAL\NEUDAT.DAT is built. The parallel HORCOM file of the SAME NAME serves as the pilot."
 
 `bilde_horcfile$` (24915) / `bilde_aaffile$` (24922) implement exactly that basename swap. Record identity key: surname + given name (`aaf_ident`, 22862; `datensatz_maxanz`, 22223).
 
@@ -490,7 +498,7 @@ The 34 int32 values are angle in radians × 10 000 000 (`asn% = 10000000`, line 
 
 ### 7.2 `<NAME8>1.STH` — 24-byte records (one per `.STA` record)
 
-`FIELD #26,4 AS s2$,4 AS t2$,4 AS u2$,4 AS v2$,4 AS w2$,4 AS y2$` — six more int32 (radians × 1e7), being `el(nk&(17))` … `el(nk&(22))` (commented `// QU`, `// HL`, `// PH`, `// DA`, `// NS`, and a sixth). This is the HORCOM7 extension bolted onto the v5 `.STA`. Naming rule (`stat2_teil`, 12245): base name truncated to 8 chars, then `"1"` appended, then `.STH`. E.g. `BERUEHMT.STA` → `BERUEHM1.STH`.
+`FIELD #26,4 AS s2$,4 AS t2$,4 AS u2$,4 AS v2$,4 AS w2$,4 AS y2$` — six more int32 (radians × 1e7), being `el(nk&(17))` … `el(nk&(22))` (commented `// QU`, `// HL`, `// PH`, `// DA`, `// NS`, and a sixth). This is the HORCOM7 extension bolted onto the v5 `.STA`. Naming rule (`stat2_teil`, 12245): `daa$` carries the leading backslash, so `LEFT$(daa$,8)` keeps seven letters of the base name, then `"1"` is appended, then `.STH`. E.g. `BERUEHMT.STA` → `BERUEHM1.STH`, a name of seven letters or fewer keeps all of them.
 
 ### 7.3 `<NAME>.PAR` — the calculation parameters (CSV)
 
@@ -554,6 +562,8 @@ Rettig documents the provenance in `KOMMEN7P\KOMM3.TXT`:
 
 > „Für die grossen Planeten ME,VE,ERDE (SONNE) MA,JU,SA,UR,NE, wird in HORCOM eine abgekürzte Version der neuesten analytischen Theorie VSOP87 des BUREAU DES LONGITUDES,PARIS ( P.BRETAGNON ) verwendet.Diese wurde nun durch JEAN MEEUS ("ASTRONOMISCHE ALGORITHMEN", WILLMANN BELL INC,JOHANN AMBROSIUS BARTH, ISBN 3-335-00318-7) einem größeren Kreis zugänglich gemacht."
 
+In English: "For the major planets ME, VE, EARTH (SUN), MA, JU, SA, UR, NE HORCOM uses an abridged version of the latest analytical theory VSOP87 of the BUREAU DES LONGITUDES, PARIS (P. BRETAGNON). JEAN MEEUS has now made it accessible to a wider circle (ASTRONOMICAL ALGORITHMS, WILLMANN BELL INC, JOHANN AMBROSIUS BARTH, ISBN 3-335-00318-7)."
+
 ---
 
 ## 9. Character encoding
@@ -589,7 +599,7 @@ Treat encoding as best-effort and normalise to UTF-8 on import.
 |---|---|---|
 | 7 | `STATIST7\*.STA` + `*.STH` + `*.PAR` | Straightforward once `.PAR`'s `nk&()` is read first. Only needed if the statistics module is ported. Regenerable from the `.DAT` files, so a convenience loader, not a necessity. |
 | 8 | `INTERN\zonnamen.int`, `laender.int`, `landnima.int` | Tiny fixed-column text. Best treated as seed data: parse once, emit JSON/CSV, then delete the loader. `landnima.int` can be regenerated from the `DATA` comments at lines 21385–21432. |
-| 9 | `ORT.EXT` | One record, dual coordinate encoding, and the writer is broken. Replace with a settings key. |
+| 9 | `ORT.EXT` | One record, dual coordinate encoding. Ported as a file (`read_preferred_place`, `write_preferred_place`), the VORZUGSORT menus of both entry boxes read and write it. |
 | 10 | `INTERN\ARABTEI1/2.INT`, `INTERN\GRADE.INT` | Absent from the sample install; implement only on demand. Formats fully specified above. |
 
 ### Tier 3 — migrate, do not port

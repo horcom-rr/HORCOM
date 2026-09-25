@@ -5,6 +5,7 @@
 #include "horcom/data/kommen.hpp"
 
 #include <fstream>
+#include <iterator>
 
 #include "horcom/data/encoding.hpp"
 
@@ -90,6 +91,35 @@ std::optional<std::string> read_kommen(const std::filesystem::path& file) {
     }
     if (line.size() < 256 && line.find('~') == std::string::npos) {
       out += cp1252_to_utf8(line);
+      out += '\n';
+    }
+  }
+  return out;
+}
+
+// ported from HORCOM lese_text with the ZEITBEST handle
+std::optional<std::string> read_zeitbest(const std::filesystem::path& file) {
+  std::ifstream in(file, std::ios::binary);
+  if (!in) {
+    return std::nullopt;
+  }
+  std::string bytes((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+  const bool utf8 = looks_like_utf8(bytes);
+  std::string out;
+  std::size_t pos = 0;
+  while (pos < bytes.size()) {
+    std::size_t end = bytes.find('\n', pos);
+    if (end == std::string::npos) {
+      end = bytes.size();
+    }
+    std::string line = bytes.substr(pos, end - pos);
+    pos = end + 1;
+    if (!line.empty() && line.back() == '\r') {
+      line.pop_back();
+    }
+    //RR EXIT IF LEFT$(a$) = "-" && dat& <> 7 // nicht bei Zeitbest
+    if (line.size() < 256 && line.find('~') == std::string::npos) {
+      out += utf8 ? line : atari_cp1252_to_utf8(line);
       out += '\n';
     }
   }

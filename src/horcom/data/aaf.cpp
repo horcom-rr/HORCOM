@@ -4,6 +4,7 @@
 
 #include "horcom/data/aaf.hpp"
 
+#include <algorithm>
 #include <cctype>
 #include <cmath>
 #include <cstdio>
@@ -12,39 +13,13 @@
 #include <sstream>
 #include <string_view>
 
+#include "horcom/core/constants.hpp"
 #include "horcom/data/encoding.hpp"
+#include "horcom/data/file_io.hpp"
 
 namespace horcom {
 
 namespace {
-
-// legacy files arrive as Windows 1252 which is never valid multi byte
-// UTF-8, so a validity scan decides the decoding once per file
-bool looks_like_utf8(std::string_view text) {
-  std::size_t i = 0;
-  while (i < text.size()) {
-    const auto b = static_cast<unsigned char>(text[i]);
-    std::size_t follow = 0;
-    if (b < 0x80) {
-      follow = 0;
-    } else if ((b & 0xE0) == 0xC0) {
-      follow = 1;
-    } else if ((b & 0xF0) == 0xE0) {
-      follow = 2;
-    } else if ((b & 0xF8) == 0xF0) {
-      follow = 3;
-    } else {
-      return false;
-    }
-    for (std::size_t k = 1; k <= follow; ++k) {
-      if (i + k >= text.size() || (static_cast<unsigned char>(text[i + k]) & 0xC0) != 0x80) {
-        return false;
-      }
-    }
-    i += follow + 1;
-  }
-  return true;
-}
 
 // the original tag_elim$, removes HTML tags from accidentally saved pages
 std::string strip_html(std::string_view line) {
@@ -215,7 +190,7 @@ void parse_b93(std::string_view content, AafRecord& r) {
 // ported from the zone string composition in zeitzon
 std::string aaf_zone(double hours_east) {
   const double za = std::abs(hours_east);
-  const int hh = static_cast<int>(za);
+  int hh = static_cast<int>(za);
   const double rem = (za - hh) * 60.0;
   int mm = static_cast<int>(rem);
   int ss = static_cast<int>((rem - mm) * 60.0 + 0.5);
@@ -223,11 +198,81 @@ std::string aaf_zone(double hours_east) {
     ss -= 60;
     ++mm;
   }
+  if (mm >= 60) {
+    mm -= 60;
+    ++hh;
+  }
   const char side = hours_east < 0.0 ? 'W' : 'E';
   // wide enough for three full ints, GCC cannot see that hh stays below 24
   char out[40];
   std::snprintf(out, sizeof(out), "%02dh%c%02d:%02d", hh, side, mm, ss);
   return out;
+}
+
+// ported from the ZZD branch of aaf_horcom2. The hours stand before the
+// side letter, two minute digits follow it, and a colon form of more than
+// five characters ends in two second digits. An east letter wins over a
+// west one like the order of his INSTR tests
+double aaf_zone_hours(std::string_view zone) {
+  const std::string z(zone);
+  std::string upper = z;
+  for (char& c : upper) {
+    c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+  }
+  std::size_t letter = upper.find('E');
+  double side = 1.0;
+  if (letter == std::string::npos) {
+    letter = upper.find('W');
+    side = -1.0;
+  }
+  if (letter == std::string::npos) {
+    return 0.0;
+  }
+  // zzh = ABS(VAL(LEFT$(a$,IMAX(l1& - 1,1))))
+  const double hours = std::abs(std::atof(z.substr(0, std::max<std::size_t>(letter, 1)).c_str()));
+  // zzm = ABS(VAL(MID$(a$,l1& + 1,2)))
+  double minutes = std::abs(std::atof(z.substr(letter + 1, 2).c_str()));
+  // IF l2& > 0 && la& > 5, the seconds from RIGHT$(a$,2)
+  if (z.rfind(':') != std::string::npos && z.size() > 5) {
+    minutes += std::abs(std::atof(z.substr(z.size() - 2).c_str())) / 60.0;
+  }
+  return side * (hours + minutes / 60.0);
+}
+
+// ported from the Sommerzeit branch of aaf_horcom2, korr_sommz
+double aaf_dst_hours(std::string_view dst) {
+  std::string code(trimmed(dst));
+  for (char& c : code) {
+    c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+  }
+  if (code == "1" || code == "w") {
+    return 1.0;
+  }
+  if (code == "2") {
+    return 2.0;
+  }
+  if (code == "h") {
+    return 0.5;
+  }
+  return 0.0;
+}
+
+double aaf_moment_jd_ut(const AafRecord& r) {
+  if (r.jd > 0.0) {
+    return r.jd;
+  }
+  const CalendarDate local{r.day, r.month, r.year, static_cast<double>(r.hour), r.minute + r.second / 60.0};
+  // ho = ho + v * zzh + v * zzm / 60, then ho = ho - sz
+  return julian_day(local, r.calendar) - (aaf_zone_hours(r.zone) + aaf_dst_hours(r.dst)) / kHoursPerDay;
+}
+
+Dms split_dms(double degrees) {
+  constexpr long long kArcsecPerArcmin = 60;
+  constexpr auto kArcminPerDegree = static_cast<long long>(kArcminPerDeg);
+  const long long total = std::llround(std::abs(degrees) * kArcsecPerDeg);
+  const long long minutes = total / kArcsecPerArcmin;
+  return {static_cast<int>(minutes / kArcminPerDegree), static_cast<int>(minutes % kArcminPerDegree),
+          static_cast<int>(total % kArcsecPerArcmin)};
 }
 
 double AafRecord::latitude() const {
@@ -238,6 +283,22 @@ double AafRecord::latitude() const {
 double AafRecord::longitude() const {
   const double v = lon_deg + lon_min / 60.0 + lon_sec / 3600.0;
   return lon_ew == 'W' ? -v : v;
+}
+
+void AafRecord::set_latitude(double degrees) {
+  const Dms d = split_dms(degrees);
+  lat_deg = d.deg;
+  lat_min = d.min;
+  lat_sec = d.sec;
+  lat_ns = degrees < 0.0 ? 'S' : 'N';
+}
+
+void AafRecord::set_longitude(double degrees) {
+  const Dms d = split_dms(degrees);
+  lon_deg = d.deg;
+  lon_min = d.min;
+  lon_sec = d.sec;
+  lon_ew = degrees < 0.0 ? 'W' : 'E';
 }
 
 std::vector<AafRecord> parse_aaf(std::string_view text) {
@@ -313,12 +374,11 @@ std::vector<AafRecord> parse_aaf(std::string_view text) {
 }
 
 std::optional<std::vector<AafRecord>> read_aaf(const std::filesystem::path& path) {
-  std::ifstream f(path, std::ios::binary);
-  if (!f) {
+  const auto text = read_file_bytes(path);
+  if (!text) {
     return std::nullopt;
   }
-  std::string text((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
-  return parse_aaf(text);
+  return parse_aaf(*text);
 }
 
 std::string format_aaf(const std::vector<AafRecord>& records) {
@@ -332,7 +392,7 @@ std::string format_aaf(const std::vector<AafRecord>& records) {
     std::snprintf(clock, sizeof(clock), "%02dh%02d:%02d", r.hour, r.minute, r.second);
     s << "#A93:" << field(r.surname) << ',' << field(r.given) << ',' << field(r.sex) << ',' << date << ','
       << clock << ',' << field(r.place) << ',' << field(r.country) << "\r\n";
-    //RR STR$(VAL(ed$(11)),13,5)
+    // STR$(VAL(ed$(11)),13,5)
     char jd[24];
     std::snprintf(jd, sizeof(jd), "%13.5f", r.jd);
     char lat[16];
@@ -357,19 +417,13 @@ std::string format_aaf(const std::vector<AafRecord>& records) {
 }
 
 bool write_aaf(const std::filesystem::path& path, const std::vector<AafRecord>& records) {
-  std::ofstream f(path, std::ios::binary | std::ios::trunc);
-  if (!f) {
-    return false;
-  }
-  const std::string text = utf8_to_cp1252(format_aaf(records));
-  f.write(text.data(), static_cast<std::streamsize>(text.size()));
-  return static_cast<bool>(f);
+  return replace_file(path, utf8_to_cp1252(format_aaf(records)));
 }
 
 namespace {
 
 bool folder_is(const std::filesystem::path& dir, std::string_view name) {
-  std::string d = dir.filename().string();
+  const std::u8string d = dir.filename().u8string();
   if (d.size() != name.size()) {
     return false;
   }
@@ -382,20 +436,21 @@ bool folder_is(const std::filesystem::path& dir, std::string_view name) {
 }
 
 // the basename swap of bilde_aaffile$ and bilde_horcfile$, folder pair
-// SPEZIAL and AAFDATEN when his tree is present, siblings otherwise
+// SPEZIAL and AAFDATEN when his tree is present, siblings otherwise. An
+// existing twin is found whatever the case of its name
 std::filesystem::path twin(const std::filesystem::path& path, std::string_view own_folder,
                            std::string_view twin_folder, const char* extension) {
   const std::filesystem::path dir = path.parent_path();
   std::filesystem::path stem = path.stem();
   stem += extension;
   if (folder_is(dir, own_folder)) {
-    const std::filesystem::path other = dir.parent_path() / twin_folder;
+    const std::filesystem::path other = find_case_blind(dir.parent_path(), twin_folder);
     std::error_code ec;
     if (std::filesystem::is_directory(other, ec)) {
-      return other / stem;
+      return find_case_blind(other, stem);
     }
   }
-  return dir / stem;
+  return find_case_blind(dir, stem);
 }
 
 }  // namespace

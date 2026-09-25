@@ -36,7 +36,8 @@ struct PlanetPoints {
 /// @param chart the computed chart, the Earth rides on the sun slot
 /// @param slot  body slot 1 through 10
 /// @param s     the settings, heliocentric switches to directions
-/// @return the four longitudes, ok false for other slots
+/// @return the four longitudes, ok false for other slots, a negative
+///         node where none exists, the Earth of the hrg mode
 [[nodiscard]] PlanetPoints planet_points(const Chart& chart, int slot, const ChartSettings& s);
 
 }  // namespace horcom

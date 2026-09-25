@@ -4,6 +4,8 @@
 
 #include "horcom/chart/aspects.hpp"
 
+#include <algorithm>
+
 #include <cmath>
 #include <memory>
 
@@ -14,9 +16,17 @@ namespace horcom {
 
 namespace {
 
+// the asp matrix holds m times two pi over n, far above this rounding
+constexpr double kExactMultipleTolerance = 1.0e-6;
+
 // the base orb of the mirror points, his spieg1 orb*2 and the orbe(13)
 // preset both rest on two degrees
 constexpr double kMirrorOrbDeg = 2.0;
+
+// the HALBSUMMEN-GRAPHIK puts its cusp trees H2, H3, H5 and H6 on the
+// slots 15 to 18, where the cardinal points stand elsewhere
+constexpr int kCuspTreeFirst = 15;
+constexpr int kCuspTreeLast = 18;
 
 // the original a18st for the geocentric scan, jumps the gap between the
 // angles and the extra bodies and skips bodies outside their ephemeris
@@ -25,12 +35,11 @@ int next_slot(const Chart& chart, const ChartSettings& s, int slot, int np) {
     if (slot == 15) {
       slot = 19;
     }
-    if (slot >= 19 && slot <= np && chart.b[static_cast<std::size_t>(slot)].present &&
-        !chart.b[static_cast<std::size_t>(slot)].valid) {
+    // his a18st stepped over one invalid extra, the fixed slot layout also
+    // leaves the extras nobody chose empty between the chosen ones
+    while (slot >= 19 && slot <= np &&
+           !(chart.b[static_cast<std::size_t>(slot)].present && chart.b[static_cast<std::size_t>(slot)].valid)) {
       ++slot;
-      if (slot > np) {
-        slot = np;
-      }
     }
   }
   return slot;
@@ -46,8 +55,19 @@ std::array<double, body::kSlotCount> positions(const Chart& chart) {
   return as;
 }
 
+bool live(const Chart& chart, int slot) {
+  const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
+  return b.present && b.valid;
+}
+
 bool node_pair(int t, int w) {
   return (t == 11 && w == 12) || (t == 12 && w == 11);
+}
+
+// his aa&, lpkt and fixpunkt_def set it to zero when the fixed point or
+// the Sonderpunkt of the Rhythmenlehre stands on slot zero
+int first_slot(const Chart& chart) {
+  return live(chart, body::kFixpunkt) ? body::kFixpunkt : body::kSun;
 }
 
 }  // namespace
@@ -55,6 +75,13 @@ bool node_pair(int t, int w) {
 // ported from HORCOM org
 double org(const AspectSettings& a, int slot, int nh) {
   return a.weight[static_cast<std::size_t>(slot)] / (nh * kPercent);
+}
+
+double divisor_orb(const AspectSettings& a, int n) {
+  // the orbe row ends at index 14, the equal probability scans stop at
+  // twelve before they could read past it
+  const std::size_t row = static_cast<std::size_t>(std::clamp(n, 0, static_cast<int>(a.orbe.size()) - 1));
+  return a.equal_probability ? a.orb * a.orbe[row] : a.orb * (kTwoPi / n) / kDefaultOrbDivisor;
 }
 
 // ported from HORCOM orbis_discr2
@@ -105,17 +132,23 @@ AspectResult scan_aspects(const Chart& chart, const ChartSettings& s, const Aspe
   const std::array<double, body::kSlotCount> as = positions(chart);
   const int np = s.body_count();
   const int bb = s.extra_bodies ? np : 14;
-  const bool no_angle_aspects = s.houses == HouseSystem::kAcMcOnly || s.houses == HouseSystem::kNone;
-  const bool no_node_aspects = false;  // the original haw& = 10 mode is not ported yet
+  // (haw& = 9 OR haw& = 10) && hrg! = 0, NUR AC und MC keeps its angles
+  const bool no_angle_aspects = without_angles(s.houses) && !s.heliocentric;
+  // (t& = 11 OR t& = 12 OR w& = 11 OR w& = 12) && haw& = 10 && hrg! = 0
+  const bool no_node_aspects = s.houses == HouseSystem::kNoneNoNodes && !s.heliocentric;
 
   std::vector<std::pair<int, int>> conj;   // the original tkonj/wkonj
   std::vector<std::pair<int, int>> trine;  // the original tgrt/wgrt
 
-  const int nas = a.divisors;
+  // IF orbe! && nasp& = 16 : nasp& = 12, the orbe row ends at twelve
+  const int nas = a.equal_probability ? std::min(a.divisors, kMaxEqualOrbDivisor) : a.divisors;
+  // the fixed point or the Sonderpunkt of the Rhythmenlehre on slot zero
+  // joins both scans
+  const int first = first_slot(chart);
   for (int n = 1; n <= nas; ++n) {
     const double pn = kTwoPi / n;
-    const double dd = a.equal_probability ? a.orb * a.orbe[static_cast<std::size_t>(n)] : a.orb * pn / kDefaultOrbDivisor;
-    for (int t = 1; t <= bb - 1; ++t) {
+    const double dd = divisor_orb(a, n);
+    for (int t = first; t <= bb - 1; ++t) {
       t = next_slot(chart, s, t, np);
       if (t > bb - 1) {
         break;
@@ -133,7 +166,10 @@ AspectResult scan_aspects(const Chart& chart, const ChartSettings& s, const Aspe
         if ((t == 13 || t == 14 || w == 13 || w == 14) && no_angle_aspects) {
           continue;
         }
-        if (as[static_cast<std::size_t>(t)] == 0.0 || as[static_cast<std::size_t>(w)] == 0.0) {
+        // his pl = 0 stood for an empty slot, a body at exactly 0 Aries, the
+        // fixed point typed as 0 Aries or a dial position folded onto
+        // zero never aspected
+        if (!live(chart, t) || !live(chart, w)) {
           continue;
         }
         auto& cell = out.asp[static_cast<std::size_t>(t)][static_cast<std::size_t>(w)];
@@ -144,8 +180,9 @@ AspectResult scan_aspects(const Chart& chart, const ChartSettings& s, const Aspe
           continue;
         }
         if (n == 1) {
+          // his w3 > 0 dropped the exact conjunction of two equal places
           const double w3 = std::abs(wa1 - wa2);
-          if (w3 > 0.0 && (w3 < dds || w3 > kTwoPi - dds)) {
+          if (w3 < dds || w3 > kTwoPi - dds) {
             cell = kTwoPi;
             ++out.zh[1];
             ++out.az[static_cast<std::size_t>(t)];
@@ -242,17 +279,17 @@ AspectResult scan_aspects(const Chart& chart, const ChartSettings& s, const Aspe
     }
   }
 
-  //RR spieg1, the mirror points, a pair mirrors when the two longitudes
+  // spieg1, the mirror points, a pair mirrors when the two longitudes
   // sum to PI about the solstice axis or to 2 PI about the equinox axis,
   // the base orb is two degrees times his orb factor, the south node
   // slot 12 stays out as it only mirrors its own head
   const double dd_m = a.orb * kMirrorOrbDeg * kDegToRad;
-  for (int t = 1; t <= bb - 1; ++t) {
+  for (int t = first; t <= bb - 1; ++t) {
     t = next_slot(chart, s, t, np);
     if (t > bb - 1) {
       break;
     }
-    if (as[static_cast<std::size_t>(t)] == 0.0 || t == 12) {
+    if (!live(chart, t) || t == 12) {
       continue;
     }
     const double o1 = org(a, t, 1);
@@ -262,7 +299,7 @@ AspectResult scan_aspects(const Chart& chart, const ChartSettings& s, const Aspe
       if (w > bb) {
         break;
       }
-      if (w == 12 || as[static_cast<std::size_t>(w)] == 0.0) {
+      if (w == 12 || !live(chart, w)) {
         continue;
       }
       const double o2 = org(a, w, 1);
@@ -281,108 +318,217 @@ AspectResult scan_aspects(const Chart& chart, const ChartSettings& s, const Aspe
   return out;
 }
 
+namespace {
+
+using DrkCube = std::array<std::array<std::array<bool, body::kSlotCount>, body::kSlotCount>, body::kSlotCount>;
+
+// the original halbs111 for the point t on the level nh, the hits land in
+// hits. partners, when given, silences the pairs his asp_wahl leaves out
+void midpoint_pass(const Chart& chart, const ChartSettings& s, const AspectSettings& a,
+                   const std::array<double, body::kSlotCount>& as, int np, int bb, int t, int nh, DrkCube& drk,
+                   const std::array<bool, body::kSlotCount>* partners, std::vector<MidpointHit>& hits) {
+  const double dd = a.equal_probability ? a.orb * a.orbe[14] : a.orb * kDegToRad;
+  const double o1 = org(a, t, nh);
+  const auto chosen = [partners](int slot) { return partners == nullptr || (*partners)[static_cast<std::size_t>(slot)]; };
+  // u runs from aa& like t, the fixed point pairs as well
+  for (int u = first_slot(chart); u <= bb - 1; ++u) {
+    u = next_slot(chart, s, u, np);
+    if (u > bb - 1) {
+      break;
+    }
+    const double o2 = org(a, u, nh);
+    if (!chosen(u)) {
+      continue;
+    }
+    for (int w = u + 1; w <= bb; ++w) {
+      w = next_slot(chart, s, w, np);
+      if (w > bb) {
+        break;
+      }
+      const double o3 = org(a, w, nh);
+      const double dds = orbis_discr3(o1, o2, o3, dd);
+      const double c1 = (nh == 1) ? 0.0 : kPi / nh;
+      if (w == t || w == u || u == t || !chosen(w)) {
+        continue;
+      }
+      // a slot without a position would count as zero Aries
+      if (!live(chart, u) || !live(chart, w)) {
+        continue;
+      }
+      if ((t == 11 && u == 12) || (t == 11 && w == 12) || (t == 12 && u == 11) || (t == 12 && w == 11) ||
+          (w == 11 && u == 12) || (w == 12 && u == 11)) {
+        continue;
+      }
+      for (int l = 1; ; ++l) {
+        const double off = l * c1;
+        double pl1 = norm_rad(as[static_cast<std::size_t>(t)] - dds + off);
+        double pl2 = norm_rad(as[static_cast<std::size_t>(t)] + dds + off);
+        const double ph = norm_rad((as[static_cast<std::size_t>(u)] + as[static_cast<std::size_t>(w)]) / 2.0);
+        double aa = ph;
+        for (int z = 1; z <= 2; ++z) {
+          double w1 = pl1;
+          double w2 = pl2;
+          double w3 = aa;
+          vergl2(w1, w2, w3);
+          auto& mark = drk[static_cast<std::size_t>(w)][static_cast<std::size_t>(t)][static_cast<std::size_t>(u)];
+          const auto& mark_a = drk[static_cast<std::size_t>(w)][static_cast<std::size_t>(t)][11];
+          const auto& mark_b = drk[11][static_cast<std::size_t>(t)][static_cast<std::size_t>(u)];
+          const auto& mark_c = drk[12][static_cast<std::size_t>(t)][static_cast<std::size_t>(u)];
+          const auto& mark_d = drk[static_cast<std::size_t>(w)][static_cast<std::size_t>(u)][12];
+          if (w1 < w3 && w3 < w2 && !mark) {
+            // the original node duplicate condition kept literally
+            if (!((mark_a && u == 12) || (mark_b && w == 12) || (mark_c && w == 11) || (mark_d && u == 12))) {
+              mark = true;
+              hits.push_back({t, u, w, nh});
+            }
+          }
+          if (!(t == 11 || t == 12)) {
+            aa = norm_rad(aa + kPi);
+          }
+        }
+        if (l >= nh - 1) {
+          break;
+        }
+      }
+    }
+  }
+}
+
+}  // namespace
+
 MidpointResult scan_midpoints(const Chart& chart, const ChartSettings& s, const AspectSettings& a, bool with_45) {
   MidpointResult out;
   const std::array<double, body::kSlotCount> as = positions(chart);
   const int np = s.body_count();
   const int bb = s.extra_bodies ? np : 14;
   // the drk! cube spans all three passes like the DIM in halbs1
-  auto drk = std::make_unique<std::array<std::array<std::array<bool, body::kSlotCount>, body::kSlotCount>, body::kSlotCount>>();
+  auto drk = std::make_unique<DrkCube>();
 
   // the midpoint tree screen adds the 45 degree level
   const int levels[4] = {1, 2, 4, 8};
   for (int li = 0; li < (with_45 ? 4 : 3); ++li) {
     const int nh = levels[li];
-    const double dd = a.equal_probability ? a.orb * a.orbe[14] : a.orb * kDegToRad;
-    for (int t = 1; t <= bb; ++t) {
+    // halbs11 runs t from aa& like the aspect scan
+    for (int t = first_slot(chart); t <= bb; ++t) {
       t = next_slot(chart, s, t, np);
       if (t > bb) {
         break;
       }
-      const double o1 = org(a, t, nh);
-      // the original halbs111
-      for (int u = 1; u <= bb - 1; ++u) {
-        u = next_slot(chart, s, u, np);
-        if (u > bb - 1) {
-          break;
-        }
-        const double o2 = org(a, u, nh);
-        for (int w = u + 1; w <= bb; ++w) {
-          w = next_slot(chart, s, w, np);
-          if (w > bb) {
-            break;
-          }
-          const double o3 = org(a, w, nh);
-          const double dds = orbis_discr3(o1, o2, o3, dd);
-          const double c1 = (nh == 1) ? 0.0 : kPi / nh;
-          if (w == t || w == u || u == t) {
-            continue;
-          }
-          if ((t == 11 && u == 12) || (t == 11 && w == 12) || (t == 12 && u == 11) || (t == 12 && w == 11) ||
-              (w == 11 && u == 12) || (w == 12 && u == 11)) {
-            continue;
-          }
-          for (int l = 1; ; ++l) {
-            const double off = l * c1;
-            double pl1 = norm_rad(as[static_cast<std::size_t>(t)] - dds + off);
-            double pl2 = norm_rad(as[static_cast<std::size_t>(t)] + dds + off);
-            const double ph = norm_rad((as[static_cast<std::size_t>(u)] + as[static_cast<std::size_t>(w)]) / 2.0);
-            double aa = ph;
-            for (int z = 1; z <= 2; ++z) {
-              double w1 = pl1;
-              double w2 = pl2;
-              double w3 = aa;
-              vergl2(w1, w2, w3);
-              auto& mark = (*drk)[static_cast<std::size_t>(w)][static_cast<std::size_t>(t)][static_cast<std::size_t>(u)];
-              const auto& mark_a = (*drk)[static_cast<std::size_t>(w)][static_cast<std::size_t>(t)][11];
-              const auto& mark_b = (*drk)[11][static_cast<std::size_t>(t)][static_cast<std::size_t>(u)];
-              const auto& mark_c = (*drk)[12][static_cast<std::size_t>(t)][static_cast<std::size_t>(u)];
-              const auto& mark_d = (*drk)[static_cast<std::size_t>(w)][static_cast<std::size_t>(u)][12];
-              if (w1 < w3 && w3 < w2 && !mark) {
-                // the original node duplicate condition kept literally
-                if (!((mark_a && u == 12) || (mark_b && w == 12) || (mark_c && w == 11) || (mark_d && u == 12))) {
-                  mark = true;
-                  out.hits.push_back({t, u, w, nh});
-                  switch (nh) {
-                    case 1: ++out.direct; break;
-                    case 2: ++out.square; break;
-                    case 4: ++out.semi; break;
-                    default: break;
-                  }
-                }
-              }
-              if (!(t == 11 || t == 12)) {
-                aa = norm_rad(aa + kPi);
-              }
-            }
-            if (l >= nh - 1) {
-              break;
-            }
-          }
-        }
+      // a slot without a position would count as zero Aries
+      if (!live(chart, t)) {
+        continue;
+      }
+      const std::size_t before = out.hits.size();
+      midpoint_pass(chart, s, a, as, np, bb, t, nh, *drk, nullptr, out.hits);
+      const int found = static_cast<int>(out.hits.size() - before);
+      switch (nh) {
+        case 1: out.direct += found; break;
+        case 2: out.square += found; break;
+        case 4: out.semi += found; break;
+        default: break;
       }
     }
   }
   return out;
 }
 
+AspectSettings tree_orb_settings(AspectSettings a) {
+  for (int slot = kCuspTreeFirst; slot <= kCuspTreeLast; ++slot) {
+    a.weight[static_cast<std::size_t>(slot)] = static_cast<int>(kPercent);
+  }
+  return a;
+}
+
+// ported from aspar2, the trees of the HALBSUMMEN-GRAPHIK. Every point
+// runs the four levels in turn on one shared drk! cube, the cusps two,
+// three, five and six stand on the slots 15 to 18 like his pl(t&) there
+std::vector<MidpointTree> midpoint_trees(const Chart& chart, const ChartSettings& s, const AspectSettings& orbs,
+                                         const std::array<bool, body::kSlotCount>& partners) {
+  const AspectSettings a = tree_orb_settings(orbs);
+  std::vector<MidpointTree> out;
+  std::array<double, body::kSlotCount> as = positions(chart);
+  const bool cusps = !s.heliocentric && chart.houses.ok;
+  // his pl(t&) = fz(od,ze,t& - 13) for 15 and 16, fz(od,ze,t& - 12) for 17 and 18
+  static constexpr int kCuspOfSlot[4] = {2, 3, 5, 6};
+  if (cusps) {
+    for (int i = 0; i < 4; ++i) {
+      as[static_cast<std::size_t>(kCuspTreeFirst + i)] = chart.houses.cusp[static_cast<std::size_t>(kCuspOfSlot[i])];
+    }
+  }
+  const int np = s.body_count();
+  const int bb = s.extra_bodies ? np : 14;
+  auto drk = std::make_unique<DrkCube>();
+  for (int t = 0; t < body::kSlotCount; ++t) {
+    MidpointTree tree;
+    tree.slot = t;
+    if (t >= kCuspTreeFirst && t <= kCuspTreeLast) {
+      if (!cusps) {
+        continue;
+      }
+      tree.cusp = kCuspOfSlot[t - kCuspTreeFirst];
+    } else if (!live(chart, t)) {
+      continue;
+    }
+    // IF NOT(hrg! && ((t& > 10 && t& < 19) OR t& = n1& OR t& = n4&))
+    if (s.heliocentric && (t == body::kSun || (t > body::kPluto && t < body::kApogee) || t == body::kApogee ||
+                           t == body::kFortune)) {
+      continue;
+    }
+    tree.lon = as[static_cast<std::size_t>(t)];
+    for (const int nh : {1, 2, 4, 8}) {
+      midpoint_pass(chart, s, a, as, np, bb, t, nh, *drk, &partners, tree.hits);
+    }
+    out.push_back(std::move(tree));
+  }
+  return out;
+}
+
+// the orb of the MULTI comparisons, a fifth of a degree
+constexpr double kMultiOrbDeg = 0.2;
+
 // ported from a12asp
 std::vector<CrossAspectHit> scan_aspects_between(const Chart& first, const Chart& second, const AspectSettings& a, bool transit_orbs) {
+  CrossScanOptions opt;
+  opt.orbs = transit_orbs ? CrossOrbs::kTransit : CrossOrbs::kNormal;
+  opt.extras = true;
+  return scan_aspects_between(first, second, a, opt);
+}
+
+std::vector<CrossAspectHit> scan_aspects_between(const Chart& first, const Chart& second, const AspectSettings& a,
+                                                 const CrossScanOptions& opt) {
   std::vector<CrossAspectHit> out;
-  const auto active = [](const Chart& c, int slot) {
+  const Chart& other = opt.within ? first : second;
+  // NOT (t& = 12 OR w& = 12), IF NOT (mult! && t& = nk&(3)), and the
+  // hrg! guard of the display
+  const auto active = [&opt](const Chart& c, int slot) {
     const BodyState& b = c.b[static_cast<std::size_t>(slot)];
-    return b.present && b.valid && slot != body::kNodeDesc;
+    if (!b.present || !b.valid || slot == body::kNodeDesc) {
+      return false;
+    }
+    // harm sets mult! as well, both leave Transpluto out
+    if ((opt.orbs == CrossOrbs::kMulti || opt.orbs == CrossOrbs::kHarmonic) && slot == body::kTranspluto) {
+      return false;
+    }
+    if (opt.heliocentric && (slot == body::kNodeAsc || slot == body::kApogee || slot == body::kFortune)) {
+      return false;
+    }
+    return true;
   };
-  for (int t = 1; t < body::kSlotCount; ++t) {
-    if (!active(first, t)) {
+  // the first chart from aa&, the fixed point included, to bb& or np&,
+  // the second from 1 to np&, twelve without the extras
+  const int t_end = opt.extras ? body::kSlotCount - 1 : body::kMc;
+  const int w_end = opt.extras ? body::kSlotCount - 1 : body::kNodeDesc;
+  for (int t = 0; t <= t_end; ++t) {
+    if ((t > body::kMc && t < body::kApogee) || !active(first, t)) {
       continue;
     }
     const double wa1 = norm_rad(first.b[static_cast<std::size_t>(t)].el);
-    for (int w = 1; w < body::kSlotCount; ++w) {
-      if (!active(second, w)) {
+    // an& = t& + 1 under aspmult!
+    for (int w = opt.within ? t + 1 : 1; w <= w_end; ++w) {
+      if ((w > body::kMc && w < body::kApogee) || !active(other, w)) {
         continue;
       }
-      const double wa2 = norm_rad(second.b[static_cast<std::size_t>(w)].el);
+      const double wa2 = norm_rad(other.b[static_cast<std::size_t>(w)].el);
       int n = 0;
       while (n != 6) {
         ++n;
@@ -406,9 +552,20 @@ std::vector<CrossAspectHit> scan_aspects_between(const Chart& first, const Chart
           const double o1 = org(a, t, 1);
           const double o2 = org(a, w, 1);
           double dds = orbis_discr2(o1, o2, dd);
-          if (transit_orbs) {
-            //RR 1 Grad
-            dds = o1 * kDegToRad;
+          switch (opt.orbs) {
+            case CrossOrbs::kTransit:
+              //RR 1 Grad
+              dds = o1 * kDegToRad;
+              break;
+            case CrossOrbs::kMulti:
+              //RR 0.2 Grad
+              dds = a.orb * kMultiOrbDeg * kDegToRad;
+              break;
+            case CrossOrbs::kHarmonic:
+              dds = a.orb * kDegToRad;
+              break;
+            default:
+              break;
           }
           double w2 = norm_rad(std::abs(wa2 - wa1));
           if (w2 < dds) {
@@ -417,7 +574,11 @@ std::vector<CrossAspectHit> scan_aspects_between(const Chart& first, const Chart
           double w1 = pnm;
           vergl1(w1, w2);
           const double diff = std::abs(w2 - w1);
-          if (diff > kEps && wa1 > kEps && wa2 > kEps && diff < dds && w2 > dds) {
+          // his w > kk, wa1 > kk and wa2 > kk took a zero for an empty
+          // slot, so an exact aspect and every body at 0 Aries dropped out,
+          // a chart laid over itself lost all its conjunctions. The slot
+          // tells presence in the port like in scan_aspects
+          if (diff < dds && w2 > dds) {
             CrossAspectHit h;
             h.t = t;
             h.w = w;
@@ -440,48 +601,32 @@ std::vector<CrossAspectHit> scan_aspects_between(const Chart& first, const Chart
   return out;
 }
 
-// ported from HORCOM aspdis
+// ported from HORCOM aspdis. His loop divided the angle by t and matched
+// the FIX truncated degrees 360, 180, ... 22 of the known families, so
+// five elevenths, 163.6 degrees, truncated to 40 at t = 4 and named the
+// ninth. Every angle of the asp matrix is an exact multiple of its
+// divisor, the port reads the family from the reduced fraction
 int aspect_symbol(double w, int divisors) {
   if (w > kPi && w < kTwoPi) {
     w = kTwoPi - w;
   }
-  for (int t = 1; t <= divisors; ++t) {
-    const int n = static_cast<int>(0.001 + kRadToDeg * w / t);
-    int m = 0;
-    switch (n) {
-      case 360:
-      case 180:
-      case 120:
-      case 90:
-      case 72:
-      case 60:
-      case 51:
-      case 45:
-      case 40:
-      case 36:
-      case 32:
-      case 30:
-      case 27:
-      case 25:
-      case 24:
-      case 22:
-        m = static_cast<int>(360.0 / n + 0.001);
-        break;
-      case 144:
-        m = 17;  //RR Biquintil
-        break;
-      case 150:
-        m = 18;  //RR Quinkunx
-        break;
-      case 135:
-        m = 19;  //RR Anderthalbquad.
-        break;
-      default:
-        break;
+  for (int n = 1; n <= divisors; ++n) {
+    const double k = w * n / kTwoPi;
+    const long m = std::lround(k);
+    if (std::abs(k - static_cast<double>(m)) > kExactMultipleTolerance) {
+      continue;
     }
-    if (m > 0) {
-      return m;
+    // the smallest divisor holding the angle leaves the fraction reduced
+    if (n == 5 && m == 2) {
+      return 17;  //RR Biquintil
     }
+    if (n == 12 && m == 5) {
+      return 18;  //RR Quinkunx
+    }
+    if (n == 8 && m == 3) {
+      return 19;  //RR Anderthalbquad.
+    }
+    return n;
   }
   return 0;
 }

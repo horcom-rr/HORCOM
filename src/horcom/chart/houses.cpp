@@ -187,6 +187,10 @@ void equal_vehlow(Work& w, double ac) {
 
 }  // namespace
 
+double polar_limit_deg(double ekls) {
+  return kDegPerQuadrant - ekls * kRadToDeg;
+}
+
 Angles chart_angles(double armcb, double lat_deg, double ekls) {
   Angles out;
   const double gg = lat_deg * kDegToRad;
@@ -214,8 +218,8 @@ Houses compute_houses(HouseSystem system, double armcb, double lat_deg, double e
 
   // the original maxbreit guard for the semi arc systems
   if (system == HouseSystem::kPlacidus || system == HouseSystem::kKochGoh) {
-    if (std::abs(lat_deg) > 90.0 - ekls * kRadToDeg) {
-      //RR Geog. Breite zu groß !
+    if (std::abs(lat_deg) > polar_limit_deg(ekls)) {
+      // his Geog. Breite zu groß ! box
       out.ok = false;
       return out;
     }
@@ -253,12 +257,13 @@ Houses compute_houses(HouseSystem system, double armcb, double lat_deg, double e
       break;
     case HouseSystem::kAcMcOnly:
     case HouseSystem::kNone:
-      // the original a60_l zeroes the intermediate cusps, kNone drops the
-      // angles as well
+    case HouseSystem::kNoneNoNodes:
+      // the original a60_l zeroes the intermediate cusps, the systems
+      // without angles drop AC and MC as well
       for (int i : {2, 3, 5, 6, 8, 9, 11, 12}) {
         out.cusp[static_cast<std::size_t>(i)] = 0.0;
       }
-      if (system == HouseSystem::kNone) {
+      if (without_angles(system)) {
         for (int i : {1, 4, 7, 10}) {
           out.cusp[static_cast<std::size_t>(i)] = 0.0;
         }

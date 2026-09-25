@@ -35,53 +35,119 @@ topocentric parallax.
   <tr><td><code>eckp1, a60, plac, topo, koch, regio, camp, aeqe, vehlow, regio0, maxbreit</code></td><td><code>chart_angles, compute_houses</code></td><td><code>src/horcom/chart/houses.*</code></td></tr>
   <tr><td><code>plkoap, plkotr, par</code></td><td><code>apparent_position, to_equatorial, parallax</code></td><td><code>src/horcom/chart/corrections.*</code></td></tr>
   <tr><td><code>hel_geo, plko12</code></td><td><code>helio_to_geo</code></td><td><code>src/horcom/chart/geo.*</code></td></tr>
-  <tr><td><code>jseckp, a90, a901, ta_na, vel_om_pd, plko_einz, soko</code></td><td><code>compute_chart</code></td><td><code>src/horcom/chart/chart.*</code></td></tr>
+  <tr><td><code>jseckp, a90, a901, ta_na, vel_om_pd, plko, plko_einz, soko</code></td><td><code>compute_chart</code></td><td><code>src/horcom/chart/chart.*</code></td></tr>
   <tr><td><code>plant, plant1, ver, ver1r, a16_ta</code></td><td><code>find_longitude_backward, body_longitude</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
   <tr><td><code>korh</code> and the a16 solar and lunar flow</td><td><code>solar_return, lunar_return</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
   <tr><td><code>a180, a180_1, a180a, a180b</code></td><td><code>scan_transits</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
   <tr><td><code>ingre1</code></td><td><code>sign_ingresses</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
   <tr><td><code>a13, halbsmin, a13comp_1, a13comp_2</code> and <code>a14</code></td><td><code>composite_chart, midpoint_near, combin_input</code></td><td><code>src/horcom/chart/composite.*</code></td></tr>
   <tr><td><code>prima, primhorg, richtung$</code></td><td><code>direct_axes</code></td><td><code>src/horcom/chart/directions.*</code></td></tr>
+  <tr><td><code>korr, korr0, korr1, korr10, korr2, korr21</code></td><td><code>correct_birth_time, moment_for_armc</code></td><td><code>src/horcom/chart/rectification.*</code></td></tr>
+  <tr><td><code>grze, grze_0</code> and the <code>zei$</code> table</td><td><code>split_zodiac, kSignTag</code></td><td><code>src/horcom/chart/signs.hpp</code></td></tr>
+  <tr><td><code>ko_ta</code> distances, <code>entf_min_max</code></td><td><code>near_distance_extreme</code></td><td><code>src/horcom/chart/distances.hpp</code></td></tr>
   <tr><td><code>mundan, mundh1, md11, md, mundhorp, mundhorh</code></td><td><code>mundane_longitude, to_mundane</code></td><td><code>src/horcom/chart/mundane.*</code></td></tr>
   <tr><td>the <code>hrg!</code> branches of <code>plko_einz</code> and <code>par</code></td><td><code>helio_display</code> and the heliocentric gates of <code>compute_chart</code></td><td><code>src/horcom/chart/chart.cpp</code></td></tr>
   <tr><td><code>harm21, a901_m, mc_armcb</code> CASE 7, <code>a12f</code></td><td><code>harmonic_chart, dial_chart, dial_display</code></td><td><code>src/horcom/chart/harmonics.*</code></td></tr>
   <tr><td><code>multi11, multi21, multi31, multi0ost1, multi0west1, multiarc1, mc_armcb, mc_armcb1</code></td><td><code>multi_chart</code></td><td><code>src/horcom/chart/harmonics.*</code></td></tr>
   <tr><td><code>proho, taho, wahrso, hd_hs, zeit_korr, prog_mode</code></td><td><code>progressed_moment, day_chart_moment, sun_hour_angle</code></td><td><code>src/horcom/chart/progressions.*</code></td></tr>
-  <tr><td>the planetar and personar branches of <code>a16</code>, <code>solnummer</code></td><td><code>planetar_return, body_period_days</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
-  <tr><td><code>asymb, ar_sys, aprim, asy111, aprimout, dif_vg</code></td><td><code>direction_hits</code></td><td><code>src/horcom/chart/symbolic.*</code></td></tr>
+  <tr><td>the planetar and personar branches of <code>a16</code>, <code>solnummer</code>, <code>a16_ta</code></td><td><code>planetar_return, body_period_days, planetar_count_period</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
+  <tr><td><code>asymb, ar_sys, aprim, asy111, asy112, aprimout, dif_vg</code></td><td><code>direction_hits</code></td><td><code>src/horcom/chart/symbolic.*</code></td></tr>
+  <tr><td><code>mund, mund1, a18_3045</code></td><td><code>scan_mundane_aspects, grid_skips</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
   <tr><td>the SECDIR and SOBDIR evaluations of the a18 world</td><td><code>secondary_direction_events, arc_direction_events</code></td><td><code>src/horcom/chart/progressions.*</code></td></tr>
   <tr><td>the MC and AC branches of the ingress menu</td><td><code>angle_ingresses</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
   <tr><td><code>stella, stelk</code></td><td><code>fixed_stars</code></td><td><code>src/horcom/chart/stars.*</code></td></tr>
   <tr><td><code>arabt, art11, art12, arabl0</code> with the ARABTEI files</td><td><code>arabic_parts</code></td><td><code>src/horcom/chart/arabic.*</code></td></tr>
   <tr><td><code>a170, a171, a172, a173, spieg1</code></td><td><code>rhythm_triggers</code></td><td><code>src/horcom/chart/rhythm.*</code></td></tr>
+  <tr><td><code>a174init, a175, a178</code></td><td><code>rhythm_jd, rhythm_years, septar_offset, rhythm_age</code></td><td><code>src/horcom/chart/rhythm.*</code></td></tr>
   <tr><td><code>huber, wert, hubephp, hubephn, asp_analy_rad, asp_analy_mund, hub_auswert</code></td><td><code>dynamogram</code></td><td><code>src/horcom/chart/dynamogram.*</code></td></tr>
   <tr><td><code>auf_unt, auf_unt2, auf_pl, mtrim</code></td><td><code>rise_transit_set</code></td><td><code>src/horcom/chart/riseset.*</code></td></tr>
   <tr><td><code>elem1, elem2, kard_fix_gem, kard_fix_gemh, punkte_pla</code></td><td><code>chart_histogram, histogram_points</code></td><td><code>src/horcom/chart/histogram.*</code></td></tr>
   <tr><td><code>plko10, plko100, plko1001, plko12, plelempl</code></td><td><code>planet_points</code></td><td><code>src/horcom/chart/planet_points.*</code></td></tr>
-  <tr><td><code>a17_3, a171, a17sonderpkt</code> with <code>GRADE.INT</code></td><td><code>degree_dates, degree_at_age, read_degrees</code></td><td><code>src/horcom/chart/rhythm.*</code></td></tr>
-  <tr><td>the mehrdeutig branch of the planetar flow</td><td><code>planetar_multiples</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
+  <tr><td><code>a17_3, a171, a17sonderpkt</code> with <code>GRADE.INT</code></td><td><code>degree_dates, degree_at_age, degree_known, read_degrees</code></td><td><code>src/horcom/chart/rhythm.*</code></td></tr>
+  <tr><td><code>planth</code>, the walk back over the passages of one planetar</td><td><code>planetar_earlier</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
+  <tr><td><code>grossj1</code></td><td><code>great_year_point</code></td><td><code>src/horcom/chart/great_year.*</code></td></tr>
+  <tr><td><code>grli, grli_f, grlinit, listscal</code></td><td><code>grad_list, grad_unit, build_grad_sheet</code></td><td><code>src/horcom/chart/degree_list.*, src/horcom/render/grad_sheet.*</code></td></tr>
 </table>
 
 <p>
 The shell also carries the table screens of the original around the
-chart, the Grad-Liste as the sorted degree list of every point with
-the intermediate houses on demand, the Häuser-Tabelle with each cusp's
+chart. The DEGREE LIST G/H of grli asks ADD the INTERMEDIATE HOUSES ?
+under the house systems one to seven, then prints every point of the
+chart with its degree, the cusps H2 to H12 without the MC on demand
+and the midpoint of every pair in his order, five columns of 41 rows
+to a page with his header, two decimals for the main points and cusps
+and one for the extra bodies, the precision following the first point
+of a pair. Without extra bodies the four cardinal points 0 Aries,
+0 Cancer, 0 Libra and 0 Capricorn pair like bodies but never stand
+alone. His a921 lifted 0 Aries to exactly kk and his pair guard, which
+demands more than kk, dropped it, so his list carried no midpoint with
+the Aries point. The port pairs all four, and a pair opened by a
+cardinal point prints one decimal. DR and DS never pair and neither
+do two of the cusps H8, H9, H11 and H12. After the last page his question
+sorts the list by degree and draws the overall distribution beside every
+page, one bar of his unit per entry and degree. Pinned in
+<code>test_render.cpp</code> and <code>test_coord.cpp</code>. The
+HOUSE TABLE with each cusp's
 longitude, right ascension and declination and under Placidus the
-oblique ascension with its pole height, the Großes Jahr with the
-precession driven age point over a chosen reference epoch, and a small
-conversions dialog for the julian date, delta T, local time and the
-degree minute second split.
+oblique ascension with its pole height and the great year with the
+precession driven age point over a chosen reference epoch.
+</p>
+
+<h2>The converters</h2>
+<p>
+Each converter keeps its own menu entry like his menu. Under EPHEMERIS,
+ET from UT and UT from ET (et_ut, ut_et) take a date and clock and show
+both time scales with ET minus UT split into days, hours, minutes and
+seconds, whole minutes before 948 and after 2050, with his remark on
+extrapolated or approximated values. DATE from JD (dat_jd) reads a
+Julian date, prints the centuries since 1900, the mean and the apparent
+obliquity of that moment, the calendar date and the clock, shows the
+current record's date under the input box and asks again on Continue. The
+tester's Auréas count, days since 1900 January 0.5, rides along and
+names its start, 31.12.1899 12h.
+Under MISCELLANEOUS, RA-DE from EL-EB and EL-EB from RA-DE (arde_eleb,
+eleb_arde) take a date and a position in degree minute second or
+decimal and convert with the true obliquity of that day, the right
+ascension also as a clock. LT from UT and UT from LT (lt_ut, ut_lt) take
+a longitude in his coordinate box and shift the clock by it. ANGLE
+CONVERSION (rechne1), also on F5 or Alt+R anywhere, turns decimal
+degrees or hours into degrees, minutes and seconds and back on ENTER
+and stays open until QUIT. Pinned in <code>test_convert.cpp</code>.
+</p>
+
+<h2>The great year</h2>
+<p>
+GREAT ( = PLATONIC ) YEAR follows grossj. The start of an age, Aries 30,
+Pisces 360, Aquarius 330 or Capricorn 300 degrees, is fixed at a
+reference date, by default his CHAUVIN reference of 6 January 1779 for
+the Aquarian age. <code>great_year_point</code> turns that ecliptic point
+into equatorial coordinates, precesses it with his Newcomb praez from
+the reference to the chart date and reads its longitude back. The age
+point runs backward by the gain, some 50.3 arcseconds a year or 2148
+years per sign. The first box offers to keep the setting, to change the
+start and the reference date, or to switch the display off. The result
+box lists the reference longitude, the reference date, the difference,
+the chart date and the age point, and warns when the chart lies before
+the reference or more than a sign behind it. While the display is on,
+the DEFAULTS OVERVIEW carries his yellow box with the same lines and
+the record, and the reference date and the start persist with the
+defaults in KONSTA like his param_sp. The menu entry is grey on the
+SOLAR level like his MENU 98, and the flow switches the heliocentric
+mode off like his hrg! = FALSE.
 </p>
 
 <h2>The two clocks of the original</h2>
 <p>
-One faithful quirk deserves its own paragraph. The original computes the
-sidereal time by rewinding to 0h&nbsp;UT and running the full juld chain there,
-which leaves the nutation state of MIDNIGHT behind in the globals. The
-angles and the house cusps therefore see the true obliquity of 0h&nbsp;UT,
-while the planets, computed later in Ephemeris Time, see the obliquity of
-the epoch. The difference is tiny and entirely his, the pipeline reproduces
-it through the <code>ekls0</code> field.
+The original computes the sidereal time by rewinding to 0h&nbsp;UT and
+running the full juld chain there, which leaves the nutation state of
+MIDNIGHT behind in the globals. The angles and the house cusps therefore
+see the true obliquity of 0h&nbsp;UT, while the planets, computed later in
+Ephemeris Time, see the obliquity of the moment. Within one day the
+nutation moves the obliquity by less than a tenth of an arcsecond and the
+equation of the equinoxes by less than a hundredth of a time second,
+below the smallest terms his nutation series keeps, so the pipeline
+follows his order through the <code>ekls0</code> field and no result
+changes by a digit.
 </p>
 
 <h2>The protected parallax</h2>
@@ -90,9 +156,9 @@ The parallax cluster is ported verbatim under the CLAUDE working rule that
 presumes the original right. His comment names the source and the
 simplification
 </p>
-<blockquote class="rr">// Parallaxe
-//aus Montenbruck S.25  Ohne Ber. d.Meereshöhe
-ro = 0.000042634515  //Erdradius in AE
+<blockquote class="rr">// Parallax
+//from Montenbruck p.25  without regard to the height above sea level
+ro = 0.000042634515  //Earth radius in AU
 <footer>the head of the original procedure par</footer>
 </blockquote>
 <p>
@@ -114,7 +180,7 @@ the AC, plus the two switched off modes that zero their cusps. The
 maxbreit guard refuses Placidus and Koch beyond 90 degrees minus the
 obliquity with his alert
 </p>
-<blockquote class="rr">Geog. Breite zu groß ! Nur bis  +- ... ° &gt;&gt; ABBRECHEN !
+<blockquote class="rr">Geog. latitude too large ! Only up to  +- ... ° &gt;&gt; CANCELLING !
 <footer>the original maxbreit refusal</footer>
 </blockquote>
 <p>
@@ -148,31 +214,76 @@ points in space projected from the Earth's heliocentric place, so a
 descending node is not simply the antipode of the ascending one,
 heliocentrically they are plain directions. The Sun's row carries the
 node line of the solar equator and the perigee of the apparent orbit,
-the Moon's row its mean node and mean apogee, every value a mean like
-the Mittel label of his screen. Pinned on Mercury's node at 48.33
+the Moon's row its mean node and the apogee the AG setting chooses,
+true or mean as the MOON apsides caption of his screen says, the other
+values means. In the heliocentric view the Earth has no node, its
+apsides stand opposite the Sun's perigee. Pinned on Mercury's node at 48.33
 degrees, Pluto's elements on their known values and the projection on
 the exact triangle formula.
 </p>
 
 <h2>The fixed point and the rectification</h2>
 <p>
-Slot zero of the body table is his Fixpunkt, a user chosen ecliptic
+Slot zero of the body table is his fixed point, a user chosen ecliptic
 degree that rides the wheel, the tables and the aspect scan like a
 body under the tag sp, and in the mundane view it projects along its
-semi arc like everything else. The Vorgaben dialog switches it on and
-places it. Korrektur shifts the clock of the input panel until a
-chosen quantity reaches a target value. Sidereal time and MC turn
-into a clock directly through the sidereal time of 0h, the AC and the
-intermediate cusps walk the daily turn with a damped step, Sun and
-Moon ride the backward longitude search of plant. The found moment
-lands in the panel marked KORRIGIERT, so the rectified time
-immediately is the chart. The primary directed axes carry his second
-method, trial shifts of the radix sidereal time collect in the
-Summenspeicher and their mean goes into the radix on demand. Beside
-these sit the wandering walks of Zeit-Wandern and Ort-Wandern, the
-panel stepped through time or place with chosen unit, direction and
-interval while the Schiemenz aspect counter and the midpoint counter
-sum along, his research instrument for the heliocentric statistics.
+semi arc like everything else. CHANGE EPHEMERIS DEFAULTS switches it on and
+places it by sign and degree, a defined point can be kept or deleted
+there. CORRECTION, ported from korr and its helpers into
+<code>rectification.*</code>, shifts the clock of the input panel until
+a chosen quantity reaches a target value. Like his plre it switches to
+Placidus houses and geocentric positions for the whole run and restores
+the house system at its end. Sidereal time and MC turn into a clock of
+the radix date directly through the sidereal time of 0h like korr21,
+so a correction near midnight UT lands on the moment nearest the birth
+and never a sidereal day away. The AC and the intermediate cusps walk
+the daily turn with the damped step of korr1, Sun and Moon search their
+longitude near the birth like plant, the Moon taking the crossing
+nearest the birth. The found moment lands in the panel marked
+RECTIFIED, so the rectified time immediately is the chart, and after a
+Sun or Moon correction the PLANET COORDINATES table opens. The primary
+directed axes carry his second method, trial shifts of the radix
+sidereal time collect in the accumulator and their mean goes into the
+radix on demand.
+</p>
+
+<h2>The walks through time and place</h2>
+<p>
+TIME WANDERING (zeitw and zeitwi) first offers his counters,
+off for the session, on with the automatic run, or off for this walk,
+then his box for single planets, red marking, only the chosen with
+their aspects, or the normal output. The unit follows in days, hours or
+minutes with any number and a direction, his key sheet opens the walk.
+Every step adds the interval, redraws the chart, beeps and waits two
+seconds, V and R turn the direction, D, H and M reset the unit, plus and
+minus double and halve it, Space stops until the next key and ESC ends,
+the left mouse button waits two seconds longer, the right one second
+less. The Time diff box under the chart counts the days, hours and
+minutes from the start below a thousand days. With the counters on, the
+two yellow windows sum the aspects per divisor with Troika and GrTrin
+and the direct, square and half square midpoints, the start chart is
+not counted and ESC shows the sums once more. At the end he offers a
+new unit, which may reset the counters, a step back into the walk, or
+the end, where a walk of at most ten days may keep its time in the
+radix. Every step also flashes the strip at the bottom of the main
+window, and the walk adds a single step to the Back history of the
+panel, only when the varied time is taken over, the MULTI time walk
+alike. The entry is grey on the SOLAR level like CORRECTION.
+</p>
+<p>
+PLACE WANDERING (ortwi) asks a longitude and a latitude shift in
+degrees with east or west and north or south, then his key sheet. The
+moment stays fixed in UT while the place walks, the box under the chart
+shows the longitude and latitude difference. Plus and minus double and
+halve both shifts, L and B turn their directions, F10 shows the nearest
+metropolis of WCAPITAL.INT with its distance west or east and south or
+north, ENTER snaps the walk there and Space goes on. A step past the
+pole, past the date line or into the polar zone of Placidus or Koch
+steps back with his message and asks the shifts again. At the end the
+changed coordinates may stay, the place name then reads
+<code>GEÄNDERT</code>, the value his data files carry for a walked place. The
+counters do not run here, they were switched off in his last version.
+Pinned in <code>test_wander.cpp</code>.
 </p>
 
 <h2>The exact hit search</h2>
@@ -196,7 +307,7 @@ found as the return preceding a chosen moment at 0h UT.
 
 <h2>The transit sweep</h2>
 <p>
-The transit list accepts a separate Ereignis-Ort, the running
+The transit list accepts a separate event place, the running
 positions then carry the parallax of the event place while the radix
 keeps its birth place, his ereig_ort question.
 a180 walks a time window in body sized intervals and tests every
@@ -211,28 +322,91 @@ mistaken for a backward arc, and every bracketed hit is refined to the
 exact moment with the plant search instead of his linear interpolation,
 a hit that fails to refine into its interval is dropped rather than
 guessed. The moon stays filtered by the cap unless the moon flag opens
-it, matching his default. Verified over November 1992 against the 1992
-radix, every event sits on its target to under an arc second and the
-sun finds radix venus on the fourteenth. The ingress driver ingre1
+it, matching his default. The list also carries the retrograde
+passages, marked R, and the transits of the mean node, each exact to
+about a second, and the secondary direction lists them the same way. A
+long run shows a progress window whose CANCEL or Esc asks before
+stopping and keeps the hits found so far. Verified over November 1992
+against the 1992 radix, every event sits on its target to under an arc
+second and the sun finds radix venus on the fourteenth. The ingress driver ingre1
 rides the same search, twelve sign entries per body with the epsilon
 that keeps the zero longitude guard quiet and the sun corrected into
 the calendar year of the start, the 1993 table pinned sign by sign.
-The multi passage continuation of plant comes next.
+The MC and AC entries walk the daily rotation to his korr bound of
+5e-7 radians, every sign once between 0h and the end of the day. His
+INGRESSES screen asks the object first, SUN, MOON, MC or AC, the
+tester's planets after them. The Sun asks the calendar year and lists
+the entries of that year from the first of January at the clock of the
+record, the Moon asks a date and lists the last entry into every sign
+before it, both at the event place of his PARALLAX mask when the
+parallax is on, with the ephemeris line under the table. MC and AC take
+date and place from the full record mask and list three days side by
+side, the longitude column showing the axis computed at the found
+moment. Space, plus and PgDn move on, R, minus and PgUp back, a year
+for the Sun, 29 days on or 28 days back from the Pisces ingress of the
+table shown for the Moon, one orbital period but at least a year for
+the tester's planets, three days for the angles. His plus a year from
+the first of January landed on the last of December after a leap year
+and showed that year again, the port opens the next calendar year. A
+double click opens the transit view of the moment, the tester's
+addition.
 </p>
 
 <h2>Composite and combin</h2>
 <p>
 The composite midpoints two charts body by body with the near side rule
-of halbsmin including its far side tie, the south node follows the
-north by half a circle, and the AC and MC midpoints flip to the side of
-their cusps. The houses follow his three modes, the mean of sidereal
+of halbsmin, the south node follows the north by half a circle, and the
+AC and MC midpoints flip to the side of their cusps. His a13 carries
+that flip for both points but wrote the unflipped midpoints back a few
+lines later, so his final program could show the AC midpoint beside the
+MC, 5° and 200° gave 282.5° against a first cusp near 33°. The port
+keeps the flip his code was written for and puts that AC at 102.5°. His halbsmin added
+half a circle after its own near side choice whenever the raw sum of the
+pair passed a full circle, a pair around 0° Aries like 100° and 300°
+got 200° instead of 20°. The port drops that step and keeps the near
+midpoint, an exact opposition still takes his second candidate. The houses follow his three modes, the mean of sidereal
 time, longitude and latitude, the Robert Hand armc from the MC midpoint
-at a residence, or the schematic halbsummen from the MC midpoint with
+at a residence, or the schematic midpoints from the MC midpoint with
 his ordering chain that keeps every cusp ahead of its neighbour. A
 composite has no latitudes or speeds and the port leaves them at zero.
-The combin of a14 simply averages moment and place and runs the normal
-pipeline. In the shell both live in the Horoskop menu over the same
-partner as the comparison, the house mode follows his profile flags.
+The combin of a14 averages moment and place of two to five records and
+runs the normal pipeline. His plain mean of the longitudes put two
+places on both sides of the date line on the far side of the globe,
+170° east and 170° west met at Greenwich. The port cuts the circle in
+the widest arc free of places and averages there, which is his plain
+mean for every group that leaves the date line alone.
+</p>
+<p>
+COMBINE asks for the records one SATZ click after the other, at least
+two and at most five, and marks every slot clicked so far with his
+star. After the second, third and fourth click it asks
+<i>FETCH record 3 ? or OUTPUT ?</i> as long as a further RADIX
+slot is filled, the fifth click outputs at once. The mean lands on the
+panel as a chart whose place name is <code>COMBIN-ORT</code>, the value
+his data files carry for the mean place, the slots keep their own records.
+The centre reads COMBINE, two records stand as 1: and 2: with their
+moments as the tester wished, more than two as RECORDS: 1,3,5 with the
+names stacked above the bottom edge, and the COMBINE UT line gives the
+mean moment. The DOUBLE DATA row brings all records back.
+</p>
+<p>
+COMPOSITE in the HOROSCOPES menu opens his mode box, COMPOSITE CHART
+MODE ? with the three house systems, the answer stays in the profile
+like his param_sp. The equal systems Equal and Vehlow skip the box and
+take the schematic halves as his haw 6 and 7 did. Two SATZ picks name
+partner one and partner two from the filled RADIX and SOLAR slots, and
+ROBERT HAND then asks the residence in the place part of the entry mask,
+titled ENTER the EVENT PLACE ! | COMPOSITE NO.1, empty with E and N
+preset, Tab opening the place files and ESC ending the chart. Its
+latitude carries the houses, the longitude does not matter. The sheet
+of the two house modes with real houses names the first cusp H1 and
+draws the AC midpoint as a thick axis of its own with its degree, the
+body table lists longitudes only since a midpoint chart has no
+latitude, speed or distance, and the place corner shows the residence
+under ROBERT HAND and nothing in the other modes. The DOUBLE DATA row
+brings the pair back together with its residence. COMPOSITE and
+COMBINE both switch the heliocentric mode off and carry the fixed point
+into the pair chart.
 </p>
 
 <h2>The directed axes</h2>
@@ -241,17 +415,22 @@ prima turns the radix ARMC at his Naibod style rate, three hundred
 sixty degrees per tropical year of elapsed days over the year length,
 direct or converse, and recomputes the axes and cusps from the directed
 ARMC at the chosen place, drawn slightly smaller over the radix
-positions with the STZ difference in the centre and no chords. His
+positions with the ST difference in the centre and no chords. His
 sidereal time variation rides on the same turn, one degree being four
 clock minutes of birth time, which made this screen his rectification
 tool. The port keeps the rate, the variation and the display, the
 interactive summing of test variations stays with the operator through
-repeated runs.
+repeated runs. The event date box also asks a UT time, and a sidereal
+time variation turns the axes exactly as far as the corrected radix
+will turn them.
 </p>
 
 <h2>The mundane mode</h2>
 <p>
-horm 2 leaves the ecliptic. Every body converts to equatorial
+horm 2 leaves the ecliptic, chosen as REFERENCE SYSTEM EQUATOR = Mundane in
+CHANGE HOROSCOPE DEFAULTS and kept in konsta.int. It is a frame, not the
+menu entry MUNDANE ASPECTS, which lists the aspects the running bodies
+make with each other (see below). Every body converts to equatorial
 coordinates, md11 places it east or west of the meridian axis, and md
 projects it along its semi arc, ninety degrees plus or minus the
 ascensional difference asin of tan latitude times tan declination, into
@@ -285,20 +464,70 @@ reusing one machinery for every mode.
 <h2>The return family</h2>
 <p>
 Beyond solar and lunar, the a16 flow returns every body. A planetar is
-a body's return onto its own radix longitude, the Nth return seeded a
-safe head start past the crossing and then found by the backward
-search, with the count stamped in front of the name just as solnummer
-did. A personar is the sun crossing the radix position of a chosen
-body within the first year of life. A septar is the solar return of
-the year of life whose seven year phase covers the chosen age, the
-rhythm the Döbereiner school reads in periods of seven, the first
-septar being the radix itself. In heliocentric mode the solar becomes
-the terrar, the Earth's return. The shell adds his list outputs, up
-to 84 solar or lunar dates in one table, the lunar by number for the
-Troinsky tertiary directions, and the ambiguous planetare, a body
-swinging retrograde back over the point yields its three or more
-moments of the same number to choose from, up to nine on the very
-eccentric orbits where the walk stops like the original.
+a body's return onto its own radix longitude at the birth place, cast
+for the place of the event. SOLAR, LUNAR and PLANETAR show that event
+place with a Choose place… button that opens <i>EVENT place = BIRTH
+place ?</i>, search and cast the return there while the target stays
+the radix position at the birth place, and leave the place of the
+birth record unchanged. Every result carries the count of returns since
+birth in front of the name, 32.SOLAR, 668.LUNAR or 3.TERRAR, and
+replaces the SOLAR... DATA row of its radix, the Previous year, Next
+year, Previous lunar and Next lunar steps included. His box
+<i>SEARCH with :</i> offers DATE, the default, and the return by number
+into the future or the past, NO. FUTURE and NO. PAST with his hints, in
+the lunar as in the planetar, and number 0 is the radix itself. DATE
+asks the search date under the period of the body in years and days,
+walks back from fifteen days past that day at the clock of the radix
+and counts the return as the whole periods since the birth. The number
+seeds its search a safe head start past the Nth crossing like his
+NO. FUTURE and NO. PAST branches, heliocentric every body a tenth of its
+period past the count. Neptune, Pluto, Quaoar and Xena first say
+<i>NOT MEANINGFUL for the charts of HUMANS !</i>. The backward search finds the last
+passage over the point, his planth menu <i>TAKE OVER the TIME or SEARCH
+FURTHER POINTS ?</i> lists it with the earlier passages of the same
+return, direct or retrograde, up to two more for Mercury to Saturn and
+the belt and eight for the slow bodies, each within his djd of the one
+before. The last row walks on to the direct passage of the return
+before, the count one lower. A chosen moment asks <i>VIEW the CHART
+?</i> or <i>TAKE OVER the TIME VALUE ?</i>, the first shows the chart until
+a key and returns to the menu, the second takes the moment over with
+the count stamped in front of the name as solnummer did. His a16_ta
+periods of Jupiter to Pluto ran too long, Saturn 10821.4 days where its
+mean motion gives 10759.2, and his DATE count of the geocentric Mercury
+and Venus divided by their revolution where his number seeds count them
+once a year, the same return read 10. by number and 41. by date. The
+port counts with the sidereal periods of the mean motions and the
+tropical year for the inner two, and floors the count so a date before
+the birth reads one lower like the numbers into the past. A personar
+is the sun crossing the radix position of a chosen body within the
+first year of life. PERSONAR asks for the planet, then the place,
+shows the chart until a key and closes with <i>CREATE a FURTHER
+PERSONAR ?</i>. A septar is the solar return of
+the (n - 1)th birthday for the nth septar, cast for the place of the
+event. His chain asks the time unit, MONTH by default for septars,
+the period per house and the year of life of interest, the septar
+number follows as FIX(age / period / unit + 1), so seven months per
+house make septars of seven years and the first septar is the radix
+itself. The SPECIAL POINT box of the rhythm school follows without its
+date definition and names the septar being cast, the point rides the
+septar on slot zero as his red F
+in place of the general fixed point, and his information box names
+the years of life the septar governs. In heliocentric mode the solar becomes
+the terrar, the Earth's return onto its heliocentric radix place. TERRAR
+asks <i>ENTER the WANTED CALENDAR YEAR 'YYYY' !</i>, needs no place
+and numbers the chart N.TERRAR by the years since the birth. After a
+key <i>SEARCH a FURTHER SOLAR ?</i> steps to the following or the previous
+year, his box keeps the SOLAR wording. Lunar and septar stay dark under
+the heliocentric switch like his menu, and the personar runs the Earth
+onto the heliocentric radix place of the body without a place and
+without the moon. SOLAR LIST and LUNAR LIST,
+under the heliocentric switch TERRAR - DATA - TABLE, draw his table
+sheet, the dates and times of up to 84 returns in three columns of 28
+rows under the header with the name, the birth date and the places,
+the lunar from the last lunar before four days past a start date and
+the solar or terrar from a first calendar year, never past the 135th
+year of life. A click on a row takes exactly the return of that row
+over as the moment of the panel.
 </p>
 
 <h2>Progressions and the day chart</h2>
@@ -310,7 +539,9 @@ found again by the damped search of wahrso, the houses turned at one
 day per year through the sidereal ladder of hd_hs, or the julian date
 interpolated strictly. The day chart of taho finds on any chosen day
 the moment whose sun stands at the birth's hour angle, the same true
-solar time that ruled the first breath.
+solar time that ruled the first breath. Both switch the heliocentric
+mode off, like the secondary direction, the solar and lunar arcs, the
+primary and the symbolic directions in the RA SYSTEM or MUNDANE.
 </p>
 
 <h2>Symbolic, primary and arc directions</h2>
@@ -328,7 +559,36 @@ secondary direction list runs the transit machinery on the day for a
 year axis and stretches the found dates back into life, and the sun
 and moon arc lists use the fact that a rigid arc moves all points
 equally, so every contact is a crossing of the light alone over
-shifted targets. All of them meet in one evaluation dialog.
+shifted targets, the cusps and the cardinal points shifted with them.
+The a18eing answers ride along. A combined BASE ASPECT like 60° and
+90° leaves the other multiples of its base out (his a18_3045), the
+chosen significators and the first body of From MARS OUTWARD or
+From JUPITER OUTWARD thin the walk, the intermediate cusps direct in a pass of their own (in the
+primary also as promissors), the cardinal points answer the
+conjunction only, and in the ecliptic frame every radix midpoint can
+be a target, keyed by both factors so no midpoint hides another. The
+window holds the years the key makes, not the bare arc. The symbolic
+and primary headings always show the key as Key:… Y/°, and a single
+chosen factor answers <i>CHOOSE AT LEAST 2 FACTORS !</i> and the box
+asks again, like his a18ei2 loop.
+</p>
+
+<h2>The aspects of the running sky among themselves</h2>
+<p>
+MUNDANE ASPECTS, his mund1, sweeps a date window in windows of three
+samples one day apart (half a day with the moon or the true node and
+apogee) and lists every exact aspect two running bodies make. Each pair
+and multiple of the base angle gets his bracket test and his quadratic
+through the three differences for the moment, the positions of both at
+that moment ride beside every row. The port brackets the folded
+difference of the pair, so a meeting across 0° Aries keeps its sign
+change where his separate unwrapping of both bodies lost it, and the
+void of course rule of the hour astrology reads the signs at the moment
+of the aspect. Pinned on the new moon of 21 March 2023 at 0°49' Aries
+and the great conjunction of December 2020. The screen first asks
+<i>Output mode ?</i> with TABLE or LINEAR GRAPHIC. The linear graph
+draws the running bodies without radix lines, marks each aspect on the
+first body of the pair and steps on with NEXT interval.
 </p>
 
 <h2>The multiple directions</h2>
@@ -342,7 +602,36 @@ start of its own rulership sign, the day signs eastward, the night
 signs westward, and MULTI-ARC scales the arc between reference and
 body. The axes answer the haus_ber question like the harmonics, and
 under the new MC answer a901_m rebuilds the Part of Fortune from the
-directed lights. Transpluto stays dark across the whole MULTI world.
+directed lights. Transpluto and the Hamburg factors stay dark across
+the whole MULTI world. Like the prologue of his multiple the session
+always draws a geocentric radix in the ecliptic frame with the mean
+node and the mean Black Moon, while the panel keeps its own switches.
+The MULTI modes direct the fixed point from slot zero like any body,
+the harmonics and the two zero point modes leave it out.
+</p>
+<p>
+The session follows his multiple. The CHOOSE the MODE box offers the six
+MULTI modes and HARMONICS, the event date comes at the birth clock, the
+haus_ber box and for MULTI 3 and MULTI-ARC the REFERENCE FACTOR list,
+headed by the FIXED POINT when one is set, with its three extra rows
+for a house, the ruler of a house and the zero point of a sign follow,
+MULTI ZERO WEST asks haus_ber before the date. HARMONICS asks its order
+again after a 0, which would fold every body onto 0 Aries. The
+sheet of multi11 puts the radix column under RADIX : and the directed
+one beside it, the a12asp grid of the directed bodies against the radix
+at a fifth of a degree times the orb factor, harmonics one degree, and
+the grid of the directed chart with itself, Transpluto left out. halbsm
+lists every directed pair whose near midpoint stands within that fifth
+of a degree of a sign boundary, red on cyan, of a radix cusp or of the
+directed AC and MC, navy on yellow. His loop over the boundaries started
+at the first slot and never saw 0 Aries, the port walks all twelve. The
+centre carries the mode, the date and the age in years. zeitwim then
+walks the birth time in hours, minutes or seconds, the event moves with
+it so the age stays, V, R, plus, minus, Space, the mouse and ESC steer
+like TIME WANDERING, and H, M and S switch the unit as his legend
+promised, his m! was never set so they did nothing. At the end the
+walked time can stay in the radix or the radix returns, and weit_dat
+offers the next date or the end.
 </p>
 
 <h2>Harmonics and the 90 degree circle</h2>
@@ -358,36 +647,87 @@ the whole house system recomputes at the birth latitude. The 90 degree
 circle of a12f is the times four special case on the double wheel, the
 aspect scan runs on the multiplied state including the angles, then
 the AC and MC glyphs divide back into the first quarter for display
-exactly like his pl(13) line. The shell offers both from the Horoskop
-menu, the harmonic as its own double wheel over the radix and the dial
-as the second mode of the comparison.
+exactly like his pl(13) line. The harmonic runs as the seventh mode of
+the MULTI session, the dial as the second mode of DOUBLE WHEEL /
+90 DEGREE DIAL.
 </p>
 
-<h2>The rhythm school and the Dynamogramm</h2>
+<h2>The rhythm school and the dynamogram</h2>
 <p>
-The Münchner Rhythmenlehre after W. Döbereiner walks the twelve houses
+The Munich Rhythm Theory after W. Döbereiner walks the twelve houses
 as life phases of seven years. Every phase triggers the bodies inside
 its house, the ruler of its sign and the rulers of intercepted signs,
 and every trigger pulls in its aspect partners out of the radix matrix
 and its mirror point partners, each age read from the body's place
-within its own house, in years or in the month unit. The Dynamogramm
+within its own house, in years or in the month unit. AC, MC and the
+south node trigger directly, the cardinal points join with his WITH
+CARDINAL POINTS, the Black Moon also fires at its opposite point
+whenever it is shown, and the mundane frame drops the mirror chain
+like his a173. A special point on slot zero walks and chains like a
+body, the aspect scan starts on slot zero whenever a fixed point or
+the special point stands there, as his asp1 did from aa&amp; = 0. The
+clock of a174init dates the ages, the radix from its birth, a Solar
+from its own moment with the age of the Solar in the YR column, a
+Septar from the birth plus its offset of (n - 1) periods of twelve
+houses, every other derived chart from its own moment. The run
+switches the heliocentric mode off. His question
+chain runs as in a17, the Placidus check, the EVALUATION MODE, the
+direction with RIGHT as the default, the date or YR/MO format, the
+beginning phase one, four or seven, the time unit, the period per
+house with OTHER for any value and negative periods into the past,
+and the SPECIAL POINT box that keeps, defines as an ecliptic degree,
+defines through a date or deletes the point, kept in the settings like
+his param_sp. The graph draws one screen per phase, the wheel with the
+phase's house arced in red and its rulers stamped inverted, unless a
+ruler also stands in the phase's house as his note says, beside it
+his strip with the time axis from the phase start at the bottom to its
+end at the top, the direct and ruler triggers on the left, the aspect
+and mirror partners with their aspect sprite and source on the right,
+both columns pushed apart sixteen pixels like a17911, Space walks to
+the next phase. The table lists every trigger under its PHASE n = H m
+heading with the date or YR and MO, the body and his D, P, P2, P3, S or
+the aspect with its source. Pinned in <code>test_symbolic.cpp</code>,
+<code>test_render.cpp</code> and <code>test_rhythm.cpp</code>. The dynamogram
 after Krafft and Goerner runs the progressed sky at one day per year,
 finds every orb passage against the radix and among the running
 points, and spans each with a cosine half wave or a bell curve, signed
 by his valuation scheme of the pairs and angles, weighted by the
 running point's amplitude, summed into the ground mood and the
-existential line of the angles over a five year window. The original
-carried these as its richest interactive screens, the ring graphic of
-the trigger walk and the printed arc pictures stay behind, the tables
-and the summed curves carry the substance. The GRAD-DATUM-LISTE walks
-every half ecliptic degree onto the age the rhythm crosses it, the
-published Gruppenschicksals-Grade of W. Döbereiner ride along with
-their planet pairs, own degrees join through grade.int with their
-mirror across 0 Aries-Libra, and the mundane variant projects each
-degree along its semi arc first. Negative periods run the walk into
-the past, and the Sonderpunkt of a17sonderpkt rides the walk as his
-red F, defined as a degree or indirectly through a date whose age the
-inverse of the degree walk turns back into its degree.
+existential line of the angles over a five year window. His question
+chain comes first, the first year of life, the regressive direction,
+the running moon, whether to watch the single arcs, and cosine arcs or
+bell curves, bell curves being his default. The run forces its own
+frame, no parallax, App.1 positions and the geocentric sky. WATCH the
+SINGLE ARCS ? shows one screen per pass of his analysis, the arcs over
+the radix, then those among the running points, the regressive pair
+after the progressive one, each screen closing on two beeps and a key.
+It draws every arc of the pass that touches the window one after the
+other on a scale of life years, green for Sun, Moon, Mercury, Venus and
+Jupiter, red for Mars and the outer planets, blue for the node and the
+angles, the captions naming the pair, divisor and multiple, the arc
+centre and whether it runs over the radix or among the running points,
+progressive or regressive. The graph carries his three curves, the
+existential situation red dash dotted, the ground mood green dashed and
+the resultant energy blue, scaled by his factor 0.3, under a calendar
+axis of year lines and month letters, with the MEAN of the fifty
+years at the foot. NEXT and PREVIOUS move the window by four
+years. Pinned in <code>test_transit_search.cpp</code> and
+<code>test_auswertung.cpp</code>. The DEGREE DATE LIST walks
+every half ecliptic degree onto the date the rhythm crosses it, phase
+by phase in walk order, the published group destiny degrees of W.
+Döbereiner ride along with their planet pairs drawn as his two
+symbols in a thin box like a174g, the tags on the tooltip, the cardinal
+degrees wear their sign symbol boxed in red and every other degree its
+plain sign symbol, own degrees join through grade.int with their
+mirror across 0 Aries-Libra, a published pair naming the degree first
+like his SELECT, and the mundane variant projects each degree along
+its semi arc first. His EVALUATION MODE also defines an own degree,
+whole or half degrees only, a known point answers EXISTS ALREADY,
+two bodies from his object list make its characteristic, and deletes
+them all after his question. Negative periods run the walk into the
+past, and the special point of a17sonderpkt rides the walk as his red F,
+defined as a degree or indirectly through a date whose age the inverse
+of the clock and of the degree walk turn back into its degree.
 </p>
 
 <h2>The histograms</h2>
@@ -398,9 +738,13 @@ weight into the element and the quality of its sign and of its house,
 planets in the first house and the birth ruler double on demand, the
 weights run 0 to 9 per point with his old fixed row as the fallback
 and entry fifteen covering all extras at once, saved in the konsta
-stream. The house columns stay silent above his haw bar and an exact
-cusp position never scores, both quirks of the original kept and
-tested, and the four counters of the original collapse into one pass
+stream. The house columns stay silent above his haw bar where no
+houses exist, and a point exactly on a cusp stays out of them as in the
+original, which keeps AC and MC off their own cusps since they would
+only add the same two houses to every chart. His open windows between
+the kk edges also dropped a body at exactly 0° Aries or on a sign
+boundary from every sign, the port gives it the sign it opens. The four
+counters of the original collapse into one pass
 that honours the two switches everywhere, the one place his quality
 by house pass forgot them.
 </p>
@@ -412,14 +756,34 @@ with the planetary quality the tradition assigns and the distance in
 light years. Positions move linearly from the millennium epoch, the
 Pleiades, Hyades and Praesepe clusters and the galactic centre and
 apex precess properly from their own epochs, annual aberration rides
-on the chart's sun, and every star is matched against the chart with
-his narrowing windows, two degrees for the conjunction, half of that
-for the opposition, a quarter for the square, a third for the trine.
+on the chart's sun, and every star is matched against the bodies, the
+fixed point and the axes with his narrowing windows, two degrees for
+the conjunction, half of that for the opposition, a quarter for the
+square, a third for the trine. The screen always computes the chart in
+APPARENT 2 like his appa&amp; = 2, whatever the defaults say. The table
+carries right ascension and declination in columns of their own, the
+longitudes in degrees and minutes and up to four contacts as aspect
+symbols. A star with a contact wears red on cyan on its name while the
+printer option is off, with the option on the table stays plain for
+the hardcopy like his deftextcol switch, and the footer of stelt names
+the person, the date, the set and the ephemeris mode.
 The arabic parts follow the one formula base plus first minus second,
-swapped on a night birth, thirty seven built in from the Glückspunkt
+swapped on a night birth, thirty seven built in from the Part of Fortune
 to the point of death with the contributors he credited by name, the
-wealth point keeping its additive exception, and the user's own
-definitions loading from the two ARABTEI files beside the data.
+wealth point keeping its additive exception. His screen asks the
+formula first, traditional, always day or always night, then whether
+to define own points, show the table or delete the own points. An own
+point takes a name of 21 characters, a remark of 14 and three terms
+from his object list, a body from the fixed point to the MC, the Black
+Moon or Chiron, the cusp of a house, the ruler of a house through the
+numbers box, or a whole ecliptic degree, each echoed as its term, up
+to 36 points in his two ARABTEI files of 39 and 16 byte records. The
+own points take the first rows of the table like his arabte. The
+table runs on a geocentric chart with the Black Moon and Chiron always
+computed, each part with its longitude and up to four aspects to the
+fixed point, SO to MC without DS, the Black Moon and Chiron, the rows with
+a hit in red on cyan while the printer option is off, and Space sorts
+the rows by degree. N sorts by name, the tester's addition.
 </p>
 
 <h2>Verification</h2>
@@ -443,8 +807,9 @@ every geocentric idea including the houses.
 order node quirk, the dark Transpluto, both house answers, the a12f
 transform with its divide back and all six MULTI modes over a
 synthetic radix. <code>test_transit_search.cpp</code> adds the first mars
-return and the personar landing on their radix targets and all four
-progression clocks against their defining properties.
+return and the personar landing on their radix targets, the backward
+walk over the three passages of a retrograde loop, the counting periods
+and all four progression clocks against their defining properties.
 </p>
 
 </main>

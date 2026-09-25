@@ -20,12 +20,11 @@ double midpoint_near(double p1, double p2) {
   const double p32 = p31 + kPi;
   const double a1 = std::min(norm_rad(p1 - p31), norm_rad(p2 - p31));
   const double a2 = std::min(norm_rad(p1 - p32), norm_rad(p2 - p32));
-  double p = a1 < a2 ? p31 : p32;
-  p = norm_rad(p);
-  if (p1 + p2 > kTwoPi && p < kPi) {
-    p += kPi;
-  }
-  return p;
+  // his last step added pi whenever the raw sum passed a full circle
+  // and the result lay below pi, so a pair around zero Aries like 100
+  // and 300 degrees got 200 instead of the near 20. The port keeps the
+  // near side his own a1 and a2 test chose
+  return norm_rad(a1 < a2 ? p31 : p32);
 }
 
 namespace {
@@ -35,7 +34,7 @@ double flip_to(double value, double anchor) {
   double w1 = value;
   double w2 = anchor;
   vergl1(w1, w2);
-  if (std::abs(w1 - w2) > kPi / 2.0) {
+  if (std::abs(w1 - w2) > kHalfPi) {
     return norm_rad(value + kPi);
   }
   return value;
@@ -52,9 +51,10 @@ Chart composite_chart(const Chart& a, const ChartInput& ia, const Chart& b, cons
   c.hs = (a.hs + b.hs) / 2.0;
   const double ekls = (a.smo.ekls + b.smo.ekls) / 2.0;
 
-  // the bodies, near side midpoints, the south node rides the north
+  // the bodies, near side midpoints, the south node rides the north. The
+  // loop runs from aa& like a13, a fixed point set in both charts joins
   double node_mid = 0.0;
-  for (int t = 1; t < body::kSlotCount; ++t) {
+  for (int t = body::kFixpunkt; t < body::kSlotCount; ++t) {
     if (t == body::kNodeDesc || t == body::kAscendant || t == body::kMc) {
       continue;
     }
@@ -78,13 +78,25 @@ Chart composite_chart(const Chart& a, const ChartInput& ia, const Chart& b, cons
     ds.el = norm_rad(node_mid + kPi);
   }
 
-  // the houses per mode
+  // the houses per mode, the equal systems take the schematic halves
+  // IF haw& = 6 OR haw& = 7 : CLR comp_hand!,comp_mstz!
+  if (s.houses == HouseSystem::kEqualAsc || s.houses == HouseSystem::kEqualVehlow) {
+    mode = CompositeHouses::kSchematic;
+  }
   switch (mode) {
     case CompositeHouses::kMeanSidereal: {
       //RR Eigene Methode
+      // his hs = (hsi + hsa) / 2 plus the mean longitude is the linear mean
+      // of the two local sidereal times. Two local times more than twelve
+      // hours apart gave the far half of the day, the ARMC stood opposite
+      // the MC midpoint. The port takes the near mean of the local ARMCs
+      // like halbsmin does for degrees
       const double gl = (ia.lon_deg_east + ib.lon_deg_east) / 2.0;
       const double gg = (ia.lat_deg + ib.lat_deg) / 2.0;
-      const double armc = kDegPerHour * norm_hours(c.hs + gl / kDegPerHour);
+      const double armc_a = kDegPerHour * norm_hours(a.hs + ia.lon_deg_east / kDegPerHour);
+      const double armc_b = kDegPerHour * norm_hours(b.hs + ib.lon_deg_east / kDegPerHour);
+      const double armc = norm_deg(kRadToDeg * midpoint_near(armc_a * kDegToRad, armc_b * kDegToRad));
+      c.hs = norm_hours((armc - gl) / kDegPerHour);
       c.armc_deg = armc;
       c.houses = compute_houses(s.houses, armc * kDegToRad, gg, ekls);
       break;
@@ -98,7 +110,7 @@ Chart composite_chart(const Chart& a, const ChartInput& ia, const Chart& b, cons
       double w1 = armcb;
       double w2 = p3;
       vergl1(w1, w2);
-      if (std::abs(w1 - w2) > kPi / 2.0) {
+      if (std::abs(w1 - w2) > kHalfPi) {
         armcb = norm_rad(armcb + kPi);
       }
       c.armc_deg = armcb * kRadToDeg;
@@ -170,6 +182,30 @@ Chart composite_chart(const Chart& a, const ChartInput& ia, const Chart& b, cons
   return c;
 }
 
+// his glc / z& is the plain mean of the longitudes. Places on both sides
+// of the date line then met on the far side of the globe, 170 east and
+// 170 west at Greenwich. The circle is cut in the widest arc free of
+// places, where the plain mean already stands for every group that
+// leaves the date line alone
+double mean_longitude(std::vector<double> lons) {
+  std::sort(lons.begin(), lons.end());
+  const std::size_t n = lons.size();
+  double widest = lons.front() + kDegPerCircle - lons.back();
+  std::size_t cut = n;
+  for (std::size_t i = 0; i + 1 < n; ++i) {
+    if (lons[i + 1] - lons[i] > widest) {
+      widest = lons[i + 1] - lons[i];
+      cut = i + 1;
+    }
+  }
+  double sum = 0.0;
+  for (std::size_t i = 0; i < n; ++i) {
+    sum += lons[i] + (i < cut && cut < n ? kDegPerCircle : 0.0);
+  }
+  const double mean = sum / static_cast<double>(n);
+  return mean > kDegPerCircle / 2.0 ? mean - kDegPerCircle : mean;
+}
+
 // ported from a14
 ChartInput combin_input(const std::vector<ChartInput>& parts, Calendar cal) {
   ChartInput out;
@@ -177,16 +213,16 @@ ChartInput combin_input(const std::vector<ChartInput>& parts, Calendar cal) {
     return out;
   }
   double jd = 0.0;
-  double gl = 0.0;
   double gg = 0.0;
+  std::vector<double> gl;
   for (const ChartInput& p : parts) {
     jd += julian_day(p.date_ut, cal);
-    gl += p.lon_deg_east;
+    gl.push_back(p.lon_deg_east);
     gg += p.lat_deg;
   }
   const double n = static_cast<double>(parts.size());
   out.date_ut = calendar_date(jd / n, cal);
-  out.lon_deg_east = gl / n;
+  out.lon_deg_east = mean_longitude(gl);
   out.lat_deg = gg / n;
   return out;
 }
