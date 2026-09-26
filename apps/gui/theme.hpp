@@ -10,6 +10,8 @@
 #include <QSettings>
 #include <QString>
 #include <algorithm>
+#include <cmath>
+#include <iterator>
 
 // The visual identity of the shell in two dresses. The paper theme,
 // black on white with his yellow label boxes, follows the working
@@ -195,6 +197,11 @@ QMenu::item:selected {
   background: @selBg@;
   color: @selInk@;
 }
+/* his MF_GRAYED rows, the legend of the function keys, the headings of a
+   group and the entries without data stand grey */
+QMenu::item:disabled {
+  color: @disInk@;
+}
 QMenu::separator {
   height: 1px;
   background: @edge@;
@@ -214,6 +221,10 @@ QLabel#aspectsLine {
   padding: 6px 10px;
   font-family: "Courier New", monospace;
   font-size: @13px@;
+}
+/* the column head of his record chooser stands bold like every table head */
+QLabel#columnHead {
+  font-weight: bold;
 }
 QDockWidget {
   color: @headInk@;
@@ -336,6 +347,8 @@ QHeaderView {
 QAbstractScrollArea::corner {
   background: @field@;
 }
+/* The column heads of every table stand bold and as large as the cells
+   below them, the tester's wish for all dialog boxes */
 QHeaderView::section {
   background: @headBg@;
   color: @headInk@;
@@ -344,7 +357,8 @@ QHeaderView::section {
   border-right: 1px solid @grid@;
   padding: 4px 8px;
   font-family: "Courier New", monospace;
-  font-size: @11px@;
+  font-size: @13px@;
+  font-weight: bold;
   letter-spacing: 1px;
 }
 QTableCornerButton::section {
@@ -576,6 +590,11 @@ QPushButton:hover {
 QPushButton:pressed {
   background: @btnHover@;
 }
+/* The number row of his ZIFFERN-EINGABE, narrow keys like his 30 unit
+   buttons, the padding of the wide buttons would swallow the digits */
+QPushButton#digitButton {
+  padding: 4px 2px;
+}
 QToolButton {
   background: @btn@;
   border: 1px solid @edge@;
@@ -591,12 +610,49 @@ QToolButton:pressed {
 )qss";
 
 /// The text scale of the Ansicht menu, percent of the design size.
-inline constexpr int kTextScaleMin = 70;
-inline constexpr int kTextScaleMax = 180;
-inline constexpr int kTextScaleStep = 10;
 inline constexpr int kTextScaleNormal = 100;
+/// The steps of SCHRIFT GRÖßER and SCHRIFT KLEINER. One step down takes
+/// every size a pixel smaller, one step up two pixels larger, the tester
+/// found the old even tenths too small downwards and too timid upwards.
+inline constexpr int kTextScaleSteps[] = {80, 90, 100, 115, 130, 150, 175, 200};
+inline constexpr int kTextScaleMin = kTextScaleSteps[0];
+inline constexpr int kTextScaleMax = kTextScaleSteps[std::size(kTextScaleSteps) - 1];
 /// the settings key the scale survives under between runs
 inline constexpr const char* kTextScaleKey = "view/textScale";
+
+/// The neighbour of a scale on the step ladder, a stored value between
+/// two steps moves to the next step in the asked direction.
+///
+/// @param percent the scale in force
+/// @param larger  true for SCHRIFT GRÖßER, false for SCHRIFT KLEINER
+/// @return the next step, the end of the ladder stays where it is
+inline int next_text_scale(int percent, bool larger) {
+  if (larger) {
+    for (const int s : kTextScaleSteps) {
+      if (s > percent) {
+        return s;
+      }
+    }
+    return kTextScaleMax;
+  }
+  for (auto it = std::rbegin(kTextScaleSteps); it != std::rend(kTextScaleSteps); ++it) {
+    if (*it < percent) {
+      return *it;
+    }
+  }
+  return kTextScaleMin;
+}
+
+/// One font size of the style sheet at a text scale, rounded to the
+/// nearest pixel so a step up and a step down move alike.
+///
+/// @param base    the design size in pixels
+/// @param percent the scale, clamped to the ladder
+/// @return the scaled size, seven pixels at least
+inline int scaled_px(int base, int percent) {
+  const int p = std::clamp(percent, kTextScaleMin, kTextScaleMax);
+  return std::max(7, static_cast<int>(std::lround(base * p / static_cast<double>(kTextScaleNormal))));
+}
 
 /// Builds the stylesheet at a text scale in one of the two themes.
 ///
@@ -604,10 +660,9 @@ inline constexpr const char* kTextScaleKey = "view/textScale";
 /// @param dark true for the night theme, false for black on white
 /// @return the sheet with every font size scaled and colour resolved
 inline QString stylesheet(int percent, bool dark) {
-  const int p = std::clamp(percent, kTextScaleMin, kTextScaleMax);
   QString qss = QString::fromUtf8(kStyleSheetTemplate);
   for (const int base : {14, 13, 12, 11}) {
-    qss.replace(QString("@%1px@").arg(base), QString("%1px").arg(std::max(7, base * p / kTextScaleNormal)));
+    qss.replace(QString("@%1px@").arg(base), QString("%1px").arg(scaled_px(base, percent)));
   }
   for (const Token& t : kTokens) {
     qss.replace(QString::fromLatin1(t.mark), QString::fromLatin1(dark ? t.dark : t.light));

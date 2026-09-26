@@ -64,18 +64,33 @@ QString cell(const QTableWidget* t, int row, int col) {
 TEST_CASE("PLANETEN-KOORDINATEN draws his ko_ta rows with both nodes") {
   auto w = MainWindowProbe::make();
   MainWindowProbe::apply(*w, morning_birth());
+  const ChartSettings s = MainWindowProbe::settings(*w);
   QStringList heads;
   QString head_text;
   int rows = 0;
   QString mean_vel;
   QString mean_a;
+  QString true_a;
+  QString sun_a;
   QString mean_mark;
   QString true_lon;
   QString true_mark;
   QString true_ra;
   QString sun_ra;
+  QString sun_percent;
+  QString sun_au;
   QString sun_apsides;
   QString mars_node;
+  QString ag_mean_lon;
+  QString ag_true_lon;
+  QString ag_mean_mark;
+  QString ag_true_mark;
+  QString gl_tag;
+  QString gl_lon;
+  QColor mean_node_back;
+  QColor true_node_back;
+  QColor mean_ag_back;
+  QColor true_ag_back;
   QString question;
   {
     DialogDriver drive;
@@ -92,13 +107,29 @@ TEST_CASE("PLANETEN-KOORDINATEN draws his ko_ta rows with both nodes") {
           rows = t->rowCount();
           mean_vel = cell(t, 10, 3);
           mean_a = cell(t, 10, 4);
-          mean_mark = cell(t, 10, 8);
+          true_a = cell(t, 11, 4);
+          sun_a = cell(t, 0, 4);
+          // his textrc of Mittel and Wahr in the Breite column of the nodes
+          mean_mark = cell(t, 10, 2);
           true_lon = cell(t, 11, 1);
-          true_mark = cell(t, 11, 8);
-          true_ra = cell(t, 11, 6);
-          sun_ra = cell(t, 0, 6);
-          sun_apsides = cell(t, 0, 10);
-          mars_node = cell(t, 4, 8);
+          true_mark = cell(t, 11, 2);
+          true_ra = cell(t, 11, 7);
+          sun_ra = cell(t, 0, 7);
+          sun_percent = cell(t, 0, 5);
+          sun_au = cell(t, 0, 6);
+          sun_apsides = cell(t, 0, 11);
+          mars_node = cell(t, 4, 9);
+          // the Black Moon moved up from ZUSATZ, its box in the Rekt. column
+          ag_mean_lon = cell(t, 12, 1);
+          ag_true_lon = cell(t, 13, 1);
+          ag_mean_mark = cell(t, 12, 7);
+          ag_true_mark = cell(t, 13, 7);
+          gl_tag = cell(t, 14, 0);
+          gl_lon = cell(t, 14, 1);
+          mean_node_back = t->item(10, 2)->background().color();
+          true_node_back = t->item(11, 2)->background().color();
+          mean_ag_back = t->item(12, 7)->background().color();
+          true_ag_back = t->item(13, 7)->background().color();
           press_later(d, Qt::Key_Space);
         })
         .then([&question](QDialog* d) {
@@ -117,13 +148,21 @@ TEST_CASE("PLANETEN-KOORDINATEN draws his ko_ta rows with both nodes") {
     CHECK(drive.pending() == 0);
     CHECK(drive.unexpected() == 0);
   }
-  CHECK(heads == QStringList{"Pl", "Ekl. Länge", "Breite", "Vel.'", "A", "Entf.", "Rekt.°", "Dekl.°", "Knot.ND",
-                             "Knot.SD", "Apsiden", "Pl"});
-  // SO to PL and the node twice, Mittel and Wahr
-  CHECK(rows == 12);
+  // the distance in percent and in AU side by side, the tester's wish in
+  // place of the ENTFERNUNGSWERTE question
+  CHECK(heads == QStringList{"Pl", "Ekl. Länge", "Breite", "Vel.'", "A", "Entf.%", "Entf.AE", "Rekt.°", "Dekl.°",
+                             "Knot.ND", "Knot.SD", "Apsiden", "Pl"});
+  // SO to PL, the node and the Black Moon twice, Mittel and Wahr, and the
+  // Glückspunkt last
+  CHECK(rows == 15);
   // his mean node runs -0.00092422029 per day, -3.18 arc minutes
   CHECK(mean_vel.trimmed() == "-3.18");
-  CHECK(mean_a == "-");
+  // the Mittel row has no change of motion, his IF without a zero case
+  // printed "-" there, the true node carries its sign
+  CHECK(mean_a.isEmpty());
+  CHECK((true_a == "+" || true_a == "-"));
+  // the Sun loses speed from January to July, his chain had no sign for it
+  CHECK(sun_a == "-");
   CHECK(mean_mark == "Mittel");
   CHECK(true_mark == "Wahr");
   // the true node in the minutes format
@@ -132,9 +171,25 @@ TEST_CASE("PLANETEN-KOORDINATEN draws his ko_ta rows with both nodes") {
   CHECK_FALSE(true_ra.isEmpty());
   // the right ascension with three decimals
   CHECK(sun_ra.trimmed().section('.', 1).size() == 3);
+  CHECK(sun_percent.trimmed().endsWith('%'));
+  CHECK(sun_au.trimmed().toDouble() == doctest::Approx(1.0).epsilon(0.02));
   // the apsides stand in two lines
   CHECK(sun_apsides.contains(QChar(0x0A)));
   CHECK_FALSE(mars_node.isEmpty());
+  // the mean apogee in seconds, the true one in minutes
+  CHECK(ag_mean_lon.contains('"'));
+  CHECK_FALSE(ag_true_lon.isEmpty());
+  CHECK_FALSE(ag_true_lon.contains('"'));
+  CHECK(ag_mean_mark == "Mittel");
+  CHECK(ag_true_mark == "Wahr");
+  CHECK(gl_tag == "GL");
+  CHECK_FALSE(gl_lon.isEmpty());
+  // the yellow box marks only the form the chart works with
+  const QColor yellow(0xFF, 0xFF, 0x00);
+  CHECK((s.true_node ? true_node_back : mean_node_back) == yellow);
+  CHECK((s.true_node ? mean_node_back : true_node_back) != yellow);
+  CHECK((s.true_apogee ? true_ag_back : mean_ag_back) == yellow);
+  CHECK((s.true_apogee ? mean_ag_back : true_ag_back) != yellow);
   CHECK(head_text.contains("Planeten-Koordinaten"));
   CHECK(head_text.contains("MOND-Apsiden : "));
   CHECK(question.contains("ZEIT VARIIEREN ?"));
@@ -145,10 +200,11 @@ TEST_CASE("ZUSATZ-PLANETEN-KOORDINATEN lists every extra body with its name") {
   MainWindowProbe::apply(*w, morning_birth());
   int rows = 0;
   QStringList names;
-  QString ag_mean_lon;
-  QString ag_true_lon;
+  QStringList longitudes;
   QString cupido_lat;
   QString chiron_ra;
+  int table_height = 0;
+  int rows_height = 0;
   {
     DialogDriver drive;
     drive.then([&](QDialog* d) {
@@ -157,30 +213,38 @@ TEST_CASE("ZUSATZ-PLANETEN-KOORDINATEN lists every extra body with its name") {
       rows = t->rowCount();
       for (int r = 0; r < rows; ++r) {
         names << cell(t, r, 8);
+        longitudes << cell(t, r, 1);
+        rows_height += t->rowHeight(r);
       }
-      ag_mean_lon = cell(t, 0, 1);
-      ag_true_lon = cell(t, 1, 1);
-      chiron_ra = cell(t, 2, 6);
-      // CU stands at slot 27, row 2 + 27 - 20
-      cupido_lat = cell(t, 9, 2);
+      chiron_ra = cell(t, 0, 6);
+      cupido_lat = cell(t, 12, 2);
+      table_height = t->viewport()->height();
       d->reject();
     });
     MainWindowProbe::coordinate_table(*w, true);
     CHECK(drive.pending() == 0);
   }
-  // the apogee twice and the slots 20 to 40
-  CHECK(rows == 23);
-  CHECK(names.value(0) == "Schw. Mond,MITTEL AG");
-  CHECK(names.value(1) == "Schw. Mond,WAHR   AG");
-  CHECK(names.value(2) == "Chiron            CH");
-  CHECK(names.value(9) == "Cupido            CU");
-  CHECK(names.value(22) == "Xena              XE");
-  // the mean apogee in seconds, the true one in minutes
-  CHECK(ag_mean_lon.contains('"'));
-  CHECK_FALSE(ag_true_lon.contains('"'));
+  // the tester's order, the real bodies first, the invented ones last,
+  // the Black Moon and the Glückspunkt stand on the first sheet
+  CHECK(rows == 20);
+  CHECK(names.value(0) == "Chiron            CH");
+  CHECK(names.value(1) == "Quaoar            QU");
+  CHECK(names.value(2) == "Xena              XE");
+  CHECK(names.value(3) == "Ceres             CE");
+  CHECK(names.value(7) == "Pholus            PH");
+  CHECK(names.value(10) == "Komet Halley      HL");
+  CHECK(names.value(11) == "Transpluto = Isis TP");
+  CHECK(names.value(12) == "Cupido            CU");
+  CHECK(names.value(19) == "Poseidon          PO");
+  // QU, XE and PO carry their values, the tester found them missing
+  for (const int r : {1, 2, 19}) {
+    CHECK_FALSE(longitudes.value(r).isEmpty());
+  }
   CHECK_FALSE(chiron_ra.isEmpty());
   // the Hamburg points carry no latitude
   CHECK(cupido_lat.isEmpty());
+  // every row stands in the window, none hides below its edge
+  CHECK(table_height >= rows_height);
 }
 
 TEST_CASE("ZEIT VARIIEREN walks the table and keeps the varied moment") {
@@ -272,6 +336,50 @@ TEST_CASE("GRAD-LISTE G/H pages his list and sorts it on request") {
   CHECK(sorted_page.contains("Gesamt -"));
 }
 
+TEST_CASE("ARABISCHE TEILE mark a conjunction with his yellow box like the fixed stars") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::houses(*w, 1);
+  MainWindowProbe::apply(*w, morning_birth());
+  const std::filesystem::path dir = std::filesystem::temp_directory_path() / "horcom_arabic_conjunction";
+  std::filesystem::remove_all(dir);
+  std::filesystem::create_directories(dir);
+  MainWindowProbe::set_data_dir(*w, dir);
+  const QString conjunction = QString::fromUtf8(aspect_glyph(star_aspect_family(kStarConjunction)));
+  int rows = 0;
+  int conjunctions = 0;
+  int agree = 0;
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("TRADITIONELL"))
+        .then(DialogDriver::click("TABELLEN-AUSGABE"))
+        .then([&](QDialog* d) {
+          const auto* t = d->findChild<QTableWidget*>();
+          REQUIRE(t != nullptr);
+          for (int r = 0; r < t->rowCount(); ++r) {
+            const QTableWidgetItem* asp = t->item(r, 3);
+            if (asp == nullptr) {
+              continue;
+            }
+            ++rows;
+            const bool has = asp->text().contains(conjunction);
+            const bool yellow = asp->background().style() != Qt::NoBrush && asp->background().color() == QColor(0xFF, 0xFF, 0x00);
+            conjunctions += has ? 1 : 0;
+            agree += has == yellow ? 1 : 0;
+          }
+          d->reject();
+        });
+    MainWindowProbe::arabic_table(*w);
+    INFO(drive.titles().join(" | ").toStdString());
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  std::filesystem::remove_all(dir);
+  // the yellow box stands exactly on the rows with a conjunction
+  REQUIRE(rows > 30);
+  CHECK(conjunctions > 0);
+  CHECK(agree == rows);
+}
+
 TEST_CASE("ARABISCHE TEILE defines an own point and puts it on the first row") {
   auto w = MainWindowProbe::make();
   MainWindowProbe::houses(*w, 1);
@@ -343,6 +451,8 @@ TEST_CASE("INGRESSE draws his Sun year and pages a year on") {
   QString title_first;
   QString title_next;
   QString aries;
+  QString first_sign;
+  QString window_title;
   int rows = 0;
   {
     DialogDriver drive;
@@ -355,7 +465,10 @@ TEST_CASE("INGRESSE draws his Sun year and pages a year on") {
           const auto* t = d->findChild<QTableWidget*>();
           REQUIRE(t != nullptr);
           rows = t->rowCount();
-          aries = t->item(0, 0)->text() + "|" + t->item(0, 1)->text();
+          window_title = d->windowTitle();
+          // the sign column the tester wanted at the far left
+          first_sign = t->item(0, 0)->text();
+          aries = t->item(0, 1)->text() + "|" + t->item(0, 2)->text();
           for (const QLabel* l : d->findChildren<QLabel*>()) {
             if (l->text().contains("Ingresse")) {
               title_first = l->text();
@@ -376,6 +489,8 @@ TEST_CASE("INGRESSE draws his Sun year and pages a year on") {
     CHECK(drive.unexpected() == 0);
   }
   CHECK(rows == 12);
+  CHECK(window_title == "INGRESSE PLANETEN-MC-AC");
+  CHECK(first_sign.endsWith("WIDDER"));
   CHECK(title_first == " Ingresse der SONNE im Kalenderjahr 1993");
   CHECK(title_next == " Ingresse der SONNE im Kalenderjahr 1994");
   // the equinox of 1993 fell on March 20
@@ -399,12 +514,13 @@ TEST_CASE("INGRESSE of the MC fill three day columns and page three days") {
           const auto* t = d->findChild<QTableWidget*>();
           REQUIRE(t != nullptr);
           columns = t->columnCount();
-          first_day = t->item(0, 0) != nullptr ? t->item(0, 0)->text() : QString();
-          third_day = t->item(0, 2) != nullptr ? t->item(0, 2)->text() : QString();
-          mc_length = t->item(0, 3) != nullptr ? t->item(0, 3)->text() : QString();
+          // the sign stands first, the three days and the Länge follow
+          first_day = t->item(0, 1) != nullptr ? t->item(0, 1)->text() : QString();
+          third_day = t->item(0, 3) != nullptr ? t->item(0, 3)->text() : QString();
+          mc_length = t->item(0, 4) != nullptr ? t->item(0, 4)->text() : QString();
           QKeyEvent e(QEvent::KeyPress, Qt::Key_Space, Qt::NoModifier);
           QApplication::sendEvent(d, &e);
-          after_step = t->item(0, 0) != nullptr ? t->item(0, 0)->text() : QString();
+          after_step = t->item(0, 1) != nullptr ? t->item(0, 1)->text() : QString();
           d->reject();
         });
     MainWindowProbe::ingress_table(*w);
@@ -412,7 +528,7 @@ TEST_CASE("INGRESSE of the MC fill three day columns and page three days") {
     CHECK(drive.pending() == 0);
     CHECK(drive.unexpected() == 0);
   }
-  CHECK(columns == 4);
+  CHECK(columns == 5);
   INFO(first_day.toStdString());
   // his datum$ with the two digit year, three days D to D+2
   CHECK(first_day.startsWith("10. 5.70"));
@@ -513,6 +629,88 @@ TEST_CASE("INGRESSE of the tester's bodies page one circuit of the zodiac") {
   CHECK(circuit > tja);
   CHECK(title_next == " Ingresse von MARS bis ca. dem Datum : " +
                           datum3_text(calendar_date(jd + circuit, MainWindowProbe::settings(*w).calendar)));
+}
+
+TEST_CASE("PLANETEN-KOORDINATEN stands beyond the polar circle and names the inverted planets") {
+  auto w = MainWindowProbe::make();
+  AafRecord r = morning_birth();
+  r.lat_deg = 70;
+  MainWindowProbe::apply(*w, r);
+  // his a60 leaves only the house routine on maxbreit, ko_ta still lists
+  // every body, the sheet takes the AC and MC of the wheel
+  MainWindowProbe::konsta(*w).plinv = 3;
+  QString sun;
+  QString node_vel;
+  QString notes;
+  {
+    DialogDriver drive;
+    drive.then([&](QDialog* d) {
+      const auto* t = d->findChild<QTableWidget*>();
+      REQUIRE(t != nullptr);
+      sun = cell(t, 0, 1);
+      node_vel = cell(t, 11, 3);
+      for (const QLabel* l : d->findChildren<QLabel*>()) {
+        notes += l->text() + "|";
+      }
+      d->reject();
+    });
+    MainWindowProbe::coordinate_table(*w, false);
+    CHECK(drive.pending() == 0);
+  }
+  CHECK_FALSE(sun.trimmed().isEmpty());
+  // the true node of the chart, not one differentiated around an unset epoch
+  CHECK(node_vel.trimmed().toDouble() != 0.0);
+  CHECK(std::abs(node_vel.trimmed().toDouble()) < 60.0);
+  // the two lines under plinv answer where the inverse symbols come from
+  CHECK(notes.contains("Invertiert : MA,SA,UR,NE,PL"));
+  CHECK(notes.contains("KENNZEICHNUNG in VORGABEN DIREKTIONEN"));
+}
+
+TEST_CASE("INGRESSE of XENA page up to the last day of its ephemeris") {
+  auto w = MainWindowProbe::make();
+  // the table reckons XENA also where the panel leaves it out
+  MainWindowProbe::preset_extras(*w, false, false, false);
+  MainWindowProbe::apply(*w, morning_birth());
+  const bool parallax = MainWindowProbe::settings(*w).topocentric_parallax;
+  QString title_next;
+  QStringList years_next;
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("XENA"));
+    if (parallax) {
+      drive.then(DialogDriver::click("OK"));
+    }
+    drive.then(DialogDriver::fill({"", "1", "1", "2026"}, "OK")).then([&](QDialog* d) {
+      const auto* t = d->findChild<QTableWidget*>();
+      REQUIRE(t != nullptr);
+      QKeyEvent space(QEvent::KeyPress, Qt::Key_Space, Qt::NoModifier);
+      QApplication::sendEvent(d, &space);
+      for (const QLabel* l : d->findChildren<QLabel*>()) {
+        if (l->text().contains("Ingresse")) {
+          title_next = l->text();
+        }
+      }
+      // his datum3$ pads the date on the right
+      for (int r = 0; r < t->rowCount(); ++r) {
+        if (t->item(r, 1) != nullptr) {
+          years_next << t->item(r, 1)->text().trimmed().right(4);
+        }
+      }
+      d->reject();
+    });
+    MainWindowProbe::ingress_table(*w);
+    CHECK(drive.pending() == 0);
+  }
+  INFO(title_next.toStdString() << " | " << years_next.join(",").toStdString());
+  // his XENA file ends in 2201, a whole circuit of 557 years on the page
+  // stops there instead of turning empty, the tester saw the dates end in
+  // the 19th century
+  CHECK(title_next.trimmed().right(4).toInt() >= 2200);
+  CHECK(std::any_of(years_next.begin(), years_next.end(), [](const QString& y) { return y.toInt() > 2026; }));
+  // the coming entries of his file, TAURUS, GEMINI and CANCER
+  for (const char* year : {"2048", "2148", "2193"}) {
+    CHECK(years_next.contains(year));
+  }
 }
 
 TEST_CASE("the zodiac cells carry a rounded unit into the next sign like grze_0") {
@@ -623,6 +821,7 @@ TEST_CASE("FIX-STERN-POSITIONEN runs his stella in Apparent 2 with the stelt lin
   QString aldebaran_aspects;
   QColor marked_back;
   QColor marked_ink;
+  QColor conjunction_back;
   {
     DialogDriver drive;
     drive.then([&](QDialog* d) {
@@ -637,6 +836,7 @@ TEST_CASE("FIX-STERN-POSITIONEN runs his stella in Apparent 2 with the stelt lin
           aldebaran_aspects = cell(t, r, 2);
           marked_back = t->item(r, 0)->background().color();
           marked_ink = t->item(r, 0)->foreground().color();
+          conjunction_back = t->item(r, 2)->background().color();
         }
       }
       if (const auto* l = d->findChild<QLabel*>("stelt")) {
@@ -658,10 +858,12 @@ TEST_CASE("FIX-STERN-POSITIONEN runs his stella in Apparent 2 with the stelt lin
   CHECK(footer.count("TESTFALL") == 1);
   // the Fixpunkt conjunction with his sprite, not the letter K
   // stelk puts the sprite first and the tag behind it
-  CHECK(aldebaran_aspects.startsWith(QString::fromUtf8(aspect_glyph(star_aspect_family('K'))) + "FP"));
+  CHECK(aldebaran_aspects.startsWith(QString::fromUtf8(aspect_glyph(star_aspect_family(kStarConjunction))) + "FP"));
   // his deftextcol(3), red on cyan
   CHECK(marked_back == QColor(0x00, 0xFF, 0xFF));
   CHECK(marked_ink == QColor(0xFF, 0x00, 0x00));
+  // the conjunction wears his yellow box, the tester's wish
+  CHECK(conjunction_back == QColor(0xFF, 0xFF, 0x00));
 }
 
 TEST_CASE("VORGABEN EPHEMERIDE runs his ave as a chain") {
@@ -684,31 +886,38 @@ TEST_CASE("VORGABEN EPHEMERIDE runs his ave as a chain") {
   CHECK(MainWindowProbe::konsta(*w).appa == 3);
   CHECK(MainWindowProbe::konsta(*w).appa_name == "Wahr");
   QStringList kept_rows;
+  QStringList topics;
   {
     DialogDriver drive;
-    drive.then(DialogDriver::click("FIXPUNKT als 'PLANET'"))
+    drive
+        .then([&topics](QDialog* d) {
+          for (const QAbstractButton* b : d->findChildren<QAbstractButton*>()) {
+            topics << b->text();
+          }
+          DialogDriver::click("FIXPUNKT als 'PLANET'")(d);
+        })
         .then(DialogDriver::click("NEU DEFINIEREN"))
-        .then(DialogDriver::pick_row(4))                  // LÖWE
-        .then(DialogDriver::fill({"12", "30", "0"}, "OK"))  // his input_grmise_zod
-        .then(DialogDriver::click("PROZENTUAL"));          // the last topic ends the chain
+        .then(DialogDriver::pick_row(4))                     // LÖWE
+        .then(DialogDriver::fill({"12", "30", "0"}, "OK"));  // his input_grmise_zod, the last topic ends the chain
     MainWindowProbe::vorgaben_ephemeride(*w);
     INFO(drive.titles().join(" | ").toStdString());
     CHECK(drive.pending() == 0);
     CHECK(drive.unexpected() == 0);
   }
+  // the tables show both distances, the question of his last topic is gone
+  CHECK_FALSE(topics.join("|").contains("ENTFERNUNGSWERTE"));
   CHECK(MainWindowProbe::fixpunkt(*w) * kRadToDeg == doctest::Approx(132.5));
   {
     DialogDriver drive;
-    drive.then(DialogDriver::click("FIXPUNKT als 'PLANET'"))
-        .then([&kept_rows](QDialog* d) {
-          for (const QAbstractButton* b : d->findChildren<QAbstractButton*>()) {
-            kept_rows << b->text();
-          }
-          DialogDriver::click("BEIBEHALTEN")(d);
-        })
-        .then(DialogDriver::click("EXIT"));
+    drive.then(DialogDriver::click("FIXPUNKT als 'PLANET'")).then([&kept_rows](QDialog* d) {
+      for (const QAbstractButton* b : d->findChildren<QAbstractButton*>()) {
+        kept_rows << b->text();
+      }
+      DialogDriver::click("BEIBEHALTEN")(d);
+    });
     MainWindowProbe::vorgaben_ephemeride(*w);
     CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
   }
   // his fixp_def offers the defined point by its gz0$
   CHECK(kept_rows.contains(QString::fromUtf8("FIXPUNKT 12\xC2\xB0LE30' BEIBEHALTEN")));

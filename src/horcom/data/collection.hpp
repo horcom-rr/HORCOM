@@ -71,6 +71,16 @@ namespace horcom {
 /// @return the index of the record, nothing when none matches
 [[nodiscard]] std::optional<std::size_t> aaf_ident(const std::vector<AafRecord>& aaf, std::string_view dat_name);
 
+/// Every AAF record whose name meets a DAT name exactly, the first rule
+/// of aaf_ident over the whole file. A twin can hold the name twice once
+/// a record was saved ZUSÄTZLICH, and ÜBERSCHREIBEN drops them all like
+/// a22ueberschrb drops every DAT record of the name.
+///
+/// @param aaf      the AAF records
+/// @param dat_name the name field of the DAT record
+/// @return the indices in file order, empty when none matches
+[[nodiscard]] std::vector<std::size_t> aaf_named(const std::vector<AafRecord>& aaf, std::string_view dat_name);
+
 /// The Datensatz gleichen Namens test of the AAF box before a save,
 /// ported from CASE 168 of aaf_box. The exact surname and given name win,
 /// else his test runs, both names inside the head of the #A93 line. Like

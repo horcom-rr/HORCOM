@@ -31,6 +31,9 @@ inline constexpr int kMc = 14;
 // a921 on the slots between the axes and the extra bodies
 inline constexpr int kAriesPoint = 15;
 inline constexpr int kCapricornPoint = 18;
+/// the standard layout nk(i) = 18 + i counts the extra bodies on from the
+/// last cardinal point
+inline constexpr int kExtraSlotBase = kCapricornPoint;
 // the extra body slots of the standard layout nk(i) = 18 + i
 inline constexpr int kApogee = 19;
 inline constexpr int kChiron = 20;

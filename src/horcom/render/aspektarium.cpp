@@ -102,10 +102,12 @@ DisplayList build_aspektarium(const AspektariumInput& in, const AspektariumText&
               red(slot) ? kMarkRed : kInkColor, block);
       return;
     }
+    // a body marked red stands red alone like on the wheel, the tester
+    // wanted the black square gone under the red
     Rgb ink = red(slot) ? kMarkRed : kInkColor;
-    if (inverted(slot)) {
+    if (inverted(slot) && !red(slot)) {
       add(inverted_patch(x, y + (block ? kBlockShift : 0.0), kSpriteSize));
-      ink = red(slot) ? kMarkRed : kInvertedInk;
+      ink = kInvertedInk;
     }
     sprite(g, x, y, ink, block);
   };

@@ -235,6 +235,8 @@ Die Anzahl der Halbsummen kann wahlweise mit einem Zähler schnell überschaut w
 
 ## MULTIPLE DIREKTIONEN nach STEPHAN.A. LEHRIEDER
 
+*Anmerkung der Neufassung, in dieser Version steht MULTIPLE DIREKTIONEN / HARMONICS unter AUSWERTUNG.*
+
 Haben z.Teil einen Zusammenhang mit den HARMONICS nur daß hier auch und gerade NICHT ganzzahlige Multiplikatoren verwendet werden,nämlich das LEBENSALTER in Dezimalangabe : Zahl der Tage zwischen Geburt und Ereignis dividiert durch die Länge eines tropischen Jahres ( 365,2422 ) ergibt LJ = Lebensjahre.
 
 Es gibt bisher folgende Spielarten :

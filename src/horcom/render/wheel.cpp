@@ -534,7 +534,9 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
   // glyphs land first, then every symbol, so crowded neighbours never
   // erase each other.
   // the SRCINVERT set of bmp_color_pl, both geb_herr rulers, the true
-  // node pair under moknw and the true apogee Lilith under apogw
+  // node pair under moknw and the true apogee Lilith under apogw. A red
+  // marked symbol leaves the black square, his SRCINVERT of the red field
+  // put it on cyan, the tester wanted the red alone
   const auto inverted_slot = [&opt](int slot) {
     bool inv = slot == opt.ruler_slot || slot == opt.ruler_slot2;
     if ((slot == body::kNodeAsc || slot == body::kNodeDesc) && opt.invert_nodes) {
@@ -543,8 +545,14 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
     if (slot == body::kApogee && opt.invert_apogee) {
       inv = true;
     }
+    // the phase rulers of the rhythm keep their own stamp
     if (std::find(opt.flip_inverted.begin(), opt.flip_inverted.end(), slot) != opt.flip_inverted.end()) {
       inv = !inv;
+    }
+    // a body marked red stands red alone, whatever stamp it would wear,
+    // the tester wanted the black square gone under the red ruler
+    if (opt.emphasis[static_cast<std::size_t>(slot)] > 0) {
+      inv = false;
     }
     return inv;
   };

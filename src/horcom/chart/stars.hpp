@@ -56,6 +56,9 @@ struct StarRow {
 /// @return per hit the body slot and his letter K O Q T
 [[nodiscard]] std::vector<std::pair<int, char>> point_aspects(const Chart& chart, double la, double orb);
 
+/// The letter of point_aspects for a conjunction, his K.
+inline constexpr char kStarConjunction = 'K';
+
 /// The aspect sprite stelk drew for one of his letters.
 ///
 /// @param kind the letter of point_aspects, K O Q or T
@@ -63,7 +66,7 @@ struct StarRow {
 ///         4 square and 3 trine
 [[nodiscard]] constexpr int star_aspect_family(char kind) {
   switch (kind) {
-    case 'K': return 1;
+    case kStarConjunction: return 1;
     case 'O': return 2;
     case 'Q': return 4;
     default: return 3;

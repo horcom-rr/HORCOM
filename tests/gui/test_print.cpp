@@ -3,11 +3,18 @@
 // Copyright (c) 2026 Dominik Schwimmbeck
 
 #include <QCheckBox>
+#include <QHeaderView>
+#include <QImage>
+#include <QLabel>
+#include <QRegularExpression>
+#include <QTableWidget>
+#include <filesystem>
 #include <numeric>
 
 #include "dialog_driver.hpp"
 #include "doctest.h"
 #include "probe.hpp"
+#include "theme.hpp"
 
 using namespace horcom;
 using horcom::test::DialogDriver;
@@ -113,4 +120,87 @@ TEST_CASE("the Histogramme window keeps its switches for the session") {
   CHECK(haus1_shown);
   CHECK_FALSE(k.haus1_dop);
   CHECK(k.gebherr_dop);
+}
+
+TEST_CASE("the Histogramme window adds the sign and the house points") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, birth());
+  plain_weights(MainWindowProbe::konsta(*w));
+  QStringList heads;
+  QStringList sums;
+  DialogDriver drive;
+  drive.then([&heads, &sums](QDialog* d) {
+    const auto* t = d->findChild<QTableWidget*>();
+    REQUIRE(t != nullptr);
+    for (int c = 0; c < t->columnCount(); ++c) {
+      heads << t->horizontalHeaderItem(c)->text();
+    }
+    // the number before each bar, sign plus house against the sum
+    for (int r = 0; r < t->rowCount(); ++r) {
+      const int sign = t->item(r, 1)->text().section(' ', 0, 0).toInt();
+      const int house = t->item(r, 2)->text().section(' ', 0, 0).toInt();
+      const int sum = t->item(r, 3)->text().section(' ', 0, 0).toInt();
+      sums << QString("%1+%2=%3").arg(sign).arg(house).arg(sum);
+    }
+    d->reject();
+  });
+  MainWindowProbe::histogram_view(*w);
+  CHECK(drive.pending() == 0);
+  // the tester's Gesamt-Summe, TKZ + Häuser-Punkte
+  CHECK(heads == QStringList{"Klasse", "Zeichen", "Häuser", "Gesamt"});
+  REQUIRE(sums.size() == 7);
+  for (const QString& s : sums) {
+    INFO(s.toStdString());
+    const QStringList parts = s.split(QRegularExpression("[+=]"));
+    CHECK(parts[0].toInt() + parts[1].toInt() == parts[2].toInt());
+  }
+}
+
+TEST_CASE("HOROSKOP als PNG SPEICHERN writes the sheet as a picture") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, birth());
+  const std::filesystem::path file = std::filesystem::temp_directory_path() / "horcom_gui_tests_sheet.png";
+  std::filesystem::remove(file);
+  REQUIRE(w->export_png_to(QString::fromStdWString(file.wstring())));
+  const QImage image(QString::fromStdWString(file.wstring()));
+  REQUIRE_FALSE(image.isNull());
+  // three pixels per unit of his 640 by 480 canvas
+  CHECK(image.width() == 1920);
+  CHECK(image.height() == 1440);
+  // the paper of the classic sheet fills the picture like the SVG, the
+  // wheel drawn on it
+  const QColor paper((kPaperColor >> 16) & 0xFF, (kPaperColor >> 8) & 0xFF, kPaperColor & 0xFF);
+  CHECK(image.pixelColor(2, 2) == paper);
+  int ink = 0;
+  for (int y = 0; y < image.height(); y += 8) {
+    for (int x = 0; x < image.width(); x += 8) {
+      const QColor c = image.pixelColor(x, y);
+      ink += (c != paper && c != QColor(Qt::white)) ? 1 : 0;
+    }
+  }
+  CHECK(ink > 1000);
+  std::filesystem::remove(file);
+}
+
+TEST_CASE("VORGABEN-ÜBERSICHT marks the date yellow like his mainkont_dat_zeit") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, birth());
+  QString left;
+  DialogDriver drive;
+  drive.then([&left](QDialog* d) {
+    for (const QLabel* l : d->findChildren<QLabel*>()) {
+      if (l->text().contains("Name :")) {
+        left = l->text();
+      }
+    }
+    d->reject();
+  });
+  MainWindowProbe::vorgaben_overview(*w);
+  CHECK(drive.pending() == 0);
+  // his deftextcol(2), the date and the clock in the yellow box of the
+  // headings, the tester asked for the yellow date back
+  const ClassicSheetText sheet = MainWindowProbe::sheet(*w);
+  CHECK(left.contains(theme::heading_span(QString::fromStdString(sheet.date).toHtmlEscaped())));
+  CHECK(left.contains(theme::heading_span(QString::fromStdString(sheet.ut).toHtmlEscaped())));
+  CHECK(left.contains(theme::heading_span(QString::fromStdString(sheet.name).toHtmlEscaped())));
 }

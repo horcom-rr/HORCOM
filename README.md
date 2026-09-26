@@ -46,35 +46,39 @@ He wished for HORCOM to live on in C++. This project is that rewrite, done caref
 - Robert Rettig's own comments are carried over into the C++ code wherever they still apply, in his words.
 - Personal data from the original archive (chart collections, customers, keys) never enters this repository.
 
+## What it does
+
+HORCOM keeps the menus, dialogs, screens and calculations of Robert Rettig's program, on today's Windows and Linux desktops.
+
+- **Charts:** birth charts with seven house systems, his topocentric parallax, true or mean lunar node and Black Moon, Chiron, Quaoar, Eris (Xena), the asteroids and the Hamburg points, heliocentric and mundane views.
+- **Tables:** planet coordinates with both distances, fixed stars, Arabic parts, sign ingresses of every planet and of MC and AC, eclipses, rise and set times, the great (Platonic) year.
+- **Returns and directions:** solar, lunar, planetar and personar returns, the Munich rhythm theory with its septars, secondary and arc directions, primary and symbolic directions, multiple directions and harmonics, transits and mundane aspects, linear graphs and the dynamogram.
+- **Comparisons:** composite, combine, double wheel and the 90 degree dial.
+- **Records:** his data files and AAF exchange files, his place and time zone catalogues, the statistics module over whole collections.
+- **Output:** printing, PDF, SVG and PNG export, and his commentary texts under every menu.
+- **Comfort:** side panels for coordinates, house cusps and aspects, adjustable text size, black on white or a night sky dress, German and English.
+
+The [handbook](https://horcom-rr.github.io/HORCOM/) walks through the program in its [tutorial](https://horcom-rr.github.io/HORCOM/tutorial.html).
+
 ## Status
 
-The original program (50,397 lines, 1,095 procedures) is mapped end to end, and `docs/coverage.md` accounts for every single procedure by name — ported, absorbed into a ported routine, or screen-era plumbing superseded by the Qt shell:
+Every program of the original menu tree has been ported and checked against the original. Releases carry 0.x version numbers until the 1.0 release.
 
-- `docs/legacy/calculation-core.md` — the astronomical engine (VSOP series, Moon theory, his integrated ephemerides, parallax, houses, aspects) with the porting order
-- `docs/legacy/ui-and-graphics.md` — the full menu tree (the feature inventory), event loop and the exact chart geometry
-- `docs/legacy/data-formats.md` — byte-level specifications of every file format
-- `docs/legacy/tools-and-modules.md` — the ephemeris production chain (Runge-Kutta + Störmer integration) and the survey of all standalone tools
-- `docs/architecture.md` — the target C++ design, verification strategy and phase plan
-
-The port advances routine by routine, every step verified against Meeus's worked examples, his binary data files and independent cross computations. Ported and green so far:
-
-- the calculation kernel, calendar, delta T and sidereal time
-- the position engines, VSOP series, Moon theory, Kepler orbits, his self integrated ephemeris files, nutation, precession and the Chapront Pluto fallback
-- the chart pipeline, all seven house systems, the correction chain with his protected topocentric parallax, lunar nodes, Black Moon and the Part of Fortune
-- the harmonic aspect scanner with his orb system, the Schiemenz counters, the midpoints and the two chart comparison scan
-- his exact hit search with solar and lunar returns, sign ingresses and the transit event sweep, verified against the almanac's 1993 equinox to within two minutes
-- the wheel renderer with his exact geometry, SVG export and the `horcom` command line tool
-- his file formats byte for byte, chart collections, places, the zone and country tables, the KONSTA settings stream and the AAF exchange format
-
-The Qt 6 desktop shell carries his visual identity and starts on his own settings profile, the topocentric parallax on just as he ran it. It covers his menu tree nearly end to end, place search over his gazetteer with the historic zone catalogue, transits on his double wheel with the event list, solar, lunar, septar, planetar and personar returns, sign ingresses up to MC and AC, comparison with composite, combin and the 90° dial, secondary progressions and the day chart, the six multiple directions, harmonics, the symbolic and Kühr primary direction evaluations, the mundane and heliocentric views, the Aspektarium, his statistics module with the stat_ausw search conditions, his commentary texts from a local folder, printing and PDF export, an adjustable text size, a record mask writing his DAT collections and real AAF exchange files, a panel history behind Zurück and Vor, and the running UHR clock chart. The shell wears black on white like his working screens, the night sky dress stays a menu away. It speaks German natively, his language, and English through a bundled translation. With the Rhythmenlehre trigger walk, the Dynamogramm, the direction evaluations, fixed stars, arabic parts, eclipses and the rise and set clocks now ported, every feature of his menu tree has crossed over. Ahead lie the golden fixtures recorded from the original program, then 1.0.
+The `horcom` command line tool computes a chart without the desktop shell:
 
 ```
 build\apps\horcom.exe --date 13.10.1992 --time 03:00 --lon 11.32 --lat 48.17 --extras --svg wheel.svg
 ```
 
+## For developers
+
+- `docs/architecture.md` explains the C++ design, the verification strategy, every deliberate deviation from the original and every bug of the original that was fixed.
+- `docs/legacy/` maps the original program (50,397 lines, 1,095 procedures): the astronomical engine, the menu tree and screen geometry, the file formats and the ephemeris production chain. `docs/coverage.md` accounts for every procedure by name.
+- The tests compare against Meeus's worked examples, his binary data files, independent cross computations and output recorded from the original program.
+
 ## Installation
 
-Every push builds and tests the program on Windows and Linux and publishes a [release](https://github.com/horcom-rr/HORCOM/releases/latest), versioned 0.x until the port of the original is complete, so a ready build is always one download away. The [handbook](https://horcom-rr.github.io/HORCOM/install.html) has the full installation guide.
+Every push builds and tests the program on Windows and Linux and publishes a [release](https://github.com/horcom-rr/HORCOM/releases/latest), versioned 0.x until 1.0, so a ready build is always one download away. The [handbook](https://horcom-rr.github.io/HORCOM/install.html) has the full installation guide.
 
 ### Windows
 

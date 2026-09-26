@@ -121,6 +121,13 @@ class MainWindow : public QMainWindow {
   /// @return true when the document was written
   bool export_svg_to(const QString& path);
 
+  /// Writes the classic sheet as a PNG picture at print resolution, the
+  /// file half of HOROSKOP als PNG SPEICHERN.
+  ///
+  /// @param path the target file
+  /// @return true when the picture was written
+  bool export_png_to(const QString& path);
+
   /// Opens the Planeten-Auswahl dialog, the capture hook's path into
   /// the extra body picker.
   void open_planet_selection() { planet_selection(); }
@@ -143,6 +150,7 @@ class MainWindow : public QMainWindow {
 
  private slots:
   void recompute();
+  [[nodiscard]] Chart chart_or_polar_fallback(const ChartInput& in, const ChartSettings& s) const;
   void data_file_io();
   void new_records_entry();
   void vorgaben_ein_ausgabe();
@@ -223,7 +231,9 @@ class MainWindow : public QMainWindow {
   /// @return true when the user answered his quit question with yes
   [[nodiscard]] bool confirm_quit();
   /// HINTERGRUND-FARBEN, the colours of the dialogs and the passive screen.
-  void background_colors();
+  ///
+  /// @return true when a colour was chosen and put over the dress
+  bool background_colors();
   /// His a2113_1, the next free RADIX slot or, all five filled, the
   /// number that gives way after his question.
   ///
@@ -309,6 +319,12 @@ class MainWindow : public QMainWindow {
   void ingress_table();
   /// COMBIN, his a14 with two to five SATZ clicks.
   void combin_chart();
+  /// COMPOSIT, COMBIN or DOPPEL-KREIS of the HOROSKOPE menu, the entry
+  /// that also holds the stored pair of his DOPPEL-DATEN row. A stored
+  /// pair offers itself before a new choice.
+  ///
+  /// @param kind kDoubleComposit, kDoubleCombin or kDoubleWheel
+  void pair_chart(int kind);
   void result_as_radix();
   /// @param index a RADIX slot
   /// @return its sol$, RADIX or the ALS RADIX label of a promoted result
@@ -321,6 +337,8 @@ class MainWindow : public QMainWindow {
   /// @return true when the file took the record
   bool store_record(bool from_entry);
   void export_svg();
+  /// HOROSKOP als PNG SPEICHERN, the classic sheet as a picture.
+  void export_png();
   void print_chart();
   void export_pdf();
   void about();
@@ -1086,7 +1104,12 @@ class MainWindow : public QMainWindow {
   /// @param kind    kDoubleComposit, kDoubleCombin or kDoubleWheel
   /// @param partner the second record, the first is the current record
   void remember_double(int kind, const AafRecord& partner);
-  /// Names the DOPPEL-DATEN rows after their stored pairs.
+  /// The caption of a HOROSKOPE pair entry with its stored pair.
+  ///
+  /// @param kind kDoubleComposit, kDoubleCombin or kDoubleWheel
+  /// @return the menu caption, the pair names behind it when one is stored
+  [[nodiscard]] QString double_caption(int kind) const;
+  /// Names the pair entries after their stored pairs.
   void update_double_actions();
   /// Brings a stored pair back, an empty row starts the chart.
   ///
@@ -1325,6 +1348,8 @@ class MainWindow : public QMainWindow {
   QComboBox* houses_ = nullptr;
   QDockWidget* body_dock_ = nullptr;
   QDockWidget* cusp_dock_ = nullptr;
+  /// the aspect count, mirrors, moon phase and midpoints of the chart
+  QDockWidget* aspects_dock_ = nullptr;
   /// the next turn of the loop fits the coordinate dock, after a show or
   /// a resize of the window, never after a new fill so the panels stand
   /// still while one works in the input panel
@@ -1333,8 +1358,6 @@ class MainWindow : public QMainWindow {
   /// text size they were measured at, the columns never narrow again
   std::vector<int> body_widths_;
   int body_widths_px_ = 0;
-  /// the tallest the summary box stood this session
-  int summary_height_ = 0;
   /// Fits the coordinate dock on the next turn of the loop, near a third
   /// of the window and closed on its last whole column.
   void schedule_dock_fit();
@@ -1493,8 +1516,6 @@ class MainWindow : public QMainWindow {
   QTableWidget* cusps_ = nullptr;
   QLabel* aspects_label_ = nullptr;
   QScrollArea* aspects_scroll_ = nullptr;
-  /// sizes the summary box to its text, eight lines at most
-  void fit_summary();
   std::optional<Chart> last_chart_;
   std::optional<AspectResult> last_aspects_;
 };

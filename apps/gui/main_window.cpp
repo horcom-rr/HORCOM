@@ -67,6 +67,7 @@
 #include "banner.hpp"
 #include "direction_list_dialog.hpp"
 #include "horcom/chart/composite.hpp"
+#include "horcom/chart/distances.hpp"
 #include "horcom/data/statist_eval.hpp"
 #include "horcom/chart/directions.hpp"
 #include "horcom/chart/dynamogram.hpp"
@@ -147,6 +148,32 @@ class ResizeHook final : public QObject {
 
 // the object name of the HINTERGRUND-FARBEN entry of the FARBEN menu
 constexpr const char* kOwnColorsAction = "ownColorsAction";
+
+// the columns of the coordinate dock, the distance in percent of his mean
+// and in AU side by side, the mean node and apsis points after
+// Landscheidt, the R of a retrograde body last
+enum BodyColumn {
+  kBodyLon,
+  kBodyLat,
+  kBodyDec,
+  kBodyVel,
+  kBodyAcc,
+  kBodyPercent,
+  kBodyAu,
+  kBodyNode,
+  kBodySouth,
+  kBodyPerihel,
+  kBodyAphel,
+  kBodyRetro,
+  kBodyColumns
+};
+
+// the house cusps of the dock, 1 to 6 in the rows with 7 to 12 beside
+constexpr int kCuspRows = 6;
+
+// the first width of the result docks beside the wheel, the coordinate
+// dock then closes flush on its columns
+constexpr int kDockStartWidth = 420;
 
 }  // namespace
 
@@ -853,13 +880,13 @@ void MainWindow::build_ui() {
   body_dock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetClosable |
                          QDockWidget::DockWidgetFloatable);
   dress_dock_title(body_dock);
-  bodies_ = new QTableWidget(0, 11, body_dock);
+  bodies_ = new QTableWidget(0, kBodyColumns, body_dock);
   //RR Spalte A ( = Acceleratio ) enthält das Vorzeichen der Beschleunigung
-  // and ENTF carries the mutual distance in AU, then the mean node and
-  // apsis points after Landscheidt
+  // and ENTF carries the distance in percent of his mean and in AU side by
+  // side, then the mean node and apsis points after Landscheidt
   // his Vel.', the arc minutes per day of his coordinate screen
-  bodies_->setHorizontalHeaderLabels({tr("Länge"), tr("Breite"), tr("Deklin."), "Vel.'", "A", tr("Entf."),
-                                      tr("Kn.ND"), tr("Kn.SD"), tr("Perihel"), tr("Aphel"), ""});
+  bodies_->setHorizontalHeaderLabels({tr("Länge"), tr("Breite"), tr("Deklin."), "Vel.'", "A", tr("Entf.%"),
+                                      tr("Entf.AE"), tr("Kn.ND"), tr("Kn.SD"), tr("Perihel"), tr("Aphel"), ""});
   bodies_->horizontalHeader()->setStretchLastSection(true);
   bodies_->verticalHeader()->setDefaultSectionSize(18);
   bodies_->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -871,19 +898,31 @@ void MainWindow::build_ui() {
   cusp_dock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetClosable |
                          QDockWidget::DockWidgetFloatable);
   dress_dock_title(cusp_dock);
-  auto* cusp_host = new QWidget(cusp_dock);
-  auto* cusp_layout = new QVBoxLayout(cusp_host);
-  cusps_ = new QTableWidget(12, 1, cusp_host);
-  // the dock title already reads Häuser-Spitzen, a one-column header
-  // would only echo it
+  // the cusps 1 to 6 with their opposites 7 to 12 beside them, the same
+  // degrees in the facing signs, so the table needs half the height
+  cusps_ = new QTableWidget(kCuspRows, 2, cusp_dock);
+  // the dock title already reads Häuser-Spitzen, a header would only echo it
   cusps_->horizontalHeader()->setVisible(false);
-  cusps_->horizontalHeader()->setStretchLastSection(true);
+  cusps_->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+  cusps_->verticalHeader()->setVisible(false);
   cusps_->verticalHeader()->setDefaultSectionSize(18);
   cusps_->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  cusps_->setSelectionMode(QAbstractItemView::NoSelection);
+  // one line a cusp, a narrow dock before the first show would wrap the
+  // rows three lines high
+  cusps_->setWordWrap(false);
   cusps_->setItemDelegate(new ZodiacDelegate(cusps_));
-  // the summary box scrolls once the KOMPAKT-AUSWERTUNG list of halbs1
-  // grows past a third of the dock, the house cusps keep their room
-  aspects_scroll_ = new QScrollArea(cusp_host);
+  cusp_dock->setWidget(cusps_);
+  addDockWidget(Qt::RightDockWidgetArea, cusp_dock);
+
+  // the aspect count, the mirrors, the moon phase and the midpoints of
+  // his KOMPAKT-AUSWERTUNG in a dock of their own, the tester wanted the
+  // room the cusps left them
+  auto* aspects_dock = new QDockWidget(tr("Aspekte / Halbsummen"), this);
+  aspects_dock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetClosable |
+                            QDockWidget::DockWidgetFloatable);
+  dress_dock_title(aspects_dock);
+  aspects_scroll_ = new QScrollArea(aspects_dock);
   aspects_scroll_->setWidgetResizable(true);
   aspects_scroll_->setFrameShape(QFrame::NoFrame);
   aspects_scroll_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -892,34 +931,30 @@ void MainWindow::build_ui() {
   aspects_label_->setObjectName("aspectsLine");
   aspects_label_->setAlignment(Qt::AlignTop | Qt::AlignLeft);
   aspects_scroll_->setWidget(aspects_label_);
-  // the wrap changes with the dock width, the box follows it
-  aspects_scroll_->installEventFilter(new ResizeHook([this]() { fit_summary(); }, aspects_scroll_));
-  // the same breath below the aspects line as above it, the box should
-  // not sit cut off on the window edge
-  cusp_layout->setContentsMargins(0, 6, 0, 6);
-  cusp_layout->addWidget(cusps_, 1);
-  cusp_layout->addWidget(aspects_scroll_);
-  cusp_dock->setWidget(cusp_host);
-  addDockWidget(Qt::RightDockWidgetArea, cusp_dock);
+  aspects_dock->setWidget(aspects_scroll_);
+  addDockWidget(Qt::RightDockWidgetArea, aspects_dock);
   // once the window stands, the coordinate dock closes flush on its
   // columns, the remaining columns stay a scroll away
   body_dock_ = body_dock;
   cusp_dock_ = cusp_dock;
-  resizeDocks({body_dock, cusp_dock}, {420, 420}, Qt::Horizontal);
+  aspects_dock_ = aspects_dock;
+  resizeDocks({body_dock, cusp_dock, aspects_dock}, {kDockStartWidth, kDockStartWidth, kDockStartWidth}, Qt::Horizontal);
   dock_fit_ = new QTimer(this);
   dock_fit_->setSingleShot(true);
   dock_fit_->setInterval(0);
   connect(dock_fit_, &QTimer::timeout, this, &MainWindow::fit_body_dock);
   // the result docks stand for his output screens, a right click on them
   // does not climb on to the Erste Hilfe of the main screen
-  for (QDockWidget* dock : {body_dock, cusp_dock}) {
+  for (QDockWidget* dock : {body_dock, cusp_dock, aspects_dock}) {
     dock->setContextMenuPolicy(Qt::PreventContextMenu);
   }
 
   // the menu bar of the original, ÜBER HORCOM first, then his five
   // working menus, the Ansicht menu is the one modern addition. The
   // captions keep his mnemonics from men2 letter for letter, they leave
-  // ALT + H, D, C, R, F, Z and M to the function keys of his legend
+  // ALT + H, D, C, R, F, Z and M to the function keys of his legend. The
+  // entries stand in the order of the tester's sixth batch, the VORGABEN
+  // lead every menu with a rule under them and rules part the themes
   QMenu* ueber = menuBar()->addMenu(tr("&ÜBER HORCOM"));
   QMenu* file = menuBar()->addMenu(tr("EI&N-AUSG."));
   QMenu* ephem = menuBar()->addMenu(tr("&EPHEMERIDE"));
@@ -953,15 +988,19 @@ void MainWindow::build_ui() {
   }
   ueber->addSeparator();
   ueber->addAction(tr("ÜBER HORCOM"), this, &MainWindow::about);
+  //RR VORGABEN EIN-AUSGABE ÄNDERN
+  // first like the VORGABEN of every other menu, his men2 had it third
+  file->addAction(tr("VORGABEN EIN-AUSGABE ÄNDERN…"), this, &MainWindow::vorgaben_ein_ausgabe);
+  file->addSeparator();
   //RR DATEN-DATEI EIN-AUSGABE
   file->addAction(tr("DATEN-DATEI EIN-AUSGABE…"), QKeySequence::Open, this, &MainWindow::data_file_io);
   //RR NEU-EINGABE von DATENSÄTZEN
   file->addAction(tr("NEU-EINGABE von DATENSÄTZEN…"), QKeySequence::New, this, &MainWindow::new_records_entry);
-  //RR VORGABEN EIN-AUSGABE ÄNDERN
-  file->addAction(tr("VORGABEN EIN-AUSGABE ÄNDERN…"), this, &MainWindow::vorgaben_ein_ausgabe);
   //RR AKTUELLEN Datensatz EINTRAGEN ?
   file->addAction(tr("AKTUELLEN Datensatz EINTRAGEN…"), QKeySequence::Save, this, &MainWindow::save_record);
-  file->addAction(tr("DATENSATZ BEARBEITEN…"), QKeySequence(Qt::CTRL | Qt::Key_D), this, &MainWindow::edit_record);
+  // the AAF box of the record, so the caption names the format it edits
+  file->addAction(tr("AAF-DATENSATZ BEARBEITEN…"), QKeySequence(Qt::CTRL | Qt::Key_D), this, &MainWindow::edit_record);
+  file->addSeparator();
   //RR ORTS-DATEIEN : HOLEN - EINTRAGEN - LÖSCHEN
   file->addAction(tr("ORTS-DATEIEN / ORT SUCHEN…"), QKeySequence(Qt::CTRL | Qt::Key_L), this, &MainWindow::open_place);
   file->addAction(tr("ORT in Orts-Datei EINTRAGEN…"), this, &MainWindow::save_place);
@@ -990,13 +1029,13 @@ void MainWindow::build_ui() {
     connect(a, &QAction::triggered, this, [this, i]() { open_slot({true, i}); });
     solar_actions_[static_cast<std::size_t>(i)] = a;
   }
-  //RR DOPPEL-DATEN:
-  // the double chart family of the EIN-AUSG. menu, a row names its stored
-  // pair and brings it back like the od = 0 slots
-  file->addSection(tr("DOPPEL-DATEN:"));
-  double_actions_[kDoubleComposit] = file->addAction(tr("COMPOSIT"), this, [this]() { recall_double(kDoubleComposit); });
-  double_actions_[kDoubleCombin] = file->addAction(tr("COMBIN"), this, [this]() { recall_double(kDoubleCombin); });
-  double_actions_[kDoubleWheel] = file->addAction(tr("DOPPEL-KREIS"), this, [this]() { recall_double(kDoubleWheel); });
+  file->addSeparator();
+  //RR ERGEBNIS als RADIX
+  // the derived chart moves into a RADIX slot of its own like his
+  // erg_rad, beside the slots it fills since the tester moved it out of
+  // DIVERSES
+  result_as_radix_action_ = file->addAction(tr("ERGEBNIS als RADIX…"), this, &MainWindow::result_as_radix);
+  result_as_radix_action_->setEnabled(false);
   file->addSeparator();
   //RR AUFRÄUMEN / RÜCKSETZEN
   file->addAction(tr("AUFRÄUMEN / RÜCKSETZEN"), this, &MainWindow::clear_slots);
@@ -1005,15 +1044,19 @@ void MainWindow::build_ui() {
   //RR LETZTES BILD ZEIGEN / bzw.SPEICHERN
   file->addAction(tr("LETZTES BILD ZEIGEN / bzw.SPEICHERN…"), this, &MainWindow::last_picture);
   file->addSeparator();
-  // the exports of the port beside his picture store, DRUCKEN runs his
-  // DRUCKER-GRAPHIK of druck_graph_ein
-  file->addAction(tr("HOROSKOP als SVG SPEICHERN…"), this, &MainWindow::export_svg);
-  file->addAction(tr("HOROSKOP als PDF SPEICHERN…"), this, &MainWindow::export_pdf);
+  // the exports of the port beside his picture store in one entry, DRUCKEN
+  // runs his DRUCKER-GRAPHIK of druck_graph_ein
+  QMenu* save_menu = file->addMenu(tr("HOROSKOP SPEICHERN"));
+  save_menu->addAction(tr("HOROSKOP als SVG SPEICHERN…"), this, &MainWindow::export_svg);
+  save_menu->addAction(tr("HOROSKOP als PNG SPEICHERN…"), this, &MainWindow::export_png);
+  save_menu->addAction(tr("HOROSKOP als PDF SPEICHERN…"), this, &MainWindow::export_pdf);
   file->addAction(tr("DRUCKEN…"), QKeySequence::Print, this, &MainWindow::print_chart);
+  file->addSeparator();
   file->addAction(tr("ERLÄUTERUNG 2…"), this, [erlaeuterung]() { erlaeuterung("komm2"); });
   // EPHEMERIDE in the order of his menu tree
   //RR VORGABEN EPHEMERIDE ÄNDERN
   ephem->addAction(tr("VORGABEN EPHEMERIDE ÄNDERN…"), this, &MainWindow::vorgaben_ephemeride);
+  ephem->addSeparator();
   //RR PLANETEN-KOORDINATEN, ZUSATZ-PLANETEN-KOORDINATEN
   // his a91 and a10 screens, the permanent coordinate dock toggles from
   // ANSICHT
@@ -1037,16 +1080,19 @@ void MainWindow::build_ui() {
   //RR ARABISCHE TEILE ( SENS.PUNKTE )
   ephem->addAction(tr("ARABISCHE TEILE ( SENS.PUNKTE )…"), this, &MainWindow::arabic_table);
   //RR INGRESSE SONNE-MOND-MC-AC
-  ephem->addAction(tr("INGRESSE SONNE-MOND-MC-AC…"), this, &MainWindow::ingress_table);
+  // every planet has its ingress table now, the caption says so
+  ephem->addAction(tr("INGRESSE PLANETEN-MC-AC…"), this, &MainWindow::ingress_table);
   ephem->addSeparator();
   //RR * ET aus UT, * UT aus ET, * DATUM aus JD
   ephem->addAction(tr("ET aus UT…"), this, &MainWindow::et_from_ut);
   ephem->addAction(tr("UT aus ET…"), this, &MainWindow::ut_from_et);
   ephem->addAction(tr("DATUM aus JD…"), this, &MainWindow::date_from_jd);
+  ephem->addSeparator();
   ephem->addAction(tr("ERLÄUTERUNG 3…"), this, [erlaeuterung]() { erlaeuterung("komm3"); });
   // HOROSKOPE head, the toggles follow below in his order
   //RR VORGABEN HOROSKOP ÄNDERN
   horo->addAction(tr("VORGABEN HOROSKOP ÄNDERN…"), this, &MainWindow::vorgaben_horoskop);
+  horo->addSeparator();
   //RR HOROSKOP - GRAPHIK
   // back to the plain radix wheel
   horo->addAction(tr("HOROSKOP - GRAPHIK"), this, &MainWindow::horoskop_graphik);
@@ -1054,160 +1100,14 @@ void MainWindow::build_ui() {
   horo->addAction(tr("ASPEKTARIUM G/H…"), this, &MainWindow::open_aspektarium);
   //RR HALBSUMMEN-GRAPHIK G/H
   horo->addAction(tr("HALBSUMMEN-GRAPHIK G/H…"), this, &MainWindow::midpoint_tree);
-  // AUSWERTUNG in three blocks, the return family charts and the Münchner
-  // rhythm block first with SEPTAR beside the rhythm since the septars
-  // belong to the Münchner Rhythmenlehre, then the direction block, then
-  // the transit and graphic block
-  //RR VORGABEN DIREKTIONEN ÄNDERN
-  ausw->addAction(tr("VORGABEN DIREKTIONEN ÄNDERN…"), this, &MainWindow::vorgaben_direktionen);
-  //RR SOLAR-SEPTAR-LUNAR-PLANETARE-PERSONARE
-  // each LISTE rides beside its parent
-  solar_action_ = ausw->addAction(tr("SOLAR…"), this, &MainWindow::solar_chart);
-  solar_list_action_ = ausw->addAction(tr("SOLAR-LISTE…"), this, [this]() { return_list(false); });
-  lunar_action_ = ausw->addAction(tr("LUNAR…"), this, &MainWindow::lunar_chart);
-  lunar_list_action_ = ausw->addAction(tr("LUNAR-LISTE…"), this, [this]() { return_list(true); });
-  ausw->addAction(tr("PLANETAR…"), this, &MainWindow::planetar_chart);
-  ausw->addAction(tr("PERSONAR…"), this, &MainWindow::personar_chart);
-  // a thin rule under PERSONAR, the return charts above it, the day and
-  // rhythm block below
-  ausw->addSeparator();
-  //RR TAGES-HOR.
-  ausw->addAction(tr("TAGES-HOROSKOP…"), this, &MainWindow::day_chart);
-  //RR SEKUNDÄR-DIREKTION / DYNAMOGRAMM
-  // the entry keeps the short label, SEKUNDÄR-DIREKTION has its own row
-  ausw->addAction(tr("DYNAMOGRAMM…"), this, &MainWindow::dynamogram_view);
-  // a rule parts the day and dynamogram block from the Munich block,
-  // ERLÄUTERUNG 5 and 6 belong to the rhythm theory and SEPTAR follows
-  // last because the septars belong to the same school
-  ausw->addSeparator();
-  //RR MÜNCHNER RHYTHMENLEHRE
-  ausw->addAction(tr("MÜNCHNER RHYTHMENLEHRE…"), this, &MainWindow::rhythm);
-  ausw->addAction(tr("ERLÄUTERUNG 5…"), this, [erlaeuterung]() { erlaeuterung("komm5"); });
-  ausw->addAction(tr("ERLÄUTERUNG 6…"), this, [erlaeuterung]() { erlaeuterung("komm6"); });
-  septar_action_ = ausw->addAction(tr("SEPTAR…"), this, &MainWindow::septar_chart);
-  // his a16 menu under hrg!, TERRAR in place of SOLAR, the lunars and the
-  // septar blank
-  const auto helio_menu = [this](bool helio) {
-    solar_action_->setText(helio ? tr("TERRAR…") : tr("SOLAR…"));
-    solar_list_action_->setText(helio ? tr("TERRAR - DATEN - TABELLE…") : tr("SOLAR-LISTE…"));
-    for (QAction* a : {lunar_action_, lunar_list_action_, septar_action_}) {
-      a->setEnabled(!helio);
-    }
-  };
-  connect(helio_, &QCheckBox::toggled, this, helio_menu);
-  helio_menu(helio_->isChecked());
-  helio_menu_ = helio_menu;
-  ausw->addSeparator();
-  //RR PROGRESS.- HOR.
-  // plus the direction group in the order of his menu, SEKUNDÄR-DIREKTION,
-  // SONNE (MOND)-BOGEN-DIREKTION, PRIMÄR-DIREKTION ( E.C.KÜHR ), SYMB.
-  // DIREKTION ÄQUATORIAL and EKLIPT.
-  ausw->addAction(tr("PROGRESSIONS-HOROSKOP…"), this, &MainWindow::progression_chart);
-  ausw->addAction(tr("SEKUNDÄR-DIREKTION…"), this, &MainWindow::secondary_direction);
-  ausw->addAction(tr("SONNE (MOND)-BOGEN-DIREKTION…"), this, &MainWindow::arc_direction);
-  ausw->addAction(tr("PRIMÄR-DIREKTION ( E.C.KÜHR )…"), this, &MainWindow::primary_direction);
-  ausw->addAction(tr("SYMB. DIREKTION: ÄQUATORIAL…"), this, [this]() { symbolic_direction(true); });
-  ausw->addAction(tr("SYMB. DIREKTION: EKLIPT. G/H…"), this, [this]() { symbolic_direction(false); });
-  ausw->addAction(tr("ERLÄUTERUNG 7…"), this, [erlaeuterung]() { erlaeuterung("komm7"); });
-  ausw->addAction(tr("GRAD-DATUM-LISTE…"), this, &MainWindow::degree_date_list);
-  ausw->addSeparator();
-  ausw->addAction(tr("LINEAR-GRAPHIK…"), this, &MainWindow::linear_graph);
-  //RR TRANSITE
-  // with the Ausgabe-Modus box of a18asw
-  ausw->addAction(tr("TRANSITE…"), this, &MainWindow::transite);
-  // MUNDAN-ASPEKTE follows TRANSIT-LISTE and is wired below like the
-  // primär direction action, both insert into the slots reserved here
-  // DIVERSES in the order of his menu tree
-  //RR HÄUSER-SYSTEM
-  divers->addAction(tr("HÄUSER-SYSTEM…"), this, &MainWindow::choose_house_system);
-  //RR HÄUSER-TABELLE
-  divers->addAction(tr("HÄUSER-TABELLE…"), this, &MainWindow::house_table);
-  divers->addAction(tr("ERLÄUTERUNG 8…"), this, [erlaeuterung]() { erlaeuterung("komm8"); });
-  //RR KORREKTUR
-  korrektur_action_ = divers->addAction(tr("KORREKTUR…"), this, &MainWindow::correction);
-  //RR ZEIT-WANDERN G/H
-  // his men3 sets scrout! once the walk is done, LETZTES BILD refuses
-  time_wander_action_ = divers->addAction(tr("ZEIT-WANDERN G/H…"), this, [this]() {
-    time_wander();
-    scrout_ = true;
-  });
-  //RR Solange UHR SICHTBAR wird HOROSKOP ALLE 15 SEK NACHGEZEICHNET !
-  //RR UHR G/H
-  // his uhr& clock with the acmcl strip every second
-  clock_action_ = divers->addAction(tr("UHR G/H…"), this, &MainWindow::uhr);
-  clock_timer_ = new QTimer(this);
-  clock_timer_->setInterval(kClockStripMs);
-  connect(clock_timer_, &QTimer::timeout, this, &MainWindow::clock_tick);
-  clock_timer_->start();
-  clock_strip_ = new QLabel(this);
-  clock_strip_->setObjectName("clockStrip");
-  statusBar()->addPermanentWidget(clock_strip_, 1);
-  // the strip only stands while the clock runs, like his acmcl
-  statusBar()->hide();
-  //RR * AR-DE aus EL-EB, * EL-EB aus AR-DE, * LT aus UT, * UT aus LT
-  divers->addAction(tr("AR-DE aus EL-EB…"), this, &MainWindow::arde_from_eleb);
-  divers->addAction(tr("EL-EB aus AR-DE…"), this, &MainWindow::eleb_from_arde);
-  divers->addAction(tr("LT aus UT…"), this, [this]() { local_time_convert(true); });
-  divers->addAction(tr("UT aus LT…"), this, [this]() { local_time_convert(false); });
-  divers->addSeparator();
-  //RR AUFGANG.........
-  divers->addAction(tr("AUFGANG / UNTERGANG…"), this, &MainWindow::rise_set);
-  //RR FINSTERNISSE....
-  divers->addAction(tr("FINSTERNISSE…"), this, &MainWindow::eclipse_table);
-  divers->addSeparator();
-  //RR DATEIEN VERKETTEN
-  divers->addAction(tr("DATEIEN VERKETTEN…"), this, &MainWindow::chain_files);
-  //RR AAF-DATEI < > HORCOM-DATEI
-  divers->addAction(tr("AAF-DATEI < > HORCOM-DATEI…"), this, &MainWindow::aaf_convert);
-  divers->addSeparator();
-  //RR * WINKEL-UMRECHNUNG, F5 ( oder ALT + R ) = WINKEL/ZEIT DEZIMAL in G/H MIN SEK
-  divers->addAction(tr("WINKEL-UMRECHNUNG…"), this, [this]() { angle_converter(this); });
-  divers->addSeparator();
-  //RR * HINTERGRUND-FARBEN
-  divers->addAction(tr("HINTERGRUND-FARBEN…"), this, &MainWindow::background_colors);
-  //RR ORT-WANDERN
-  divers->addAction(tr("ORT-WANDERN…"), this, &MainWindow::place_wander);
-  //RR GROßES ( = PLATONISCHES ) JAHR
-  // grey on the SOLAR level like his MENU 98
-  great_year_action_ = divers->addAction(tr("GROßES ( = PLATONISCHES ) JAHR…"), this, &MainWindow::great_year);
-  //RR DESKTOP ( QUIT HORCOM )
-  // his muuu& = 99 asks the quit question, the one way out of his menu
-  // and the one the quit key of the system takes
-  divers->addAction(tr("DESKTOP ( QUIT HORCOM )"), QKeySequence::Quit, this, &MainWindow::desktop_quit);
-  //RR ERGEBNIS als RADIX
-  // the derived chart moves into the EIN-AUSG. menu as a RADIX record of
-  // its own like his erg_rad
-  result_as_radix_action_ = divers->addAction(tr("ERGEBNIS als RADIX…"), this, &MainWindow::result_as_radix);
-  result_as_radix_action_->setEnabled(false);
-  divers->addAction(tr("ERLÄUTERUNG 9…"), this, [erlaeuterung]() { erlaeuterung("komm9"); });
-  //RR ÄNDERUNGEN / HINWEISE / KURZANL.
-  divers->addAction(tr("ÄNDERUNGEN / HINWEISE / KURZANL.…"), this, &MainWindow::anmerkungen);
-  //RR MULTIPLE DIREKTIONEN / HARMONICS G/H
-  // one entry with his MODUS box
-  horo->addAction(tr("MULTIPLE DIREKTIONEN / HARMONICS G/H…"), this, &MainWindow::multi_session);
-  // the two sheets as view states, the session sets them, HOROSKOP -
-  // GRAPHIK clears them
-  harmonic_action_ = new QAction(this);
-  harmonic_action_->setCheckable(true);
-  connect(harmonic_action_, &QAction::toggled, this, [this](bool on) {
-    if (!on) {
-      harm_n_ = 0.0;
-      recompute();
-      banner_->set_record(record_label_.trimmed());
-    }
-  });
-  multi_action_ = new QAction(this);
-  multi_action_->setCheckable(true);
-  connect(multi_action_, &QAction::toggled, this, [this](bool on) {
-    if (!on) {
-      multi_event_jd_ = 0.0;
-      recompute();
-      banner_->set_record(record_label_.trimmed());
-    }
-  });
+  horo->addSeparator();
+  // the pair charts under the new row the tester named, its entries like
+  // the sub rows of his list, each also holds the pair of his DOPPEL-DATEN
+  // row that the EIN-AUSG. menu carried before the tester merged the two
+  QMenu* pairs = horo->addMenu(tr("HOROSKOP-KOMBINATION / VERGLEICH"));
   //RR COMPOSIT ^
   // his a13 with the MODUS box and the two SATZ clicks
-  horo->addAction(tr("COMPOSIT…"), this, &MainWindow::composite_session);
+  double_actions_[kDoubleComposit] = pairs->addAction(tr("COMPOSIT…"), this, [this]() { pair_chart(kDoubleComposit); });
   // the composite as a view state, the session sets it, HOROSKOP -
   // GRAPHIK clears it together with its pair
   composite_action_ = new QAction(this);
@@ -1221,10 +1121,11 @@ void MainWindow::build_ui() {
       banner_->set_record(record_label_.trimmed());
     }
   });
-  horo->addAction(tr("COMBIN…"), this, &MainWindow::combin_chart);
+  double_actions_[kDoubleCombin] = pairs->addAction(tr("COMBIN…"), this, [this]() { pair_chart(kDoubleCombin); });
   //RR DOPPEL-KREIS / 90-GRAD-KREIS ^
   // one entry with his MODUS box
-  horo->addAction(tr("DOPPEL-KREIS / 90-GRAD-KREIS…"), this, &MainWindow::double_wheel_session);
+  double_actions_[kDoubleWheel] =
+      pairs->addAction(tr("DOPPEL-KREIS / 90-GRAD-KREIS…"), this, [this]() { pair_chart(kDoubleWheel); });
   // the double wheel of a12 as a view state, the session above sets it
   compare_action_ = new QAction(this);
   compare_action_->setCheckable(true);
@@ -1267,6 +1168,7 @@ void MainWindow::build_ui() {
     }
     recompute();
   });
+  horo->addSeparator();
   horo->addAction(tr("ERLÄUTERUNG 4…"), this, [erlaeuterung]() { erlaeuterung("komm4"); });
   // the directed axes of prima on the wheel, a state switch only, the
   // PRIMÄR DIRIGIERTE ACHSEN session of KORREKTUR drives it
@@ -1281,12 +1183,152 @@ void MainWindow::build_ui() {
   // the HOROSKOP-GRAPHIK of SONNEN- and MOND-BOGEN, a hidden view state
   arc_action_ = new QAction(this);
   arc_action_->setCheckable(true);
+  // AUSWERTUNG in the blocks of the tester's sixth batch, the return
+  // family charts, the Münchner rhythm block with SEPTAR and the GRAD-
+  // DATUM-LISTE, the direction block with the day chart ahead, then the
+  // DYNAMOGRAMM, the MULTIPLE directions and the transit block
+  //RR VORGABEN DIREKTIONEN ÄNDERN
+  ausw->addAction(tr("VORGABEN DIREKTIONEN ÄNDERN…"), this, &MainWindow::vorgaben_direktionen);
+  ausw->addSeparator();
+  //RR SOLAR-SEPTAR-LUNAR-PLANETARE-PERSONARE
+  // each LISTE rides beside its parent
+  solar_action_ = ausw->addAction(tr("SOLAR…"), this, &MainWindow::solar_chart);
+  solar_list_action_ = ausw->addAction(tr("SOLAR-LISTE…"), this, [this]() { return_list(false); });
+  lunar_action_ = ausw->addAction(tr("LUNAR…"), this, &MainWindow::lunar_chart);
+  lunar_list_action_ = ausw->addAction(tr("LUNAR-LISTE…"), this, [this]() { return_list(true); });
+  ausw->addAction(tr("PLANETAR…"), this, &MainWindow::planetar_chart);
+  ausw->addAction(tr("PERSONAR…"), this, &MainWindow::personar_chart);
+  ausw->addSeparator();
+  //RR MÜNCHNER RHYTHMENLEHRE
+  // the septars and the degree date list belong to the same school, the
+  // two ERLÄUTERUNG texts close the block
+  ausw->addAction(tr("MÜNCHNER RHYTHMENLEHRE…"), this, &MainWindow::rhythm);
+  septar_action_ = ausw->addAction(tr("SEPTAR…"), this, &MainWindow::septar_chart);
+  ausw->addAction(tr("GRAD-DATUM-LISTE…"), this, &MainWindow::degree_date_list);
+  ausw->addAction(tr("ERLÄUTERUNG 5…"), this, [erlaeuterung]() { erlaeuterung("komm5"); });
+  ausw->addAction(tr("ERLÄUTERUNG 6…"), this, [erlaeuterung]() { erlaeuterung("komm6"); });
+  // his a16 menu under hrg!, TERRAR in place of SOLAR, the lunars and the
+  // septar blank
+  const auto helio_menu = [this](bool helio) {
+    solar_action_->setText(helio ? tr("TERRAR…") : tr("SOLAR…"));
+    solar_list_action_->setText(helio ? tr("TERRAR - DATEN - TABELLE…") : tr("SOLAR-LISTE…"));
+    for (QAction* a : {lunar_action_, lunar_list_action_, septar_action_}) {
+      a->setEnabled(!helio);
+    }
+  };
+  connect(helio_, &QCheckBox::toggled, this, helio_menu);
+  helio_menu(helio_->isChecked());
+  helio_menu_ = helio_menu;
+  ausw->addSeparator();
+  //RR TAGES-HOR. / PROGRESS.- HOR.
+  // plus the direction group in the order of his menu, SEKUNDÄR-DIREKTION,
+  // SONNE (MOND)-BOGEN-DIREKTION, PRIMÄR-DIREKTION ( E.C.KÜHR ), SYMB.
+  // DIREKTION ÄQUATORIAL and EKLIPT.
+  ausw->addAction(tr("TAGES-HOROSKOP…"), this, &MainWindow::day_chart);
+  ausw->addAction(tr("PROGRESSIONS-HOROSKOP…"), this, &MainWindow::progression_chart);
+  ausw->addAction(tr("SEKUNDÄR-DIREKTION…"), this, &MainWindow::secondary_direction);
+  ausw->addAction(tr("SONNE (MOND)-BOGEN-DIREKTION…"), this, &MainWindow::arc_direction);
+  ausw->addAction(tr("PRIMÄR-DIREKTION ( E.C.KÜHR )…"), this, &MainWindow::primary_direction);
+  ausw->addAction(tr("SYMB. DIREKTION: ÄQUATORIAL…"), this, [this]() { symbolic_direction(true); });
+  ausw->addAction(tr("SYMB. DIREKTION: EKLIPT. G/H…"), this, [this]() { symbolic_direction(false); });
+  ausw->addAction(tr("ERLÄUTERUNG 7…"), this, [erlaeuterung]() { erlaeuterung("komm7"); });
+  ausw->addSeparator();
+  //RR SEKUNDÄR-DIREKTION / DYNAMOGRAMM
+  // the entry keeps the short label, SEKUNDÄR-DIREKTION has its own row
+  ausw->addAction(tr("DYNAMOGRAMM…"), this, &MainWindow::dynamogram_view);
+  ausw->addSeparator();
+  //RR MULTIPLE DIREKTIONEN / HARMONICS G/H
+  // one entry with his MODUS box, among the evaluations since the tester
+  // gathered them in AUSWERTUNG
+  ausw->addAction(tr("MULTIPLE DIREKTIONEN / HARMONICS G/H…"), this, &MainWindow::multi_session);
+  // the two sheets as view states, the session sets them, HOROSKOP -
+  // GRAPHIK clears them
+  harmonic_action_ = new QAction(this);
+  harmonic_action_->setCheckable(true);
+  connect(harmonic_action_, &QAction::toggled, this, [this](bool on) {
+    if (!on) {
+      harm_n_ = 0.0;
+      recompute();
+      banner_->set_record(record_label_.trimmed());
+    }
+  });
+  multi_action_ = new QAction(this);
+  multi_action_->setCheckable(true);
+  connect(multi_action_, &QAction::toggled, this, [this](bool on) {
+    if (!on) {
+      multi_event_jd_ = 0.0;
+      recompute();
+      banner_->set_record(record_label_.trimmed());
+    }
+  });
+  ausw->addSeparator();
+  ausw->addAction(tr("LINEAR-GRAPHIK…"), this, &MainWindow::linear_graph);
+  //RR TRANSITE
+  // with the Ausgabe-Modus box of a18asw
+  ausw->addAction(tr("TRANSITE…"), this, &MainWindow::transite);
   // MUNDAN-ASPEKTE, the running bodies among themselves of mund. It sits
   // as the last entry of AUSWERTUNG like the last row of his menu, the
   // horm 2 frame lives in VORGABEN HOROSKOP ÄNDERN like his BEZUGS-SYSTEM
   ausw->addAction(tr("MUNDAN-ASPEKTE…"), this, &MainWindow::mundane_aspects);
-  // the ERLÄUTERUNG of F1 once every entry of his six menus stands
-  tag_help_stems({{ueber, "komm1"}, {file, "komm2"}, {ephem, "komm3"}, {horo, "komm4"}, {ausw, "komm5"}, {divers, "komm9"}});
+  // DIVERSES in the order of his menu tree, the walks together, the
+  // conversions with the angle converter, the great year apart and the
+  // way out last
+  //RR HÄUSER-SYSTEM
+  divers->addAction(tr("HÄUSER-SYSTEM…"), this, &MainWindow::choose_house_system);
+  //RR HÄUSER-TABELLE
+  divers->addAction(tr("HÄUSER-TABELLE…"), this, &MainWindow::house_table);
+  divers->addAction(tr("ERLÄUTERUNG 8…"), this, [erlaeuterung]() { erlaeuterung("komm8"); });
+  divers->addSeparator();
+  //RR KORREKTUR
+  korrektur_action_ = divers->addAction(tr("KORREKTUR…"), this, &MainWindow::correction);
+  //RR ZEIT-WANDERN G/H
+  // his men3 sets scrout! once the walk is done, LETZTES BILD refuses
+  time_wander_action_ = divers->addAction(tr("ZEIT-WANDERN G/H…"), this, [this]() {
+    time_wander();
+    scrout_ = true;
+  });
+  //RR ORT-WANDERN
+  divers->addAction(tr("ORT-WANDERN…"), this, &MainWindow::place_wander);
+  divers->addSeparator();
+  //RR Solange UHR SICHTBAR wird HOROSKOP ALLE 15 SEK NACHGEZEICHNET !
+  //RR UHR G/H
+  // his uhr& clock with the acmcl strip every second
+  clock_action_ = divers->addAction(tr("UHR G/H…"), this, &MainWindow::uhr);
+  clock_timer_ = new QTimer(this);
+  clock_timer_->setInterval(kClockStripMs);
+  connect(clock_timer_, &QTimer::timeout, this, &MainWindow::clock_tick);
+  clock_timer_->start();
+  clock_strip_ = new QLabel(this);
+  clock_strip_->setObjectName("clockStrip");
+  statusBar()->addPermanentWidget(clock_strip_, 1);
+  // the strip only stands while the clock runs, like his acmcl
+  statusBar()->hide();
+  divers->addSeparator();
+  //RR * AR-DE aus EL-EB, * EL-EB aus AR-DE, * LT aus UT, * UT aus LT
+  divers->addAction(tr("AR-DE aus EL-EB…"), this, &MainWindow::arde_from_eleb);
+  divers->addAction(tr("EL-EB aus AR-DE…"), this, &MainWindow::eleb_from_arde);
+  divers->addAction(tr("LT aus UT…"), this, [this]() { local_time_convert(true); });
+  divers->addAction(tr("UT aus LT…"), this, [this]() { local_time_convert(false); });
+  //RR * WINKEL-UMRECHNUNG, F5 ( oder ALT + R ) = WINKEL/ZEIT DEZIMAL in G/H MIN SEK
+  divers->addAction(tr("WINKEL-UMRECHNUNG…"), this, [this]() { angle_converter(this); });
+  divers->addSeparator();
+  //RR AUFGANG.........
+  divers->addAction(tr("AUFGANG / UNTERGANG…"), this, &MainWindow::rise_set);
+  //RR FINSTERNISSE....
+  divers->addAction(tr("FINSTERNISSE…"), this, &MainWindow::eclipse_table);
+  divers->addSeparator();
+  //RR GROßES ( = PLATONISCHES ) JAHR
+  // grey on the SOLAR level like his MENU 98
+  great_year_action_ = divers->addAction(tr("GROßES ( = PLATONISCHES ) JAHR…"), this, &MainWindow::great_year);
+  divers->addSeparator();
+  divers->addAction(tr("ERLÄUTERUNG 9…"), this, [erlaeuterung]() { erlaeuterung("komm9"); });
+  //RR ÄNDERUNGEN / HINWEISE / KURZANL.
+  divers->addAction(tr("ÄNDERUNGEN / HINWEISE / KURZANL.…"), this, &MainWindow::anmerkungen);
+  divers->addSeparator();
+  //RR DESKTOP ( QUIT HORCOM )
+  // his muuu& = 99 asks the quit question, the one way out of his menu
+  // and the one the quit key of the system takes
+  divers->addAction(tr("DESKTOP ( QUIT HORCOM )"), QKeySequence::Quit, this, &MainWindow::desktop_quit);
   // the text scale of the shell, the wheel keeps its own canvas scale
   QMenu* view = menuBar()->addMenu(tr("ANSICH&T"));
   const auto set_scale = [](int scale) {
@@ -1299,6 +1341,7 @@ void MainWindow::build_ui() {
   //RR Parameter - Einstellungen = VORGABEN
   // his main screen panel
   view->addAction(tr("VORGABEN-ÜBERSICHT…"), this, &MainWindow::vorgaben_overview);
+  view->addSeparator();
   // the element and quality table of the chart, a rewrite addition kept
   // out of his EPHEMERIDE menu
   view->addAction(tr("HISTOGRAMME…"), this, &MainWindow::histogram_view);
@@ -1316,10 +1359,16 @@ void MainWindow::build_ui() {
   };
   view->addAction(tr("KOORDINATEN-TAFEL EIN / AUS"), this, [this, dock_toggle]() { dock_toggle(body_dock_); });
   view->addAction(tr("HÄUSER-SPITZEN EIN / AUS"), this, [this, dock_toggle]() { dock_toggle(cusp_dock_); });
+  view->addAction(tr("ASPEKTE / HALBSUMMEN EIN / AUS"), this, [this, dock_toggle]() { dock_toggle(aspects_dock_); });
   view->addSeparator();
-  view->addAction(tr("SCHRIFT GRÖßER"), QKeySequence::ZoomIn, this, [set_scale, scale_now]() { set_scale(scale_now() + theme::kTextScaleStep); });
-  view->addAction(tr("SCHRIFT KLEINER"), QKeySequence::ZoomOut, this, [set_scale, scale_now]() { set_scale(scale_now() - theme::kTextScaleStep); });
-  view->addAction(tr("NORMALE SCHRIFT"), QKeySequence(Qt::CTRL | Qt::Key_0), this, [set_scale]() { set_scale(theme::kTextScaleNormal); });
+  // the three sizes in one entry, the keys work from anywhere
+  QMenu* font_menu = view->addMenu(tr("SCHRIFTGRÖßE"));
+  font_menu->addAction(tr("SCHRIFT GRÖßER"), QKeySequence::ZoomIn, this,
+                       [set_scale, scale_now]() { set_scale(theme::next_text_scale(scale_now(), true)); });
+  font_menu->addAction(tr("SCHRIFT KLEINER"), QKeySequence::ZoomOut, this,
+                       [set_scale, scale_now]() { set_scale(theme::next_text_scale(scale_now(), false)); });
+  font_menu->addAction(tr("NORMALE SCHRIFT"), QKeySequence(Qt::CTRL | Qt::Key_0), this,
+                       [set_scale]() { set_scale(theme::kTextScaleNormal); });
   view->addSeparator();
   // the two dresses of the shell, black on white like his working
   // screens or the night sky of his splash, and his own colours of
@@ -1347,18 +1396,20 @@ void MainWindow::build_ui() {
   dark_action->setActionGroup(theme_group);
   dark_action->setChecked(!own_colors && theme::dark_theme());
   connect(dark_action, &QAction::triggered, this, [set_dark]() { set_dark(true); });
-  //RR HINTERGRUND-FARBEN
-  // the colours his KONSTA keeps, chosen in the DIVERSES entry
-  auto* own_action = colors->addAction(tr("HINTERGRUND-FARBEN"));
+  //RR * HINTERGRUND-FARBEN
+  // his colour boxes of the DIVERSES entry chose the colours KONSTA keeps,
+  // the tester moved them here, a box closed without a colour leaves the
+  // dress that stood before
+  auto* own_action = colors->addAction(tr("HINTERGRUND-FARBEN…"));
   own_action->setObjectName(kOwnColorsAction);
   own_action->setCheckable(true);
   own_action->setActionGroup(theme_group);
   own_action->setChecked(own_colors);
-  connect(own_action, &QAction::triggered, this, [this]() {
-    QSettings().setValue(theme::kOwnColorsKey, true);
-    theme::set_own_colors(theme::dialog_color(konsta_.col_dial), theme::passive_color(konsta_.col_backg));
-    wheel_->update();
-    banner_->update();
+  connect(own_action, &QAction::triggered, this, [this, light_action, dark_action, own_action]() {
+    if (!background_colors()) {
+      const bool own = QSettings().value(theme::kOwnColorsKey, false).toBool();
+      (own ? own_action : (theme::dark_theme() ? dark_action : light_action))->setChecked(true);
+    }
   });
   view->addSeparator();
   view->addAction(tr("PLANETEN-AUSWAHL…"), this, &MainWindow::planet_selection);
@@ -1387,6 +1438,22 @@ void MainWindow::build_ui() {
   // the whole program back to its first start, beside his AUFRÄUMEN /
   // RÜCKSETZEN that clears the session alone
   view->addAction(tr("ALLES ZURÜCKSETZEN…"), this, &MainWindow::full_reset);
+  view->addSeparator();
+  // the file tools of his DIVERSES menu, where the tester placed them
+  //RR DATEIEN VERKETTEN
+  view->addAction(tr("DATEIEN VERKETTEN…"), this, &MainWindow::chain_files);
+  //RR AAF-DATEI < > HORCOM-DATEI
+  view->addAction(tr("AAF-DATEI < > HORCOM-DATEI…"), this, &MainWindow::aaf_convert);
+  // the ERLÄUTERUNG of F1 once every entry of his six menus stands, the
+  // Ansicht entries keep the text of the output before them unless they
+  // came from one of his menus
+  tag_help_stems({{ueber, "komm1"},
+                  {file, "komm2"},
+                  {ephem, "komm3"},
+                  {horo, "komm4"},
+                  {ausw, "komm5"},
+                  {divers, "komm9"},
+                  {view, QString()}});
 
   // name edits land in the record, the banner and the sheet corner
   const auto apply_name = [this]() {
@@ -1520,7 +1587,7 @@ ChartSettings MainWindow::current_settings() const {
   // the Hamburger Faktoren travel through their own slots, the hidden
   // hamburg_ shortcut fans them and the Planeten-Auswahl can opt any off
   for (int i = 9; i <= 16; ++i) {
-    const int slot = 18 + i;
+    const int slot = body::kExtraSlotBase + i;
     if (want(slot)) {
       s.nk[static_cast<std::size_t>(i)] = slot;
     }
@@ -1780,6 +1847,19 @@ void MainWindow::update_history_actions() {
   forward_action_->setEnabled(!forward_.empty());
 }
 
+// beyond the polar circle the original still computes the chart and lists
+// only AC and MC, his a60 leaves the house routine on maxbreit alone and
+// the intermediate cusps stay empty
+Chart MainWindow::chart_or_polar_fallback(const ChartInput& in, const ChartSettings& s) const {
+  Chart chart = compute_chart(in, s, vsop_, eph_);
+  if (!chart.ok) {
+    ChartSettings fallback = s;
+    fallback.houses = HouseSystem::kAcMcOnly;
+    chart = compute_chart(in, fallback, vsop_, eph_);
+  }
+  return chart;
+}
+
 void MainWindow::recompute() {
   track_history();
   // his zeuhr, the taken over clock record is the chart while its slot
@@ -1802,14 +1882,7 @@ void MainWindow::recompute() {
     in = current_input();
   }
   const ChartSettings s = current_settings();
-  Chart chart = compute_chart(in, s, vsop_, eph_);
-  if (!chart.ok) {
-    // beyond the polar circle the original still computes the chart
-    // and lists only AC and MC, the intermediate cusps stay empty
-    ChartSettings fallback = s;
-    fallback.houses = HouseSystem::kAcMcOnly;
-    chart = compute_chart(in, fallback, vsop_, eph_);
-  }
+  Chart chart = chart_or_polar_fallback(in, s);
   // the horm 2 transform runs before every scanner like the original,
   // the hrg mode has no houses so mundane stays out like fixpunkt_def
   const bool mundane = mundane_frame_ && !clock && !s.heliocentric;
@@ -2069,7 +2142,6 @@ void MainWindow::recompute() {
   fill_tables(*shown, *shown_aspects, shown == &comp_holder);
   if (!cross_text.isEmpty()) {
     aspects_label_->setText(cross_text);
-    fit_summary();
   }
 }
 
@@ -2083,72 +2155,141 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects, bo
   // a chart without a sun but with the moon slot filled is the hrg
   // mode, the slot then carries the earth
   const bool helio = !chart.b[body::kSun].present && chart.b[body::kMoon].present;
-  for (int slot = 0; slot < body::kSlotCount; ++slot) {
-    const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
-    if (!b.present) {
-      continue;
+  const ChartSettings s = current_settings();
+  // the rows in the order the tester proposed for this table, the
+  // planets, both forms of the node, the real extra bodies, both forms of
+  // the Black Moon and the Glückspunkt, the invented points and the axes
+  // last. The descending node only mirrors the ascending one and stays out
+  struct DockRow {
+    int slot = 0;
+    // the form of the node or the Black Moon, none for every other body
+    enum class Form { kAsComputed, kTrue, kMean } form = Form::kAsComputed;
+  };
+  std::vector<DockRow> rows;
+  const auto add_body = [&](int slot) {
+    if (chart.b[static_cast<std::size_t>(slot)].present) {
+      rows.push_back({slot});
     }
+  };
+  // the midpoint chart of a composite knows one form of each point only,
+  // and the mundane frame lists the one form the wheel projected, the
+  // lunar points of the chart stay ecliptic there
+  const auto add_forms = [&](int slot) {
+    if (!chart.b[static_cast<std::size_t>(slot)].present) {
+      return;
+    }
+    if (longitudes_only || helio || mundane_frame_) {
+      rows.push_back({slot});
+      return;
+    }
+    rows.push_back({slot, DockRow::Form::kTrue});
+    rows.push_back({slot, DockRow::Form::kMean});
+  };
+  add_body(body::kFixpunkt);
+  for (int slot = body::kSun; slot <= body::kPluto; ++slot) {
+    add_body(slot);
+  }
+  add_forms(body::kNodeAsc);
+  for (const int slot : {body::kChiron, body::kQuaoar, body::kXena, body::kCeres, body::kPallas, body::kJuno, body::kVesta,
+                         body::kPholus, body::kDamokles, body::kNessus, body::kHalley}) {
+    add_body(slot);
+  }
+  add_forms(body::kApogee);
+  add_body(body::kFortune);
+  add_body(body::kTranspluto);
+  for (int slot = body::kCupido; slot <= body::kPoseidon; ++slot) {
+    add_body(slot);
+  }
+  for (int slot = body::kAscendant; slot <= body::kCapricornPoint; ++slot) {
+    add_body(slot);
+  }
+  const LunarRates rates = lunar_rates(chart, s.calendar);
+  for (const DockRow& r : rows) {
+    const BodyState& b = chart.b[static_cast<std::size_t>(r.slot)];
     const int row = bodies_->rowCount();
     bodies_->insertRow(row);
     // pl$(2) = "TE", the moon slot carries the earth in the hrg mode
-    const std::string_view tag = (helio && slot == body::kMoon) ? body::kEarthName
-                                                                : body::kName[static_cast<std::size_t>(slot)];
+    const std::string_view tag = (helio && r.slot == body::kMoon) ? body::kEarthName
+                                                                  : body::kName[static_cast<std::size_t>(r.slot)];
     const QString name = QString::fromUtf8(tag.data(), static_cast<int>(tag.size()));
     // his Pl column drew the black planet sprite, it rides beside the
-    // uppercase tag the family wished for
-    auto* head = new QTableWidgetItem(name);
+    // uppercase tag the family wished for. The two forms of the node and
+    // the Black Moon say which they are, the tester missed the note
+    QString caption = name;
+    if (r.form == DockRow::Form::kTrue) {
+      caption += " " + tr("wahr");
+    } else if (r.form == DockRow::Form::kMean) {
+      caption += " " + tr("mittel");
+    } else if (!helio && !longitudes_only && (r.slot == body::kNodeAsc || r.slot == body::kApogee)) {
+      // a single row names the form in force like the M and W of bes11
+      const bool truth = r.slot == body::kNodeAsc ? s.true_node : s.true_apogee;
+      caption += " " + (truth ? tr("wahr") : tr("mittel"));
+    }
+    auto* head = new QTableWidgetItem(caption);
     const QImage head_img = glyph_sprite(name, to_rgb(theme::ink_now()));
     if (!head_img.isNull()) {
       head->setIcon(QIcon(QPixmap::fromImage(head_img)));
     }
     bodies_->setVerticalHeaderItem(row, head);
     if (!b.valid) {
-      bodies_->setItem(row, 0, new QTableWidgetItem(tr("außerhalb der Ephemeride")));
+      bodies_->setItem(row, kBodyLon, new QTableWidgetItem(tr("außerhalb der Ephemeride")));
       continue;
     }
-    const bool angle_slot = slot == body::kAscendant || slot == body::kMc;
-    bodies_->setItem(row, 0, zodiac_item(b.el));
-    if (!angle_slot && !longitudes_only) {
-      bodies_->setItem(row, 1, new QTableWidgetItem(degs(b.eb)));
-      bodies_->setItem(row, 2, new QTableWidgetItem(degs(b.de)));
-      // Vel.', his velocity column counts arc minutes per day
-      bodies_->setItem(row, 3, new QTableWidgetItem(QString::number(b.tb * kRadToDeg * 60.0, 'f', 1)));
-      // the sign of the acceleration, direct or retrograde at a station
-      bodies_->setItem(row, 4, new QTableWidgetItem(b.ttb < 0.0 ? QString::fromUtf8("−") : "+"));
-      if (b.dr > 0.0) {
-        //RR ENTFERNUNGSWERTE der GROßEN PLANETEN RELATIV oder ABSOLUT ?
-        //RR Mittelwerte nach MEYERS Lexikon Weltall
-        static constexpr double kMeanGeo[11] = {0.0, 1.0, 0.0,    1.0,    1.0,   1.52, 5.195,
-                                                9.525, 19.215, 30.055, 39.44};
-        static constexpr double kMeanHelio[11] = {0.0, 1.0, 1.0,    0.387,  0.723, 1.542, 5.205,
-                                                  9.567, 19.281, 30.142, 39.880};
-        const double mean = (slot >= 1 && slot <= 10)
-                                ? (helio ? kMeanHelio[slot] : kMeanGeo[slot])
-                                : 0.0;
-        if (konsta_.entf == 1) {
-          // percent of the mean, bodies without a mean stay blank
-          if (mean > 0.0) {
-            bodies_->setItem(row, 5,
-                             new QTableWidgetItem(QString::number(std::lround(kPercent * b.dr / mean)) + "%"));
-          }
-        } else {
-          bodies_->setItem(row, 5, new QTableWidgetItem(QString::number(b.dr, 'f', 3)));
+    double el = b.el;
+    double eb = b.eb;
+    double de = b.de;
+    double tb = b.tb;
+    double ttb = b.ttb;
+    if (r.form != DockRow::Form::kAsComputed) {
+      const LunarRow l = lunar_row(chart, rates, r.slot, r.form == DockRow::Form::kTrue);
+      el = l.el;
+      eb = l.eb;
+      de = l.de;
+      tb = l.tb;
+      ttb = l.ttb;
+    }
+    const bool angle_slot = r.slot == body::kAscendant || r.slot == body::kMc;
+    bodies_->setItem(row, kBodyLon, zodiac_item(el));
+    if (angle_slot || longitudes_only) {
+      continue;
+    }
+    bodies_->setItem(row, kBodyLat, new QTableWidgetItem(degs(eb)));
+    bodies_->setItem(row, kBodyDec, new QTableWidgetItem(degs(de)));
+    // Vel.', his velocity column counts arc minutes per day
+    bodies_->setItem(row, kBodyVel, new QTableWidgetItem(QString::number(tb * kRadToDeg * kArcminPerDeg, 'f', 1)));
+    // the sign of the change of motion like his A column, blank in the
+    // hrg mode, for the Fixpunkt and the Glückspunkt, and for a motion that
+    // never changes like the mean node and the mean Black Moon
+    if (!helio && r.slot != body::kFixpunkt && r.slot != body::kFortune && ttb != 0.0) {
+      bodies_->setItem(row, kBodyAcc, new QTableWidgetItem(ttb > 0.0 ? "+" : QString::fromUtf8("−")));
+    }
+    if (b.dr > 0.0 && r.form == DockRow::Form::kAsComputed) {
+      // his ENTFERNUNGSWERTE question of the VORGABEN chose one, both at
+      // once since the tester's sixth batch, percent of the mean of MEYERS
+      // Lexikon Weltall where one exists and AU always
+      if (r.slot >= body::kSun && r.slot <= body::kPluto) {
+        const double mean = (helio ? kMeanHelioAu : kMeanGeoAu)[static_cast<std::size_t>(r.slot)];
+        if (mean > 0.0) {
+          bodies_->setItem(row, kBodyPercent, new QTableWidgetItem(QString::number(std::lround(kPercent * b.dr / mean)) + "%"));
         }
       }
-      //RR die mittleren Planeten-KNOTEN und die PLANETEN-APSIDEN
-      const PlanetPoints pts = planet_points(chart, slot, current_settings());
+      bodies_->setItem(row, kBodyAu, new QTableWidgetItem(QString::number(b.dr, 'f', 3)));
+    }
+    //RR die mittleren Planeten-KNOTEN und die PLANETEN-APSIDEN
+    if (r.form == DockRow::Form::kAsComputed) {
+      const PlanetPoints pts = planet_points(chart, r.slot, s);
       if (pts.ok) {
         if (pts.node >= 0.0) {
-          bodies_->setItem(row, 6, zodiac_item(pts.node));
-          bodies_->setItem(row, 7, zodiac_item(pts.node_south));
+          bodies_->setItem(row, kBodyNode, zodiac_item(pts.node));
+          bodies_->setItem(row, kBodySouth, zodiac_item(pts.node_south));
         }
-        bodies_->setItem(row, 8, zodiac_item(pts.perihelion));
-        bodies_->setItem(row, 9, zodiac_item(pts.aphelion));
+        bodies_->setItem(row, kBodyPerihel, zodiac_item(pts.perihelion));
+        bodies_->setItem(row, kBodyAphel, zodiac_item(pts.aphelion));
       }
-      auto* retro = new QTableWidgetItem(b.tb < 0.0 ? "R" : "");
-      retro->setForeground(QColor(0xE8, 0x5D, 0x4E));
-      bodies_->setItem(row, 10, retro);
     }
+    auto* retro = new QTableWidgetItem(tb < 0.0 ? "R" : "");
+    retro->setForeground(QColor(0xE8, 0x5D, 0x4E));
+    bodies_->setItem(row, kBodyRetro, retro);
   }
   bodies_->resizeColumnsToContents();
   // the columns only widen in a session, a chart with narrower values
@@ -2167,12 +2308,27 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects, bo
       bodies_->setColumnWidth(c, widest);
     }
   }
-  // bes111 lists no cusps in the hrg mode
-  for (int i = 1; i <= 12; ++i) {
-    cusps_->setItem(i - 1, 0,
-                    helio ? new QTableWidgetItem(QString())
-                          : zodiac_item(chart.houses.cusp[static_cast<std::size_t>(i)]));
+  // the cusps 1 to 6 beside their opposites 7 to 12, the house number
+  // before each position, bes111 lists no cusps in the hrg mode and skips
+  // a cusp the system has not got, his IF f(k&) > 0
+  for (int i = 1; i <= kCuspRows; ++i) {
+    for (const int house : {i, i + kCuspRows}) {
+      const double cusp = chart.houses.cusp[static_cast<std::size_t>(house)];
+      const bool listed = !helio && cusp > 0.0;
+      QTableWidgetItem* cell = listed ? zodiac_item(cusp) : new QTableWidgetItem(QString());
+      if (listed) {
+        cell->setText(QString::asprintf("%2d  ", house) + cell->text());
+      }
+      cusps_->setItem(i - 1, house > kCuspRows ? 1 : 0, cell);
+    }
   }
+  // the six rows keep the dock short, the room goes to the aspects below
+  cusps_->resizeRowsToContents();
+  int cusp_height = 2 * cusps_->frameWidth();
+  for (int r = 0; r < kCuspRows; ++r) {
+    cusp_height += cusps_->rowHeight(r);
+  }
+  cusps_->setFixedHeight(cusp_height);
   //RR die MONDPHASE ... ist die ekliptikale Längendifferenz MOND-SONNE
   // with his percent figure, full moon one hundred, new moon zero
   QString phase_text;
@@ -2187,11 +2343,11 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects, bo
   if (!aspects.mirrors.empty()) {
     QStringList pairs;
     for (const auto& [t, w] : aspects.mirrors) {
-      const auto name = [](int slot) {
+      const auto body_name = [](int slot) {
         const std::string_view v = body::kName[static_cast<std::size_t>(slot)];
         return QString::fromUtf8(v.data(), static_cast<int>(v.size()));
       };
-      pairs << name(t) + "/" + name(w);
+      pairs << body_name(t) + "/" + body_name(w);
     }
     mirror_text = "<br>" + theme::heading_span(tr("SPIEGELUNG")) + "&nbsp; " + pairs.join("  ");
   }
@@ -2203,20 +2359,6 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects, bo
                               .arg(aspects.zh[4])
                               .arg(aspects.zh[6]) +
                           mirror_text + phase_text + compact_midpoints(chart));
-  fit_summary();
-}
-
-void MainWindow::fit_summary() {
-  if (aspects_scroll_ == nullptr) {
-    return;
-  }
-  const int width = aspects_scroll_->viewport()->width();
-  const int text = width > 0 ? aspects_label_->heightForWidth(width) : aspects_label_->sizeHint().height();
-  const int cap = aspects_label_->fontMetrics().lineSpacing() * 8 + 12;
-  // the box only grows in a session, the cusp table above keeps its
-  // place from chart to chart, a smaller text size lowers the cap
-  summary_height_ = std::min(cap, std::max(summary_height_, std::max(text, aspects_label_->sizeHint().height())));
-  aspects_scroll_->setFixedHeight(summary_height_);
 }
 
 // ported from halbs1 with halbs11 and halbsa, the KOMPAKT-AUSWERTUNG of
@@ -2397,11 +2539,13 @@ void MainWindow::fixed_star_table() {
     auto* name_item = new QTableWidgetItem(text(r.name));
     QString asp;
     std::size_t hits = 0;
+    bool conjunction = false;
     for (const auto& [slot, kind] : r.aspects) {
       if (hits >= kMaxStarHits) {
         break;
       }
       ++hits;
+      conjunction = conjunction || kind == kStarConjunction;
       // stelk sets the aspect sprite at z& and the tag at z& + 8
       asp += QString::fromUtf8(aspect_glyph(star_aspect_family(kind))) + text(body::kName[static_cast<std::size_t>(slot)]) + " ";
     }
@@ -2414,7 +2558,14 @@ void MainWindow::fixed_star_table() {
     table->setItem(i, 0, name_item);
     // his gz1$ of grze
     table->setItem(i, 1, new QTableWidgetItem(zodiac_text(r.la, ZodiacForm::kGz1)));
-    table->setItem(i, 2, new QTableWidgetItem(asp.trimmed()));
+    auto* asp_item = new QTableWidgetItem(asp.trimmed());
+    // a conjunction wears his yellow label box, the tester reads the stars
+    // by their conjunctions first, on the screen only like the band above
+    if (conjunction && konsta_.prenbl == 0) {
+      asp_item->setBackground(QColor(0xFF, 0xFF, 0x00));
+      asp_item->setForeground(QColor(0x00, 0x00, 0x00));
+    }
+    table->setItem(i, 2, asp_item);
     table->setItem(i, 3, new QTableWidgetItem(text(r.quality)));
     table->setItem(i, 4, new QTableWidgetItem(text(r.astro)));
     table->setItem(i, 5, new QTableWidgetItem(stelaus(r.br)));
@@ -3294,8 +3445,9 @@ void MainWindow::histogram_view() {
   QDialog dialog(this);
   dialog.setWindowTitle(tr("Histogramme"));
   auto* v = new QVBoxLayout(&dialog);
-  auto* table = new QTableWidget(7, 3, &dialog);
-  table->setHorizontalHeaderLabels({tr("Klasse"), tr("Zeichen"), tr("Häuser")});
+  // the sign and the house points and, as the tester wished, their sum
+  auto* table = new QTableWidget(7, 4, &dialog);
+  table->setHorizontalHeaderLabels({tr("Klasse"), tr("Zeichen"), tr("Häuser"), tr("Gesamt")});
   table->horizontalHeader()->setStretchLastSection(true);
   table->verticalHeader()->setVisible(false);
   table->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -3342,9 +3494,17 @@ void MainWindow::histogram_view() {
     opt.double_first_house = haus1->isChecked();
     opt.double_ruler = herr->isChecked();
     const Histogram h = chart_histogram(*last_chart_, current_settings(), opt);
-    const int top = std::max({h.element_sign[1], h.element_sign[2], h.element_sign[3], h.element_sign[4],
-                              h.element_house[1], h.element_house[2], h.element_house[3], h.element_house[4],
-                              h.quality_sign[1], h.quality_sign[2], h.quality_sign[3], 1});
+    // one scale for the three bar columns, the largest sum fills a bar so
+    // a sum reads as the length of its two parts
+    int top = 1;
+    for (int e = 1; e <= 4; ++e) {
+      const auto i = static_cast<std::size_t>(e);
+      top = std::max(top, h.element_sign[i] + (h.houses_counted ? h.element_house[i] : 0));
+    }
+    for (int q = 1; q <= 3; ++q) {
+      const auto i = static_cast<std::size_t>(q);
+      top = std::max(top, h.quality_sign[i] + (h.houses_counted ? h.quality_house[i] : 0));
+    }
     const auto bar = [top](int value) {
       const int len = (value * 24 + top / 2) / top;
       QString s = QString::number(value) + "  ";
@@ -3373,11 +3533,15 @@ void MainWindow::histogram_view() {
       const int house = element ? h.element_house[static_cast<std::size_t>(idx)] : h.quality_house[static_cast<std::size_t>(idx)];
       auto* sign_item = new QTableWidgetItem(bar(sign));
       auto* house_item = new QTableWidgetItem(h.houses_counted ? bar(house) : tr("-"));
+      // TKZ + Häuser-Punkte, the signs alone where no houses counted
+      auto* sum_item = new QTableWidgetItem(bar(sign + (h.houses_counted ? house : 0)));
       const QColor col = bar_color(idx);
       sign_item->setForeground(col);
       house_item->setForeground(col);
+      sum_item->setForeground(col);
       table->setItem(r, 1, sign_item);
       table->setItem(r, 2, house_item);
+      table->setItem(r, 3, sum_item);
     }
     table->resizeColumnsToContents();
     fit_columns(table);
@@ -4809,16 +4973,17 @@ void MainWindow::clear_slots() {
 // ported from ave with plgen11, plgenkl and fixp_def. One question per
 // box, every answer moves on to the next topic like his INC as&, R or
 // PgUp steps back like his zurueck!, EXIT or ESC anywhere ends the chain
-// and the distance topic closes it
+// and the Fixpunkt topic closes it. His ENTFERNUNGSWERTE topic is gone,
+// the coordinate tables show the percent and the AU side by side as the
+// tester asked
 void MainWindow::vorgaben_ephemeride() {
-  enum Topic { kAppa, kNode, kParallax, kExtras, kFixpunkt, kDistance, kTopicCount };
+  enum Topic { kAppa, kNode, kParallax, kExtras, kFixpunkt, kTopicCount };
   // his ue$(0) and ze$() of ave
   int topic = ChoiceDialog::ask(this, tr("GEWÜNSCHTES THEMA ANKLICKEN !"), {},
                                 {tr("MODUS DER Planeten-POSITIONEN ?"),
                                  tr("MONDKNOTEN : MITTELWERT ? oder WAHRER Wert ?"),
                                  tr("SO,MO und Planeten MIT oder OHNE Parallaxe ?"), tr("ZUSATZ - PLANETEN WÄHLEN ?"),
-                                 tr("FIXPUNKT als 'PLANET' DEFINIEREN ?"),
-                                 tr("ENTFERNUNGSWERTE der GROßEN PLANETEN RELATIV oder ABSOLUT ?"), tr("EXIT")},
+                                 tr("FIXPUNKT als 'PLANET' DEFINIEREN ?"), tr("EXIT")},
                                 0);
   // the answer of one box, the chain goes on, steps back or ends
   enum class Next { kOn, kBack, kEnd };
@@ -4925,19 +5090,8 @@ void MainWindow::vorgaben_ephemeride() {
           fixpunkt_ = -1.0;
           recompute();
         }
-        break;
-      }
-      case kDistance: {
-        const int es = ChoiceDialog::ask_step(this, tr("AUSWAHL"),
-                                              {tr("ENTFERNUNGSWERTE der GROßEN PLANETEN"), tr("In % des MITTELWERTES"),
-                                               tr("MITTELWERT = 100 %"), tr("Oder ABSOLUT in AE ?")},
-                                              {tr("PROZENTUAL"), tr("ABSOLUT"), tr("EXIT")}, konsta_.entf == 1 ? 0 : 1);
-        next = next_of(es, 2);
-        if (es == 0 || es == 1) {
-          konsta_.entf = es + 1;
-          recompute();
-        }
-        // his GOTO avee, the last topic ends the chain
+        // his GOTO ave6 went on to the ENTFERNUNGSWERTE question, gone since
+        // the tables show both distances, so the Fixpunkt ends the chain
         if (next == Next::kOn) {
           next = Next::kEnd;
         }
@@ -4981,14 +5135,18 @@ void MainWindow::vorgaben_overview() {
   const auto head = [](const QString& s) { return theme::heading_span(s) + "<br>"; };
   const ClassicSheetText sheet = classic_sheet_text();
   QString left;
-  left += head(tr("Name :")) + QString::fromStdString(sheet.name).toHtmlEscaped() + "<br>";
-  left += head(tr("Ort :")) + QString::fromStdString(sheet.place).toHtmlEscaped() + "<br>";
+  // his deftextcol(2), blue on yellow, carries the name and the place with
+  // their captions and in mainkont_dat_zeit the date and the clock, the
+  // tester asked for the yellow date back
+  left += head(tr("Name :")) + head(QString::fromStdString(sheet.name).toHtmlEscaped());
+  left += head(tr("Ort :")) + head(QString::fromStdString(sheet.place).toHtmlEscaped());
   left += QString::fromStdString(sheet.lon).toHtmlEscaped() + "<br>" +
           QString::fromStdString(sheet.lat).toHtmlEscaped() + "<br><br>";
-  left += QString::fromStdString(sheet.date).toHtmlEscaped() + "<br>" +
-          QString::fromStdString(sheet.ut).toHtmlEscaped() + "<br><br>";
+  left += head(QString::fromStdString(sheet.date).toHtmlEscaped()) +
+          head(QString::fromStdString(sheet.ut).toHtmlEscaped()) + "<br>";
   if (!record_.comment.empty()) {
-    left += head(tr("BEM:")) + QString::fromStdString(record_.comment).toHtmlEscaped() + "<br><br>";
+    // his BEM line stood plain, textc resets the colour before it
+    left += tr("BEM:") + "<br>" + QString::fromStdString(record_.comment).toHtmlEscaped() + "<br><br>";
   }
   left += head(tr("HÄUSER : %1").arg(houses_->currentText()));
   left += "<br>" + head(QString::fromStdString(sheet.mode));
@@ -5055,9 +5213,7 @@ void MainWindow::vorgaben_overview() {
     ring = tr("Weiß");
   }
   mid += tr("Farbe : %1").arg(ring) + "<br>";
-  mid += (fixpunkt_ >= 0.0 ? tr("Fixpunkt : %1°").arg(fixpunkt_ * kRadToDeg, 0, 'f', 2)
-                           : tr("Kein Fixpunkt")) + QString("<br>");
-  mid += (konsta_.entf == 1 ? tr("Entfernungen : prozentual") : tr("Entfernungen : absolut in AE"));
+  mid += (fixpunkt_ >= 0.0 ? tr("Fixpunkt : %1°").arg(fixpunkt_ * kRadToDeg, 0, 'f', 2) : tr("Kein Fixpunkt"));
   QString right;
   right += head(tr("Daten-Datei:"));
   if (data_file_.isEmpty()) {
@@ -5607,37 +5763,72 @@ void MainWindow::remember_double(int kind, const AafRecord& partner) {
   update_double_actions();
 }
 
-void MainWindow::update_double_actions() {
+// the HOROSKOPE entries of the pair charts, since the tester merged his
+// DOPPEL-DATEN rows into them each names its stored pair like the row did
+QString MainWindow::double_caption(int kind) const {
   static constexpr const char* kCaption[kDoubleKinds] = {QT_TR_NOOP("COMPOSIT"), QT_TR_NOOP("COMBIN"),
-                                                         QT_TR_NOOP("DOPPEL-KREIS")};
+                                                         QT_TR_NOOP("DOPPEL-KREIS / 90-GRAD-KREIS")};
   const auto short_name = [](const AafRecord& r) {
     return QString::fromStdString(record_name(r)).left(10);
   };
+  const auto& slot = double_slots_[static_cast<std::size_t>(kind)];
+  //RR menu$ + ": " + TRIM$(na$(0,i& - 26)) + " "
+  // the dots of an entry that asks stand at the end
+  return slot ? QString("%1: %2-%3…").arg(tr(kCaption[kind]), short_name(slot->base), short_name(slot->partner))
+              : tr(kCaption[kind]) + QString::fromUtf8("…");
+}
+
+void MainWindow::update_double_actions() {
   for (int k = 0; k < kDoubleKinds; ++k) {
-    QAction* a = double_actions_[static_cast<std::size_t>(k)];
-    if (a == nullptr) {
-      continue;
+    if (QAction* a = double_actions_[static_cast<std::size_t>(k)]) {
+      a->setText(double_caption(k));
     }
-    const auto& slot = double_slots_[static_cast<std::size_t>(k)];
-    //RR menu$ + ": " + TRIM$(na$(0,i& - 26)) + " "
-    a->setText(slot ? QString("%1: %2-%3 ").arg(tr(kCaption[k]), short_name(slot->base), short_name(slot->partner))
-                    : tr(kCaption[k]));
   }
 }
 
-// a DOPPEL-DATEN row, the stored pair comes back without asking, an
-// empty row starts the chart like the HOROSKOPE menu
+// a HOROSKOPE pair entry. His a12, a13 and a14 ask gesp_neu once a picture
+// of the pair is stored, the port asks it for the stored pair of his
+// DOPPEL-DATEN row, whatever bdsp! says since the pair costs nothing. The
+// pair line stands in for his das_anz(32), NEU keeps his default, an entry
+// without a stored pair goes straight to his session
+void MainWindow::pair_chart(int kind) {
+  if (const auto& slot = double_slots_[static_cast<std::size_t>(kind)]) {
+    const QString pair = QString::fromStdString(record_name(slot->base)).toUpper() + "  -  " +
+                         QString::fromStdString(record_name(slot->partner)).toUpper();
+    //RR LETZTES GESPEICHERTES BILD DARSTELLEN ? oder NEU BERECHNEN ?
+    const int es = ChoiceDialog::ask(this, tr("AUSWAHL"),
+                                     {tr("LETZTES GESPEICHERTES BILD DARSTELLEN ?"), tr("oder"), tr("NEU BERECHNEN ?"),
+                                      QString(), pair},
+                                     {tr("LETZTES GESPEICHERTES BILD"), tr("NEU")}, 1);
+    if (es < 0) {
+      return;
+    }
+    if (es == 0) {
+      recall_double(kind);
+      // his stored path lands past druck_graph_ein, the chart still becomes
+      // the last picture and waits for the HARDCOPY like his men31
+      static constexpr int kItem[kDoubleKinds] = {menu_item::kComposite, menu_item::kCombin, menu_item::kDoubleWheel};
+      remember_picture(this);
+      if (konsta_.prenbl != 0) {
+        wart(kItem[kind]);
+      }
+      return;
+    }
+  }
+  if (kind == kDoubleCombin) {
+    combin_chart();
+  } else if (kind == kDoubleComposit) {
+    composite_session();
+  } else {
+    // a12 with its MODUS box and the INNEN and AUSSEN picks
+    double_wheel_session();
+  }
+}
+
+// the stored pair of his DOPPEL-DATEN row comes back without asking
 void MainWindow::recall_double(int kind) {
   const auto& slot = double_slots_[static_cast<std::size_t>(kind)];
   if (!slot) {
-    if (kind == kDoubleCombin) {
-      combin_chart();
-    } else if (kind == kDoubleComposit) {
-      composite_session();
-    } else {
-      // a12 with its MODUS box and the INNEN and AUSSEN picks
-      double_wheel_session();
-    }
     return;
   }
   // a13 and a14 CLR hrg! on every run, the stored pair too
@@ -6134,7 +6325,11 @@ bool MainWindow::store_record(bool from_entry) {
                       {tr("EXIT")});
     return false;
   }
-  if (exists && !twin_exists) {
+  // his question held for the DAT file alone, beside an AAF twin a22dat
+  // replaced the record without asking. The tester wanted the second
+  // record there too, the same three answers now stand for both files
+  bool overwrite = false;
+  if (exists) {
     //RR DATENSATZ GLEICHEN NAMENS in der DATEI ÜBERSCHREIBEN ?
     const int es = ChoiceDialog::ask(this, tr("DATEI : %1").arg(label),
                                      {tr("DATENSATZ GLEICHEN NAMENS in der DATEI ÜBERSCHREIBEN ?")},
@@ -6142,7 +6337,8 @@ bool MainWindow::store_record(bool from_entry) {
     if (es < 0 || es == 2) {
       return false;
     }
-    if (es == 0) {
+    overwrite = es == 0;
+    if (overwrite && !twin_exists) {
       remove_records_by_name(*records, entry.name);
     }
   }
@@ -6153,11 +6349,20 @@ bool MainWindow::store_record(bool from_entry) {
       QMessageBox::warning(this, "HORCOM", tr("Speichern fehlgeschlagen."));
       return false;
     }
-    if (exists) {
-      // aaf_ident, aaf_satz_loesch and aaf_satz_add, the old record
-      // gives way to the new one at the end of the file
-      if (const auto k = aaf_ident(*aaf_records, entry.name)) {
-        aaf_records->erase(aaf_records->begin() + static_cast<std::ptrdiff_t>(*k));
+    if (overwrite) {
+      // aaf_ident, aaf_satz_loesch and aaf_satz_add, the old record gives
+      // way to the new one at the end of the file. Every record of the
+      // name goes like a22ueberschrb drops every DAT record of it, his
+      // aaf_satz_loesch took the one hit of aaf_ident when the twin could
+      // not hold two, the star rule of aaf_ident stays the fallback
+      const std::vector<std::size_t> named = aaf_named(*aaf_records, entry.name);
+      if (named.empty()) {
+        if (const auto k = aaf_ident(*aaf_records, entry.name)) {
+          aaf_records->erase(aaf_records->begin() + static_cast<std::ptrdiff_t>(*k));
+        }
+      }
+      for (auto it = named.rbegin(); it != named.rend(); ++it) {
+        aaf_records->erase(aaf_records->begin() + static_cast<std::ptrdiff_t>(*it));
       }
     }
     aaf_records->push_back(current);
@@ -6485,9 +6690,17 @@ void MainWindow::full_reset() {
 
 // ported from the MESSAGE of the main loop
 bool MainWindow::confirm_quit() {
-  // his MESSAGE "PROGRAMM   HORCOM7P   BEENDEN ?","ABBRUCH?",MB_YESNO | MB_ICONHAND
-  return QMessageBox::question(this, tr("ABBRUCH?"), tr("PROGRAMM   HORCOM   BEENDEN ?"),
-                               QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes;
+  // his MESSAGE "PROGRAMM   HORCOM7P   BEENDEN ?","ABBRUCH?",MB_YESNO | MB_ICONHAND,
+  // the stop sign of MB_ICONHAND and the two buttons in the language of the
+  // program like his Windows. His JA took the ENTER, the port keeps NEIN
+  // first so a stray key never ends the session and its unsaved slots
+  QMessageBox box(QMessageBox::Critical, tr("ABBRUCH?"), tr("PROGRAMM   HORCOM   BEENDEN ?"), QMessageBox::NoButton, this);
+  QPushButton* yes = box.addButton(tr("JA"), QMessageBox::YesRole);
+  QPushButton* no = box.addButton(tr("NEIN"), QMessageBox::NoRole);
+  box.setDefaultButton(no);
+  box.setEscapeButton(no);
+  box.exec();
+  return box.clickedButton() == yes;
 }
 
 // ported from desct with the muuu& = 99 branch of the main loop
@@ -6503,7 +6716,7 @@ void MainWindow::desktop_quit() {
 // dialogs and of the passive screen, param_sp kept both in KONSTA. The
 // dresses of the Ansicht menu own these colours until this entry is used,
 // then HINTERGRUND-FARBEN stands checked in its FARBEN menu
-void MainWindow::background_colors() {
+bool MainWindow::background_colors() {
   const QColor dial_now = theme::dialog_color(konsta_.col_dial);
   const QColor back_now = theme::passive_color(konsta_.col_backg);
   //RR " Hintergrund-FARBE bzw. MUSTER der DIALOGE ( ohne Edit-Felder ) DEFINIEREN "
@@ -6513,7 +6726,7 @@ void MainWindow::background_colors() {
   const QColor back =
       QColorDialog::getColor(back_now, this, tr(" Hintergrund-FARBE für den 'PASSIVEN' HORCOM - BILDSCHIRM WÄHLEN ! "));
   if (!dial.isValid() && !back.isValid()) {
-    return;
+    return false;
   }
   konsta_.col_dial = theme::to_colorref(dial.isValid() ? dial : dial_now);
   konsta_.col_backg = theme::to_colorref(back.isValid() ? back : back_now);
@@ -6526,6 +6739,7 @@ void MainWindow::background_colors() {
   banner_->update();
   // his @param_sp
   persist_konsta();
+  return true;
 }
 
 // ported from CASE 107 of ausw_datei, the chart of the marked record in
@@ -6617,6 +6831,41 @@ bool MainWindow::export_svg_to(const QString& path) {
   }
   f.write(svg.data(), static_cast<qint64>(svg.size()));
   return true;
+}
+
+void MainWindow::export_png() {
+  if (!last_chart_ || !last_aspects_) {
+    return;
+  }
+  const QString path = QFileDialog::getSaveFileName(this, tr("Horoskop als PNG"), "horoskop.png", tr("PNG-Bild (*.png)"));
+  if (path.isEmpty()) {
+    return;
+  }
+  if (!export_png_to(with_suffix(path, "png"))) {
+    QMessageBox::warning(this, "HORCOM", tr("Das Bild ließ sich nicht speichern."));
+  }
+}
+
+// the classic sheet at print resolution, the same drawing on the same
+// paper the SVG and the PDF carry
+bool MainWindow::export_png_to(const QString& path) {
+  const DisplayList dl = classic_export_list();
+  if (dl.items.empty()) {
+    return false;
+  }
+  // three device pixels per unit of his 640 by 480 canvas
+  constexpr double kPngPixelsPerUnit = 3.0;
+  QImage image(static_cast<int>(kCanvasWidth * kPngPixelsPerUnit), static_cast<int>(kCanvasHeight * kPngPixelsPerUnit),
+               QImage::Format_RGB32);
+  image.fill(Qt::white);
+  QPainter p(&image);
+  if (!p.isActive()) {
+    return false;
+  }
+  p.setRenderHint(QPainter::Antialiasing, true);
+  paint_fitted(p, dl, QRectF(0, 0, image.width(), image.height()));
+  p.end();
+  return image.save(path, "PNG");
 }
 
 // builds the a11 A4 page over the current chart, the bes_big tables

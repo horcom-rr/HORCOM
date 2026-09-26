@@ -2,8 +2,8 @@
 // horcom, the C++ rewrite of HORCOM by Robert Rettig (1989 to 2010)
 // Copyright (c) 2026 Dominik Schwimmbeck
 
-// INGRESSE SONNE-MOND-MC-AC, his ingre with ingre1, ort_parall,
-// ingr_ort and finst_a.
+// INGRESSE PLANETEN-MC-AC, his ingre with ingre1, ort_parall, ingr_ort
+// and finst_a, grown from his SONNE-MOND-MC-AC to every planet.
 
 #include <QApplication>
 #include <QHeaderView>
@@ -45,6 +45,9 @@ constexpr double kMoonBack = 28.0;
 // the MC and AC tables step three days, his +1 after the table and -5
 constexpr double kAngleForward = 1.0;
 constexpr double kAngleBack = 5.0;
+// a search date keeps a day inside the span of a body's own ephemeris,
+// the difference of ET and UT is far smaller
+constexpr double kSpanMarginDays = 1.0;
 
 enum class Kind { kSun, kMoon, kMc, kAc, kBody };
 
@@ -85,6 +88,14 @@ QString clock_text(double jd_ut, Calendar cal) {
   return homise_text((d.hour + d.minute / 60.0) * kDegPerHour, 0);
 }
 
+// the sign of a row, his sprite and the name, the column the tester wanted
+// at the far left
+QTableWidgetItem* sign_cell(int sign) {
+  auto* item = new QTableWidgetItem(QString::fromUtf8(sign_glyph(sign)) + " " + sign_name(sign));
+  item->setData(kSignRole, sign + 1);
+  return item;
+}
+
 }  // namespace
 
 // ported from ingre with ingre1, ort_parall, ingr_ort and finst_a
@@ -103,6 +114,9 @@ void MainWindow::ingress_table() {
   SearchContext ctx = make_context();
   // his CLR hrg!, the ingresses are geocentric
   ctx.settings.heliocentric = false;
+  // CHIRON, QUAOAR and XENA are reckoned whatever the panel includes, a
+  // panel without its Zusatz-Planeten left their table empty
+  ctx.settings.include_extra(choice.slot);
   const Calendar cal = ctx.settings.calendar;
   const AafRecord record = panel_record();
   const ChartInput now = current_input();
@@ -162,8 +176,8 @@ void MainWindow::ingress_table() {
 
   QDialog view(this);
   mark_output(&view, menu_item::kIngresses);
-  // the caption of his menu
-  view.setWindowTitle(tr("INGRESSE SONNE-MOND-MC-AC"));
+  // the caption of the menu
+  view.setWindowTitle(tr("INGRESSE PLANETEN-MC-AC"));
   auto* v = new QVBoxLayout(&view);
   auto* title = new QLabel(&view);
   title->setAlignment(Qt::AlignHCenter);
@@ -198,6 +212,21 @@ void MainWindow::ingress_table() {
   // Sun in a year
   const double tja = time_arguments(jd).tropical_year_days;
   const double circuit = std::max(tja, body_period_days(choice.slot, tja));
+  // the span of the body's own ephemeris, his jdplanete and jdplaneta. A
+  // circuit of XENA is longer than its file reaches past today, the page
+  // stops on the last day the file knows so the ingresses of the coming
+  // centuries show instead of an empty table
+  double first_day = -std::numeric_limits<double>::infinity();
+  double last_day = std::numeric_limits<double>::infinity();
+  if (choice.kind == Kind::kBody && ctx.eph != nullptr) {
+    const std::string_view stem = body::eph_name(choice.slot);
+    if (const EphFile* f = stem.empty() ? nullptr : ctx.eph->get(stem)) {
+      last_day = f->upper_bound() - kSpanMarginDays;
+      // the earliest page holds one whole circuit of the file
+      first_day = std::min(f->lower_bound() + circuit, last_day);
+    }
+  }
+  jd = std::clamp(jd, first_day, last_day);
 
   const auto fill = [&]() {
     QApplication::setOverrideCursor(Qt::WaitCursor);
@@ -221,21 +250,22 @@ void MainWindow::ingress_table() {
       // his " Ephemeride : " + gena4$ + " " + jul$
       ephem_line->setText(tr(" Ephemeride : ") + gena4 + " " + jul);
       ephem_line->setVisible(true);
-      table->setColumnCount(3);
+      table->setColumnCount(4);
       table->setRowCount(kSignCount);
-      // his "Datum         UT = GMT      Länge " + pl$
-      table->setHorizontalHeaderLabels({tr("Datum"), tr("UT = GMT"), tr("Länge ") + tag});
+      // his "Datum         UT = GMT      Länge " + pl$, the sign ahead
+      table->setHorizontalHeaderLabels({tr("Zeichen"), tr("Datum"), tr("UT = GMT"), tr("Länge ") + tag});
       const auto hits = sign_ingresses(jd, choice.slot, ctx);
       for (int t = 0; t < kSignCount; ++t) {
+        table->setItem(t, 0, sign_cell(t));
         const LongitudeCrossing& hit = hits[static_cast<std::size_t>(t)];
         shown_jd.push_back(hit.ok ? hit.jd_ut : 0.0);
         if (!hit.ok) {
           continue;
         }
-        table->setItem(t, 0, new QTableWidgetItem(datum3_text(calendar_date(hit.jd_ut, cal))));
-        table->setItem(t, 1, new QTableWidgetItem(clock_text(hit.jd_ut, cal)));
+        table->setItem(t, 1, new QTableWidgetItem(datum3_text(calendar_date(hit.jd_ut, cal))));
+        table->setItem(t, 2, new QTableWidgetItem(clock_text(hit.jd_ut, cal)));
         const BodyLongitude bl = body_longitude(hit.jd_ut, choice.slot, ctx);
-        table->setItem(t, 2, longitude_cell(bl.valid ? bl.el : kEps + t * kPi / 6.0));
+        table->setItem(t, 3, longitude_cell(bl.valid ? bl.el : kEps + t * kPi / 6.0));
       }
       // a missing PISCES ingress leaves the page on its own date
       last_hit = hits.back().ok ? hits.back().jd_ut : 0.0;
@@ -244,14 +274,17 @@ void MainWindow::ingress_table() {
       title->setText((choice.kind == Kind::kMc ? tr(" Ingresse des MC ab dem Datum : %1") : tr(" Ingresse des AC ab dem Datum : %1"))
                          .arg(datum3_text(d) + " " + jul));
       ephem_line->setVisible(false);
-      table->setColumnCount(kAngleDays + 1);
+      table->setColumnCount(kAngleDays + 2);
       table->setRowCount(kSignCount);
-      QStringList heads;
+      QStringList heads{tr("Zeichen")};
       for (int c = 0; c < kAngleDays; ++c) {
         heads << tr("  Datum     UT = GMT ");
       }
       heads << tr("Länge ") + tag;
       table->setHorizontalHeaderLabels(heads);
+      for (int t = 0; t < kSignCount; ++t) {
+        table->setItem(t, 0, sign_cell(t));
+      }
       for (int c = 0; c < kAngleDays; ++c) {
         const auto hits = angle_ingresses(jd + c, choice.slot, ctx);
         for (int t = 0; t < kSignCount; ++t) {
@@ -268,11 +301,12 @@ void MainWindow::ingress_table() {
             const Chart at = sky_chart(hit.jd_ut, ctx);
             if (at.ok && at.houses.ok) {
               const double axis = choice.kind == Kind::kAc ? at.houses.angles.ac : at.houses.angles.mc;
-              table->setItem(t, kAngleDays, longitude_cell(axis));
+              table->setItem(t, kAngleDays + 1, longitude_cell(axis));
             }
           }
           // his datum$ + "  " + ze$, the two digit year
-          table->setItem(t, c, new QTableWidgetItem(datum_text(calendar_date(hit.jd_ut, cal)) + "  " + clock_text(hit.jd_ut, cal)));
+          table->setItem(t, c + 1,
+                         new QTableWidgetItem(datum_text(calendar_date(hit.jd_ut, cal)) + "  " + clock_text(hit.jd_ut, cal)));
         }
       }
     }
@@ -299,7 +333,7 @@ void MainWindow::ingress_table() {
         jd = (last_hit > 0.0 ? last_hit : jd) + (forward ? kMoonForward : -kMoonBack);
         break;
       case Kind::kBody:
-        jd += forward ? circuit : -circuit;
+        jd = std::clamp(jd + (forward ? circuit : -circuit), first_day, last_day);
         break;
     }
     fill();
@@ -316,7 +350,7 @@ void MainWindow::ingress_table() {
     }
   });
   fill();
-  view.resize(angle ? 900 : 640, 560);
+  view.resize(angle ? 1040 : 760, 560);
   if (view.exec() == QDialog::Accepted && chosen > 0.0) {
     show_moment_transits(chosen);
   }

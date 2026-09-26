@@ -898,7 +898,8 @@ TEST_CASE("COMBIN of two outputs at once when no further RADIX slot is filled") 
   CHECK(sheet.pair_name2 == "2: ZWEITERFALL");
   CHECK(sheet.pair_list.empty());
   CHECK(MainWindowProbe::lon(*w) == doctest::Approx(11.0));
-  CHECK(MainWindowProbe::double_action(*w, 1)->text().startsWith("COMBIN: ERSTERFALL-ZWEITERFAL"));
+  // the COMBIN entry of HOROSKOPE names the pair of his DOPPEL-DATEN row
+  CHECK(MainWindowProbe::double_action(*w, 1)->text().startsWith(QString::fromUtf8("COMBIN: ERSTERFALL-ZWEITERFAL")));
 }
 
 TEST_CASE("ERGEBNIS als RADIX takes the COMBIN with its mean moment and place") {
@@ -1152,7 +1153,7 @@ TEST_CASE("an empty DOPPEL-KREIS row runs a12 and COMPOSIT casts geocentric") {
       title = d->windowTitle();
       d->reject();
     });
-    MainWindowProbe::recall_double(*w, 2);
+    MainWindowProbe::double_action(*w, 2)->trigger();
     CHECK(drive.pending() == 0);
   }
   // his MODUS box, not a record chooser

@@ -29,6 +29,10 @@ constexpr double kOneHourDays = 0.0416666666666;
 constexpr double kVelStepDays = 0.01;
 constexpr double kVelRate = 50.0;
 
+// the tenth of a day either side of tb1 - tb2 in plko, his change of the
+// daily motion
+constexpr double kMotionStepDays = 0.1;
+
 // context of one epoch evaluation shared by the body routines
 struct Ctx {
   const ChartSettings& s;
@@ -73,6 +77,24 @@ void helio_display(const Ctx& c, const HelioState& h, BodyState& b) {
   b.de = eq.dec;
 }
 
+// the tb1 - tb2 of plko, the change of the daily motion from the rates
+// over a tenth of a day either side. His planets take the two rates from
+// the helio positions moved along their own rates, which leaves the Sun
+// without any change, and the Moon has no helio state, so the original
+// never set ttb for either and its A column printed the sign of nothing.
+// Both series are evaluated again at the two moments instead
+double motion_change(double before, double now, double after) {
+  double w1 = after;
+  double w2 = now;
+  verv(w1, w2);
+  const double tb1 = (w1 - w2) / kMotionStepDays;
+  double w3 = now;
+  double w4 = before;
+  verv(w3, w4);
+  const double tb2 = (w3 - w4) / kMotionStepDays;
+  return tb1 - tb2;
+}
+
 // the original soko
 void compute_sun(const Ctx& c, BodyState& b) {
   const VsopTables::Result e = c.vsop.evaluate(3, c.ta.t11);
@@ -86,6 +108,10 @@ void compute_sun(const Ctx& c, BodyState& b) {
   b.eb = -e.b;
   b.tb = e.lt;
   b.dr = e.r;
+  // the geometric longitude carries the change of motion, the nutation
+  // of a tenth of a day is nothing against it
+  const auto sun_lon = [&c](double jd) { return norm_rad(c.vsop.evaluate(3, time_arguments(jd).t11, false).l + kPi); };
+  b.ttb = motion_change(sun_lon(c.ta.jd - kMotionStepDays), norm_rad(e.l + kPi), sun_lon(c.ta.jd + kMotionStepDays));
   par_ap_ktr(c, body::kSun, b, b.el, b.eb);
 }
 
@@ -266,6 +292,26 @@ LunarRates lunar_rates(const Chart& chart, Calendar cal) {
   return rates_at(chart.lunar, chart.jd_et, cal);
 }
 
+// the Mittel and Wahr rows of ko_ta
+LunarRow lunar_row(const Chart& chart, const LunarRates& rates, int slot, bool truth) {
+  LunarRow r;
+  if (slot == body::kNodeAsc) {
+    r.el = truth ? chart.lunar.true_node : chart.lunar.mean_node;
+    r.tb = truth ? rates.node_tb : chart.lunar.mean_node_speed;
+    r.ttb = truth ? rates.node_ttb : 0.0;
+  } else {
+    r.el = truth ? chart.lunar.true_apogee : chart.lunar.mean_apogee;
+    r.eb = truth ? chart.lunar.true_apogee_lat : chart.lunar.mean_apogee_lat;
+    r.tb = truth ? rates.apogee_tb : chart.lunar.mean_apogee_speed;
+    r.ttb = truth ? rates.apogee_ttb : 0.0;
+  }
+  BodyPosition p{r.el, r.eb, 0.0, 0.0, 0.0, 0.0};
+  to_equatorial(p, chart.smo.ekls);
+  r.ar = p.ar;
+  r.de = p.de;
+  return r;
+}
+
 //RR GL
 // ported from HORCOM ta_na
 int ta_na(double ac, double sun_el) {
@@ -349,6 +395,13 @@ Chart compute_chart(const ChartInput& in, const ChartSettings& s, const VsopTabl
     mo.dr = chart.moon.r;
     mo.r = chart.moon.r;
     mo.tb = chart.moon.elp;
+    // the change of motion from the series a tenth of a day either side
+    const auto moon_lon = [&s](double jd) {
+      const TimeArguments t = time_arguments(jd);
+      return moon_position(t, somo(t, calendar_date(jd, s.calendar))).el;
+    };
+    mo.ttb = motion_change(moon_lon(chart.jd_et - kMotionStepDays), chart.moon.el,
+                           moon_lon(chart.jd_et + kMotionStepDays));
     BodyPosition p{mo.el, mo.eb, 0.0, 0.0, mo.dr, mo.tb};
     to_equatorial(p, chart.smo.ekls);
     if (s.topocentric_parallax) {

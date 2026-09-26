@@ -149,9 +149,14 @@ int main(int argc, char** argv) {
   if (!german && translator.load(":/i18n/horcom_en.qm")) {
     QApplication::installTranslator(&translator);
   }
+  // the German buttons of the stock boxes, JA and NEIN like his MB_YESNO
+  // under a German Windows. windeployqt ships one merged qt_de beside the
+  // program, a development tree or a Linux system reads qtbase of Qt
   QTranslator qt_translator;
-  if (german && qt_translator.load(QLocale(QLocale::German), "qtbase", "_",
-                                   QLibraryInfo::path(QLibraryInfo::TranslationsPath))) {
+  if (german && (qt_translator.load(QLocale(QLocale::German), "qt", "_",
+                                    QCoreApplication::applicationDirPath() + "/translations") ||
+                 qt_translator.load(QLocale(QLocale::German), "qtbase", "_",
+                                    QLibraryInfo::path(QLibraryInfo::TranslationsPath)))) {
     QApplication::installTranslator(&qt_translator);
   }
 

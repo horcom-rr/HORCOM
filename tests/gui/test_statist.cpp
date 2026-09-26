@@ -9,15 +9,23 @@
 #include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
+#include <QListWidget>
 #include <QMessageBox>
+#include <QPushButton>
+#include <QStyle>
+#include <QStyleOptionButton>
 #include <QTimer>
+#include <cmath>
 #include <filesystem>
+#include <optional>
 
 #include "dialog_driver.hpp"
 #include "doctest.h"
 #include "horcom/data/chart_file.hpp"
 #include "horcom/data/statist.hpp"
 #include "probe.hpp"
+#include "robert_input.hpp"
+#include "theme.hpp"
 
 using namespace horcom;
 using horcom::test::DialogDriver;
@@ -444,6 +452,107 @@ TEST_CASE("ABBRUCH in the EINZELNE PLANETEN box still shows the chart and keeps 
   // the counters run for the single view, one record so far
   CHECK(chart.contains("   1 DATENSÄTZE"));
   CHECK(page.join("|").contains("ANNA MUSTER"));
+}
+
+TEST_CASE("the aspect counter stands where his window of anzeigen_asp_zaehl stood") {
+  auto w = MainWindowProbe::make();
+  const auto dir = statist_folder();
+  MainWindowProbe::set_data_dir(*w, dir);
+  build_dataset(*w, dir);
+  QRect box;
+  QSize view;
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("AUSWERTUNG STARTEN"))
+        .then(pick_file(dir / "statist7" / "DEMO.STA"))
+        .then(DialogDriver::click("PLANET / HÄUSERSPITZE"))
+        .then(DialogDriver::pick_row(0))
+        .then(DialogDriver::click("OHNE EINSCHRÄNKUNG"))
+        .then(click_row(0))
+        .then(DialogDriver::click("NICHT  ÜBERNEHMEN"))
+        .then(DialogDriver::click("EINZEL-Betrachtung"))
+        .then(DialogDriver::click("NORMALE AUSGABE"))
+        .then([&box, &view](QDialog* d) {
+          view = d->size();
+          for (const QLabel* l : d->findChildren<QLabel*>()) {
+            if (l->text().contains("ASPEKTE - ZÄHLER")) {
+              box = l->geometry();
+            }
+          }
+          press(Qt::Key_Space)(d);
+        })
+        .then(press(Qt::Key_Escape))
+        .then(DialogDriver::click("JA"));
+    MainWindowProbe::statistics_hub(*w);
+    INFO(drive.titles().join(" | ").toStdString());
+    CHECK(drive.pending() == 0);
+  }
+  REQUIRE(box.isValid());
+  // his OPENW #12,@xk(5),@yk(300) on the 480 lines of his screen, the
+  // tester found the box sunk to the bottom edge too low
+  const long y = std::lround(view.height() * 300.0 / 480.0);
+  CHECK(box.top() <= y);
+  // and no higher than the sheet's edge pushes it up
+  CHECK(box.top() >= std::min<long>(y, view.height() - box.height() - box.left()) - 1);
+  CHECK(box.bottom() < view.height());
+  CHECK(box.left() < view.width() / 20);
+}
+
+TEST_CASE("the sign list takes one click like his ausw_obj_e") {
+  // his handlemessage set select& on the first click and ausw_obj_e ended
+  // there, the tester had to double click in the port
+  std::optional<int> picked;
+  {
+    DialogDriver drive;
+    drive.then([](QDialog* d) {
+      auto* list = d->findChild<QListWidget*>();
+      REQUIRE(list != nullptr);
+      const QPoint at = list->visualItemRect(list->item(4)).center();
+      QTimer::singleShot(0, d, [list, at]() {
+        QMouseEvent press(QEvent::MouseButtonPress, at, list->viewport()->mapToGlobal(at), Qt::LeftButton, Qt::LeftButton,
+                          Qt::NoModifier);
+        QApplication::sendEvent(list->viewport(), &press);
+        QMouseEvent release(QEvent::MouseButtonRelease, at, list->viewport()->mapToGlobal(at), Qt::LeftButton,
+                            Qt::NoButton, Qt::NoModifier);
+        QApplication::sendEvent(list->viewport(), &release);
+      });
+    });
+    picked = pick_sign(nullptr);
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  // row 4 is the LÖWE
+  CHECK(picked == std::optional<int>(4));
+}
+
+TEST_CASE("the keys of his ZIFFERN-EINGABE show their digits in the dress of the program") {
+  // the style sheet pads its buttons, the narrow keys lost their digits and
+  // the tester saw empty boxes for the ORBIS and the HAUS NR.
+  const QString sheet_before = qApp->styleSheet();
+  theme::apply(theme::kTextScaleNormal, false);
+  int keys = 0;
+  bool readable = true;
+  std::optional<int> house;
+  {
+    DialogDriver drive;
+    drive.then([&keys, &readable](QDialog* d) {
+      for (QPushButton* b : d->findChildren<QPushButton*>()) {
+        QStyleOptionButton opt;
+        opt.initFrom(b);
+        opt.text = b->text();
+        const QRect room = b->style()->subElementRect(QStyle::SE_PushButtonContents, &opt, b);
+        readable = readable && room.width() >= b->fontMetrics().horizontalAdvance(b->text().trimmed());
+        ++keys;
+      }
+      DialogDriver::click("12")(d);
+    });
+    house = ask_digit(nullptr, "HERR von HAUS NR.?", 1, 12);
+    CHECK(drive.pending() == 0);
+  }
+  qApp->setStyleSheet(sheet_before);
+  CHECK(keys == 12);
+  CHECK(readable);
+  CHECK(house == std::optional<int>(12));
 }
 
 TEST_CASE("AUSWERTUNG des ZÄHLERS counts every listed record once") {

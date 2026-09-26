@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <array>
 
+#include "horcom/chart/bodies.hpp"
 #include "horcom/time/calendar.hpp"
 
 // The chart settings of the original, one field per global switch. The
@@ -68,7 +69,18 @@ struct ChartSettings {
   void enable_standard_extras() {
     extra_bodies = true;
     for (int i = 1; i <= 22; ++i) {
-      nk[static_cast<std::size_t>(i)] = 18 + i;
+      nk[static_cast<std::size_t>(i)] = body::kExtraSlotBase + i;
+    }
+  }
+
+  /// Switches one extra body on at its place of the standard layout, the
+  /// others keep their choice.
+  ///
+  /// @param slot a body slot from the Black Moon to Xena
+  void include_extra(int slot) {
+    if (slot > body::kExtraSlotBase && slot < body::kSlotCount) {
+      extra_bodies = true;
+      nk[static_cast<std::size_t>(slot - body::kExtraSlotBase)] = slot;
     }
   }
 

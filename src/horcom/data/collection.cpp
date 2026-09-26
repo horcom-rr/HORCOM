@@ -194,9 +194,10 @@ AafRecord aaf_export_record(const ChartRecord& c) {
   return a;
 }
 
-std::optional<std::size_t> aaf_ident(const std::vector<AafRecord>& aaf, std::string_view dat_name) {
+std::vector<std::size_t> aaf_named(const std::vector<AafRecord>& aaf, std::string_view dat_name) {
   // LSET e$ = na_aaf$
   const std::string e = padded(dat_field(trimmed(dat_name), kNameBytes), kNameBytes);
+  std::vector<std::size_t> out;
   for (std::size_t i = 0; i < aaf.size(); ++i) {
     // the name as aaf_horcom2 stores it, and his f$ with the star that
     // older files of the port carry
@@ -204,9 +205,19 @@ std::optional<std::size_t> aaf_ident(const std::vector<AafRecord>& aaf, std::str
     const std::string star =
         padded(dat_field(trimmed(aaf[i].surname) + " " + given_or_star(aaf[i]), kNameBytes), kNameBytes);
     if (plain == e || star == e) {
-      return i;
+      out.push_back(i);
     }
   }
+  return out;
+}
+
+std::optional<std::size_t> aaf_ident(const std::vector<AafRecord>& aaf, std::string_view dat_name) {
+  const std::vector<std::size_t> named = aaf_named(aaf, dat_name);
+  if (!named.empty()) {
+    return named.front();
+  }
+  // LSET e$ = na_aaf$
+  const std::string e = padded(dat_field(trimmed(dat_name), kNameBytes), kNameBytes);
   for (std::size_t i = 0; i < aaf.size(); ++i) {
     // ELSE IF INSTR(e$,n1$) > 0 && LEN(n2$) = 1
     const std::string n1 = dat_field(trimmed(aaf[i].surname));

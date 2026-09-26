@@ -577,18 +577,26 @@ TEST_CASE("DESKTOP ( QUIT HORCOM ) asks his quit question") {
   QString title;
   QString text;
   DialogDriver drive;
-  drive.then([&title, &text](QDialog* d) {
+  QStringList buttons;
+  drive.then([&title, &text, &buttons](QDialog* d) {
     title = d->windowTitle();
     if (auto* box = qobject_cast<QMessageBox*>(d)) {
       text = box->text();
     }
-    DialogDriver::click("No")(d);
+    for (const QAbstractButton* b : d->findChildren<QAbstractButton*>()) {
+      buttons << b->text();
+    }
+    DialogDriver::click("NEIN")(d);
   });
   MainWindowProbe::desktop_quit(*w);
   CHECK(title == "ABBRUCH?");
   CHECK(text == "PROGRAMM   HORCOM   BEENDEN ?");
+  // JA and NEIN in the German program like his MB_YESNO under a German
+  // Windows, the tester saw the English Yes and No
+  CHECK(buttons.contains("JA"));
+  CHECK(buttons.contains("NEIN"));
   CHECK_FALSE(MainWindowProbe::quit_confirmed(*w));
-  drive.then(DialogDriver::click("Yes"));
+  drive.then(DialogDriver::click("JA"));
   MainWindowProbe::desktop_quit(*w);
   CHECK(drive.pending() == 0);
   CHECK(MainWindowProbe::quit_confirmed(*w));
@@ -602,14 +610,14 @@ TEST_CASE("every close asks his quit question like MENU(1) = 4") {
     if (auto* box = qobject_cast<QMessageBox*>(d)) {
       text = box->text();
     }
-    DialogDriver::click("No")(d);
+    DialogDriver::click("NEIN")(d);
   });
   // a close from the program itself, the way a separate BEENDEN or the
   // quit key of the system closes the window, asks as well
   CHECK_FALSE(w->close());
   CHECK(text == "PROGRAMM   HORCOM   BEENDEN ?");
   CHECK_FALSE(MainWindowProbe::quit_confirmed(*w));
-  drive.then(DialogDriver::click("Yes"));
+  drive.then(DialogDriver::click("JA"));
   CHECK(w->close());
   CHECK(drive.pending() == 0);
   CHECK(MainWindowProbe::quit_confirmed(*w));
@@ -644,10 +652,11 @@ TEST_CASE("HINTERGRUND-FARBEN keeps his two colours in KONSTA and over the dress
   // ink of the dress would stand near white on it
   CHECK(qApp->styleSheet().contains(
       "QDialog QLabel, QDialog QCheckBox, QDialog QRadioButton, QDialog QGroupBox { color: #000000; }"));
-  // his colours stand checked as the third entry of FARBEN
+  // his colours stand checked as the third entry of FARBEN, the entry that
+  // also opens his colour boxes since the tester moved them out of DIVERSES
   const auto* own = w->findChild<QAction*>("ownColorsAction");
   REQUIRE(own != nullptr);
-  CHECK(own->text() == "HINTERGRUND-FARBEN");
+  CHECK(own->text() == "HINTERGRUND-FARBEN…");
   CHECK(own->isChecked());
   // a dress from the Ansicht menu takes its colours back
   QSettings().setValue(theme::kOwnColorsKey, before);
@@ -668,16 +677,23 @@ TEST_CASE("the ink on his dialog colour follows its lightness") {
 
 namespace {
 
-// the entry of a top menu by its caption
+// the entry of a top menu by its caption, also inside its submenus, whose
+// triggered signal reaches the top menu like a click does
 QAction* menu_entry(QMainWindow& w, const QString& menu, const QString& entry, QMenu** owner = nullptr) {
   for (QAction* top : w.menuBar()->actions()) {
     if (top->text() == menu && top->menu() != nullptr) {
       for (QAction* a : top->menu()->actions()) {
-        if (a->text() == entry) {
-          if (owner != nullptr) {
-            *owner = top->menu();
+        QList<QAction*> candidates{a};
+        if (a->menu() != nullptr) {
+          candidates += a->menu()->actions();
+        }
+        for (QAction* c : candidates) {
+          if (c->text() == entry) {
+            if (owner != nullptr) {
+              *owner = top->menu();
+            }
+            return c;
           }
-          return a;
         }
       }
     }
@@ -737,14 +753,153 @@ TEST_CASE("the entries added late to the menu tree carry the ERLÄUTERUNG of war
     emit owner->triggered(a);
     return MainWindowProbe::help_stem(*w);
   };
-  // his CASE 50 TO 59 of the HOROSKOPE menu
-  CHECK(stem_of("H&OROSKOPE", "MULTIPLE DIREKTIONEN / HARMONICS G/H…") == "komm4");
+  // his CASE 50 TO 59 of the HOROSKOPE menu, the MULTIPLE entry moved to
+  // AUSWERTUNG with the tester and keeps the text of its old home
+  CHECK(stem_of("&AUSWERTUNG", "MULTIPLE DIREKTIONEN / HARMONICS G/H…") == "komm4");
   CHECK(stem_of("H&OROSKOPE", "COMPOSIT…") == "komm4");
   CHECK(stem_of("H&OROSKOPE", "DOPPEL-KREIS / 90-GRAD-KREIS…") == "komm4");
   // his CASE 69 TO 75 and CASE 40
   CHECK(stem_of("&AUSWERTUNG", "MUNDAN-ASPEKTE…") == "komm7");
   CHECK(stem_of("&AUSWERTUNG", "SYMB. DIREKTION: EKLIPT. G/H…") == "komm7");
   CHECK(stem_of("&EPHEMERIDE", "STATISTIK G/H…") == "kommstat");
+  // the DIVERSES entries the tester moved keep his ERLÄUTERUNG 9
+  CHECK(stem_of("EI&N-AUSG.", "ERGEBNIS als RADIX…") == "komm9");
+  CHECK(stem_of("ANSICH&T", "DATEIEN VERKETTEN…") == "komm9");
+  CHECK(stem_of("ANSICH&T", "AAF-DATEI < > HORCOM-DATEI…") == "komm9");
+}
+
+TEST_CASE("the menus stand in the order of the tester's sixth batch") {
+  auto w = MainWindowProbe::make();
+  // the captions of a menu with a bar for every rule and every submenu by
+  // its title, the grey heading rows included
+  const auto layout = [&w](const QString& menu) {
+    QStringList out;
+    for (QAction* top : w->menuBar()->actions()) {
+      if (top->text() != menu || top->menu() == nullptr) {
+        continue;
+      }
+      for (QAction* a : top->menu()->actions()) {
+        out << (a->isSeparator() ? QStringLiteral("|") : a->text());
+      }
+    }
+    return out;
+  };
+  // the VORGABEN first under a rule in every menu, the pair rows of his
+  // DOPPEL-DATEN gone into HOROSKOPE, ERGEBNIS als RADIX beside the SATZ
+  // rows, the exports gathered in HOROSKOP SPEICHERN
+  const QStringList file = layout("EI&N-AUSG.");
+  REQUIRE(file.size() > 3);
+  CHECK(file[0] == "VORGABEN EIN-AUSGABE ÄNDERN…");
+  CHECK(file[1] == "|");
+  CHECK(file[2] == "DATEN-DATEI EIN-AUSGABE…");
+  CHECK(file.contains("AAF-DATENSATZ BEARBEITEN…"));
+  CHECK(file.contains("ERGEBNIS als RADIX…"));
+  CHECK(file.contains("HOROSKOP SPEICHERN"));
+  CHECK_FALSE(file.contains("COMPOSIT"));
+  CHECK_FALSE(file.contains("HOROSKOP als SVG SPEICHERN…"));
+  CHECK(file.indexOf("ERLÄUTERUNG 2…") == file.size() - 1);
+  CHECK(file[file.size() - 2] == "|");
+  const QStringList ephem = layout("&EPHEMERIDE");
+  CHECK(ephem.contains("INGRESSE PLANETEN-MC-AC…"));
+  CHECK(ephem[1] == "|");
+  CHECK(ephem[ephem.size() - 2] == "|");
+  const QStringList horo = layout("H&OROSKOPE");
+  // the new row of his list holds the three pair charts like the sub rows
+  // of SCHRIFTGRÖßE and HOROSKOP SPEICHERN
+  CHECK(horo == QStringList{"VORGABEN HOROSKOP ÄNDERN…", "|", "HOROSKOP - GRAPHIK", "ASPEKTARIUM G/H…",
+                            "HALBSUMMEN-GRAPHIK G/H…", "|", "HOROSKOP-KOMBINATION / VERGLEICH", "|", "ERLÄUTERUNG 4…"});
+  QStringList pairs;
+  for (QAction* top : w->menuBar()->actions()) {
+    if (top->text() != "H&OROSKOPE") {
+      continue;
+    }
+    for (QAction* a : top->menu()->actions()) {
+      if (a->menu() != nullptr) {
+        for (QAction* p : a->menu()->actions()) {
+          pairs << p->text();
+        }
+      }
+    }
+  }
+  CHECK(pairs == QStringList{"COMPOSIT…", "COMBIN…", "DOPPEL-KREIS / 90-GRAD-KREIS…"});
+  const QStringList ausw = layout("&AUSWERTUNG");
+  CHECK(ausw == QStringList{"VORGABEN DIREKTIONEN ÄNDERN…",
+                            "|",
+                            "SOLAR…",
+                            "SOLAR-LISTE…",
+                            "LUNAR…",
+                            "LUNAR-LISTE…",
+                            "PLANETAR…",
+                            "PERSONAR…",
+                            "|",
+                            "MÜNCHNER RHYTHMENLEHRE…",
+                            "SEPTAR…",
+                            "GRAD-DATUM-LISTE…",
+                            "ERLÄUTERUNG 5…",
+                            "ERLÄUTERUNG 6…",
+                            "|",
+                            "TAGES-HOROSKOP…",
+                            "PROGRESSIONS-HOROSKOP…",
+                            "SEKUNDÄR-DIREKTION…",
+                            "SONNE (MOND)-BOGEN-DIREKTION…",
+                            "PRIMÄR-DIREKTION ( E.C.KÜHR )…",
+                            "SYMB. DIREKTION: ÄQUATORIAL…",
+                            "SYMB. DIREKTION: EKLIPT. G/H…",
+                            "ERLÄUTERUNG 7…",
+                            "|",
+                            "DYNAMOGRAMM…",
+                            "|",
+                            "MULTIPLE DIREKTIONEN / HARMONICS G/H…",
+                            "|",
+                            "LINEAR-GRAPHIK…",
+                            "TRANSITE…",
+                            "MUNDAN-ASPEKTE…"});
+  const QStringList divers = layout("D&IVERSES");
+  CHECK(divers == QStringList{"HÄUSER-SYSTEM…",
+                              "HÄUSER-TABELLE…",
+                              "ERLÄUTERUNG 8…",
+                              "|",
+                              "KORREKTUR…",
+                              "ZEIT-WANDERN G/H…",
+                              "ORT-WANDERN…",
+                              "|",
+                              "UHR G/H…",
+                              "|",
+                              "AR-DE aus EL-EB…",
+                              "EL-EB aus AR-DE…",
+                              "LT aus UT…",
+                              "UT aus LT…",
+                              "WINKEL-UMRECHNUNG…",
+                              "|",
+                              "AUFGANG / UNTERGANG…",
+                              "FINSTERNISSE…",
+                              "|",
+                              "GROßES ( = PLATONISCHES ) JAHR…",
+                              "|",
+                              "ERLÄUTERUNG 9…",
+                              "ÄNDERUNGEN / HINWEISE / KURZANL.…",
+                              "|",
+                              "DESKTOP ( QUIT HORCOM )"});
+  const QStringList view = layout("ANSICH&T");
+  CHECK(view == QStringList{"VORGABEN-ÜBERSICHT…",
+                            "|",
+                            "HISTOGRAMME…",
+                            "KOORDINATEN-TAFEL EIN / AUS",
+                            "HÄUSER-SPITZEN EIN / AUS",
+                            "ASPEKTE / HALBSUMMEN EIN / AUS",
+                            "|",
+                            "SCHRIFTGRÖßE",
+                            "|",
+                            "FARBEN",
+                            "|",
+                            "PLANETEN-AUSWAHL…",
+                            "|",
+                            "SPRACHE / LANGUAGE",
+                            "|",
+                            "ALLES ZURÜCKSETZEN…",
+                            "|",
+                            "DATEIEN VERKETTEN…",
+                            "AAF-DATEI < > HORCOM-DATEI…"});
 }
 
 TEST_CASE("the menu captions keep the Alt letters of his function keys free") {
@@ -856,17 +1011,13 @@ TEST_CASE("the right button opens the Erste Hilfe on the main screen only") {
     QContextMenuEvent e(QContextMenuEvent::Mouse, QPoint(4, 4), at->mapToGlobal(QPoint(4, 4)));
     QApplication::sendEvent(at, &e);
   };
-  // the coordinate table of the result docks stands for his output screen
-  QTableWidget* table = nullptr;
-  for (QTableWidget* t : w->findChildren<QTableWidget*>()) {
-    if (t->columnCount() > 1) {
-      table = t;
-    }
-  }
-  REQUIRE(table != nullptr);
-  {
+  // the three result docks stand for his output screens
+  QDockWidget* aspects = MainWindowProbe::aspects_dock(*w);
+  REQUIRE(aspects != nullptr);
+  for (QWidget* at : {static_cast<QWidget*>(MainWindowProbe::bodies(*w)->viewport()),
+                      static_cast<QWidget*>(MainWindowProbe::cusps(*w)->viewport()), aspects->widget()}) {
     DialogDriver quiet;
-    right_click(table->viewport());
+    right_click(at);
     QApplication::processEvents();
     CHECK(quiet.unexpected() == 0);
   }

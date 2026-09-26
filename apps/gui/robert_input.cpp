@@ -4,6 +4,7 @@
 
 #include "robert_input.hpp"
 
+#include <algorithm>
 #include <cmath>
 
 #include <QCoreApplication>
@@ -42,6 +43,11 @@ constexpr const char* kSignNames[kSignCount] = {
 struct RobertInput {
   Q_DECLARE_TR_FUNCTIONS(RobertInput)
 };
+
+// the keys of his ZIFFERN-EINGABE, the narrowest width and the room around
+// the two digits for the frame and the padding of the style
+constexpr int kDigitKeyWidth = 34;
+constexpr int kDigitKeyMargin = 12;
 
 // his number fields read like VAL, an empty box is zero
 double field_value(const QLineEdit* e) {
@@ -100,7 +106,11 @@ QString sign_name(int sign) {
   return RobertInput::tr(kSignNames[static_cast<std::size_t>(sign)]);
 }
 
-// the sign list of ze_pl_wa, a double click picks
+// the sign list of ze_pl_wa with ausw_obj_e. His loop ended on select& > 0,
+// which his handlemessage set on the first click into the list, so one
+// click picks despite the title. ENTER and the OK button take the marked
+// row, the keyboard path of the port, his OK only closed the box without
+// a pick and the list came back
 std::optional<int> pick_sign(QWidget* parent) {
   QDialog d(parent);
   //RR Mit DOPPELKLICK AUSWÄHLEN !
@@ -112,12 +122,20 @@ std::optional<int> pick_sign(QWidget* parent) {
   }
   list->setCurrentRow(0);
   v->addWidget(list);
+  // CONTROL " &OK ",101
+  auto* ok = new QPushButton(RobertInput::tr(" &OK "), &d);
+  ok->setDefault(true);
+  v->addWidget(ok, 0, Qt::AlignHCenter);
   int picked = -1;
-  QObject::connect(list, &QListWidget::itemActivated, &d, [&picked, list, &d](QListWidgetItem*) {
-    picked = list->currentRow();
+  const auto take = [&picked, &d](int row) {
+    picked = row;
     d.accept();
-  });
-  d.resize(300, 420);
+  };
+  const auto take_item = [list, take](QListWidgetItem* item) { take(list->row(item)); };
+  QObject::connect(list, &QListWidget::itemClicked, &d, take_item);
+  QObject::connect(list, &QListWidget::itemActivated, &d, take_item);
+  QObject::connect(ok, &QPushButton::clicked, &d, [list, take]() { take(list->currentRow()); });
+  d.resize(300, 460);
   if (d.exec() != QDialog::Accepted || picked < 0) {
     return std::nullopt;
   }
@@ -488,7 +506,14 @@ std::optional<int> ask_digit(QWidget* parent, const QString& prompt, int from, i
   int chosen = from;
   for (int i = from; i <= to; ++i) {
     auto* b = new QPushButton(QString::asprintf("%2d", i), &d);
-    b->setFixedWidth(34);
+    // his narrow keys of thirty by twenty five units. The style of the
+    // program pads its wide buttons, here the padding would swallow the
+    // digits and the tester saw empty boxes, the key takes the width of
+    // its two digits under whatever style and text size rules
+    b->setObjectName(QStringLiteral("digitButton"));
+    b->ensurePolished();
+    const int digits = b->fontMetrics().horizontalAdvance(QStringLiteral("00"));
+    b->setFixedWidth(std::max(kDigitKeyWidth, digits + kDigitKeyMargin));
     // defaui&(diha&) = 101 + nu0&, the first value takes ENTER
     if (i == from) {
       b->setDefault(true);

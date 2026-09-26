@@ -79,6 +79,7 @@ RecordListDialog::RecordListDialog(const std::vector<AafRecord>& records, const 
   auto* head = new QLabel(tr("  NAME                      DATUM          ZEIT (UT)     LÄNGE"
                              "         BREITE        ORTS-NAME"),
                           this);
+  head->setObjectName(QStringLiteral("columnHead"));
   v->addWidget(head);
   list_ = new QListWidget(this);
   list_->setSelectionMode(mode_ == Mode::kSingle ? QAbstractItemView::SingleSelection

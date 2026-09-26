@@ -7,6 +7,7 @@
 #include <QDateEdit>
 #include <QKeyEvent>
 #include <QLabel>
+#include <QMessageBox>
 #include <QMouseEvent>
 #include <QSpinBox>
 #include <QTableWidget>
@@ -315,6 +316,37 @@ TEST_CASE("TERRAR takes the place of SOLAR under hrg! and lists his table") {
   for (std::size_t i = 1; i < moments.size(); ++i) {
     CHECK(moments[i] - moments[i - 1] == doctest::Approx(365.25).epsilon(0.01));
   }
+}
+
+TEST_CASE("PLANETAR reckons CHIRON with the Zusatz-Planeten of the panel off") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::preset_extras(*w, false, false, false);
+  MainWindowProbe::apply(*w, morning_birth());
+  QStringList seen;
+  {
+    DialogDriver drive;
+    drive
+        .then([](QDialog* d) {
+          const QList<QComboBox*> combos = d->findChildren<QComboBox*>();
+          REQUIRE(combos.size() >= 2);
+          // the three extra planets stay on offer without the panel switch
+          combos[0]->setCurrentIndex(combos[0]->findText("CHIRONAR"));
+          REQUIRE(combos[0]->currentText() == "CHIRONAR");
+          click_button(d, "OK");
+        })
+        .then([&seen](QDialog* d) {
+          seen << d->windowTitle();
+          if (auto* box = qobject_cast<QMessageBox*>(d)) {
+            seen << box->text();
+          }
+          d->reject();
+        });
+    MainWindowProbe::planetar(*w);
+    CHECK(drive.pending() == 0);
+  }
+  INFO(seen.join(" | ").toStdString());
+  // the radix place of CHIRON is found, the search asks on
+  CHECK_FALSE(seen.join("|").contains("konnte nicht bestimmt werden"));
 }
 
 TEST_CASE("PLANETAR searches by DATUM by default and walks back over the passages") {

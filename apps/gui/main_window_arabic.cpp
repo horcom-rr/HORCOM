@@ -304,16 +304,25 @@ void MainWindow::arabic_table() {
       // stelk, the tag and the aspect sprite, at most four
       QString asp;
       std::size_t hits = 0;
+      bool conjunction = false;
       for (const auto& [slot, kind] : point_aspects(chart, p.la, orb)) {
         if (!stelk_partner(slot) || hits >= kMaxHits) {
           continue;
         }
         ++hits;
+        conjunction = conjunction || kind == kStarConjunction;
         const std::string_view n = body::kName[static_cast<std::size_t>(slot)];
         // stelk sets the aspect sprite at z& and the tag at z& + 8
         asp += QString::fromUtf8(aspect_glyph(star_aspect_family(kind))) + QString::fromUtf8(n.data(), static_cast<qsizetype>(n.size())) + " ";
       }
-      table->setItem(row, 3, new QTableWidgetItem(asp.trimmed()));
+      auto* asp_item = new QTableWidgetItem(asp.trimmed());
+      // a conjunction wears his yellow label box as the tester wished, on
+      // the screen only like the band below
+      if (conjunction && konsta_.prenbl == 0) {
+        asp_item->setBackground(QColor(0xFF, 0xFF, 0x00));
+        asp_item->setForeground(QColor(0x00, 0x00, 0x00));
+      }
+      table->setItem(row, 3, asp_item);
       // IF prenbl& = 0, deftextcol(3), red on cyan on the screen only
       if (hits > 0 && konsta_.prenbl == 0) {
         for (QTableWidgetItem* item : {name, formula}) {

@@ -237,8 +237,10 @@ TEST_CASE("the hub save of a same named record replaces its AAF twin") {
   MainWindowProbe::apply(*w, now);
   {
     DialogDriver drive;
-    drive.then(DialogDriver::click("OK"));
+    // his question of the DAT file stands beside the AAF twin too
+    drive.then(DialogDriver::click("ÜBERSCHREIBEN")).then(DialogDriver::click("OK"));
     MainWindowProbe::save(*w);
+    CHECK(drive.pending() == 0);
     CHECK(drive.unexpected() == 0);
   }
   // aaf_ident found HUBFALL, the new record moved to the end and the DAT
@@ -253,6 +255,71 @@ TEST_CASE("the hub save of a same named record replaces its AAF twin") {
   REQUIRE(records.has_value());
   REQUIRE(records->size() == 2);
   CHECK(QString::fromStdString((*records)[1].name).trimmed() == "HUBFALL");
+}
+
+TEST_CASE("the hub save beside an AAF twin can keep the old record and add the new one") {
+  Scratch s("horcom_entry_hub_add");
+  const QString file = s.path("HUB.DAT");
+  const std::filesystem::path dat(file.toStdWString());
+  REQUIRE(write_chart_file(dat, {stored("HUBFALL")}));
+  AafRecord a;
+  a.surname = "HUBFALL";
+  a.given = "*";
+  a.day = 3;
+  a.month = 3;
+  a.year = 1960;
+  REQUIRE(write_aaf(aaf_twin_path(dat), {a}));
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::bind(*w, file);
+  AafRecord now = a;
+  now.given.clear();
+  now.day = 4;
+  now.hour = 6;
+  MainWindowProbe::apply(*w, now);
+  QString question;
+  {
+    DialogDriver drive;
+    drive
+        .then([&question](QDialog* d) {
+          for (const QLabel* l : d->findChildren<QLabel*>()) {
+            question += l->text();
+          }
+          DialogDriver::click("ZUSÄTZLICH")(d);
+        })
+        .then(DialogDriver::click("OK"));
+    MainWindowProbe::save(*w);
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  // the tester could only replace the record beside an AAF twin, now the
+  // second horoscope of the same name joins both files
+  CHECK(question.contains("DATENSATZ GLEICHEN NAMENS in der DATEI ÜBERSCHREIBEN ?"));
+  const auto aaf = read_aaf(aaf_twin_path(dat));
+  REQUIRE(aaf.has_value());
+  REQUIRE(aaf->size() == 2);
+  CHECK((*aaf)[0].day == 3);
+  CHECK((*aaf)[1].day == 4);
+  const auto records = read_chart_file(dat);
+  REQUIRE(records.has_value());
+  CHECK(records->size() == 2);
+  // a later ÜBERSCHREIBEN drops every record of the name like a22ueberschrb
+  // drops them from the DAT, not only the first one aaf_ident finds
+  now.day = 5;
+  MainWindowProbe::apply(*w, now);
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("ÜBERSCHREIBEN")).then(DialogDriver::click("OK"));
+    MainWindowProbe::save(*w);
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  const auto after = read_aaf(aaf_twin_path(dat));
+  REQUIRE(after.has_value());
+  REQUIRE(after->size() == 1);
+  CHECK((*after)[0].day == 5);
+  const auto dat_after = read_chart_file(dat);
+  REQUIRE(dat_after.has_value());
+  CHECK(dat_after->size() == 1);
 }
 
 TEST_CASE("a derived chart never overwrites the birth record of its person") {

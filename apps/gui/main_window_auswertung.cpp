@@ -636,6 +636,9 @@ void MainWindow::planetar_chart() {
     QMessageBox::information(this, tr(" HINWEIS "), tr("NICHT SINNVOLL für Horoskope von MENSCHEN !"));
   }
   SearchContext ctx = make_context();
+  // the offered CH, QU and XE are reckoned also where the panel leaves the
+  // Zusatz-Planeten out
+  ctx.settings.include_extra(slot);
   // pz = plz(1,ze,pl&), the natal place of the body at the birth place
   ctx.base = radix_input();
   const double birth = julian_day(ctx.base.date_ut, ctx.settings.calendar);

@@ -17,6 +17,12 @@
 // the original variable names so the schema stays literally comparable.
 namespace horcom {
 
+/// The reference date of the great year, 10 May 1774 at noon, the start
+/// of the Aquarian age the family's tester holds today. His profile
+/// carried the CHAUVIN date of 6 January 1779, JD 2370832, the entry
+/// GROßES JAHR sets any other date.
+inline constexpr double kGreatYearReferenceJd = 2369130.0;
+
 /// Every field of the settings file in stream order.
 struct Konsta {
   int haw = 1;
@@ -70,8 +76,11 @@ struct Konsta {
   int elem = 1;
   bool gebherr_dop = true;
   bool haus1_dop = false;
-  double jdgross = 2370832.0;  //RR CHAUVIN f.AQU.
+  double jdgross = kGreatYearReferenceJd;
   int zal_grossj = 330;
+  /// his entf& of the ENTFERNUNGSWERTE question, 1 percent and 2 AU. The
+  /// tables show both since the tester's sixth batch, the value only keeps
+  /// its place in the file
   int entf = 1;
   int stzw = 1;  //RR wahre Sternzeit
   int erase_ = 0;

@@ -194,9 +194,13 @@ Von der ERGEBNIS-Ebene aus,sind NICHT MEHR ALLE PROGRAMME SINNVOLL also auch nic
 
 Mit "ERGEBNIS als RADIX" (unter "DIVERSES") können Sie,wenn Sie es sich zutrauen,trotzdem alle Programme verwenden,z.B.ein Solar eines Lunars machen.Aber Vorsicht damit ! Das ist etwas für Geübte.
 
+*Anmerkung der Neufassung, in dieser Version steht "ERGEBNIS als RADIX" unter EIN-AUSG. gleich unter den SATZ-Zeilen.*
+
 Die DOPPEL-Horoskope COMPOSIT,COMBIN u.DOPPELKREIS bilden ebenfalls eine ERGEBNIS-Ebene,von der aus aber nur für COMBIN weitere Programme ansprechbar sind.
 
 Aktivieren unter ERGEBNIS-DATEN,Zurückholen unter dem entspr.Programm in Rubrik HOROSKOPE bzw. AUSWERTUNG ,wenn dort ein HÄKCHEN ist ! Diese Bild-Speicherung ist nur während einer HORCOM-Sitzung gegeben und nur dann wenn die Rechenzeit 15 Sekunden übersteigt.
+
+*Anmerkung der Neufassung, in dieser Version stehen COMPOSIT, COMBIN und DOPPEL-KREIS unter HOROSKOPE in der Zeile HOROSKOP-KOMBINATION / VERGLEICH, ihr Eintrag nennt das zuletzt berechnete Paar und holt es mit LETZTES GESPEICHERTES BILD zurück.*
 
 Achten Sie bei den DOPPEL-Horoskopen darauf,daß immer die 2 Datensätze schon eingegeben sind,bevor Sie das betr. Programm anwählen:Sonst wird die Eingabeprozedur unübersichtlich !
 
@@ -223,6 +227,8 @@ In die Dateien nur RADIX-Daten eingeben,da diese beim wieder holen immer als Rad
 Die Datensätze sind beim NAMEN auf 25 ZEICHEN,beim ORT auf 20 ZEICHEN,bei BEMERKUNGEN auf 51 ZEICHEN begrenzt.
 
 Verschiedene Dateien können zusammengefügt werden mit "DATEIEN VERKETTEN". (siehe Erläuterung 9).
+
+*Anmerkung der Neufassung, in dieser Version stehen "DATEIEN VERKETTEN" und "AAF-DATEI < > HORCOM-DATEI" am Fuß des Menüs ANSICHT.*
 
 Nachtrag hinsichtlich des Formates der in HORCOM.. verwendeten DATENund ORTS-DATEIEN für Leute,die andere Dateien auf das HORCOM-FORMAT umsetzen möchten :
 

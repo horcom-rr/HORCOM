@@ -35,6 +35,10 @@ namespace {
 // his S and A in place of the glyph
 constexpr const char* kMirrorTag = "S";
 constexpr const char* kArabicTag = "A";
+// his OPENW #12,@xk(5),@yk(300), the aspect counter window on his 640 by
+// 480 screen, a little above the lower left corner of the sheet
+constexpr double kAspectBoxX = 5.0;
+constexpr double kAspectBoxY = 300.0;
 // CHR$(4), the diamond of his OEM font before NIETE!
 constexpr const char* kNieteMark = " \xE2\x99\xA6 NIETE!";
 // the pages 'S' skips, his kl& + 120 at the end of a page and the next
@@ -84,19 +88,37 @@ void show_sheet(QWidget* owner, const QString& title, const DisplayList& sheet, 
   // edges like every other preview
   wheel->set_display_list(sheet);
   grid->addWidget(wheel, 0, 0, 3, 3);
-  const auto box = [&](const QString& text, int row, int col, Qt::Alignment al) {
+  const auto box = [&](const QString& text) {
     auto* l = new QLabel(text, &view);
     l->setFont(theme::mono_font(8));
     // RGBCOLOR RGB(0,0,0),RGB(255,255,0)
     l->setStyleSheet("QLabel { background: #ffff00; color: #000000; border: 2px solid #808080; padding: 2px; }");
-    grid->addWidget(l, row, col, al);
+    return l;
   };
   if (!midpoints.isEmpty()) {
-    box(midpoints, 0, 2, Qt::AlignTop | Qt::AlignRight);
+    grid->addWidget(box(midpoints), 0, 2, Qt::AlignTop | Qt::AlignRight);
   }
-  if (!aspects.isEmpty()) {
-    box(aspects, 2, 0, Qt::AlignBottom | Qt::AlignLeft);
-  }
+  // the aspect counter floats where his window #12 stood, it sank to the
+  // very bottom of the sheet in the grid, the tester found it too low. A
+  // small window keeps the whole box on the sheet
+  QLabel* aspect_box = aspects.isEmpty() ? nullptr : box(aspects);
+  const auto place_aspect_box = [&view, aspect_box]() {
+    if (aspect_box == nullptr) {
+      return;
+    }
+    aspect_box->adjustSize();
+    const int x = static_cast<int>(std::lround(view.width() * kAspectBoxX / kCanvasWidth));
+    const int y = static_cast<int>(std::lround(view.height() * kAspectBoxY / kCanvasHeight));
+    aspect_box->move(x, std::max(0, std::min(y, view.height() - aspect_box->height() - x)));
+    aspect_box->raise();
+  };
+  LambdaFilter placing([&place_aspect_box](QEvent* e) {
+    if (e->type() == QEvent::Resize || e->type() == QEvent::Show) {
+      place_aspect_box();
+    }
+    return false;
+  });
+  view.installEventFilter(&placing);
   // @stop, a key or a mouse button
   LambdaFilter stop([&view](QEvent* e) {
     if (e->type() == QEvent::KeyPress || e->type() == QEvent::MouseButtonPress) {

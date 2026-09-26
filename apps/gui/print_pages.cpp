@@ -18,6 +18,7 @@
 #include <QPrintDialog>
 #include <QPrinter>
 #include <QPushButton>
+#include <QScreen>
 #include <algorithm>
 
 #include "choice_dialog.hpp"
@@ -55,6 +56,8 @@ constexpr double kListColumns = 90.0;
 constexpr int kListRowsPerPage = 53;
 // his x% = gdxp& / 20
 constexpr double kListMarginDiv = 20.0;
+// the HARDCOPY box stands a little off the lower right edge like his box
+constexpr int kHardcopyGap = 8;
 
 QString& print_file() {
   static QString path;
@@ -306,8 +309,22 @@ bool ask_hardcopy(QWidget* output) {
   no->setFocus();
   box.adjustSize();
   if (output != nullptr) {
+    // his x& = @xk(632 - 124), y& = @yk(458 - 52), the whole box with its
+    // title inside the lower right of the output. The frame the system
+    // adds counts too, without it the box hung below the output and under
+    // the task bar, the tester found it too low. The screen keeps it
+    const QWidget* top = output->window();
+    const QSize frame(std::max(0, top->frameGeometry().width() - top->width()),
+                      std::max(0, top->frameGeometry().height() - top->height()));
+    const QSize outer = box.size() + frame;
     const QPoint corner = output->mapToGlobal(QPoint(output->width(), output->height()));
-    box.move(corner - QPoint(box.width() + 8, box.height() + 8));
+    QPoint at = corner - QPoint(outer.width() + kHardcopyGap, outer.height() + kHardcopyGap);
+    if (const QScreen* screen = output->screen()) {
+      const QRect room = screen->availableGeometry();
+      at.setX(std::clamp(at.x(), room.left(), std::max(room.left(), room.right() - outer.width())));
+      at.setY(std::clamp(at.y(), room.top(), std::max(room.top(), room.bottom() - outer.height())));
+    }
+    box.move(at);
   }
   return box.exec() == QDialog::Accepted;
 }

@@ -192,9 +192,13 @@ From the RESULT level, NOT ALL PROGRAMS ARE STILL MEANINGFUL, and therefore not 
 
 With "ERGEBNIS als RADIX" (under "DIVERSES") you can, if you feel confident, nevertheless use all programs, e.g. make a solar of a lunar. But be careful with it ! That is something for the experienced.
 
+*Note of this edition, in this version "ERGEBNIS als RADIX" stands under EIN-AUSG. right under the SATZ rows.*
+
 The DOUBLE horoscopes COMPOSIT, COMBIN and DOPPELKREIS likewise form a RESULT level, from which, however, further programs are selectable only for COMBIN.
 
 Activate under ERGEBNIS-DATEN, fetch back under the corresponding program in the section HOROSKOPE or AUSWERTUNG, when there is a check mark there ! This image storage is provided only during a HORCOM session and only when the computing time exceeds 15 seconds.
+
+*Note of this edition, in this version COMPOSIT, COMBIN and DOPPEL-KREIS stand under HOROSKOPE in the row HOROSKOP-KOMBINATION / VERGLEICH, their entry names the pair computed last and brings it back with LETZTES GESPEICHERTES BILD.*
 
 With the DOUBLE horoscopes, make sure that the 2 data records are always already entered before you select the relevant program: Otherwise the input procedure becomes confusing !
 
@@ -221,6 +225,8 @@ Enter only RADIX data into the files, since these always count as Radix data whe
 The data records are limited for the NAME to 25 CHARACTERS, for the PLACE to 20 CHARACTERS, for REMARKS to 51 CHARACTERS.
 
 Different files can be joined together with "DATEIEN VERKETTEN". (see Explanation 9).
+
+*Note of this edition, in this version "DATEIEN VERKETTEN" and "AAF-DATEI < > HORCOM-DATEI" stand at the foot of the ANSICHT menu.*
 
 Addendum regarding the format of the DATA and PLACE files used in HORCOM.. for people who want to convert other files to the HORCOM FORMAT:
 

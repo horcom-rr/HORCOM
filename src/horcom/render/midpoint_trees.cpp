@@ -112,15 +112,15 @@ DisplayList build_midpoint_trees(const std::vector<MidpointTree>& trees, int pag
       p.kind = Primitive::Kind::kText;
       p.size = kTagSize;
       p.text = std::string(body::kName[static_cast<std::size_t>(slot)]);
+    } else if (emphasis[static_cast<std::size_t>(slot)] > 0) {
+      // plan_col!, the chosen bodies red, and red alone like on the wheel,
+      // the tester wanted the black square gone under the red
+      p.color = kMarkRed;
     } else if (((slot == body::kNodeAsc || slot == body::kNodeDesc) && glyphs.invert_nodes) ||
                (slot == body::kApogee && glyphs.invert_apogee)) {
       // plinkl of plein2, the sprite inverted on a dark patch
       add(inverted_patch(x, y, kSpriteSize));
       p.color = kInvertedInk;
-    }
-    // plan_col!, the chosen bodies red
-    if (emphasis[static_cast<std::size_t>(slot)] > 0) {
-      p.color = kMarkRed;
     }
     add(p);
   };

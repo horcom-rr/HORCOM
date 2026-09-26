@@ -188,7 +188,7 @@ std::vector<std::pair<int, char>> point_aspects(const Chart& chart, double la, d
     // his x > 0 dropped a body standing exactly on the star
     const auto near = [](double x, double orb_window) { return std::min(x, kTwoPi - x) < orb_window; };
     if (near(ca, h)) {
-      out.emplace_back(k, 'K');
+      out.emplace_back(k, kStarConjunction);
     }
     if (near(cb, h / 2.0)) {
       out.emplace_back(k, 'O');

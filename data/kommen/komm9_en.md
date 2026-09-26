@@ -189,6 +189,8 @@ One should have familiarized oneself with reading the tables without aspects bef
 
 With this program you can chain together several files of different names.
 
+*Note of this edition, in this version DATEIEN VERKETTEN stands at the foot of the ANSICHT menu.*
+
 The resulting file is initially called "\AA_MUDAT.DAT" in the folder \HORCOM\SPEZIAL\ for DATEN files. You can also rename this chained file at any time and delete it again. The whole thing requires some practice.
 
 In the folder "\SPEZ_ORT" files for GERMANY, AUSTRIA and SWITZERLAND are already present. They are kindly made available free of charge to all HORCOM users by Mr. BRUNO MAHL.
@@ -200,6 +202,8 @@ An extensive DOCUMENTATION of the TIME DETERMINATIONS for 28 European countries 
 ## AAF-DATEI <> HORCOM-DATEI
 
 Converts an AAF file ( = Astrological Exchange Format ) into a HORCOM-readable DATEN file or vice versa. Only those data are taken from the ( often more extensive ) AAF file which fit into the fixed HORCOM format.
+
+*Note of this edition, in this version AAF-DATEI < > HORCOM-DATEI stands at the foot of the ANSICHT menu.*
 
 ZONE, LOCAL times etc. are converted into UT. Of any comment, only the first sentence is shown.
 
@@ -220,6 +224,8 @@ This can also be called from any results screen with the F5 key !
 ## HITERGRUND-FARBEN
 
 With this the color background of the dialogs and their background can be set.
+
+*Note of this edition, in this version HINTERGRUND-FARBEN stands under ANSICHT in the FARBEN menu.*
 
 ## ORT-WANDERN
 
@@ -248,6 +254,8 @@ The program provides the possibility from ARIES to CAPRICORN age, corresponding 
 ## ERGEBNIS ALS RADIX
 
 Converts a SOLAR, SEPTAR, LUNAR, TAG-HOR or COMBIN into a RADIX, so that you can work with ALL programs, e.g. make a LUNAR of a SOLAR etc. Please be careful !!
+
+*Note of this edition, in this version ERGEBNIS als RADIX stands under EIN-AUSG. right under the SATZ rows.*
 
 ## ÄNDERUNGEN / HINWEISE / KURZANL.
 

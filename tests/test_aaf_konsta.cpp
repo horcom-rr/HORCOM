@@ -13,6 +13,7 @@
 #include "horcom/data/aaf.hpp"
 #include "horcom/data/gfa_stream.hpp"
 #include "horcom/data/konsta.hpp"
+#include "horcom/time/calendar.hpp"
 
 using namespace horcom;
 
@@ -133,6 +134,13 @@ TEST_CASE("his profile carries Robert Rettig's switches and round trips") {
   CHECK(k.haus == "Placidus");
   CHECK(k.orb == doctest::Approx(1.0));
   CHECK(k.nasp == 12);
+  // the great year starts on the tester's 10 May 1774 where his profile
+  // carried CHAUVIN's 6 January 1779, JD 2370832, the Aquarian age stays
+  CHECK(k.jdgross == 2369130.0);
+  CHECK(calendar_date(k.jdgross).day == 10);
+  CHECK(calendar_date(k.jdgross).month == 5);
+  CHECK(calendar_date(k.jdgross).year == 1774);
+  CHECK(k.zal_grossj == 330);
   const ChartSettings s = k.chart_settings();
   // he ran with the topocentric parallax on, true node and true apogee
   CHECK(s.topocentric_parallax);

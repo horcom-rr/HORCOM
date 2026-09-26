@@ -20,6 +20,7 @@
 #include "horcom/chart/mundane.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
+#include "horcom/core/coords.hpp"
 #include "horcom/time/delta_t.hpp"
 
 using namespace horcom;
@@ -742,6 +743,89 @@ TEST_CASE("the great year age point runs back with the precession like grossj1")
   CHECK(psc.point_deg == doctest::Approx(360.0 + psc.di_deg));
   CHECK_FALSE(psc.outside);
   CHECK(great_year_point(kRef - kDaysPerCentury / 10.0, kTja, eps, kRef, 360).outside);
+}
+
+TEST_CASE("the Sun and the Moon carry the sign of their change of motion") {
+  // his ko_tab0 printed the sign of ttb for both, which the chain never
+  // set, so the A column read "-" for the Sun and the Moon of every chart
+  ChartInput in;
+  in.lon_deg_east = 11.5;
+  in.lat_deg = 48.0;
+  ChartSettings s;
+  const auto chart_at = [&](const CalendarDate& d) {
+    in.date_ut = d;
+    Chart c = compute_chart(in, s, vsop(), eph());
+    REQUIRE(c.ok);
+    return c;
+  };
+  // the independent rates of both series an hour either side
+  const double h = 1.0 / kHoursPerDay;
+  const auto sun_rate_change = [&](const Chart& c) {
+    return vsop().evaluate(3, time_arguments(c.jd_et + h).t11).lt - vsop().evaluate(3, time_arguments(c.jd_et - h).t11).lt;
+  };
+  const auto moon_rate_change = [&](const Chart& c) {
+    const auto rate = [&](double jd) {
+      const TimeArguments t = time_arguments(jd);
+      return moon_position(t, somo(t, calendar_date(jd, s.calendar))).elp;
+    };
+    return rate(c.jd_et + h) - rate(c.jd_et - h);
+  };
+  // the Sun gains speed from July to January, the first golden chart
+  const Chart october = chart_at({13, 10, 1992, 3, 0.0});
+  CHECK(october.b[body::kSun].ttb > 0.0);
+  CHECK(sun_rate_change(october) > 0.0);
+  // and loses it from January to July
+  const Chart april = chart_at({13, 4, 1993, 3, 0.0});
+  CHECK(april.b[body::kSun].ttb < 0.0);
+  CHECK(sun_rate_change(april) < 0.0);
+  for (const Chart* c : {&october, &april}) {
+    const double moon = c->b[body::kMoon].ttb;
+    CHECK(moon != 0.0);
+    CHECK((moon > 0.0) == (moon_rate_change(*c) > 0.0));
+  }
+  // the hrg mode knows no change of motion for the Earth in the Moon's slot
+  s.heliocentric = true;
+  CHECK(chart_at({13, 10, 1992, 3, 0.0}).b[body::kMoon].ttb == 0.0);
+}
+
+TEST_CASE("the lunar rows carry both forms of the node and the Black Moon like ko_ta") {
+  ChartInput in;
+  in.date_ut = {13, 10, 1992, 3, 0.0};
+  in.lon_deg_east = 11.5;
+  in.lat_deg = 48.0;
+  ChartSettings s;
+  s.true_node = true;
+  s.true_apogee = true;
+  s.enable_standard_extras();
+  const Chart c = compute_chart(in, s, vsop(), eph());
+  REQUIRE(c.ok);
+  const LunarRates rates = lunar_rates(c, s.calendar);
+  // the true forms are what the chart carries under the true settings
+  const LunarRow tn = lunar_row(c, rates, body::kNodeAsc, true);
+  CHECK(tn.el == c.b[body::kNodeAsc].el);
+  CHECK(tn.tb == c.b[body::kNodeAsc].tb);
+  CHECK(tn.ttb == c.b[body::kNodeAsc].ttb);
+  CHECK(tn.ar == doctest::Approx(c.b[body::kNodeAsc].ar));
+  CHECK(tn.de == doctest::Approx(c.b[body::kNodeAsc].de));
+  const LunarRow ta = lunar_row(c, rates, body::kApogee, true);
+  CHECK(ta.el == c.lunar.true_apogee);
+  CHECK(ta.eb == c.lunar.true_apogee_lat);
+  CHECK(ta.tb == rates.apogee_tb);
+  // the mean forms keep his fixed rates and know no change of motion
+  const LunarRow mn = lunar_row(c, rates, body::kNodeAsc, false);
+  CHECK(mn.el == c.lunar.mean_node);
+  CHECK(mn.tb == c.lunar.mean_node_speed);
+  CHECK(mn.ttb == 0.0);
+  CHECK(mn.eb == 0.0);
+  const LunarRow ma = lunar_row(c, rates, body::kApogee, false);
+  CHECK(ma.el == c.lunar.mean_apogee);
+  CHECK(ma.eb == c.lunar.mean_apogee_lat);
+  CHECK(ma.tb == c.lunar.mean_apogee_speed);
+  CHECK(ma.ttb == 0.0);
+  // the declination of a row follows the latitude of its own form
+  const Equatorial eq = ecliptic_to_equatorial(ma.el, ma.eb, c.smo.ekls);
+  CHECK(ma.de == doctest::Approx(eq.dec));
+  CHECK(std::abs(ta.de - ma.de) > 1.0e-4);
 }
 
 TEST_CASE("the Wahr node row of the coordinate table stands at ET") {

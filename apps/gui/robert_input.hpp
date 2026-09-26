@@ -59,7 +59,7 @@ namespace horcom {
 [[nodiscard]] QString sign_name(int sign);
 
 /// Asks for a sign from his zod_zeich_alph list the way ze_pl_wa does,
-/// a double click picks.
+/// one click picks.
 ///
 /// @param parent the owner window
 /// @return 0 Aries to 11 Pisces, nothing after ESC

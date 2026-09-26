@@ -207,6 +207,8 @@ Man sollte sich mit dem Lesen der Tabellen ohne Aspekte vertraut gemacht haben,b
 
 Mit diesem Progr. können Sie mehrere Dateien,verschiedenen Namens,miteinander verketten.
 
+*Anmerkung der Neufassung, in dieser Version steht DATEIEN VERKETTEN am Fuß des Menüs ANSICHT.*
+
 Die entstehende Datei heißt für DATEN-Dateien zunächst "\AA_MUDAT.DAT" im Ordner \HORCOM\SPEZIAL\ Sie können diese verkettete Datei auch jederzeit umbenennen und wieder löschen. Das Ganze erfordert etwas Übung.
 
 Im Ordner "\SPEZ_ORT" sind bereits Dateien für DEUTSCHLAND,ÖSTERREICH und die SCHWEIZ vorhanden.Sie werden freundlicherweise allen HORCOM-Usern von Herrn BRUNO MAHL kostenfrei zur Verfügung gestellt.
@@ -218,6 +220,8 @@ Eine umfangreiche DOKUMENTATION der ZEIT-BESTIMMUNGEN für 28 europäische Länd
 ## AAF-DATEI <> HORCOM-DATEI
 
 Wandelt eine AAF-DATEI ( = Astrologisches Austauschformat ) in eine HORCOMlesbare DATEN-Datei um oder umgekehrt.Es werden dabei nur diejenigen Daten aus der ( oft umfangreicheren ) AAF-Datei entnommen,die in das feste HORCOM-Format passen.
+
+*Anmerkung der Neufassung, in dieser Version steht AAF-DATEI < > HORCOM-DATEI am Fuß des Menüs ANSICHT.*
 
 ZONEN-,ORTS-Zeiten usw. werden in UT umgewandelt.Von einem eventuellen Kommentar wird nur der erste Satz angezeigt.
 
@@ -238,6 +242,8 @@ Dies kann auch aus jedem Ergebnis-Bildschirm mit der Taste F5 aufgerufen werden 
 ## HITERGRUND-FARBEN
 
 Hiermit kann der Farb-hintergrund der Dialoge und deren Hintergrund festgelegt werden.
+
+*Anmerkung der Neufassung, in dieser Version steht HINTERGRUND-FARBEN unter ANSICHT im Menü FARBEN.*
 
 ## ORT-WANDERN
 
@@ -266,6 +272,8 @@ Das Programm hält die Möglichkeit vom WIDDER- bis STEINBOCK- Zeitalter bereit,
 ## ERGEBNIS ALS RADIX
 
 Wandelt ein SOLAR,SEPTAR,LUNAR,TAG-HOR oder COMBIN in ein RADIX um,sodaß Sie mit ALLEN Programmen arbeiten können,z.B ein LUNAR eines SOLARS machen usw. Bitte Vorsicht !!,
+
+*Anmerkung der Neufassung, in dieser Version steht ERGEBNIS als RADIX unter EIN-AUSG. gleich unter den SATZ-Zeilen.*
 
 ## ÄNDERUNGEN / HINWEISE / KURZANL.
 

@@ -35,6 +35,7 @@
 #include "print_pages.hpp"
 #include "probe.hpp"
 #include "theme.hpp"
+#include "zodiac_cells.hpp"
 
 
 using namespace horcom;
@@ -245,6 +246,130 @@ TEST_CASE("ALLES ZURÜCKSETZEN returns the view and his profile and starts anew"
   std::filesystem::remove(fresh);
 }
 
+TEST_CASE("the text sizes step on his ladder, a pixel down and two up") {
+  // the tester found one step down far too small and one step up too
+  // timid, the old tenths cut the pixels short
+  CHECK(theme::next_text_scale(theme::kTextScaleNormal, true) == 115);
+  CHECK(theme::next_text_scale(theme::kTextScaleNormal, false) == 90);
+  CHECK(theme::scaled_px(14, 90) == 13);
+  CHECK(theme::scaled_px(13, 90) == 12);
+  CHECK(theme::scaled_px(14, 115) == 16);
+  CHECK(theme::scaled_px(11, 115) == 13);
+  // the ends of the ladder hold and a stored value between steps moves on
+  CHECK(theme::next_text_scale(theme::kTextScaleMax, true) == theme::kTextScaleMax);
+  CHECK(theme::next_text_scale(theme::kTextScaleMin, false) == theme::kTextScaleMin);
+  CHECK(theme::next_text_scale(140, true) == 150);
+  CHECK(theme::next_text_scale(140, false) == 130);
+  // the column heads of every table stand bold and as large as the cells
+  const QString qss = theme::stylesheet(theme::kTextScaleNormal, false);
+  const qsizetype head = qss.indexOf("QHeaderView::section {");
+  REQUIRE(head >= 0);
+  const QString rule = qss.mid(head, qss.indexOf('}', head) - head);
+  CHECK(rule.contains("font-size: 13px;"));
+  CHECK(rule.contains("font-weight: bold;"));
+}
+
+TEST_CASE("the coordinate dock lists the tester's rows with both lunar forms") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::preset_extras(*w, true, false, true);
+  MainWindowProbe::include(*w, body::kFortune, true);
+  MainWindowProbe::apply(*w, sample(10, 5, 1970, 7, 0, "00hE00:00"));
+  QTableWidget* t = MainWindowProbe::bodies(*w);
+  QStringList heads;
+  for (int r = 0; r < t->rowCount(); ++r) {
+    heads << t->verticalHeaderItem(r)->text();
+  }
+  INFO(heads.join(",").toStdString());
+  // SO to PL, the node twice, the real extras, the Black Moon twice, the
+  // Glückspunkt, the invented points and the axes last, no DS, the order
+  // of the tester's proposal SO-PL, DR wahr, DR mittel, CH, QU, XE, AG
+  // wahr, AG mittel, GL, AC, MC
+  REQUIRE(heads.size() > 14);
+  CHECK(heads.mid(0, 10) == QStringList{"SO", "MO", "ME", "VE", "MA", "JU", "SA", "UR", "NE", "PL"});
+  CHECK(heads[10] == "DR wahr");
+  CHECK(heads[11] == "DR mittel");
+  CHECK(heads.indexOf("CH") == 12);
+  CHECK(heads.indexOf("QU") == 13);
+  CHECK(heads.indexOf("XE") == 14);
+  CHECK(heads.indexOf("AG wahr") > heads.indexOf("XE"));
+  CHECK(heads.indexOf("AG mittel") == heads.indexOf("AG wahr") + 1);
+  REQUIRE(heads.contains("GL"));
+  CHECK(heads.indexOf("GL") == heads.indexOf("AG mittel") + 1);
+  CHECK(heads.indexOf("AC") == heads.indexOf("GL") + 1);
+  CHECK(heads.indexOf("MC") == heads.indexOf("AC") + 1);
+  CHECK_FALSE(heads.contains("DS"));
+  // each form of the node stands with its own value, wahr the osculating
+  // node and mittel the mean one
+  const Chart& chart = MainWindowProbe::chart(*w);
+  const std::unique_ptr<QTableWidgetItem> true_node(zodiac_item(chart.lunar.true_node));
+  const std::unique_ptr<QTableWidgetItem> mean_node(zodiac_item(chart.lunar.mean_node));
+  CHECK(t->item(10, 0)->text() == true_node->text());
+  CHECK(t->item(11, 0)->text() == mean_node->text());
+  CHECK(t->item(10, 0)->text() != t->item(11, 0)->text());
+  // the distance in percent of the mean beside the AU
+  const QStringList cols{t->horizontalHeaderItem(5)->text(), t->horizontalHeaderItem(6)->text()};
+  CHECK(cols == QStringList{"Entf.%", "Entf.AE"});
+  CHECK(t->item(0, 5)->text().endsWith('%'));
+  CHECK(t->item(0, 6)->text().toDouble() == doctest::Approx(1.0).epsilon(0.02));
+  // the A column carries a sign for the Sun and the Moon now, the mean
+  // forms and the Glückspunkt stay blank like a motion that never changes
+  const int a = 4;
+  for (const char* body : {"SO", "MO", "DR wahr", "CH"}) {
+    const int row = heads.indexOf(body);
+    REQUIRE(t->item(row, a) != nullptr);
+    CHECK((t->item(row, a)->text() == "+" || t->item(row, a)->text() == QString::fromUtf8("−")));
+  }
+  for (const char* body : {"DR mittel", "AG mittel", "GL"}) {
+    REQUIRE(heads.contains(body));
+    CHECK(t->item(heads.indexOf(body), a) == nullptr);
+  }
+  // the cusps 1 to 6 with their opposites beside them
+  QTableWidget* c = MainWindowProbe::cusps(*w);
+  CHECK(c->rowCount() == 6);
+  CHECK(c->columnCount() == 2);
+  CHECK(c->item(0, 0)->text().startsWith(" 1  "));
+  CHECK(c->item(0, 1)->text().startsWith(" 7  "));
+  CHECK(c->item(5, 1)->text().startsWith("12  "));
+  // the aspects and midpoints in a dock of their own
+  QDockWidget* aspects = MainWindowProbe::aspects_dock(*w);
+  REQUIRE(aspects != nullptr);
+  CHECK(aspects->windowTitle() == "Aspekte / Halbsummen");
+  CHECK(MainWindowProbe::summary(*w).contains("ASPEKTE"));
+}
+
+TEST_CASE("the mundane frame lists the one projected form of each lunar point") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::preset_extras(*w, false, false, true);
+  MainWindowProbe::set_mundane_frame(*w, true);
+  MainWindowProbe::apply(*w, sample(10, 5, 1970, 7, 0, "00hE00:00"));
+  const auto rows = [&w]() {
+    QTableWidget* t = MainWindowProbe::bodies(*w);
+    QStringList heads;
+    for (int r = 0; r < t->rowCount(); ++r) {
+      heads << t->verticalHeaderItem(r)->text();
+    }
+    return heads;
+  };
+  // the lunar points of the chart stay ecliptic, only the form the wheel
+  // projected stands, named like the M and W of bes11
+  QStringList heads = rows();
+  INFO(heads.join(",").toStdString());
+  CHECK(heads.contains("DR wahr"));
+  CHECK_FALSE(heads.contains("DR mittel"));
+  const int dr = heads.indexOf("DR wahr");
+  QTableWidget* t = MainWindowProbe::bodies(*w);
+  const std::unique_ptr<QTableWidgetItem> projected(zodiac_item(MainWindowProbe::chart(*w).b[body::kNodeAsc].el));
+  CHECK(t->item(dr, 0)->text() == projected->text());
+  // the true node carries its sign, a mean node row stays blank
+  REQUIRE(t->item(dr, 4) != nullptr);
+  MainWindowProbe::true_node(*w, false);
+  heads = rows();
+  REQUIRE(heads.contains("DR mittel"));
+  CHECK_FALSE(heads.contains("DR wahr"));
+  CHECK(MainWindowProbe::bodies(*w)->item(heads.indexOf("DR mittel"), 4) == nullptr);
+  MainWindowProbe::set_mundane_frame(*w, false);
+}
+
 TEST_CASE("the docks keep their dressed title bar while they float") {
   auto w = MainWindowProbe::make();
   w->show();
@@ -274,7 +399,8 @@ TEST_CASE("the docks keep their dressed title bar while they float") {
       d->show();
     }
   }
-  CHECK(dressed == 3);
+  // the input, the coordinates, the cusps and the aspects with midpoints
+  CHECK(dressed == 4);
   w->hide();
 }
 
@@ -284,19 +410,14 @@ TEST_CASE("the right docks stand still while the charts change in the input pane
   w->show();
   QApplication::processEvents();
   QApplication::processEvents();
-  QDockWidget* bodies = nullptr;
-  for (QDockWidget* d : w->findChildren<QDockWidget*>()) {
-    if (d->widget() != nullptr && qobject_cast<QTableWidget*>(d->widget()) != nullptr) {
-      bodies = d;
-    }
-  }
+  QTableWidget* table = MainWindowProbe::bodies(*w);
+  auto* bodies = qobject_cast<QDockWidget*>(table->parentWidget());
   REQUIRE(bodies != nullptr);
-  auto* table = qobject_cast<QTableWidget*>(bodies->widget());
-  auto* summary = w->findChild<QScrollArea*>();
-  REQUIRE(summary != nullptr);
+  auto* cusps = qobject_cast<QDockWidget*>(MainWindowProbe::cusps(*w)->parentWidget());
+  REQUIRE(cusps != nullptr);
   const int dock_width = bodies->width();
+  const int cusp_height = cusps->height();
   std::vector<int> widths;
-  int summary_height = summary->height();
   // invented charts over three centuries, their values differ in width
   for (const int year : {1805, 1950, 1992, 2031, 1877}) {
     AafRecord r;
@@ -319,9 +440,8 @@ TEST_CASE("the right docks stand still while the charts change in the input pane
       CHECK(table->columnWidth(c) >= widths[static_cast<std::size_t>(c)]);
       widths[static_cast<std::size_t>(c)] = table->columnWidth(c);
     }
-    // the summary box only grows, the cusps above it keep their place
-    CHECK(summary->height() >= summary_height);
-    summary_height = summary->height();
+    // the six cusp rows keep their dock at one height
+    CHECK(cusps->height() == cusp_height);
   }
   w->hide();
 }

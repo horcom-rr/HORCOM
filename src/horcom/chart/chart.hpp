@@ -102,4 +102,25 @@ struct LunarRates {
 /// @return the rates in radians per day
 [[nodiscard]] LunarRates lunar_rates(const Chart& chart, Calendar cal);
 
+/// One form of a lunar point as the coordinate tables list it.
+struct LunarRow {
+  double el = 0.0;   ///< ecliptic longitude
+  double eb = 0.0;   ///< ecliptic latitude, zero for the node
+  double tb = 0.0;   ///< motion per day
+  double ttb = 0.0;  ///< change of the motion, the sign of the A column
+  double ar = 0.0;   ///< right ascension
+  double de = 0.0;   ///< declination
+};
+
+/// The mean or the true form of the node or of the Black Moon, ported
+/// from the Mittel and Wahr rows of ko_ta with moko and vel_om_pd.
+///
+/// @param chart the computed chart, its lunar points and obliquity
+/// @param rates the finite differences of the true points
+/// @param slot  body::kNodeAsc or body::kApogee
+/// @param truth true for the osculating form
+/// @return the row, the mean node keeps his fixed daily rate and the
+///         mean forms carry no change of motion
+[[nodiscard]] LunarRow lunar_row(const Chart& chart, const LunarRates& rates, int slot, bool truth);
+
 }  // namespace horcom

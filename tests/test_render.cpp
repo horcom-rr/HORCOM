@@ -684,6 +684,43 @@ TEST_CASE("the Rhythmenlehre phase flips the rulers and arcs its house") {
   CHECK(on_ring);
 }
 
+TEST_CASE("a red birth ruler leaves the black square and stands in red alone") {
+  const Chart c = sample_chart();
+  REQUIRE(c.ok);
+  const AspectResult a = scan_aspects(c, {}, {});
+  WheelOptions opt;
+  opt.ruler_slot = body::kMars;
+  opt.invert_nodes = false;
+  const auto squares = [](const DisplayList& dl) {
+    int n = 0;
+    for (const Primitive& p : dl.items) {
+      if (p.kind == Primitive::Kind::kRect && p.fill == 0x000000) {
+        ++n;
+      }
+    }
+    return n;
+  };
+  const auto red_mars = [](const DisplayList& dl) {
+    return std::any_of(dl.items.begin(), dl.items.end(), [](const Primitive& p) {
+      return p.kind == Primitive::Kind::kGlyph && p.text == body_glyph(body::kMars) && p.color == 0xFF0000;
+    });
+  };
+  // his SRCINVERT stamp of the birth ruler
+  CHECK(squares(build_wheel(c, {}, a, opt)) == 1);
+  // the red marking of the Planeten-Auswahl, the tester wanted the black
+  // square gone and the symbol red alone, his XOR had put it on cyan
+  opt.emphasis[body::kMars] = 1;
+  const DisplayList red = build_wheel(c, {}, a, opt);
+  CHECK(squares(red) == 0);
+  CHECK(red_mars(red));
+  // the phase ruler stamp of the rhythm flips the square, a red body still
+  // stands without one
+  opt.flip_inverted = {body::kMars};
+  const DisplayList flipped = build_wheel(c, {}, a, opt);
+  CHECK(squares(flipped) == 0);
+  CHECK(red_mars(flipped));
+}
+
 TEST_CASE("the phase strip places its axis, ticks and pushed labels") {
   // his c3&, the start of the phase at 416, the end at 80
   CHECK(rhythm_axis_y(14.0, 14.0, 7.0) == doctest::Approx(416.0));
@@ -1163,6 +1200,39 @@ TEST_CASE("the R marks retrograde extras but never the nodes") {
     }
   }
   CHECK(rs == 1);
+}
+
+TEST_CASE("a red point of the HALBSUMMEN-GRAPHIK stands without the inverse square") {
+  std::vector<MidpointTree> trees;
+  MidpointTree node;
+  node.slot = body::kNodeAsc;
+  node.lon = 1.0;
+  trees.push_back(node);
+  TreeGlyphs glyphs;
+  glyphs.invert_nodes = true;
+  std::array<int, body::kSlotCount> marks{};
+  const auto squares = [](const DisplayList& dl) {
+    return std::count_if(dl.items.begin(), dl.items.end(), [](const Primitive& p) {
+      return p.kind == Primitive::Kind::kRect && p.fill == kInkColor && p.r1 == doctest::Approx(kSpriteSize * kInvertPatchShare);
+    });
+  };
+  const auto node_ink = [](const DisplayList& dl) {
+    for (const Primitive& p : dl.items) {
+      if (p.kind == Primitive::Kind::kGlyph && p.text == body_glyph(body::kNodeAsc)) {
+        return p.color;
+      }
+    }
+    return Rgb{0x123456};
+  };
+  // plinkl of plein2 under moknw!, the node on his dark square
+  const DisplayList plain = build_midpoint_trees(trees, 0, {}, false, {}, marks, glyphs);
+  CHECK(squares(plain) == 1);
+  CHECK(node_ink(plain) == kInvertedInk);
+  // the Planeten-Auswahl marks it red, the square goes like on the wheel
+  marks[body::kNodeAsc] = 1;
+  const DisplayList red = build_midpoint_trees(trees, 0, {}, false, {}, marks, glyphs);
+  CHECK(squares(red) == 0);
+  CHECK(node_ink(red) == kMarkRed);
 }
 
 TEST_CASE("the HALBSUMMEN-GRAPHIK stands in two bands of eleven trees") {
@@ -1670,6 +1740,14 @@ TEST_CASE("the ASPEKTARIUM stamps his inverted sprites, the hrg node weights and
   const auto [patches, white] = inverted(build_aspektarium(in, {}), body::kApogee);
   CHECK(white >= 2);
   CHECK(patches == white);
+  // marked red it stands red alone like on the wheel, no square under it
+  in.emphasis[body::kApogee] = 1;
+  const DisplayList red = build_aspektarium(in, {});
+  CHECK(inverted(red, body::kApogee) == std::pair{0, 0});
+  CHECK(std::any_of(red.items.begin(), red.items.end(), [](const Primitive& p) {
+    return p.kind == Primitive::Kind::kGlyph && p.text == body_glyph(body::kApogee) && p.color == kMarkRed;
+  }));
+  in.emphasis[body::kApogee] = 0;
   in.invert_apogee = false;
   in.invert_nodes = true;
   CHECK(inverted(build_aspektarium(in, {}), body::kNodeAsc).second >= 2);

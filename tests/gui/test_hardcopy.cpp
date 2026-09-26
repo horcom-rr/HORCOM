@@ -14,6 +14,7 @@
 #include <QPixmap>
 #include <QPrinter>
 #include <QRegularExpression>
+#include <QScreen>
 #include <QTimer>
 #include <filesystem>
 
@@ -102,6 +103,53 @@ TEST_CASE("start_hardc offers the HARDCOPY only outside his excluded entries") {
   CHECK(hardcopy_item(menu_item::kFixedStars, false));
   CHECK(hardcopy_item(menu_item::kReturns, false));
   CHECK(hardcopy_item(menu_item::kEclipses, false));
+}
+
+TEST_CASE("the HARDCOPY box stands inside the lower right of its output and on the screen") {
+  QMainWindow output;
+  output.resize(900, 700);
+  output.show();
+  QApplication::processEvents();
+  const QRect room = output.screen()->availableGeometry();
+  // an output that reaches past the lower edge of the screen, like a
+  // window under the task bar
+  output.move(room.right() - 950, room.bottom() - 400);
+  QApplication::processEvents();
+  QRect box;
+  QRect frame;
+  {
+    DialogDriver drive;
+    drive.then([&box, &frame](QDialog* d) {
+      box = d->frameGeometry();
+      frame = d->geometry();
+      d->reject();
+    });
+    CHECK_FALSE(ask_hardcopy(&output));
+    CHECK(drive.pending() == 0);
+  }
+  INFO(box.x() << "," << box.y() << " " << box.width() << "x" << box.height());
+  // his x& = @xk(632 - 124), y& = @yk(458 - 52), the tester found the box
+  // too low at the lower right, it stays whole on the screen now
+  CHECK(room.contains(box));
+  CHECK(frame.right() <= output.geometry().right());
+  // an output wholly on the screen keeps the whole box inside its lower
+  // right corner, not below it
+  output.move(room.left() + 20, room.top() + 20);
+  QApplication::processEvents();
+  {
+    DialogDriver drive;
+    drive.then([&box](QDialog* d) {
+      box = d->frameGeometry();
+      d->reject();
+    });
+    CHECK_FALSE(ask_hardcopy(&output));
+    CHECK(drive.pending() == 0);
+  }
+  const QRect inside = output.geometry();
+  CHECK(box.bottom() <= inside.bottom());
+  CHECK(box.right() <= inside.right());
+  CHECK(box.top() > inside.center().y());
+  CHECK(box.left() > inside.center().x());
 }
 
 TEST_CASE("his page geometry puts 640 by 459 units at 0.8 points onto the paper") {

@@ -58,7 +58,9 @@ QWidget* MainWindow::front_window() {
 
 // his wart_erl, the menu an entry belongs to decides the text, a few
 // entries of AUSWERTUNG, DIVERSES and EPHEMERIDE point into their own.
-// The captions match the entries as the menu tree carries them
+// The captions match the entries as the menu tree carries them. The
+// entries the tester moved into another menu keep the ERLÄUTERUNG of
+// their old home, the text that describes them
 void MainWindow::tag_help_stems(const std::vector<std::pair<QMenu*, QString>>& menus) {
   const std::vector<std::pair<QString, QString>> own{
       {tr("STATISTIK G/H…"), "kommstat"},
@@ -75,9 +77,19 @@ void MainWindow::tag_help_stems(const std::vector<std::pair<QMenu*, QString>>& m
       {tr("MUNDAN-ASPEKTE…"), "komm7"},
       {tr("HÄUSER-SYSTEM…"), "komm8"},
       {tr("HÄUSER-TABELLE…"), "komm8"},
+      {tr("MULTIPLE DIREKTIONEN / HARMONICS G/H…"), "komm4"},
+      {tr("ERGEBNIS als RADIX…"), "komm9"},
+      {tr("HINTERGRUND-FARBEN…"), "komm9"},
+      {tr("DATEIEN VERKETTEN…"), "komm9"},
+      {tr("AAF-DATEI < > HORCOM-DATEI…"), "komm9"},
   };
-  for (const auto& [menu, stem] : menus) {
+  // the entries of a submenu answer to the stem of their menu
+  const std::function<void(QMenu*, const QString&)> tag = [&](QMenu* menu, const QString& stem) {
     for (QAction* a : menu->actions()) {
+      if (a->menu() != nullptr) {
+        tag(a->menu(), stem);
+        continue;
+      }
       QString s = stem;
       for (const auto& [text, own_stem] : own) {
         if (a->text() == text) {
@@ -86,6 +98,9 @@ void MainWindow::tag_help_stems(const std::vector<std::pair<QMenu*, QString>>& m
       }
       a->setProperty(kStemProperty, s);
     }
+  };
+  for (const auto& [menu, stem] : menus) {
+    tag(menu, stem);
     connect(menu, &QMenu::triggered, this, [this](QAction* a) {
       const QString s = a->property(kStemProperty).toString();
       if (!s.isEmpty()) {

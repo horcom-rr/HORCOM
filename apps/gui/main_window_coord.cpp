@@ -12,6 +12,7 @@
 #include <QKeyEvent>
 #include <QLabel>
 #include <QMouseEvent>
+#include <QScreen>
 #include <QTableWidget>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -37,9 +38,37 @@ namespace horcom {
 
 namespace {
 
-// the columns of ko_ta, the Knot and Apsiden columns give way to the
-// Name column in ZUSATZ
-enum Column { kColPl, kColLon, kColLat, kColVel, kColA, kColDist, kColRa, kColDec, kColNode, kColSouth, kColApsides };
+// the columns of ko_ta. The first sheet carries the distance in percent
+// of his mean and in AU side by side, the tester wanted both at once in
+// place of the ENTFERNUNGSWERTE question, then the node and apsides
+// columns. ZUSATZ keeps one distance and the Name column, minus one marks
+// a column the sheet lacks
+struct SheetColumns {
+  int lon;
+  int lat;
+  int vel;
+  int a;
+  int percent;
+  int au;
+  int ra;
+  int dec;
+  int node;
+  int south;
+  int apsides;
+  int name;
+  int count;
+};
+constexpr SheetColumns kMainSheet{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, -1, 13};
+constexpr SheetColumns kExtraSheet{1, 2, 3, 4, -1, 5, 6, 7, -1, -1, -1, 8, 10};
+
+// the ZUSATZ sheet in the tester's order, the real bodies first with CH,
+// QU and XE ahead of the asteroids and the planetoids, then the comet,
+// last the invented points of Transpluto and the Hamburg school. The
+// Black Moon and the Glückspunkt stand on the first sheet as points
+constexpr int kExtraSheetOrder[] = {body::kChiron,  body::kQuaoar,     body::kXena,     body::kCeres,    body::kPallas,
+                                    body::kJuno,    body::kVesta,      body::kPholus,   body::kDamokles, body::kNessus,
+                                    body::kHalley,  body::kTranspluto, body::kCupido,   body::kHades,    body::kZeus,
+                                    body::kKronos,  body::kApollon,    body::kAdmetos,  body::kVulkanus, body::kPoseidon};
 
 // the step wait of zeitwi, two seconds, the mouse moves it
 constexpr int kWaitStartMs = 2000;
@@ -48,6 +77,9 @@ constexpr int kWaitLessMs = 1000;
 constexpr int kWaitLeastMs = 1000;
 // his IF ABS(jd - jd0) > 10 skipped the question and restored the moment
 constexpr double kKeepDays = 10.0;
+// the least window of a sheet, wide enough for every column of ko_ta
+constexpr int kSheetMinWidth = 1000;
+constexpr int kSheetMinHeight = 640;
 
 // his ko_tab00$, STR$(z,v + n + 1,n), empty at zero
 QString field(double z, int v, int n) {
@@ -62,7 +94,6 @@ QString extra_label(int slot) {
   switch (slot) {
     case body::kChiron: return QStringLiteral("Chiron            CH");
     case body::kTranspluto: return QStringLiteral("Transpluto = Isis TP");
-    case body::kFortune: return QString::fromUtf8("Glückspunkt       GP");
     case body::kCeres: return QStringLiteral("Ceres             CE");
     case body::kPallas: return QStringLiteral("Pallas            PA");
     case body::kJuno: return QStringLiteral("Juno              JN");
@@ -143,6 +174,7 @@ QString MainWindow::gena4_text(int appa) const {
 // ported from ko_ta with ko_tab0, the rows of one table
 void MainWindow::fill_coordinate_table(QTableWidget* table, const Chart& chart, const ChartSettings& s, bool extras) const {
   table->setRowCount(0);
+  const SheetColumns col = extras ? kExtraSheet : kMainSheet;
   const bool helio = s.heliocentric;
   const LunarRates rates = lunar_rates(chart, s.calendar);
   // his IF plinv& = 1 OR plinv& = 3, the heavy planets inverted
@@ -154,7 +186,7 @@ void MainWindow::fill_coordinate_table(QTableWidget* table, const Chart& chart, 
   };
   struct Row {
     int slot = 0;
-    // the node or apogee variant of the Mittel and Wahr rows
+    // the node or Black Moon form of the Mittel and Wahr rows
     bool mean = false;
     bool truth = false;
   };
@@ -166,31 +198,53 @@ void MainWindow::fill_coordinate_table(QTableWidget* table, const Chart& chart, 
         rows.push_back({slot});
       }
     }
+    // the points under the planets as the tester wished, the two nodes,
+    // the two forms of the Black Moon and last the Glückspunkt, geocentric
+    // ideas all of them, his IF NOT (hrg! && i& = n4&)
     if (!helio) {
       rows.push_back({body::kNodeAsc, true, false});
       rows.push_back({body::kNodeAsc, false, true});
-    }
-  } else {
-    if (!helio) {
       rows.push_back({body::kApogee, true, false});
       rows.push_back({body::kApogee, false, true});
+      rows.push_back({body::kFortune});
     }
-    for (int slot = body::kChiron; slot <= body::kXena; ++slot) {
-      // his IF NOT (hrg! && i& = n4&), no Glückspunkt in the hrg mode
-      if (!(helio && slot == body::kFortune)) {
-        rows.push_back({slot});
-      }
+  } else {
+    for (const int slot : kExtraSheetOrder) {
+      rows.push_back({slot});
     }
   }
-  const auto set = [table](int row, int col, QTableWidgetItem* item) { table->setItem(row, col, item); };
-  const auto text = [&set](int row, int col, const QString& t) {
+  const auto set = [table](int row, int column, QTableWidgetItem* item) {
+    if (column >= 0) {
+      table->setItem(row, column, item);
+    } else {
+      delete item;
+    }
+  };
+  const auto text = [&set](int row, int column, const QString& t) {
     auto* item = new QTableWidgetItem(t);
     item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    set(row, col, item);
+    set(row, column, item);
   };
-  const int last_col = table->columnCount() - 1;
+  // his textrc of "Mittel" and "Wahr" stood plain in a thin frame, the
+  // rewrite had put both in yellow and the tester could not tell which one
+  // stands on the wheel. The yellow box now marks the form the chart works
+  // with, the other form keeps its caption plain
+  const auto form_mark = [&set](int row, int column, bool truth, bool used) {
+    auto* mark = new QTableWidgetItem(truth ? tr("Wahr") : tr("Mittel"));
+    if (used) {
+      mark->setBackground(QColor(0xFF, 0xFF, 0x00));
+      mark->setForeground(QColor(0, 0, 0));
+    }
+    set(row, column, mark);
+  };
+  const int last_col = col.count - 1;
   for (const Row& r : rows) {
     const BodyState& b = chart.b[static_cast<std::size_t>(r.slot)];
+    const bool lunar = r.mean || r.truth;
+    // the Glückspunkt of a901 needs the AC, a chart without one has no row
+    if (r.slot == body::kFortune && (!b.present || !b.valid)) {
+      continue;
+    }
     const int row = table->rowCount();
     table->insertRow(row);
     auto* head = new QTableWidgetItem(tag(r.slot));
@@ -198,34 +252,33 @@ void MainWindow::fill_coordinate_table(QTableWidget* table, const Chart& chart, 
     if (!img.isNull()) {
       head->setIcon(QIcon(QPixmap::fromImage(img)));
     }
-    set(row, kColPl, head);
+    set(row, 0, head);
     auto* tail = new QTableWidgetItem;
     if (!img.isNull()) {
       tail->setIcon(QIcon(QPixmap::fromImage(img)));
     }
     set(row, last_col, tail);
     // his IF NOT jdplanetex!(i&) = TRUE, a body outside its span stays blank
-    const bool node_row = r.slot == body::kNodeAsc;
-    const bool apogee_row = r.slot == body::kApogee && (r.mean || r.truth);
-    if (!node_row && !apogee_row && (!b.present || !b.valid)) {
+    if (!lunar && (!b.present || !b.valid)) {
       continue;
     }
     double el = b.el;
     double eb = b.eb;
     double tb = b.tb;
     double ttb = b.ttb;
-    if (node_row) {
-      el = r.truth ? chart.lunar.true_node : chart.lunar.mean_node;
-      eb = 0.0;
-      // the mean node runs his fixed -0.00092422029 per day
-      tb = r.truth ? rates.node_tb : chart.lunar.mean_node_speed;
-      ttb = r.truth ? rates.node_ttb : 0.0;
-    } else if (apogee_row) {
-      el = r.truth ? chart.lunar.true_apogee : chart.lunar.mean_apogee;
-      eb = r.truth ? chart.lunar.true_apogee_lat : chart.lunar.mean_apogee_lat;
-      tb = r.truth ? rates.apogee_tb : chart.lunar.mean_apogee_speed;
-      ttb = r.truth ? rates.apogee_ttb : 0.0;
+    double ar = b.ar;
+    double de = b.de;
+    if (lunar) {
+      const LunarRow l = lunar_row(chart, rates, r.slot, r.truth);
+      el = l.el;
+      eb = l.eb;
+      tb = l.tb;
+      ttb = l.ttb;
+      ar = l.ar;
+      de = l.de;
     }
+    const bool node_row = r.slot == body::kNodeAsc;
+    const bool apogee_row = r.slot == body::kApogee && lunar;
     // the minutes format for the true points, the Hamburg points,
     // Transpluto and the Glückspunkt, seconds elsewhere
     const bool minutes = r.truth || hypothetical(r.slot) || r.slot == body::kTranspluto || r.slot == body::kFortune;
@@ -235,7 +288,7 @@ void MainWindow::fill_coordinate_table(QTableWidget* table, const Chart& chart, 
       // plinv the heavy planets
       const bool heavy = r.slot == body::kMars || (r.slot >= body::kSaturn && r.slot <= body::kPluto);
       if (!helio && (r.truth || (invert_heavy && heavy))) {
-        auto* h = table->item(row, kColPl);
+        auto* h = table->item(row, 0);
         h->setBackground(QColor(0, 0, 0));
         h->setForeground(QColor(0xFF, 0xFF, 0xFF));
         // the sprite turns white on the dark ground like his NOTSRCCOPY
@@ -244,79 +297,78 @@ void MainWindow::fill_coordinate_table(QTableWidget* table, const Chart& chart, 
           h->setIcon(QIcon(QPixmap::fromImage(white)));
         }
       }
-      set(row, kColLon, lon);
+      set(row, col.lon, lon);
     }
-    // his IF i& < 27 OR i& > 34, the Breite column
-    if (!hypothetical(r.slot)) {
-      text(row, kColLat, field(eb * kRadToDeg, 3, 2));
+    // his IF i& < 27 OR i& > 34, the Breite column. The node rows carry
+    // their Mittel and Wahr box there instead, his textrc at x 118
+    if (node_row) {
+      form_mark(row, col.lat, r.truth, r.truth == s.true_node);
+    } else if (!hypothetical(r.slot)) {
+      text(row, col.lat, field(eb * kRadToDeg, 3, 2));
     }
     // his z = up * 60 * tb, the formats by size
     const double z = tb * kRadToDeg * kArcminPerDeg;
     if (std::abs(z) > 100.0) {
-      text(row, kColVel, field(z, 5, 1));
+      text(row, col.vel, field(z, 5, 1));
     } else if (std::abs(z) > 10.0) {
-      text(row, kColVel, field(z, 4, 1));
+      text(row, col.vel, field(z, 4, 1));
     } else {
-      text(row, kColVel, field(z, 4, 2));
+      text(row, col.vel, field(z, 4, 2));
     }
-    // the A column, blank in the hrg mode, for the Fixpunkt and the
-    // Glückspunkt
-    if (!helio && r.slot != body::kFortune) {
-      text(row, kColA, ttb > 0.0 ? QStringLiteral("+") : QStringLiteral("-"));
+    // the A column, his d$ = " " in the hrg mode and for the Glückspunkt,
+    // and blank for a motion that never changes like the Mittel forms,
+    // where his IF without a zero case printed "-"
+    if (!helio && r.slot != body::kFortune && ttb != 0.0) {
+      text(row, col.a, ttb > 0.0 ? QStringLiteral("+") : QStringLiteral("-"));
     }
-    // Entf., percent of his mean distances or astronomical units
-    QString dist;
+    // Entf., percent of his mean distances and astronomical units side by
+    // side, the means of MEYERS Lexikon Weltall know the Sun and the planets
+    QString percent;
+    QString au;
     bool extreme = false;
     const auto slot_index = static_cast<std::size_t>(r.slot);
     if (helio) {
       if (r.slot >= body::kMoon && r.slot <= body::kPluto) {
-        dist = konsta_.entf == 1 ? QString::asprintf("%4ld%%", std::lround(kPercent * b.r / kMeanHelioAu[slot_index]))
-                                 : field(b.r, 2, 1);
-      } else if (r.slot != body::kNodeDesc) {
-        dist = field(b.r, 2, 1);
+        percent = QString::asprintf("%4ld%%", std::lround(kPercent * b.r / kMeanHelioAu[slot_index]));
+      }
+      if (r.slot != body::kNodeDesc) {
+        au = field(b.r, 2, 1);
       }
     } else if (r.slot == body::kSun || (r.slot >= body::kMercury && r.slot <= body::kPluto)) {
-      dist = konsta_.entf == 1 ? QString::asprintf("%4ld%%", std::lround(kPercent * b.dr / kMeanGeoAu[slot_index]))
-                               : field(b.dr, 2, 1);
+      percent = QString::asprintf("%4ld%%", std::lround(kPercent * b.dr / kMeanGeoAu[slot_index]));
+      au = field(b.dr, 2, 1);
       extreme = near_distance_extreme(r.slot, b.dr);
-    } else if (r.slot != body::kMoon && !node_row) {
-      dist = field(b.dr, 2, 1);
+    } else if (r.slot != body::kMoon && !lunar) {
+      au = field(b.dr, 2, 1);
     }
-    text(row, kColDist, dist);
+    text(row, col.au, au);
+    if (col.percent >= 0) {
+      text(row, col.percent, percent);
+    }
     if (extreme) {
       // his deftextcol(3), red on cyan
-      table->item(row, kColDist)->setForeground(QColor(0xFF, 0x00, 0x00));
-      table->item(row, kColDist)->setBackground(QColor(0x00, 0xFF, 0xFF));
-    }
-    // Rekt. and Dekl. for SO to PL, the node, CH, CE to VS, QU to XE
-    if (!helio && ((r.slot >= body::kSun && r.slot <= body::kNodeAsc) || real_extra(r.slot))) {
-      double ar = b.ar;
-      double de = b.de;
-      if (node_row) {
-        BodyPosition p{el, 0.0, 0.0, 0.0, 0.0, 0.0};
-        to_equatorial(p, chart.smo.ekls);
-        ar = p.ar;
-        de = p.de;
+      for (const int c : {col.percent, col.au}) {
+        if (c >= 0) {
+          table->item(row, c)->setForeground(QColor(0xFF, 0x00, 0x00));
+          table->item(row, c)->setBackground(QColor(0x00, 0xFF, 0xFF));
+        }
       }
-      text(row, kColRa, field(norm_rad(ar) * kRadToDeg, 3, 3));
-      text(row, kColDec, field(de * kRadToDeg, 3, 2));
     }
-    // the Name column of a10, the Mittel and Wahr rows of the apogee
+    // Rekt. and Dekl. for SO to PL, the node, CH, CE to VS, QU to XE. The
+    // Black Moon rows carry their Mittel and Wahr box there, his textrc
+    // at x 284 and 292 in the zus& = 0 branch
+    if (apogee_row) {
+      form_mark(row, col.ra, r.truth, r.truth == s.true_apogee);
+    } else if (!helio && ((r.slot >= body::kSun && r.slot <= body::kNodeAsc) || real_extra(r.slot))) {
+      text(row, col.ra, field(norm_rad(ar) * kRadToDeg, 3, 3));
+      text(row, col.dec, field(de * kRadToDeg, 3, 2));
+    }
+    // the Name column of a10
     if (extras) {
-      QString label = extra_label(r.slot);
-      if (apogee_row) {
-        label = r.truth ? tr("Schw. Mond,WAHR   AG") : tr("Schw. Mond,MITTEL AG");
-      }
-      auto* name = new QTableWidgetItem(label);
-      set(row, kColNode, name);
+      set(row, col.name, new QTableWidgetItem(extra_label(r.slot)));
       continue;
     }
-    if (node_row) {
-      // his textrc of "Mittel" and "Wahr" beside the node rows
-      auto* mark = new QTableWidgetItem(r.truth ? tr("Wahr") : tr("Mittel"));
-      mark->setBackground(QColor(0xFF, 0xFF, 0x00));
-      mark->setForeground(QColor(0, 0, 0));
-      set(row, kColNode, mark);
+    if (lunar || r.slot == body::kFortune) {
       continue;
     }
     // the mean planetary nodes and apsides of plko10 and plko12
@@ -325,13 +377,13 @@ void MainWindow::fill_coordinate_table(QTableWidget* table, const Chart& chart, 
       continue;
     }
     if (pts.node > kEps) {
-      set(row, kColNode, zodiac_item(pts.node, false, true));
+      set(row, col.node, zodiac_item(pts.node, false, true));
       // his IF pa > kk && NOT ABS(pa - PI) < kk
-      set(row, kColSouth, zodiac_item(pts.node_south, false, true));
+      set(row, col.south, zodiac_item(pts.node_south, false, true));
     }
     auto* aps = new QTableWidgetItem(zodiac_text(pts.perihelion, ZodiacForm::kGz8) + QChar(0x0A) +
                                      zodiac_text(pts.aphelion, ZodiacForm::kGz8));
-    set(row, kColApsides, aps);
+    set(row, col.apsides, aps);
   }
   table->resizeColumnsToContents();
   table->resizeRowsToContents();
@@ -343,25 +395,21 @@ void MainWindow::coordinate_table(bool extras) {
     return;
   }
   const QString label = record_label_.trimmed();
-  // a10nk, every extra body whatever the panel chose, apogw! = 0 for the
-  // base run, the true apogee comes from the lunar points
+  // a10nk, every extra body whatever the panel chose. The first sheet
+  // adds the Glückspunkt of a901 to the panel chart, the two forms of the
+  // node and the Black Moon come from the lunar points
   const auto table_settings = [this, extras]() {
     ChartSettings s = current_settings();
     if (extras) {
-      s.extra_bodies = true;
-      for (int i = 1; i < static_cast<int>(s.nk.size()); ++i) {
-        s.nk[static_cast<std::size_t>(i)] = 18 + i;
-      }
-      s.true_apogee = false;
+      s.enable_standard_extras();
+    } else {
+      s.include_extra(body::kFortune);
     }
     return s;
   };
-  const auto table_chart = [this, extras, table_settings]() {
-    if (!extras) {
-      return *last_chart_;
-    }
-    return compute_chart(current_input(), table_settings(), vsop_, eph_);
-  };
+  // his a91 reckons the sheet through a9 afresh, beyond the polar circle
+  // with the AC and MC of the main screen like the wheel
+  const auto table_chart = [this, table_settings]() { return chart_or_polar_fallback(current_input(), table_settings()); };
   // ported from haust with bes111, the cusps of AC, H2, H3, MC, H11 and
   // H12 in his gz2$ form
   const auto cusp_box_lines = [](const Chart& chart, const ChartSettings& s) {
@@ -411,13 +459,13 @@ void MainWindow::coordinate_table(bool extras) {
   auto* head = new QLabel(&view);
   head->setTextFormat(Qt::RichText);
   v->addWidget(head);
-  auto* table = new QTableWidget(0, extras ? 10 : 12, &view);
-  QStringList columns{tr("Pl"), tr("Ekl. Länge"), tr("Breite"), tr("Vel.'"), tr("A"), tr("Entf."), tr("Rekt.°"),
-                      tr("Dekl.°")};
+  auto* table = new QTableWidget(0, extras ? kExtraSheet.count : kMainSheet.count, &view);
+  QStringList columns{tr("Pl"), tr("Ekl. Länge"), tr("Breite"), tr("Vel.'"), tr("A")};
   if (extras) {
-    columns << tr(" Name          Abkrz.") << tr("Pl");
+    columns << tr("Entf.") << tr("Rekt.°") << tr("Dekl.°") << tr(" Name          Abkrz.") << tr("Pl");
   } else {
-    columns << tr("Knot.ND") << tr("Knot.SD") << tr("Apsiden") << tr("Pl");
+    columns << tr("Entf.%") << tr("Entf.AE") << tr("Rekt.°") << tr("Dekl.°") << tr("Knot.ND") << tr("Knot.SD")
+            << tr("Apsiden") << tr("Pl");
   }
   table->setHorizontalHeaderLabels(columns);
   table->verticalHeader()->setVisible(false);
@@ -485,6 +533,12 @@ void MainWindow::coordinate_table(bool extras) {
     if (!extras && !s.heliocentric) {
       // his w$ under btab& = 11
       notes << theme::heading_span(s.true_apogee ? tr("MOND-Apsiden : Wahrer Wert") : tr("MOND-Apsiden : Mittelwert"));
+      // the inverse symbols of plinv answer the tester's question where
+      // they come from, the true forms stand inverted always
+      if (konsta_.plinv == 1 || konsta_.plinv == 3) {
+        notes << tr("Invertiert : MA,SA,UR,NE,PL und die WAHREN Werte").toHtmlEscaped()
+              << tr("( KENNZEICHNUNG in VORGABEN DIREKTIONEN ÄNDERN )").toHtmlEscaped();
+      }
     }
     foot->setText(notes.join("<br>"));
     foot->setVisible(!notes.isEmpty());
@@ -647,7 +701,23 @@ void MainWindow::coordinate_table(bool extras) {
     timer.start(std::max(0, wait_ms - static_cast<int>(waited.elapsed())));
   };
   connect(&timer, &QTimer::timeout, &view, step);
-  view.resize(std::max(width(), 1000), std::max(height(), 640));
+  // his sheets always showed every row, the tester missed QU, XE and PO
+  // below the edge of a small window. The window opens tall enough for all
+  // rows as long as the screen has the room, the rest scrolls, and the
+  // zoom then grows the text into whatever room stays
+  view.ensurePolished();
+  table->resizeRowsToContents();
+  int rows_height = table->horizontalHeader()->sizeHint().height() + 2 * table->frameWidth();
+  for (int r = 0; r < table->rowCount(); ++r) {
+    rows_height += table->rowHeight(r);
+  }
+  const int others = view.sizeHint().height() - table->sizeHint().height();
+  const QScreen* screen = this->screen() != nullptr ? this->screen() : QGuiApplication::primaryScreen();
+  // the title bar of the window stands above the room of its contents
+  const int frame = std::max(0, frameGeometry().height() - height());
+  const int room = screen != nullptr ? screen->availableGeometry().height() - frame : std::max(height(), kSheetMinHeight);
+  view.resize(std::max(width(), kSheetMinWidth),
+              std::min(room, std::max({height(), kSheetMinHeight, others + rows_height})));
   view.exec();
   timer.stop();
   // a closed window ends a running walk like ESC, the moment returns

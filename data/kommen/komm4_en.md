@@ -230,6 +230,8 @@ The number of Halbsummen can optionally be quickly surveyed with a counter.
 
 ## MULTIPLE DIRECTIONS after STEPHAN A. LEHRIEDER
 
+*Note of this edition, in this version MULTIPLE DIREKTIONEN / HARMONICS stands under AUSWERTUNG.*
+
 Have in part a connection with the HARMONICS, only that here also and precisely NON-integer multipliers are used, namely the LIFE AGE in decimal specification: the number of days between birth and event divided by the length of a tropical year (365.2422) yields LJ = life years.
 
 There are so far the following variants:

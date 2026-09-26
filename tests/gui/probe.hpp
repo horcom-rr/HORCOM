@@ -5,6 +5,7 @@
 #pragma once
 
 #include <QCheckBox>
+#include <QDockWidget>
 #include <QDoubleSpinBox>
 #include <QLineEdit>
 #include <QTableWidget>
@@ -78,6 +79,7 @@ struct MainWindowProbe {
   static bool double_active(const MainWindow& w) { return w.double_active_; }
   static void last_picture(MainWindow& w) { w.last_picture(); }
   static void helio(MainWindow& w, bool on) { w.helio_->setChecked(on); }
+  static void true_node(MainWindow& w, bool on) { w.true_node_->setChecked(on); }
   static void solar(MainWindow& w) { w.solar_chart(); }
   static void planetar(MainWindow& w) { w.planetar_chart(); }
   static QString banner_record(const MainWindow& w) { return w.banner_->record(); }
@@ -175,6 +177,9 @@ struct MainWindowProbe {
     return w.comp_residence_ ? std::optional<std::string>(w.comp_residence_->name) : std::nullopt;
   }
   static bool body_column_hidden(const MainWindow& w, int col) { return w.bodies_->isColumnHidden(col); }
+  static QTableWidget* bodies(MainWindow& w) { return w.bodies_; }
+  static QTableWidget* cusps(MainWindow& w) { return w.cusps_; }
+  static QDockWidget* aspects_dock(MainWindow& w) { return w.aspects_dock_; }
   static void recall_double(MainWindow& w, int kind) { w.recall_double(kind); }
   static void reset_views(MainWindow& w) { w.reset_views(); }
   static void combin_chart(MainWindow& w) { w.combin_chart(); }
@@ -208,6 +213,8 @@ struct MainWindowProbe {
   static void symbolic_direction(MainWindow& w, bool equatorial) { w.symbolic_direction(equatorial); }
   static void primary_direction(MainWindow& w) { w.primary_direction(); }
   static bool mundane_frame(const MainWindow& w) { return w.mundane_frame_; }
+  static void set_mundane_frame(MainWindow& w, bool on) { w.mundane_frame_ = on; }
+  static void include(MainWindow& w, int slot, bool on) { w.included_[static_cast<std::size_t>(slot)] = on; }
   static void new_entry(MainWindow& w) { w.new_records_entry(); }
   static void delete_from_file(MainWindow& w) { w.delete_from_file(); }
   static void preview(MainWindow& w, const AafRecord& r) { w.preview_record(r); }

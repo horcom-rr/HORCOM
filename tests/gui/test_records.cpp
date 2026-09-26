@@ -171,20 +171,76 @@ TEST_CASE("a SATZ row of the menu opens the EINGABE- und ANZEIGE-BOX like a4") {
   CHECK(MainWindowProbe::active_slot(*w) == 0);
 }
 
-TEST_CASE("a DOPPEL-DATEN row names its pair and brings it back") {
+TEST_CASE("a pair entry of HOROSKOPE names the pair of his DOPPEL-DATEN row and brings it back") {
   auto w = MainWindowProbe::make();
   MainWindowProbe::apply(*w, person("INNENPERSON", 3));
   MainWindowProbe::remember_double(*w, 2, person("AUSSENPERSON", 7));
   QAction* row = MainWindowProbe::double_action(*w, 2);
   REQUIRE(row != nullptr);
   //RR LEFT$(na$(od0,ze0),10) + "-" + LEFT$(na$(od2,zf2),10)
-  CHECK(row->text() == "DOPPEL-KREIS: INNENPERSO-AUSSENPERS ");
-  // another chart in the panel, the row still recalls its own pair
+  CHECK(row->text() == QString::fromUtf8("DOPPEL-KREIS / 90-GRAD-KREIS: INNENPERSO-AUSSENPERS…"));
+  // another chart in the panel, the entry still recalls its own pair once
+  // his gesp_neu question offers it
   MainWindowProbe::apply(*w, person("DRITTE", 9));
-  row->trigger();
+  QStringList info;
+  {
+    DialogDriver drive;
+    drive.then([&info](QDialog* d) {
+      for (const QLabel* l : d->findChildren<QLabel*>()) {
+        info << l->text();
+      }
+      DialogDriver::click("LETZTES GESPEICHERTES BILD")(d);
+    });
+    row->trigger();
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  CHECK(info.join("|").contains("LETZTES GESPEICHERTES BILD DARSTELLEN ?"));
+  CHECK(info.join("|").contains("NEU BERECHNEN ?"));
+  CHECK(info.join("|").contains("INNENPERSON  -  AUSSENPERSON"));
   CHECK(MainWindowProbe::record(*w).surname == "INNENPERSON");
   CHECK(MainWindowProbe::compare_on(*w));
   CHECK(MainWindowProbe::partner_name(*w) == "AUSSENPERSON");
+  // NEU, his default, starts the session afresh with the MODUS box
+  QStringList titles;
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("NEU")).then([&titles](QDialog* d) {
+      titles << d->windowTitle();
+      d->reject();
+    });
+    row->trigger();
+    CHECK(drive.pending() == 0);
+  }
+  CHECK(titles == QStringList{"MODUS ?"});
+  // ESC leaves everything as it is
+  MainWindowProbe::apply(*w, person("DRITTE", 9));
+  const bool compare_before = MainWindowProbe::compare_on(*w);
+  {
+    DialogDriver drive;
+    drive.then([](QDialog* d) { d->reject(); });
+    row->trigger();
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  CHECK(MainWindowProbe::record(*w).surname == "DRITTE");
+  CHECK(MainWindowProbe::compare_on(*w) == compare_before);
+}
+
+TEST_CASE("a pair entry without a stored pair goes straight to his session") {
+  auto w = MainWindowProbe::make();
+  QStringList titles;
+  {
+    DialogDriver drive;
+    drive.then([&titles](QDialog* d) {
+      titles << d->windowTitle();
+      d->reject();
+    });
+    MainWindowProbe::double_action(*w, 2)->trigger();
+    CHECK(drive.pending() == 0);
+  }
+  // his a12 opens with the MODUS box, no question about a stored pair
+  CHECK(titles == QStringList{"MODUS ?"});
 }
 
 namespace {
