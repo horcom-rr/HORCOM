@@ -770,7 +770,9 @@ DisplayList MainWindow::rhythm_phase_screen(const RhythmRun& run, const std::vec
       continue;
     }
     const double y = rhythm_axis_y(t.value, start, length);
-    const QString date = datum_text(calendar_date(rhythm_jd(run.clock, t.value), cal));
+    // the whole year like the table and the list, it fits the strip of the
+    // size nine labels on both sides of the axis
+    const QString date = datum_full_text(calendar_date(rhythm_jd(run.clock, t.value), cal));
     if (t.kind == RhythmKind::kAspect || t.kind == RhythmKind::kMirror) {
       // NOT (v& = 11 OR v& = 12), the nodes stay off the right column
       if (t.slot == body::kNodeAsc || t.slot == body::kNodeDesc) {

@@ -133,7 +133,7 @@ TEST_CASE("MÜNCHNER RHYTHMENLEHRE walks his graph phase by phase") {
   CHECK(all.contains("Periode: 7 Jahre: LINKS"));
   CHECK(all.contains("WEITER mit Leertaste"));
   // the first phase opens with the ascendant on the day of birth
-  CHECK(first.contains("10. 5.70 D"));
+  CHECK(first.contains("10. 5.1970 D"));
   // a1795 arcs the first house in red
   CHECK(arcs > 0);
   // his naf& block moved beside the strip
@@ -485,7 +485,8 @@ TEST_CASE("SEPTAR walks his chain and the walk dates it from the offset") {
 
 TEST_CASE("SEPTAR and DECAR give the Schwingungshoroskop of the asked year of life") {
   // the tester's path, no stored Sonderpunkt and KEIN SONDERPUNKT, where
-  // his ZEIT-EINHEIT JAHR had returned the RADIX for every age below 84
+  // his ZEIT-EINHEIT JAHR had returned the RADIX for every age below 84.
+  // A period of its own goes through SONSTIGE like the Nonar of nine
   const auto cast = [](const QString& period, const QString& age, QStringList& visible_rows, QString& banner) {
     auto w = MainWindowProbe::make();
     MainWindowProbe::houses(*w, 1);
@@ -494,9 +495,15 @@ TEST_CASE("SEPTAR and DECAR give the Schwingungshoroskop of the asked year of li
     k.fixpunkt_rh.clear();
     k.lpktg = false;
     DialogDriver drive;
-    drive.then(DialogDriver::click("JA"))  // EREIGNIS-Ort = GEBURTS-Ort ?
-        .then(DialogDriver::click(period))
-        .then(DialogDriver::fill({age}, "OK"))
+    drive.then(DialogDriver::click("JA"));  // EREIGNIS-Ort = GEBURTS-Ort ?
+    bool own = false;
+    const int months = period.toInt(&own);
+    if (own) {
+      drive.then(DialogDriver::click("SONSTIGE")).then(DialogDriver::fill({QString::number(months)}, "OK"));
+    } else {
+      drive.then(DialogDriver::click(period));
+    }
+    drive.then(DialogDriver::fill({age}, "OK"))
         .then([&visible_rows](QDialog* d) {
           for (const QAbstractButton* b : d->findChildren<QAbstractButton*>()) {
             if (b->isVisibleTo(d)) {
@@ -506,6 +513,10 @@ TEST_CASE("SEPTAR and DECAR give the Schwingungshoroskop of the asked year of li
           DialogDriver::click("KEIN SONDERPUNKT")(d);
         })
         .then([](QDialog* d) { d->accept(); });
+    // below seven years his second box says 1. SEPTAR = RADIX !
+    if (age.toInt() < 7) {
+      drive.then([](QDialog* d) { d->accept(); });
+    }
     MainWindowProbe::septar(*w);
     INFO(drive.titles().join(" | ").toStdString());
     CHECK(drive.pending() == 0);
@@ -527,6 +538,15 @@ TEST_CASE("SEPTAR and DECAR give the Schwingungshoroskop of the asked year of li
   rows.clear();
   CHECK(cast("ZEHN", "70", rows, banner) == 1977);
   CHECK(banner == "8.SEPTAR");
+  // the Nonar of nine months a house, 70 lies in 63 to 72, the eighth
+  // Schwingungshoroskop and the seventh solar
+  rows.clear();
+  CHECK(cast("9", "70", rows, banner) == 1977);
+  CHECK(banner == "8.SEPTAR");
+  // below the first period the Septar is the radix itself
+  rows.clear();
+  CHECK(cast("SIEBEN", "5", rows, banner) == 1970);
+  CHECK(banner == "1.SEPTAR");
 }
 
 namespace {
