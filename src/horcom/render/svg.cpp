@@ -129,6 +129,15 @@ std::string to_svg(const DisplayList& dl, const GlyphImageResolver& sprites) {
           << hex(p.color) << "\"/>\n";
         break;
       case Primitive::Kind::kRect:
+        if (p.outline) {
+          // the stroke centred on a box shrunk by half its width stays
+          // inside the cell like the painter's strips
+          const double in = p.width / 2.0;
+          s << "<rect x=\"" << num(p.x1 - p.r1 + in) << "\" y=\"" << num(p.y1 - p.r2 + in) << "\" width=\""
+            << num(2.0 * p.r1 - p.width) << "\" height=\"" << num(2.0 * p.r2 - p.width) << "\" fill=\"none\" stroke=\""
+            << hex(p.color) << "\" stroke-width=\"" << num(p.width) << "\"/>\n";
+          break;
+        }
         s << "<rect x=\"" << num(p.x1 - p.r1) << "\" y=\"" << num(p.y1 - p.r2) << "\" width=\"" << num(2.0 * p.r1)
           << "\" height=\"" << num(2.0 * p.r2) << "\" fill=\"" << hex(p.fill) << "\"/>\n";
         break;

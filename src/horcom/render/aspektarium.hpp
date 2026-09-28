@@ -61,6 +61,8 @@ struct AspektariumInput {
   bool rhythm = false;
   /// the node pair stamped inverted like plein2 under moknw!
   bool invert_nodes = false;
+  /// the true node pair in a thin frame, the wheel's cue for it
+  bool frame_nodes = false;
   /// the Black Moon stamped inverted like plein2 under apogw!
   bool invert_apogee = false;
 };

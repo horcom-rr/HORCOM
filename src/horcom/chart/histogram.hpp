@@ -7,6 +7,7 @@
 #include <array>
 
 #include "horcom/chart/chart.hpp"
+#include "horcom/chart/signs.hpp"
 
 // The element and quality histograms of the chart view. Every factor
 // scores its point weight into the element and the quality of its sign
@@ -23,8 +24,8 @@ struct HistogramOptions {
   bool double_first_house = true;
   //RR GebHerr doppelt
   bool double_ruler = true;
-  /// the classical rulers instead of the modern ones
-  bool classic_rulers = false;
+  /// the sign rulers, his alt! chose the classical ones
+  RulerSet rulers = RulerSet::kModern;
 };
 
 /// His elem switch of HISTOGRAMME für ELEMENTE, which columns a chart

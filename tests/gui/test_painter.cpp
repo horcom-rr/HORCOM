@@ -75,3 +75,49 @@ TEST_CASE("his inverted sprite stands on a square of whole device pixels") {
   CHECK(std::abs(ink.center().x() - square.center().x()) <= 2);
   CHECK(std::abs(ink.center().y() - square.center().y()) <= 2);
 }
+
+TEST_CASE("the frame of the true node is one even hairline on whole device pixels") {
+  DisplayList dl;
+  dl.width = 60.0;
+  dl.height = 60.0;
+  constexpr double kCentre = 30.3;
+  for (const Primitive& f : framed_patch(kCentre, kCentre, kGlyphSize)) {
+    dl.items.push_back(f);
+  }
+  // a fractional window scale, where two boxes snapped on their own had
+  // left one side a pixel wider than the other
+  for (const double scale : {kScale, 1.62, 1.91}) {
+    QImage img(static_cast<int>(60 * scale), static_cast<int>(60 * scale), QImage::Format_ARGB32);
+    img.fill(Qt::white);
+    {
+      QPainter p(&img);
+      p.setRenderHint(QPainter::Antialiasing, true);
+      p.scale(scale, scale);
+      paint_display_list(p, dl);
+    }
+    const QRect frame = extent(img, [](QRgb c) { return qGray(c) < 128; });
+    REQUIRE_FALSE(frame.isEmpty());
+    // the run of ink from each edge towards the centre along the middle
+    const int cx = frame.center().x();
+    const int cy = frame.center().y();
+    const auto run = [&img](QPoint at, QPoint step) {
+      int n = 0;
+      while (qGray(img.pixel(at)) < 128) {
+        ++n;
+        at += step;
+      }
+      return n;
+    };
+    const int top = run({cx, frame.top()}, {0, 1});
+    const int bottom = run({cx, frame.bottom()}, {0, -1});
+    const int left = run({frame.left(), cy}, {1, 0});
+    const int right = run({frame.right(), cy}, {-1, 0});
+    INFO("scale " << scale << " top " << top << " bottom " << bottom << " left " << left << " right " << right);
+    CHECK(top == 1);
+    CHECK(bottom == 1);
+    CHECK(left == 1);
+    CHECK(right == 1);
+    // no grey half pixels around the line
+    CHECK(extent(img, [](QRgb c) { return qGray(c) > 20 && qGray(c) < 235; }).isEmpty());
+  }
+}

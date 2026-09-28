@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "horcom/chart/aspects.hpp"
+#include "horcom/chart/signs.hpp"
 #include "horcom/data/statist.hpp"
 
 // The statistics evaluation of the original stat_ausw world. One query
@@ -81,8 +82,8 @@ struct StatQuery {
   std::string name;
   /// the ara choice, true swaps the arabic formula on day charts
   bool arabic_day_night = true;
-  /// the original alt, classic sign rulers before the outer planets
-  bool classic_rulers = false;
+  /// the sign rulers, his alt! chose the classic ones
+  RulerSet rulers = RulerSet::kModern;
   /// his UND chaining over the survivors of the previous condition
   bool combine_and = false;
 };
@@ -118,22 +119,36 @@ struct StatEvalResult {
 
 /// The ruler of the sign standing at w, the original ze_pl.
 ///
-/// @param w       a longitude in radians
-/// @param classic true takes the old rulers, Mars for Scorpio, Saturn
-///                for Aquarius, Jupiter for Pisces
+/// @param w   a longitude in radians
+/// @param set the assignment, his NEU, his ALT or NEU with QU and CH
 /// @return the ruling body slot, 0 when w is not inside the circle
-[[nodiscard]] int sign_ruler(double w, bool classic);
+[[nodiscard]] int sign_ruler(double w, RulerSet set);
+
+/// The body that rules in place of Quaoar or Chiron where a chart or a
+/// dataset does not carry them, the ruler both had under NEU.
+///
+/// @param slot a ruler of sign_ruler
+/// @return Venus for Quaoar, Mercury for Chiron, every other slot itself
+[[nodiscard]] int ruler_stand_in(int slot);
+
+/// A ruler the chart can use, the stand in where the chart does not
+/// carry the body with a valid position.
+///
+/// @param c    the chart
+/// @param slot a ruler of sign_ruler or birth_rulers
+/// @return the slot or its stand in, 0 stays 0
+[[nodiscard]] int carried_ruler(const Chart& c, int slot);
 
 /// The birth rulers of the original geb_herr. The first is the ruler
 /// of the ascendant sign. When the second cusp stands two signs past
 /// the ascendant a whole sign lies intercepted in the first house and
 /// its ruler joins as the second. Both draw inverted on the wheel.
 ///
-/// @param cusp1   house cusp 1 in radians
-/// @param cusp2   house cusp 2 in radians
-/// @param classic true takes the old rulers like sign_ruler
+/// @param cusp1 house cusp 1 in radians
+/// @param cusp2 house cusp 2 in radians
+/// @param set   the assignment like sign_ruler
 /// @return the two ruler slots, 0 where none applies
-[[nodiscard]] std::pair<int, int> birth_rulers(double cusp1, double cusp2, bool classic);
+[[nodiscard]] std::pair<int, int> birth_rulers(double cusp1, double cusp2, RulerSet set);
 
 /// Runs one condition over a dataset like stat_ausw.
 ///

@@ -637,11 +637,17 @@ class MainWindow : public QMainWindow {
   /// @param check  ask PARAMETER RICHTIG ? when the unit changed
   /// @return false after ESC
   [[nodiscard]] bool rhythm_unit_question(bool septar, bool check);
+  /// Sets the month unit a Septar runs in, its cast and its walk.
+  ///
+  /// @return the a17sol lines and the note that names the unit above the
+  ///         period box
+  [[nodiscard]] QStringList septar_unit();
   /// His a17eing12, Periode PRO HAUS ?
   ///
   /// @param check ask PARAMETER RICHTIG ? when the period changed
+  /// @param info  lines above the answers, the SEPTAR names its unit there
   /// @return false after ABBRUCH
-  [[nodiscard]] bool rhythm_period_question(bool check);
+  [[nodiscard]] bool rhythm_period_question(bool check, const QStringList& info = {});
   /// @return the walk options of the answers of the session
   [[nodiscard]] RhythmOptions rhythm_options() const;
   /// His a174init, where the ages of the walk stand in time.
@@ -678,6 +684,23 @@ class MainWindow : public QMainWindow {
   [[nodiscard]] QStringList rhythm_heading(const RhythmRun& run) const;
   /// One remembered step of the Eingabe panel, the Zurück and Vor
   /// buttons walk these.
+  /// The corner rows and the level of a COMBIN on the panel, empty for
+  /// every other chart, a step of Zurück and Vor carries them.
+  struct CombinMemory {
+    std::string name1;
+    std::string moment1;
+    std::string name2;
+    std::string moment2;
+    std::string note;
+    std::vector<std::string> list;
+    QString na;
+    std::optional<SlotChoice> origin;
+
+    bool operator==(const CombinMemory& o) const {
+      return name1 == o.name1 && moment1 == o.moment1 && name2 == o.name2 && moment2 == o.moment2 &&
+             note == o.note && list == o.list;
+    }
+  };
   struct PanelState {
     QString given;
     QString surname;
@@ -713,6 +736,8 @@ class MainWindow : public QMainWindow {
     int slot = -1;
     /// the slot was a SOLAR one
     bool solar = false;
+    /// the COMBIN of the step, a step back to the radix drops its rows
+    CombinMemory combin;
 
     bool operator==(const PanelState& o) const {
       return given == o.given && surname == o.surname && place == o.place && date == o.date &&
@@ -723,7 +748,7 @@ class MainWindow : public QMainWindow {
              true_apogee == o.true_apogee && helio == o.helio && transit_on == o.transit_on &&
              tdate == o.tdate && ttime == o.ttime && record.surname == o.record.surname &&
              record.given == o.record.given && record.place == o.record.place &&
-             record.comment == o.record.comment;
+             record.comment == o.record.comment && combin == o.combin;
     }
   };
 
@@ -1030,6 +1055,9 @@ class MainWindow : public QMainWindow {
   /// @param place the event place, the search and the chart stand there
   void run_solar(int year, const EventPlace& place);
   void refresh_record_label();
+  /// Puts the name and the place of the record into the panel fields, the
+  /// sheet reads its place from there.
+  void sync_record_fields();
   [[nodiscard]] SearchContext make_context() const;
   /// @return the emphasis of the wheel, the Planeten-Auswahl with the
   ///         Mondknoten switch on top, -1 hides a body
@@ -1094,7 +1122,21 @@ class MainWindow : public QMainWindow {
   ///
   /// @param keep the view actions that stay as they are
   void leave_views(std::initializer_list<const QAction*> keep);
+  /// AUFRÄUMEN / RÜCKSETZEN, his areg with areg11 and a1. After his
+  /// RÜCKSETZEN ? box the slots, the stored pairs and pictures, the special
+  /// views and the history empty and the panel returns to the chart of the
+  /// first start.
   void clear_slots();
+  /// The panel of the first start without a person, the moment and place
+  /// the constructor shows, the derived chart memories dropped.
+  void reset_panel();
+  /// Takes and remembers the sign rulers of ZUORDNUNG ZEICHENHERRSCHER.
+  ///
+  /// @param set his NEU, his ALT or NEU with Quaoar and Chiron
+  void set_rulers(RulerSet set);
+  /// The question after a COMBIN, leave its level for the RADIX of the
+  /// first record, clear the whole session or go on with the COMBIN.
+  void combin_level_question();
   /// ALLES ZURÜCKSETZEN of the ANSICHT menu, a rewrite addition. Returns
   /// the view settings and the VORGABEN of his profile and starts the
   /// program anew, the records, places and own files stay.
@@ -1282,9 +1324,10 @@ class MainWindow : public QMainWindow {
   static constexpr int kOutputA4 = 3;
   /// the outer symbol colour of the double wheels, his hard&
   int outer_color_ = 2;
-  /// his alt!, the old sign rulers Mars, Saturn and Jupiter for Scorpio,
-  /// Aquarius and Pisces, kept for the session like the original
-  bool alt_rulers_ = false;
+  /// the sign rulers of ZUORDNUNG ZEICHENHERRSCHER, his alt! chose the old
+  /// Mars, Saturn and Jupiter for the session, the port keeps the choice of
+  /// the three sets in the settings
+  RulerSet rulers_ = RulerSet::kModern;
   /// the wheel shows a plain chart, the right mouse opens einzel_plan_wahl
   bool plain_view_ = false;
   /// the capture hook switches the clock without the takeover question
@@ -1493,6 +1536,9 @@ class MainWindow : public QMainWindow {
   std::string combin_note_;
   // the names of a COMBIN of more than two
   std::vector<std::string> combin_list_;
+  // the SATZ of the first click of a COMBIN, the RADIX its question leads
+  // back to. His COMBIN lived in od = 0, ze = 2, no RADIX row held it
+  std::optional<SlotChoice> combin_origin_;
   // his na$(0,2) of the COMBIN on the panel, LEFT$ 10 of the first two
   QString combin_na_;
   // the sol$ of the RADIX slots, empty reads RADIX, ERGEBNIS als RADIX

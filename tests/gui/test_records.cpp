@@ -142,6 +142,205 @@ TEST_CASE("AUFRÄUMEN asks before it empties the slots") {
   CHECK_FALSE(MainWindowProbe::slot(*w, 0).has_value());
 }
 
+namespace {
+
+// the OK of his RÜCKSETZEN ? box
+DialogDriver::Step confirm_reset() {
+  return [](QDialog* d) { qobject_cast<QMessageBox*>(d)->button(QMessageBox::Ok)->click(); };
+}
+
+}  // namespace
+
+TEST_CASE("AUFRÄUMEN clears the chart on screen and every pair view like areg11") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::put_slot(*w, 0, person("ERSTFALL", 3));
+  MainWindowProbe::put_slot(*w, 1, person("ZWEITFALL", 5));
+  // a Doppelkreis stands on the wheel with its partner outside
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("NORMAL-KREIS")).then(DialogDriver::click("SATZ1")).then(DialogDriver::click("SATZ2"));
+    MainWindowProbe::double_wheel_session(*w);
+    CHECK(drive.pending() == 0);
+  }
+  REQUIRE(MainWindowProbe::full_sheet(*w));
+  REQUIRE(MainWindowProbe::record(*w).surname == "ERSTFALL");
+  {
+    DialogDriver drive;
+    drive.then(confirm_reset());
+    MainWindowProbe::clear_slots(*w);
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  // his areg11 cleared the record on screen too, the panel shows the chart
+  // of the first start without a person and the double wheel is gone
+  CHECK(MainWindowProbe::record(*w).surname.empty());
+  CHECK(MainWindowProbe::sheet(*w).name.empty());
+  const CalendarDate d = MainWindowProbe::day(*w);
+  CHECK(d.day == 13);
+  CHECK(d.month == 10);
+  CHECK(d.year == 1992);
+  CHECK(MainWindowProbe::lon(*w) == doctest::Approx(11.3244));
+  CHECK_FALSE(MainWindowProbe::full_sheet(*w));
+  CHECK(MainWindowProbe::banner_record(*w).trimmed().startsWith("13.10.1992"));
+  for (int i = 0; i < 5; ++i) {
+    CHECK_FALSE(MainWindowProbe::slot(*w, i).has_value());
+  }
+}
+
+TEST_CASE("AUFRÄUMEN after a COMBIN drops its level and its corner rows") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::put_slot(*w, 0, person("ERSTFALL", 3));
+  MainWindowProbe::put_slot(*w, 1, person("ZWEITFALL", 5));
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("SATZ1")).then(DialogDriver::click("SATZ2")).then(DialogDriver::click("WEITER MACHEN"));
+    MainWindowProbe::combin_chart(*w);
+    CHECK(drive.pending() == 0);
+  }
+  REQUIRE(MainWindowProbe::sheet(*w).place == "COMBIN-ORT");
+  {
+    DialogDriver drive;
+    drive.then(confirm_reset());
+    MainWindowProbe::clear_slots(*w);
+  }
+  const ClassicSheetText sheet = MainWindowProbe::sheet(*w);
+  CHECK(sheet.place.empty());
+  CHECK(sheet.pair_name1.empty());
+  CHECK(sheet.pair_note.empty());
+  bool centre = false;
+  for (const Primitive& p : MainWindowProbe::wheel(*w).items) {
+    centre = centre || (p.kind == Primitive::Kind::kText && p.text == "COMBIN");
+  }
+  CHECK_FALSE(centre);
+}
+
+TEST_CASE("the COMBIN question leaves the level, clears the session or goes on") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::put_slot(*w, 0, person("ERSTFALL", 3));
+  MainWindowProbe::put_slot(*w, 1, person("ZWEITFALL", 5));
+  QString info;
+  QStringList answers;
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("SATZ1"))
+        .then(DialogDriver::click("SATZ2"))
+        .then([&info, &answers](QDialog* d) {
+          for (const QLabel* l : d->findChildren<QLabel*>()) {
+            info += l->text() + "|";
+          }
+          for (const QAbstractButton* b : d->findChildren<QAbstractButton*>()) {
+            answers << b->text();
+          }
+          DialogDriver::click("COMBIN-EBENE VERLASSEN")(d);
+        });
+    MainWindowProbe::combin_chart(*w);
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  CHECK(info.contains("SIE BEFINDEN SICH NUN IN DER COMBIN - EBENE !"));
+  CHECK(answers == QStringList{"COMBIN-EBENE VERLASSEN ( zurück zum RADIX )", "ALLES LÖSCHEN ( AUFRÄUMEN / RÜCKSETZEN )",
+                               "WEITER MACHEN"});
+  // back on the RADIX of the first click, the combin rows are gone
+  CHECK(MainWindowProbe::record(*w).surname == "ERSTFALL");
+  CHECK(MainWindowProbe::sheet(*w).pair_name1.empty());
+  CHECK(MainWindowProbe::sheet(*w).place != "COMBIN-ORT");
+  CHECK(MainWindowProbe::active_slot(*w) == 0);
+  // ALLES LÖSCHEN runs AUFRÄUMEN with his RÜCKSETZEN ? box
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("SATZ1"))
+        .then(DialogDriver::click("SATZ2"))
+        .then(DialogDriver::click("ALLES LÖSCHEN"))
+        .then(confirm_reset());
+    MainWindowProbe::combin_chart(*w);
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  CHECK_FALSE(MainWindowProbe::slot(*w, 0).has_value());
+  CHECK(MainWindowProbe::record(*w).surname.empty());
+}
+
+namespace {
+
+// the texts of the wheel on screen, the corners baked into its list
+bool wheel_says(const MainWindow& w, const std::string& text) {
+  for (const Primitive& p : MainWindowProbe::wheel(w).items) {
+    if (p.kind == Primitive::Kind::kText && p.text.find(text) != std::string::npos) {
+      return true;
+    }
+  }
+  return false;
+}
+
+}  // namespace
+
+TEST_CASE("the wheel names the place of the record it switched to") {
+  auto w = MainWindowProbe::make();
+  AafRecord first = person("ERSTFALL", 3);
+  first.place = "ERSTORT";
+  AafRecord second = person("ZWEITFALL", 5);
+  second.place = "ZWEITORT";
+  MainWindowProbe::put_slot(*w, 0, first);
+  MainWindowProbe::put_slot(*w, 1, second);
+  MainWindowProbe::session_click(*w, 0);
+  CHECK(wheel_says(*w, "ERSTORT"));
+  // the corner reads the panel place, the field took the new record only
+  // after the wheel was drawn and the old place stayed on the sheet
+  MainWindowProbe::session_click(*w, 1);
+  CHECK(wheel_says(*w, "ZWEITORT"));
+  CHECK_FALSE(wheel_says(*w, "ERSTORT"));
+}
+
+TEST_CASE("Zurück after a COMBIN drops its rows and Vor brings them back") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::put_slot(*w, 0, person("ERSTFALL", 3));
+  MainWindowProbe::put_slot(*w, 1, person("ZWEITFALL", 5));
+  MainWindowProbe::session_click(*w, 0);
+  MainWindowProbe::flush_history(*w);
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("SATZ1")).then(DialogDriver::click("SATZ2")).then(DialogDriver::click("WEITER MACHEN"));
+    MainWindowProbe::combin_chart(*w);
+    CHECK(drive.pending() == 0);
+  }
+  REQUIRE(MainWindowProbe::sheet(*w).place == "COMBIN-ORT");
+  REQUIRE(wheel_says(*w, "COMBIN"));
+  MainWindowProbe::history_back(*w);
+  // the radix of the first record without COMBIN in the centre or corners
+  CHECK(MainWindowProbe::record(*w).surname == "ERSTFALL");
+  CHECK(MainWindowProbe::sheet(*w).pair_name1.empty());
+  CHECK_FALSE(wheel_says(*w, "COMBIN"));
+  CHECK(MainWindowProbe::active_slot(*w) == 0);
+  REQUIRE(MainWindowProbe::slot(*w, 0).has_value());
+  CHECK(MainWindowProbe::slot(*w, 0)->surname == "ERSTFALL");
+  MainWindowProbe::history_forward(*w);
+  CHECK(MainWindowProbe::sheet(*w).place == "COMBIN-ORT");
+  CHECK_FALSE(MainWindowProbe::sheet(*w).pair_name1.empty());
+  CHECK(wheel_says(*w, "COMBIN"));
+  // the COMBIN step leaves the RADIX slots alone
+  CHECK(MainWindowProbe::slot(*w, 0)->place != "COMBIN-ORT");
+}
+
+TEST_CASE("a SATZ row of the menu ends the Doppelkreis of the chart before") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::put_slot(*w, 0, person("ERSTFALL", 3));
+  MainWindowProbe::put_slot(*w, 1, person("ZWEITFALL", 5));
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("NORMAL-KREIS")).then(DialogDriver::click("SATZ1")).then(DialogDriver::click("SATZ2"));
+    MainWindowProbe::double_wheel_session(*w);
+  }
+  REQUIRE(MainWindowProbe::full_sheet(*w));
+  {
+    DialogDriver drive;
+    drive.then([](QDialog* d) { d->reject(); });
+    MainWindowProbe::slot_action(*w, 1)->trigger();
+  }
+  // the partner went with the view, the second record stands alone
+  CHECK_FALSE(MainWindowProbe::full_sheet(*w));
+  CHECK(MainWindowProbe::record(*w).surname == "ZWEITFALL");
+}
+
 TEST_CASE("a SATZ row of the menu opens the EINGABE- und ANZEIGE-BOX like a4") {
   auto w = MainWindowProbe::make();
   MainWindowProbe::put_slot(*w, 0, person("ERSTFALL", 3));

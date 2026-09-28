@@ -245,7 +245,7 @@ void MainWindow::arabic_table() {
     break;
   }
 
-  const std::vector<ArabicPart> parts = arabic_parts(chart, af, dir, alt_rulers_);
+  const std::vector<ArabicPart> parts = arabic_parts(chart, af, dir, rulers_);
   QDialog dialog(this);
   mark_output(&dialog, menu_item::kArabicParts);
   dialog.setWindowTitle(tr("ARABISCHE TEILE"));

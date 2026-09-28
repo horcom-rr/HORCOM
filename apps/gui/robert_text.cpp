@@ -28,6 +28,11 @@ QString datum_text(const CalendarDate& d) {
   return QString::asprintf("%2d.%2d.", d.day, d.month) + digits.rightJustified(2, ' ') + (d.year > 0 ? "" : "v");
 }
 
+QString datum_full_text(const CalendarDate& d) {
+  const QString year = d.year > 0 ? QString::number(d.year) : QString::number(1 - d.year) + " vC";
+  return QString::asprintf("%2d.%2d.", d.day, d.month) + year;
+}
+
 // ported from grmise
 QString grmise_text(double deg) {
   //RR g = ABS(gd) + kk

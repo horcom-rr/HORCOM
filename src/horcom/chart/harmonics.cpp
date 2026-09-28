@@ -129,7 +129,7 @@ double multi_reference(const Chart& base, const MultiReference& ref) {
       return base.houses.cusp[static_cast<std::size_t>(ref.house)];
     case MultiReference::Kind::kRuler: {
       // alt! = -1, mc_armcb1 forces the classic table
-      const int kp = sign_ruler(base.houses.cusp[static_cast<std::size_t>(ref.house)], true);
+      const int kp = sign_ruler(base.houses.cusp[static_cast<std::size_t>(ref.house)], RulerSet::kClassic);
       return kp > 0 ? base.b[static_cast<std::size_t>(kp)].el : 0.0;
     }
     case MultiReference::Kind::kSignStart:

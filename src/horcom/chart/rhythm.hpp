@@ -9,6 +9,7 @@
 
 #include "horcom/chart/aspects.hpp"
 #include "horcom/chart/chart.hpp"
+#include "horcom/chart/signs.hpp"
 
 // The trigger walk of the Münchner Rhythmenlehre after W. Döbereiner,
 // ported from the original a170 world. Life walks the twelve houses as
@@ -78,9 +79,9 @@ struct RhythmOptions {
   bool cardinals = false;
   /// the mundane frame of horm& 2, his a173 knows no mirror chain there
   bool mundane = false;
-  /// his alt!, the old rulers Mars, Saturn and Jupiter for Scorpio,
-  /// Aquarius and Pisces
-  bool classic_rulers = false;
+  /// the sign rulers, his alt! chose the old Mars, Saturn and Jupiter for
+  /// Scorpio, Aquarius and Pisces
+  RulerSet rulers = RulerSet::kModern;
   /// the SONDERPUNKT ( FIXPUNKT ) of the rhythm theory, his red F, a
   /// degree in radians, negative when off, independent of the general
   /// fixed point

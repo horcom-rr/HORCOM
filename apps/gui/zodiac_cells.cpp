@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include "horcom/chart/bodies.hpp"
 #include "horcom/chart/signs.hpp"
 #include "horcom/render/wheel.hpp"
 #include "painter.hpp"
@@ -33,6 +34,11 @@ QColor element_color(int sign, bool bright) {
   static const QColor kBright[4] = {QColor(0xFF, 0x8A, 0x70), QColor(0xD9, 0xB8, 0x4D),
                                     QColor(0x6F, 0xD0, 0xDC), QColor(0x00, 0xE8, 0xE8)};
   return (bright ? kBright : kOriginal)[((sign % kSignCount) + kSignCount) % 4];
+}
+
+QColor body_mark_color(bool bright) {
+  // RGB(0,0,128) of deftextcol(2), the night dress a light blue
+  return bright ? QColor(0x9C, 0xC4, 0xFF) : QColor(0x00, 0x00, 0x80);
 }
 
 // ported from grze with grze_0
@@ -107,6 +113,26 @@ LineCell line_cell(const QStyleOptionViewItem& option) {
   return {one.height(), std::max(0, one.width() - QFontMetrics(opt.font).horizontalAdvance(line))};
 }
 
+// the tag of the body a cell marks and where it stands in the text
+// before the sign, -1 without a mark
+struct BodyMark {
+  int slot = 0;
+  QString tag;
+  qsizetype at = -1;
+};
+
+BodyMark body_mark(const QModelIndex& index, const QString& pre) {
+  BodyMark m;
+  m.slot = index.data(kBodyMarkRole).toInt();
+  if (m.slot <= 0 || m.slot >= body::kSlotCount) {
+    return m;
+  }
+  const std::string_view n = body::kName[static_cast<std::size_t>(m.slot)];
+  m.tag = QString::fromUtf8(n.data(), static_cast<qsizetype>(n.size()));
+  m.at = m.tag.isEmpty() ? -1 : pre.indexOf(m.tag);
+  return m;
+}
+
 // the ink of a cell, the bright shades on the black selection band of
 // the paper theme
 QColor cell_ink(const QStyleOptionViewItem& opt) {
@@ -133,6 +159,13 @@ QSize ZodiacDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelI
   const QFontMetrics fm(opt.font);
   const int sprite = sprite_side(fm, fm.height() + 4) + fm.horizontalAdvance(' ');
   size.rwidth() += std::max(0, sprite - fm.horizontalAdvance(glyph));
+  // a marked body adds its sprite before the tag and the bold tag
+  const BodyMark m = body_mark(index, opt.text.left(opt.text.indexOf(glyph)));
+  if (m.at >= 0) {
+    QFont bold = opt.font;
+    bold.setBold(true);
+    size.rwidth() += sprite + QFontMetrics(bold).horizontalAdvance(m.tag) - fm.horizontalAdvance(m.tag);
+  }
   return size;
 }
 
@@ -166,8 +199,34 @@ void ZodiacDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option
   const QString pre = text.left(at);
   const QString post = text.mid(at + glyph.size());
   painter->setPen(ink);
-  painter->drawText(x, y, pre);
-  x += fm.horizontalAdvance(pre);
+  const BodyMark mark = body_mark(index, pre);
+  if (mark.at >= 0) {
+    // his plein2 beside the tag, the sprite and the bold tag in the mark
+    // colour so the body of the row stands out, the rest of pre after it
+    const QString before = pre.left(mark.at);
+    painter->drawText(x, y, before);
+    x += fm.horizontalAdvance(before);
+    const QColor mc = body_mark_color(dark || selected);
+    const int body_side = sprite_side(fm, r.height());
+    if (draw_sprite(painter, QString::fromUtf8(body_glyph(mark.slot)), mc,
+                    QRect(x, r.y() + (r.height() - body_side) / 2, body_side, body_side))) {
+      x += body_side + fm.horizontalAdvance(' ');
+    }
+    QFont bold = opt.font;
+    bold.setBold(true);
+    painter->setFont(bold);
+    painter->setPen(mc);
+    painter->drawText(x, y, mark.tag);
+    x += QFontMetrics(bold).horizontalAdvance(mark.tag);
+    painter->setFont(opt.font);
+    painter->setPen(ink);
+    const QString after = pre.mid(mark.at + mark.tag.size());
+    painter->drawText(x, y, after);
+    x += fm.horizontalAdvance(after);
+  } else {
+    painter->drawText(x, y, pre);
+    x += fm.horizontalAdvance(pre);
+  }
   const QColor col = element_color(stored - 1, dark || selected);
   // his coordinate screen put the fat sprite into the cell, tinted
   // by zeich_col, the font glyph stays as the fallback

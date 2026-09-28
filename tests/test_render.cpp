@@ -327,6 +327,34 @@ TEST_CASE("sign boxes, inverted rulers and stacked axis numbers") {
     }
   }
   CHECK(patches == 2);
+  // the true node wears a thin frame, a paper ground and one outline on
+  // the same sprite box, never the dark square of the true Black Moon
+  WheelOptions framed = mean;
+  framed.frame_nodes = true;
+  const DisplayList df = build_wheel(c, {}, a, framed);
+  int squares = 0;
+  int grounds = 0;
+  int frames = 0;
+  for (const Primitive& p : df.items) {
+    if (p.kind != Primitive::Kind::kRect) {
+      continue;
+    }
+    if (p.outline) {
+      ++frames;
+      CHECK(p.color == kInkColor);
+      CHECK(p.r1 == doctest::Approx(kSpriteSize * kSpriteBox / 2.0));
+      CHECK(p.width == doctest::Approx(kSpriteSize * kFrameLineShare));
+    } else if (p.fill == kPaperColor) {
+      ++grounds;
+    } else if (p.fill == kInkColor) {
+      ++squares;
+    }
+  }
+  // both nodes framed, the two rulers still on their dark square
+  CHECK(frames == 2);
+  CHECK(grounds == 2);
+  CHECK(squares == 2);
+  CHECK(to_svg(df).find("fill=\"none\" stroke=\"#000000\"") != std::string::npos);
 }
 
 TEST_CASE("crowded bodies separate on the glyph ring") {

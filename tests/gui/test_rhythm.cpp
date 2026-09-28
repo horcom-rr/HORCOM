@@ -192,6 +192,7 @@ TEST_CASE("the GRAD-DATUM-LISTE dates every half degree in walk order") {
   MainWindowProbe::apply(*w, morning_birth());
   QStringList degree;
   QStringList mark;
+  QStringList dates;
   QStringList pair_sprites;
   bool pair_framed = false;
   bool sprite_column = false;
@@ -203,6 +204,7 @@ TEST_CASE("the GRAD-DATUM-LISTE dates every half degree in walk order") {
       .then([&](QDialog* d) {
         degree = table_column(d, 0);
         mark = table_column(d, 1);
+        dates = table_column(d, 2);
         if (const auto* t = d->findChild<QTableWidget*>()) {
           sprite_column = dynamic_cast<SpriteRowDelegate*>(t->itemDelegateForColumn(1)) != nullptr;
           for (int r = 0; r < t->rowCount(); ++r) {
@@ -230,6 +232,17 @@ TEST_CASE("the GRAD-DATUM-LISTE dates every half degree in walk order") {
   }
   CHECK(phases == 12);
   CHECK(rows == 720);
+  // every date carries its whole year, the walk of 84 years spans two
+  // centuries and his datum$ printed only the last two digits
+  const QRegularExpression full_year(QStringLiteral("^[ \\d]\\d\\.[ \\d]\\d\\.\\d{4}$"));
+  int dated = 0;
+  for (const QString& t : dates) {
+    if (!t.isEmpty()) {
+      ++dated;
+      CHECK_MESSAGE(full_year.match(t).hasMatch(), t.toStdString());
+    }
+  }
+  CHECK(dated == 720);
   // 4.5 degrees Aries carries Mars and Neptune
   CHECK(mark.contains("MA-NE"));
   // a174g draws the pair as his two sprites in a box
@@ -383,27 +396,21 @@ TEST_CASE("SEPTAR walks his chain and the walk dates it from the offset") {
   Konsta& k = MainWindowProbe::konsta(*w);
   k.fixpunkt_rh = "123.5000";
   k.lpktg = true;
-  QString unit_default;
   QString message;
   QStringList special_rows;
   QStringList special_info;
-  QStringList unit_info;
+  QStringList period_info;
   {
     DialogDriver drive;
     drive.then(DialogDriver::click("JA"))  // EREIGNIS-Ort = GEBURTS-Ort ?
-        .then([&unit_default, &unit_info](QDialog* d) {
-          //RR Bei 'SEPTAREN' i,a. 'MONAT'
-          for (QAbstractButton* b : d->findChildren<QAbstractButton*>()) {
-            if (b->hasFocus() || b->property("default").toBool()) {
-              unit_default = b->text();
-            }
-          }
+        .then([&period_info](QDialog* d) {
+          // the Septar runs in months, the period box names the unit where
+          // his JAHR box made the RADIX the Septar of every age below 84
           for (const QLabel* l : d->findChildren<QLabel*>()) {
-            unit_info << l->text();
+            period_info << l->text();
           }
-          DialogDriver::click("MONAT")(d);
+          DialogDriver::click("SIEBEN")(d);
         })
-        .then(DialogDriver::click("SIEBEN"))
         .then(DialogDriver::fill({"30"}, "OK"))
         .then([&special_rows, &special_info](QDialog* d) {
           for (QAbstractButton* b : d->findChildren<QAbstractButton*>()) {
@@ -427,10 +434,11 @@ TEST_CASE("SEPTAR walks his chain and the walk dates it from the offset") {
     CHECK(drive.pending() == 0);
     CHECK(drive.unexpected() == 0);
   }
-  CHECK(unit_default == "MONAT");
-  // sol$(2,ze) = "SEPTAR" heads the unit box, the numbered Septar the
-  // SONDERPUNKT box, not the radix on screen
-  CHECK(unit_info.join(QChar(0x0A)).contains("  SEPTAR "));
+  // sol$(2,ze) = "SEPTAR" heads the period box with the unit of the Septar,
+  // the numbered Septar the SONDERPUNKT box, not the radix on screen
+  const QString period = period_info.join(QChar(0x0A));
+  CHECK(period.contains("  SEPTAR "));
+  CHECK(period.contains("ZEIT-EINHEIT beim SEPTAR : MONAT"));
   const QString info = special_info.join(QChar(0x0A));
   CHECK(info.contains("  5.SEPTAR "));
   CHECK_FALSE(info.contains("  RADIX "));
@@ -439,6 +447,7 @@ TEST_CASE("SEPTAR walks his chain and the walk dates it from the offset") {
   CHECK_FALSE(special_rows.join(QChar(0x0A)).contains("INDIREKT"));
   CHECK(message.contains("SEPTAR NR. 5 Gilt bei der Periode von 7 und der Zeit-Einheit MONAT"));
   CHECK(message.contains("Für die LEBENS-Jahre von  28 bis  35"));
+  CHECK(message.contains("= 4. SOLAR , Kalender-Jahr 1974"));
   // the fifth Septar is the solar return of 1974, his red F on slot zero
   const Chart& c = MainWindowProbe::chart(*w);
   CHECK(MainWindowProbe::day(*w).year == 1974);
@@ -454,7 +463,7 @@ TEST_CASE("SEPTAR walks his chain and the walk dates it from the offset") {
         .then(DialogDriver::click("LINKS"))
         .then(DialogDriver::click("DATUM"))
         .then(DialogDriver::click("EINS"))
-        .then(DialogDriver::click("MONAT"))
+        // the walk of a Septar runs in months like its cast, no unit box
         .then(DialogDriver::click("SIEBEN"))
         .then(DialogDriver::click("BEIBEHALTEN"))
         .then([&](QDialog* d) {
@@ -469,8 +478,55 @@ TEST_CASE("SEPTAR walks his chain and the walk dates it from the offset") {
   }
   const int ac = static_cast<int>(points.indexOf("AC"));
   REQUIRE(ac >= 0);
-  CHECK(dates[ac] == "10. 5.98");
+  // the table dates with the whole year, his datum$ printed 10. 5.98
+  CHECK(dates[ac] == "10. 5.1998");
   CHECK(points.contains("SP"));
+}
+
+TEST_CASE("SEPTAR and DECAR give the Schwingungshoroskop of the asked year of life") {
+  // the tester's path, no stored Sonderpunkt and KEIN SONDERPUNKT, where
+  // his ZEIT-EINHEIT JAHR had returned the RADIX for every age below 84
+  const auto cast = [](const QString& period, const QString& age, QStringList& visible_rows, QString& banner) {
+    auto w = MainWindowProbe::make();
+    MainWindowProbe::houses(*w, 1);
+    MainWindowProbe::apply(*w, morning_birth());
+    Konsta& k = MainWindowProbe::konsta(*w);
+    k.fixpunkt_rh.clear();
+    k.lpktg = false;
+    DialogDriver drive;
+    drive.then(DialogDriver::click("JA"))  // EREIGNIS-Ort = GEBURTS-Ort ?
+        .then(DialogDriver::click(period))
+        .then(DialogDriver::fill({age}, "OK"))
+        .then([&visible_rows](QDialog* d) {
+          for (const QAbstractButton* b : d->findChildren<QAbstractButton*>()) {
+            if (b->isVisibleTo(d)) {
+              visible_rows << b->text();
+            }
+          }
+          DialogDriver::click("KEIN SONDERPUNKT")(d);
+        })
+        .then([](QDialog* d) { d->accept(); });
+    MainWindowProbe::septar(*w);
+    INFO(drive.titles().join(" | ").toStdString());
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+    banner = MainWindowProbe::banner_record(*w);
+    return MainWindowProbe::day(*w).year;
+  };
+  QStringList rows;
+  QString banner;
+  // age 70 lies in the eleventh Septar, 70 to 77, the tenth solar return
+  CHECK(cast("SIEBEN", "70", rows, banner) == 1980);
+  CHECK(banner == "11.SEPTAR");
+  // his blank rows of the SONDERPUNKT box no longer stand as empty fields
+  for (const QString& r : rows) {
+    CHECK_FALSE(r.trimmed().isEmpty());
+  }
+  CHECK(rows.contains("KEIN SONDERPUNKT "));
+  // the Decar of ten years, 70 to 80 is the eighth, the seventh solar
+  rows.clear();
+  CHECK(cast("ZEHN", "70", rows, banner) == 1977);
+  CHECK(banner == "8.SEPTAR");
 }
 
 namespace {

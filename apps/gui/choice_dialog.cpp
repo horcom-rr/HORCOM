@@ -44,6 +44,12 @@ ChoiceDialog::ChoiceDialog(const QString& title, const QStringList& info, const 
       accept();
     });
     v->addWidget(b);
+    // his blank rows only held the numbers of the answers below them, the
+    // tester read them as empty fields. The row keeps its number unseen
+    if (buttons.at(i).trimmed().isEmpty()) {
+      b->setEnabled(false);
+      b->hide();
+    }
   }
   // the box keeps its 460 and grows with a longer caption, the layout
   // minimum rules so no row is ever cut, however small the screen
@@ -89,6 +95,16 @@ int ChoiceDialog::ask_with_disabled(QWidget* parent, const QString& title, const
                                     const QStringList& buttons, int default_index, const std::vector<int>& disabled) {
   ChoiceDialog d(title, info, buttons, default_index, parent);
   return d.run(disabled);
+}
+
+int ChoiceDialog::ask_current(QWidget* parent, const QString& title, const QStringList& info,
+                              const QStringList& buttons, int current) {
+  ChoiceDialog d(title, info, buttons, current, parent);
+  const QList<QPushButton*> rows = d.findChildren<QPushButton*>(Qt::FindDirectChildrenOnly);
+  if (current >= 0 && current < rows.size()) {
+    rows[current]->setObjectName(kCurrentName);
+  }
+  return d.run({});
 }
 
 }  // namespace horcom

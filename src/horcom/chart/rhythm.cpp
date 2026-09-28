@@ -152,7 +152,11 @@ struct Walk {
   }
 
   void ruler_row(double sign_point, RhythmKind kind) {
-    const int kp = sign_ruler(sign_point, opt.classic_rulers);
+    int kp = sign_ruler(sign_point, opt.rulers);
+    // Quaoar or Chiron not in the chart, Venus or Mercury rule as under NEU
+    if (kp > 0 && !usable(kp)) {
+      kp = ruler_stand_in(kp);
+    }
     if (kp <= 0 || !usable(kp)) {
       return;
     }

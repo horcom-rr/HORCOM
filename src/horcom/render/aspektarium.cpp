@@ -108,6 +108,10 @@ DisplayList build_aspektarium(const AspektariumInput& in, const AspektariumText&
     if (inverted(slot) && !red(slot)) {
       add(inverted_patch(x, y + (block ? kBlockShift : 0.0), kSpriteSize));
       ink = kInvertedInk;
+    } else if (in.frame_nodes && (slot == body::kNodeAsc || slot == body::kNodeDesc)) {
+      for (const Primitive& f : framed_patch(x, y + (block ? kBlockShift : 0.0), kSpriteSize)) {
+        add(f);
+      }
     }
     sprite(g, x, y, ink, block);
   };

@@ -556,6 +556,13 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
     }
     return inv;
   };
+  // the true node in a thin frame, the tester could not tell it from the
+  // mean node once the square was gone
+  const auto framed_slot = [&opt, &inverted_slot](int slot) {
+    return opt.frame_nodes && (slot == body::kNodeAsc || slot == body::kNodeDesc) && !inverted_slot(slot);
+  };
+  // a square or a frame pushes the number and the R a little further out
+  const auto boxed_slot = [&inverted_slot, &framed_slot](int slot) { return inverted_slot(slot) || framed_slot(slot); };
   for (int slot : slots) {
     const auto si = static_cast<std::size_t>(slot);
     const double w_true = wheel_angle(pl[si], fza);
@@ -577,7 +584,7 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
     // with their white background. The inverted patch pushes its
     // number and R marker a little further out.
     const Pt g = at(wl[si], kGlyphRing + dc[si]);
-    const bool inv = inverted_slot(slot);
+    const bool inv = boxed_slot(slot);
     add({Primitive::Kind::kDot, g.x, g.y, 0, 0, gs * 0.60, 0, 0, 0, 0, kPaperColor});
     if (opt.retro_marks && chart.b[si].tb < 0.0 && retro_slot(slot)) {
       add({Primitive::Kind::kDot, g.x + gs * (inv ? 1.05 : 0.85), g.y - gs * 0.3,
@@ -598,6 +605,10 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
     const bool inverted = inverted_slot(slot);
     if (inverted) {
       add(inverted_patch(g.x, g.y, gs));
+    } else if (framed_slot(slot)) {
+      for (const Primitive& f : framed_patch(g.x, g.y, gs)) {
+        add(f);
+      }
     }
     Primitive p;
     p.kind = Primitive::Kind::kGlyph;
@@ -620,7 +631,7 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
   for (int slot : slots) {
     const auto si = static_cast<std::size_t>(slot);
     const Pt g = at(wl[si], kGlyphRing + dc[si]);
-    const bool inv = inverted_slot(slot);
+    const bool inv = boxed_slot(slot);
     // the R of his retrograde marker beside the glyph, pziff 1 only
     if (opt.retro_marks && chart.b[si].tb < 0.0 && retro_slot(slot)) {
       Primitive r;

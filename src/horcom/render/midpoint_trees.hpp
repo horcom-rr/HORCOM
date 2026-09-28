@@ -35,6 +35,7 @@ struct MidpointTreeText {
 struct TreeGlyphs {
   bool invert_nodes = false;   ///< the node pair, his moknw!
   bool invert_apogee = false;  ///< the Black Moon, his apogw!
+  bool frame_nodes = false;    ///< the true node pair in a thin frame
 };
 
 /// The key of his sort, eight times the longitude reduced to a circle.

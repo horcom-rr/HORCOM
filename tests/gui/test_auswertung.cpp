@@ -495,6 +495,36 @@ TEST_CASE("SOLAR searches at the event place and steps in one SOLAR row") {
   std::filesystem::remove_all(dir);
 }
 
+TEST_CASE("TAGES-HOR at the VORZUGSORT names that place on the wheel") {
+  auto w = MainWindowProbe::make();
+  AafRecord r = morning_birth();
+  r.place = "TESTORT";
+  MainWindowProbe::apply(*w, r);
+  const std::filesystem::path dir = far_place_dir("horcom_day_place");
+  MainWindowProbe::set_data_dir(*w, dir);
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("VORZUGSORT"))                      // EREIGNIS-Ort = GEBURTS-Ort ?
+        .then(DialogDriver::fill({"", "24", "9", "2026"}, "OK"))       // DATUM EINGEBEN !
+        .then(DialogDriver::click("( = ENDE )"));                       // WEITERES TAGES-HOROSKOP ?
+    MainWindowProbe::day_chart(*w);
+    INFO(drive.titles().join(" | ").toStdString());
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  // the panel and the sheet corner name the chosen place, the birth
+  // record keeps its own
+  const ClassicSheetText sheet = MainWindowProbe::sheet(*w);
+  CHECK(sheet.place == "FERNORT");
+  CHECK(MainWindowProbe::lon(*w) == doctest::Approx(kFarLon));
+  // the place file hands back 73.99999 degrees, the corner carries the
+  // rounded minute into the degree where it read 73° 60.0'W
+  CHECK(sheet.lon == "L\xC3\xA4: 74\xC2\xB0  0.0'W");
+  REQUIRE(MainWindowProbe::slot(*w, 0).has_value());
+  CHECK(MainWindowProbe::slot(*w, 0)->place == "TESTORT");
+  std::filesystem::remove_all(dir);
+}
+
 TEST_CASE("the LUNAR list reads the radix Moon of the birth place") {
   auto w = MainWindowProbe::make();
   MainWindowProbe::apply(*w, morning_birth());

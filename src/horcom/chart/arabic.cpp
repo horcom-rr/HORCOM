@@ -34,14 +34,14 @@ std::string tag_of(int slot) {
 }
 
 // resolves one term against the chart, label as his columns spelled it
-double term_value(const Chart& c, const OwnArabicTerm& t, bool classic, std::string& label) {
+double term_value(const Chart& c, const OwnArabicTerm& t, RulerSet rulers, std::string& label) {
   switch (t.kind) {
     case kTermCusp:
       label = "H" + std::to_string(t.value);
       return c.houses.cusp[static_cast<std::size_t>(t.value)];
     case kTermRuler: {
       label = "Hv" + std::to_string(t.value);
-      const int kp = sign_ruler(c.houses.cusp[static_cast<std::size_t>(t.value)], classic);
+      const int kp = carried_ruler(c, sign_ruler(c.houses.cusp[static_cast<std::size_t>(t.value)], rulers));
       return kp > 0 ? c.b[static_cast<std::size_t>(kp)].el : 0.0;
     }
     case kTermDegree: {
@@ -108,15 +108,15 @@ int field_int(const std::string& s, std::size_t pos) {
 }  // namespace
 
 // ported from HORCOM arabt with the term reader of arabl0
-std::vector<ArabicPart> arabic_parts(const Chart& chart, ArabicFormula af, const std::filesystem::path& own_dir, bool classic_rulers) {
+std::vector<ArabicPart> arabic_parts(const Chart& chart, ArabicFormula af, const std::filesystem::path& own_dir, RulerSet rulers) {
   std::vector<ArabicPart> out;
   const double ac = chart.houses.cusp[1];
   const double dc = chart.houses.cusp[7];
   const double mc = chart.houses.cusp[10];
   const auto el = [&chart](int slot) { return chart.b[static_cast<std::size_t>(slot)].el; };
-  const auto ruler = [&chart, classic_rulers](int house, std::string& label) {
+  const auto ruler = [&chart, rulers](int house, std::string& label) {
     label = "Hv" + std::to_string(house);
-    const int kp = sign_ruler(chart.houses.cusp[static_cast<std::size_t>(house)], classic_rulers);
+    const int kp = carried_ruler(chart, sign_ruler(chart.houses.cusp[static_cast<std::size_t>(house)], rulers));
     return kp > 0 ? chart.b[static_cast<std::size_t>(kp)].el : 0.0;
   };
   const auto body_part = [&](const std::string& name, const std::string& remark, const std::string& base_label, double base, int j, int k) {
@@ -209,9 +209,9 @@ std::vector<ArabicPart> arabic_parts(const Chart& chart, ArabicFormula af, const
       std::string bl;
       std::string al;
       std::string blb;
-      const double base = term_value(chart, o.terms[0], classic_rulers, bl);
-      const double a = term_value(chart, o.terms[1], classic_rulers, al);
-      const double b = term_value(chart, o.terms[2], classic_rulers, blb);
+      const double base = term_value(chart, o.terms[0], rulers, bl);
+      const double a = term_value(chart, o.terms[1], rulers, al);
+      const double b = term_value(chart, o.terms[2], rulers, blb);
       ArabicPart p = make_part(chart, af, o.name, o.remark, bl, base, al, a, blb, b);
       p.own = true;
       out[i] = std::move(p);

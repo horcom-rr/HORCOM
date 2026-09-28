@@ -229,7 +229,7 @@ bool MainWindow::rhythm_unit_question(bool septar, bool check) {
 }
 
 // ported from a17eing12
-bool MainWindow::rhythm_period_question(bool check) {
+bool MainWindow::rhythm_period_question(bool check, const QStringList& info) {
   static constexpr double kPeriods[7] = {1.0, 3.0, 4.0, 5.0, 6.0, 7.0, 10.0};
   for (;;) {
     // ze& from VAL(phas$), SIEBEN when none fits
@@ -240,7 +240,7 @@ bool MainWindow::rhythm_period_question(bool check) {
         def = i;
       }
     }
-    const int es = ChoiceDialog::ask(this, tr(" Periode PRO HAUS ? "), {},
+    const int es = ChoiceDialog::ask(this, tr(" Periode PRO HAUS ? "), info,
                                      {tr("EINS"), tr("DREI"), tr("VIER"), tr("FÜNF"), tr("SECHS"), tr("SIEBEN"),
                                       tr("ZEHN"), tr("SONSTIGE"), tr("ABBRUCH")},
                                      def);
@@ -290,7 +290,7 @@ RhythmOptions MainWindow::rhythm_options() const {
   // kard!, MIT KARDINAL-PUNKTEN
   o.cardinals = konsta_.kard;
   o.mundane = mundane_frame_ && !current_settings().heliocentric;
-  o.classic_rulers = alt_rulers_;
+  o.rulers = rulers_;
   // apog!, the apogee among the chosen planets
   o.apogee_opposite = last_chart_ && last_chart_->b[body::kApogee].present && last_chart_->b[body::kApogee].valid;
   return o;
@@ -482,10 +482,17 @@ void MainWindow::rhythm_run(int preset) {
     return;
   }
   static constexpr int kBegin[3] = {1, 4, 7};
-  const bool septar = rhythm_chart_label().contains("SEPTAR");
+  const QString label = rhythm_chart_label();
+  const bool septar = label.contains("SEPTAR");
   // IF eingm$ <> "" && q$ = "AR", the derived charts of the solar family
-  const bool check = rhythm_chart_label().contains("AR");
-  if (!rhythm_unit_question(septar, check) || !rhythm_period_question(check)) {
+  const bool check = label.contains("AR");
+  // a Septar walks in months like its cast, one taken over as radix walks
+  // from its own moment in either unit
+  if (septar && !label.endsWith(" ALS RADIX")) {
+    if (!rhythm_period_question(check, septar_unit())) {
+      return;
+    }
+  } else if (!rhythm_unit_question(septar, check) || !rhythm_period_question(check)) {
     return;
   }
   run.opt = rhythm_options();
@@ -516,6 +523,21 @@ void MainWindow::rhythm_run(int preset) {
   persist_konsta();
 }
 
+// his a17eing11 offered JAHR to a Septar too, and with JAHR his sen =
+// FIX(a / vp / 12 + 1) made the RADIX the Septar of every year of life
+// below 84. A Septar is the solar return that governs vp years, twelve
+// houses of vp months each, his own Bei 'SEPTAREN' i,a. 'MONAT'. The cast
+// and the walk of a Septar run in months and the period box names it
+QStringList MainWindow::septar_unit() {
+  rhythm_months_ = true;
+  rhythm_unit_ = QStringLiteral(" Monate");
+  eingm_ = rhythm_unit_;
+  QStringList note = rhythm_sol_lines();
+  note << QString() << tr("ZEIT-EINHEIT beim SEPTAR : MONAT")
+       << tr("SIEBEN = 7 Jahre je SEPTAR , ZEHN = 10 Jahre ( DECAR )");
+  return note;
+}
+
 // ported from the SEPTAR case of a16 with a17eing11, a17eing12 and
 // a17sonderpkt. The n-th Septar is the solar return of the (n - 1)th
 // birthday, cast for the place of the event
@@ -541,16 +563,16 @@ void MainWindow::septar_chart() {
   if (!place) {
     return;
   }
-  if (!rhythm_unit_question(true, false) || !rhythm_period_question(false)) {
+  if (!rhythm_period_question(false, septar_unit())) {
     return;
   }
   // eingp$ = phas$, eingm$ = jahre$
   eingp_ = rhythm_phase_;
   eingm_ = rhythm_unit_;
   const double vp = rhythm_phase_.toDouble();
-  // fa& = 1 with zeitm$ "MONAT", else fa& = 12 with "JAHR"
-  const double fa = rhythm_months_ ? 1.0 : kMonthsPerYear;
-  const QString zeitm = rhythm_months_ ? tr("MONAT") : tr("JAHR");
+  // fa& = 1 with zeitm$ "MONAT"
+  const double fa = 1.0;
+  const QString zeitm = tr("MONAT");
   // the tester's wish, the box opens with today's age
   const ChartInput base_in = radix_input();
   const int today_age = std::max(0, QDate::currentDate().year() - base_in.date_ut.year);
@@ -597,13 +619,16 @@ void MainWindow::septar_chart() {
   apply_moment(hit.jd_ut, label, true);
   // the Sonderpunkt lands on slot zero once the Septar is the active chart
   recompute();
-  // mes1$ und mes2$, STR$(x,3)
+  // mes1$ und mes2$, STR$(x,3), and beside them which solar return the
+  // Septar is, the tester counts the Schwingungshoroskope that way
   const double from = (sen - 1) * vp * fa;
-  QMessageBox::information(
-      this, tr(" Information "),
+  QString message =
       tr("SEPTAR NR. %1 Gilt bei der Periode von %2 und der Zeit-Einheit %3").arg(sen).arg(rhythm_phase_, zeitm) +
-          QChar(0x0A) +
-          tr("Für die LEBENS-Jahre von %1 bis %2").arg(from, 3, 'g', 6).arg(from + vp * fa, 3, 'g', 6));
+      QChar(0x0A) + tr("Für die LEBENS-Jahre von %1 bis %2").arg(from, 3, 'g', 6).arg(from + vp * fa, 3, 'g', 6);
+  if (sen > 1) {
+    message += QChar(0x0A) + tr("= %1. SOLAR , Kalender-Jahr %2").arg(sen - 1).arg(year);
+  }
+  QMessageBox::information(this, tr(" Information "), message);
   // IF a& < vp * fa&, " 1. SEPTAR = RADIX !"
   if (*age < vp * fa) {
     QMessageBox::information(this, "HORCOM", tr(" 1. SEPTAR = RADIX !"));
@@ -928,7 +953,8 @@ void MainWindow::rhythm_table(const RhythmRun& run) {
     table->insertRow(row);
     QString when;
     if (run.dated) {
-      when = datum_text(calendar_date(rhythm_jd(run.clock, t.value), cal));
+      // the whole year, his datum$ kept two digits
+      when = datum_full_text(calendar_date(rhythm_jd(run.clock, t.value), cal));
     } else {
       // a175, bb$ three places and aa$ one decimal
       const RhythmAge g = rhythm_age(t.value, run.clock.sn, false);
@@ -1011,7 +1037,8 @@ void MainWindow::rhythm_degree_list(const RhythmRun& run) {
       // the sprites stand for the tags, the tip names them
       mark->setToolTip(mark->text());
       table->setItem(row, 1, mark);
-      table->setItem(row, 2, new QTableWidgetItem(datum_text(calendar_date(rhythm_jd(run.clock, r.value), cal))));
+      // the whole year, his datum$ kept two digits
+      table->setItem(row, 2, new QTableWidgetItem(datum_full_text(calendar_date(rhythm_jd(run.clock, r.value), cal))));
     }
   }
   table->resizeColumnsToContents();

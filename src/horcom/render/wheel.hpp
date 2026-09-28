@@ -96,6 +96,9 @@ struct Primitive {
   /// to it and a narrower one keeps its own advance, zero keeps the
   /// natural width of the face
   double pitch = 0.0;
+  /// kRect draws its border alone in color, width wide and at least one
+  /// device pixel, the same on all four sides like his boxn
+  bool outline = false;
 };
 
 /// The advance of the fixed pitch sheet face against its height, Courier
@@ -145,6 +148,28 @@ inline constexpr double kInvertPatchShare = kSpriteBox / 2.0;
 
 /// The ink of an inverted sprite on its dark patch.
 inline constexpr Rgb kInvertedInk = 0xFFFFFF;
+
+/// The line of a framed sprite as a share of the sprite size, a hairline
+/// of one device pixel on the screen like his boxn, thicker only on a far
+/// zoom or a printer page.
+inline constexpr double kFrameLineShare = 0.06;
+
+/// The frame of a framed sprite, his boxn around the sprite cell, the
+/// paper ground of the cell and its outline on the same box.
+///
+/// @param x    the centre of the sprite
+/// @param y    the centre of the sprite
+/// @param size the sprite size
+/// @return the paper ground first, then the outline over it
+[[nodiscard]] inline std::array<Primitive, 2> framed_patch(double x, double y, double size) {
+  Primitive ground = inverted_patch(x, y, size);
+  ground.fill = kPaperColor;
+  Primitive frame = ground;
+  frame.outline = true;
+  frame.color = kInkColor;
+  frame.width = size * kFrameLineShare;
+  return {ground, frame};
+}
 
 /// One row of the ASPEKT-LINIEN screen of avh, the chord an aspect
 /// family draws with.
@@ -332,6 +357,10 @@ struct WheelOptions {
   int ruler_slot2 = -1;
   /// his moknw flag, only the true node draws inverted
   bool invert_nodes = true;
+  /// the true node in a thin frame instead of the dark square, the cue
+  /// that tells it from the mean node without looking like the inverted
+  /// true Black Moon, a rewrite addition
+  bool frame_nodes = false;
   /// his apogw flag, the true apogee draws Lilith inverted
   bool invert_apogee = false;
   /// print the degree within sign under each glyph, pziff 1 and 2

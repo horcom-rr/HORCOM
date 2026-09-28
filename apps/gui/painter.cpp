@@ -185,6 +185,35 @@ double text_left(const Primitive& item, double x, double width) {
   return x - width / 2.0;
 }
 
+// the border of an outline box, snapped to the device grid once and
+// drawn as four strips of the same whole pixel width, two boxes snapped
+// on their own had left one side a pixel wider than the other
+void paint_outline(QPainter& p, const Primitive& item, const QRectF& r) {
+  const QRect box = device_box(p, r);
+  if (box.isEmpty()) {
+    // a rotated painter has no pixel grid to keep, a plain pen stroke
+    p.setPen(QPen(to_qcolor(item.color), item.width));
+    p.setBrush(Qt::NoBrush);
+    p.drawRect(r.adjusted(item.width / 2.0, item.width / 2.0, -item.width / 2.0, -item.width / 2.0));
+    return;
+  }
+  const double scale = std::hypot(p.deviceTransform().m11(), p.deviceTransform().m12());
+  const int t = std::clamp(static_cast<int>(std::floor(item.width * scale)), 1, std::max(1, box.width() / 2));
+  p.save();
+  const QTransform base = lift_world(p);
+  const QTransform back = base.inverted();
+  p.setRenderHint(QPainter::Antialiasing, false);
+  p.setPen(Qt::NoPen);
+  p.setBrush(to_qcolor(item.color));
+  const int w = box.width();
+  const int h = box.height();
+  for (const QRect& strip : {QRect(box.left(), box.top(), w, t), QRect(box.left(), box.top() + h - t, w, t),
+                             QRect(box.left(), box.top(), t, h), QRect(box.left() + w - t, box.top(), t, h)}) {
+    p.drawRect(back.mapRect(QRectF(strip)));
+  }
+  p.restore();
+}
+
 Qt::PenStyle pen_style(Primitive::Style s) {
   switch (s) {
     case Primitive::Style::kDashed: return Qt::DashLine;
@@ -312,9 +341,13 @@ void paint_display_list(QPainter& p, const DisplayList& dl) {
         break;
       }
       case Primitive::Kind::kRect: {
+        const QRectF r(item.x1 - item.r1, item.y1 - item.r2, 2.0 * item.r1, 2.0 * item.r2);
+        if (item.outline) {
+          paint_outline(p, item, r);
+          break;
+        }
         p.setPen(Qt::NoPen);
         p.setBrush(to_qcolor(item.fill));
-        const QRectF r(item.x1 - item.r1, item.y1 - item.r2, 2.0 * item.r1, 2.0 * item.r2);
         const QRect box = device_box(p, r);
         if (box.isEmpty()) {
           p.drawRect(r);

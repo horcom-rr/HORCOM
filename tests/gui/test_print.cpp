@@ -182,25 +182,36 @@ TEST_CASE("HOROSKOP als PNG SPEICHERN writes the sheet as a picture") {
   std::filesystem::remove(file);
 }
 
-TEST_CASE("VORGABEN-ÜBERSICHT marks the date yellow like his mainkont_dat_zeit") {
+TEST_CASE("VORGABEN-ÜBERSICHT marks the captions yellow and leaves the data plain") {
   auto w = MainWindowProbe::make();
   MainWindowProbe::apply(*w, birth());
   QString left;
+  QString right;
   DialogDriver drive;
-  drive.then([&left](QDialog* d) {
+  drive.then([&left, &right](QDialog* d) {
     for (const QLabel* l : d->findChildren<QLabel*>()) {
       if (l->text().contains("Name :")) {
         left = l->text();
+      }
+      if (l->text().contains("Daten-Datei:")) {
+        right = l->text();
       }
     }
     d->reject();
   });
   MainWindowProbe::vorgaben_overview(*w);
   CHECK(drive.pending() == 0);
-  // his deftextcol(2), the date and the clock in the yellow box of the
-  // headings, the tester asked for the yellow date back
+  // the captions of the sections wear the yellow box, Name, Datum, UT,
+  // HÄUSER and Ebene, the name, the date and the house system stand plain
   const ClassicSheetText sheet = MainWindowProbe::sheet(*w);
-  CHECK(left.contains(theme::heading_span(QString::fromStdString(sheet.date).toHtmlEscaped())));
-  CHECK(left.contains(theme::heading_span(QString::fromStdString(sheet.ut).toHtmlEscaped())));
-  CHECK(left.contains(theme::heading_span(QString::fromStdString(sheet.name).toHtmlEscaped())));
+  const QString date = QString::fromStdString(sheet.date);
+  const QString ut = QString::fromStdString(sheet.ut);
+  CHECK(left.contains(theme::heading_span("Name :")));
+  CHECK(left.contains(theme::heading_span("Datum:") + date.mid(date.indexOf(':') + 1).toHtmlEscaped()));
+  CHECK(left.contains(theme::heading_span("UT:") + ut.mid(ut.indexOf(':') + 1).toHtmlEscaped()));
+  CHECK(left.contains(theme::heading_span("HÄUSER :") + " PLACIDUS"));
+  CHECK(left.contains(theme::heading_span("Ebene :") + " RADIX"));
+  CHECK_FALSE(left.contains(theme::heading_span(QString::fromStdString(sheet.name).toHtmlEscaped())));
+  CHECK_FALSE(left.contains(theme::heading_span(date.toHtmlEscaped())));
+  CHECK_FALSE(right.contains(theme::heading_span("Drucker-Option AUS")));
 }

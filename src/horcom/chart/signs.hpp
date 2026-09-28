@@ -15,6 +15,13 @@ namespace horcom {
 /// The twelve signs of the zodiac, Aries first.
 inline constexpr int kSignCount = 12;
 
+/// The sign rulers of ZUORDNUNG ZEICHENHERRSCHER.
+enum class RulerSet {
+  kModern,    ///< his NEU, Pluto, Uranus and Neptune for Scorpio, Aquarius and Pisces
+  kClassic,   ///< his ALT, Mars, Saturn and Jupiter for those three
+  kExtended,  ///< NEU with Quaoar for Taurus and Chiron for Virgo, the tester's assignment
+};
+
 /// The two letter sign tags of his zei$ table, Aries first.
 inline constexpr const char* kSignTag[kSignCount] = {"AR", "TA", "GM", "CN", "LE", "VI",
                                                      "LI", "SC", "SG", "CP", "AQ", "PS"};

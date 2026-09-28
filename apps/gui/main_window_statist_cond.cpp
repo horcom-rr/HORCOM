@@ -176,7 +176,7 @@ bool MainWindow::stat_condition(StatSession& ss) {
   }
   const int obj = es + 1;
   StatQuery q;
-  q.classic_rulers = alt_rulers_;
+  q.rulers = rulers_;
   q.combine_and = ss.join == StatJoin::kAndInclusive || ss.join == StatJoin::kAndExclusive;
   std::array<StatPick, 4> m{};
   const auto factor_note = [&](int zp) {

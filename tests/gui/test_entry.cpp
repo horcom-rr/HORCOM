@@ -174,6 +174,61 @@ TEST_CASE("NEU-EINGABE appends to a bound file and reports his byte count") {
   CHECK(QString::fromStdString((*records)[1].name).trimmed() == "ZWEITFALL");
 }
 
+TEST_CASE("AKTUELLEN Datensatz EINTRAGEN also stores into another file") {
+  Scratch s("horcom_entry_other");
+  const QString bound = s.path("ERSTE.DAT");
+  const QString other = s.path("ANDERE.DAT");
+  const QString fresh = s.path("NEUE.DAT");
+  REQUIRE(write_chart_file(std::filesystem::path(bound.toStdWString()), {stored("ERSTFALL")}));
+  REQUIRE(write_chart_file(std::filesystem::path(other.toStdWString()), {stored("ANDERFALL")}));
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::bind(*w, bound);
+  AafRecord r = aaf_from_chart_record(stored("WANDERFALL"));
+  MainWindowProbe::apply(*w, r);
+  QStringList answers;
+  QString note;
+  {
+    DialogDriver drive;
+    drive
+        .then([&answers](QDialog* d) {
+          for (const QAbstractButton* b : d->findChildren<QAbstractButton*>()) {
+            answers << b->text();
+          }
+          DialogDriver::click("Andere Datei")(d);
+        })
+        .then(pick_file(other))
+        .then(read_box(note));
+    MainWindowProbe::save_entry(*w);
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  CHECK(answers == QStringList{"In ERSTE.DAT", "Andere Datei wählen…", "ABBRUCH"});
+  CHECK(note == "DATEI ANDERE.DAT : 256 BYTE = 2 SÄTZE");
+  // the record joined the other file, the first one stays as it was and
+  // the other file is the working file now like after HOLEN from it
+  const auto in_other = read_chart_file(std::filesystem::path(other.toStdWString()));
+  REQUIRE(in_other.has_value());
+  REQUIRE(in_other->size() == 2);
+  CHECK(QString::fromStdString((*in_other)[1].name).trimmed() == "WANDERFALL");
+  CHECK(read_chart_file(std::filesystem::path(bound.toStdWString()))->size() == 1);
+  std::error_code ec;
+  CHECK(std::filesystem::equivalent(std::filesystem::path(MainWindowProbe::data_file(*w).toStdWString()),
+                                    std::filesystem::path(other.toStdWString()), ec));
+  // a name not yet on disk starts a file with this record like a2dat
+  note.clear();
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("Andere Datei")).then(pick_file(fresh)).then(read_box(note));
+    MainWindowProbe::save_entry(*w);
+    CHECK(drive.pending() == 0);
+  }
+  CHECK(note.contains("NEUE DATEN-DATEI NEUE.DAT !"));
+  const auto in_fresh = read_chart_file(std::filesystem::path(fresh.toStdWString()));
+  REQUIRE(in_fresh.has_value());
+  REQUIRE(in_fresh->size() == 1);
+  CHECK(QString::fromStdString((*in_fresh)[0].name).trimmed() == "WANDERFALL");
+}
+
 TEST_CASE("a duplicate beside an AAF twin only points to the AAF file") {
   Scratch s("horcom_entry_twin");
   const QString file = s.path("PAAR.DAT");

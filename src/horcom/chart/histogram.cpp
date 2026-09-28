@@ -50,7 +50,7 @@ std::array<int, body::kSlotCount> factors(const Chart& chart, const ChartSetting
   }
   if (opt.double_ruler) {
     //RR GebHerr doppelt
-    const int kp = sign_ruler(chart.houses.cusp[1], opt.classic_rulers);
+    const int kp = carried_ruler(chart, sign_ruler(chart.houses.cusp[1], opt.rulers));
     if (kp > 0 && kp < body::kSlotCount) {
       f[static_cast<std::size_t>(kp)] = 2;
     }

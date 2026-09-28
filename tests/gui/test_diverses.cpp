@@ -11,6 +11,7 @@
 #include <QListWidget>
 #include <QLabel>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QTableWidget>
 
 #include "choice_dialog.hpp"
@@ -117,7 +118,8 @@ TEST_CASE("FINSTERNISSE lists the eclipses at their greatest moment and pages li
   QStringList labels;
   QString forward_first;
   QString back_first;
-  bool eclipse_inverse = false;
+  QColor eclipse_back;
+  QColor eclipse_ink;
   DialogDriver drive;
   drive.then(DialogDriver::click(" NEIN "))                     // ASPEKTE mit GÜLTIGEM DATENSATZ UNTERSUCHEN ?
       .then(DialogDriver::fill({"", "1", "8", "1999"}, "OK")) // SUCH-DATUM EINGEBEN !
@@ -131,7 +133,8 @@ TEST_CASE("FINSTERNISSE lists the eclipses at their greatest moment and pages li
         }
         for (int r = 0; r < table->rowCount(); ++r) {
           if (table->item(r, 3) != nullptr && table->item(r, 3)->text().contains("ZT")) {
-            eclipse_inverse = table->item(r, 0)->background().color() == QColor(0, 0, 0);
+            eclipse_back = table->item(r, 0)->background().color();
+            eclipse_ink = table->item(r, 0)->foreground().color();
           }
         }
         // his asc& = 32, k1 = k1 + INT(ABS(zf& - zf& / 5))
@@ -164,7 +167,10 @@ TEST_CASE("FINSTERNISSE lists the eclipses at their greatest moment and pages li
   REQUIRE(nm >= 0);
   CHECK(left[nm + 1].startsWith("11. 8.1999    11h   3m"));
   CHECK(left[nm + 1].endsWith("| ZT TOT N"));
-  CHECK(eclipse_inverse);
+  // his tinv stamped it white on black, the tester asked for a light
+  // colour, a solar eclipse wears the pale sun tone with black ink
+  CHECK(eclipse_back == QColor(0xFF, 0xF3, 0xA8));
+  CHECK(eclipse_ink == QColor(0, 0, 0));
   // the partial umbral eclipse of 1999 July 28 peaked at 11:34 UT
   const int fm = static_cast<int>(right.indexOf(QRegularExpression(R"(^28\. 7\.1999    11h  2\dm.*)")));
   REQUIRE(fm >= 0);
@@ -1124,4 +1130,41 @@ TEST_CASE("ÜBER HORCOM carries his function key legend in grey") {
   QAction* f9 = menu_entry(*w, "&ÜBER HORCOM", "F9 ( oder ALT + M ) = DOPPEL-AUSDRUCK AKTIVIEREN");
   REQUIRE(f9 != nullptr);
   CHECK_FALSE(f9->isEnabled());
+}
+
+TEST_CASE("HÄUSERSYSTEM WÄHLEN marks the system in force in his yellow box") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::houses(*w, 4);
+  QString marked;
+  int marks = 0;
+  {
+    DialogDriver drive;
+    drive.then([&marked, &marks](QDialog* d) {
+      for (const QPushButton* b : d->findChildren<QPushButton*>()) {
+        if (b->objectName() == ChoiceDialog::kCurrentName) {
+          marked = b->text();
+          ++marks;
+        }
+      }
+      d->reject();
+    });
+    MainWindowProbe::choose_house_system(*w);
+    CHECK(drive.pending() == 0);
+  }
+  CHECK(marks == 1);
+  CHECK(marked == "REGIOMONTANUS");
+  // the style sheet paints the marked answer in the yellow of his boxes
+  CHECK(theme::stylesheet(100, false).contains("QPushButton#currentChoice"));
+}
+
+TEST_CASE("a blank row of his boxes keeps its number but shows no empty field") {
+  ChoiceDialog d("TEST", {}, {"ERSTE", "  ", "DRITTE"}, 0);
+  const QList<QPushButton*> rows = d.findChildren<QPushButton*>(Qt::FindDirectChildrenOnly);
+  REQUIRE(rows.size() == 3);
+  CHECK_FALSE(rows[1]->isVisibleTo(&d));
+  CHECK_FALSE(rows[1]->isEnabled());
+  CHECK(rows[2]->isVisibleTo(&d));
+  // the third answer still reports its own number
+  rows[2]->click();
+  CHECK(d.choice() == 2);
 }

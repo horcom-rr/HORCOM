@@ -44,19 +44,21 @@ std::array<double, 14> stat_houses(const StatRecord& r) {
   return f;
 }
 
-// ported from HORCOM ze_pl
-int sign_ruler(double w, bool classic) {
+// ported from HORCOM ze_pl, the extended set a rewrite addition
+int sign_ruler(double w, RulerSet set) {
   if (w <= 0.0 || w >= kTwoPi) {
     return 0;
   }
+  const bool classic = set == RulerSet::kClassic;
+  const bool extended = set == RulerSet::kExtended;
   //RR ZEICHEN
   const int jp = static_cast<int>(std::floor(kSignsPerPi * w / kPi)) + 1;
   switch (jp) {
     case 1: return body::kMars;
-    case 2:
+    case 2: return extended ? body::kQuaoar : body::kVenus;
     case 7: return body::kVenus;
-    case 3:
-    case 6: return body::kMercury;
+    case 3: return body::kMercury;
+    case 6: return extended ? body::kChiron : body::kMercury;
     case 4: return body::kMoon;
     case 5: return body::kSun;
     case 8: return classic ? body::kMars : body::kPluto;
@@ -68,13 +70,31 @@ int sign_ruler(double w, bool classic) {
   }
 }
 
+int ruler_stand_in(int slot) {
+  if (slot == body::kQuaoar) {
+    return body::kVenus;
+  }
+  if (slot == body::kChiron) {
+    return body::kMercury;
+  }
+  return slot;
+}
+
+int carried_ruler(const Chart& c, int slot) {
+  if (slot <= 0 || slot >= body::kSlotCount) {
+    return slot;
+  }
+  const BodyState& b = c.b[static_cast<std::size_t>(slot)];
+  return b.present && b.valid ? slot : ruler_stand_in(slot);
+}
+
 // ported from HORCOM geb_herr
-std::pair<int, int> birth_rulers(double cusp1, double cusp2, bool classic) {
+std::pair<int, int> birth_rulers(double cusp1, double cusp2, RulerSet set) {
   std::pair<int, int> k{0, 0};
   if (cusp1 == 0.0 || cusp2 == 0.0) {
     return k;
   }
-  k.first = sign_ruler(norm_rad(cusp1), classic);
+  k.first = sign_ruler(norm_rad(cusp1), set);
   const int j1 = static_cast<int>(std::floor(kSignsPerPi * norm_rad(cusp1) / kPi)) + 1;
   int j2 = static_cast<int>(std::floor(kSignsPerPi * norm_rad(cusp2) / kPi)) + 1;
   if (j2 < j1) {
@@ -83,12 +103,22 @@ std::pair<int, int> birth_rulers(double cusp1, double cusp2, bool classic) {
   // a whole sign intercepted in the first house makes its ruler a
   // second birth ruler, the sign sits 30 degrees before the second cusp
   if (j2 - j1 == 2) {
-    k.second = sign_ruler(norm_rad(cusp2 - kPi / kSignsPerPi), classic);
+    k.second = sign_ruler(norm_rad(cusp2 - kPi / kSignsPerPi), set);
   }
   return k;
 }
 
 namespace {
+
+// the ruler of the sign at w in a record, the stand in where the dataset
+// holds no position of Quaoar or Chiron
+int stat_ruler(const StatRecord& r, double w, RulerSet rulers) {
+  const int slot = sign_ruler(w, rulers);
+  if (slot <= 0 || static_cast<std::size_t>(slot) >= r.el.size()) {
+    return slot;
+  }
+  return r.el[static_cast<std::size_t>(slot)] != 0.0 ? slot : ruler_stand_in(slot);
+}
 
 // one longitude of a record, AC and MC live beside the slot array
 double slot_position(const StatRecord& r, int slot) {
@@ -103,14 +133,14 @@ double slot_position(const StatRecord& r, int slot) {
 
 // the original stat_auswh, one operand to a longitude, slot reports the
 // body that stood behind it, zero for a cusp
-double operand_value(const StatRecord& r, const StatOperand& op, bool classic, int& slot) {
+double operand_value(const StatRecord& r, const StatOperand& op, RulerSet rulers, int& slot) {
   switch (op.kind) {
     case StatOperand::Kind::kCusp:
       slot = 0;
       return stat_houses(r)[static_cast<std::size_t>(op.house)];
     case StatOperand::Kind::kRuler: {
       const double w = stat_houses(r)[static_cast<std::size_t>(op.house)];
-      slot = sign_ruler(w, classic);
+      slot = stat_ruler(r, w, rulers);
       return slot > 0 ? r.el[static_cast<std::size_t>(slot)] : 0.0;
     }
     default:
@@ -296,7 +326,7 @@ struct Eval {
     int slot = 0;
     switch (q.object) {
       case StatObject::kBody: {
-        const double w3 = operand_value(r, q.a, q.classic_rulers, slot);
+        const double w3 = operand_value(r, q.a, q.rulers, slot);
         bed(i, slot, w1, w2, w3);
         break;
       }
@@ -329,7 +359,7 @@ struct Eval {
           break;
         }
         const double w = stat_houses(r)[static_cast<std::size_t>(q.a.house)];
-        const int kp = sign_ruler(w, q.classic_rulers);
+        const int kp = stat_ruler(r, w, q.rulers);
         //RR Nicht selbst
         if (kp > 0 && !(q.window == StatWindow::kNearBody && q.near_body.kind == StatOperand::Kind::kBody && kp == q.near_body.body)) {
           bed(i, kp, w1, w2, r.el[static_cast<std::size_t>(kp)]);
@@ -337,14 +367,14 @@ struct Eval {
         break;
       }
       case StatObject::kMidpoint: {
-        const double p1 = operand_value(r, q.a, q.classic_rulers, slot);
-        const double p2 = operand_value(r, q.b, q.classic_rulers, slot);
+        const double p1 = operand_value(r, q.a, q.rulers, slot);
+        const double p2 = operand_value(r, q.b, q.rulers, slot);
         bed(i, 0, w1, w2, midpoint_near(p1, p2));
         break;
       }
       case StatObject::kAspect: {
-        const double p1 = operand_value(r, q.a, q.classic_rulers, slot);
-        const double p2 = operand_value(r, q.b, q.classic_rulers, slot);
+        const double p1 = operand_value(r, q.a, q.rulers, slot);
+        const double p2 = operand_value(r, q.b, q.rulers, slot);
         double w3 = norm_rad(p1 - p2);
         if (w3 > kPi) {
           w3 = kTwoPi - w3;
@@ -353,9 +383,9 @@ struct Eval {
         break;
       }
       case StatObject::kMidpointAspect: {
-        const double p1 = operand_value(r, q.a, q.classic_rulers, slot);
-        const double p2 = operand_value(r, q.b, q.classic_rulers, slot);
-        const double p3 = operand_value(r, q.c, q.classic_rulers, slot);
+        const double p1 = operand_value(r, q.a, q.rulers, slot);
+        const double p2 = operand_value(r, q.b, q.rulers, slot);
+        const double p3 = operand_value(r, q.c, q.rulers, slot);
         double w3 = norm_rad(p1 - midpoint_near(p2, p3));
         if (w3 > kPi) {
           w3 = kTwoPi - w3;
@@ -364,7 +394,7 @@ struct Eval {
         break;
       }
       case StatObject::kMirror: {
-        const double w = operand_value(r, q.a, q.classic_rulers, slot);
+        const double w = operand_value(r, q.a, q.rulers, slot);
         if (q.mirror == MirrorAxis::kAriesLibra || q.mirror == MirrorAxis::kBoth) {
           bed(i, 0, w1, w2, norm_rad(kTwoPi - w));
         }
@@ -392,9 +422,9 @@ struct Eval {
         break;
       }
       case StatObject::kArabicPart: {
-        const double p1 = operand_value(r, q.a, q.classic_rulers, slot);
-        const double p2 = operand_value(r, q.b, q.classic_rulers, slot);
-        const double p3 = operand_value(r, q.c, q.classic_rulers, slot);
+        const double p1 = operand_value(r, q.a, q.rulers, slot);
+        const double p2 = operand_value(r, q.b, q.rulers, slot);
+        const double p3 = operand_value(r, q.c, q.rulers, slot);
         double w3 = 0.0;
         if (q.arabic_day_night && day_chart(r)) {
           w3 = norm_rad(p1 + p3 - p2);
@@ -495,7 +525,7 @@ StatEvalResult evaluate_statistics(const StatSet& set, const StatQuery& q, const
         case StatWindow::kNearBody: {
           //RR BEI PLAN
           int slot = 0;
-          const double t = operand_value(r, q.near_body, q.classic_rulers, slot);
+          const double t = operand_value(r, q.near_body, q.rulers, slot);
           // his w1 = kk - orb + target stayed unnormalised, bed_erf wants
           // w1 > 0 and a window over 0 Aries never matched
           w1 = norm_rad(kEps - q.orb + t);

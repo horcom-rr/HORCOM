@@ -28,6 +28,17 @@ namespace horcom {
 ///         aligned in two places, a v behind years before Christ
 [[nodiscard]] QString datum_text(const CalendarDate& d);
 
+/// The date of his result tables with the whole year, datum3$ without
+/// the blanks his year field kept for the vC mark.
+///
+/// @param d the date, astronomical year
+/// @return day and month right aligned in two places, the year in full
+///         and vC behind years before Christ
+/// @note His datum$ kept the last two digits of the year, the lists of
+///       the Rhythmenlehre span a lifetime and more and the tester needs
+///       the century.
+[[nodiscard]] QString datum_full_text(const CalendarDate& d);
+
 /// His grmise$ of grmise(gd,0).
 ///
 /// @param deg the angle in degrees, the sign is dropped like his ABS

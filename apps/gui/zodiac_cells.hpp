@@ -24,6 +24,16 @@ inline constexpr int kSpritesRole = Qt::UserRole + 8;
 /// The item role that frames the sprites of a cell like his boxn.
 inline constexpr int kFrameRole = Qt::UserRole + 9;
 
+/// The item role that names the body slot whose tag a ZodiacDelegate cell
+/// marks with the sprite and the mark colour, his plein2 in the row.
+inline constexpr int kBodyMarkRole = Qt::UserRole + 10;
+
+/// The ink of a marked body tag, his deftextcol(2) blue.
+///
+/// @param bright the lighter shade of the night dress and selections
+/// @return the colour
+[[nodiscard]] QColor body_mark_color(bool bright);
+
 /// His zeich_col, the element colour of a sign.
 ///
 /// @param sign   0 for Aries through 11 for Pisces
@@ -67,7 +77,9 @@ enum class ZodiacForm {
 void set_body_sprite(QTableWidgetItem* item, int slot, const QColor& ink);
 
 /// Paints the zodiac cells of the main tables, only the sign glyph in
-/// his element colour like the original coordinate screen.
+/// his element colour like the original coordinate screen. A cell with
+/// kBodyMarkRole shows the sprite of that body before its tag and both
+/// bold in the mark colour.
 class ZodiacDelegate final : public QStyledItemDelegate {
  public:
   using QStyledItemDelegate::QStyledItemDelegate;

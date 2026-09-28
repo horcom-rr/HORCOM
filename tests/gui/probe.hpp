@@ -151,6 +151,10 @@ struct MainWindowProbe {
   static bool great_year_on(const MainWindow& w) { return w.great_year_on_; }
   static void vorgaben_overview(MainWindow& w) { w.vorgaben_overview(); }
   static void houses(MainWindow& w, int haw) { w.preset_houses(haw); }
+  static void choose_house_system(MainWindow& w) { w.choose_house_system(); }
+  static void flush_history(MainWindow& w) { w.flush_history(); }
+  static void history_back(MainWindow& w) { w.history_back(); }
+  static void history_forward(MainWindow& w) { w.history_forward(); }
   static void hide(MainWindow& w, int slot) {
     w.emphasis_[static_cast<std::size_t>(slot)] = -1;
     w.recompute();
@@ -200,7 +204,8 @@ struct MainWindowProbe {
   }
   static bool full_sheet(const MainWindow& w) { return w.full_sheet_; }
   static int active_slot(const MainWindow& w) { return w.active_slot_; }
-  static bool& alt_rulers(MainWindow& w) { return w.alt_rulers_; }
+  static RulerSet& rulers(MainWindow& w) { return w.rulers_; }
+  static void set_rulers(MainWindow& w, RulerSet set) { w.set_rulers(set); }
   static QString summary(const MainWindow& w) { return w.aspects_label_->text(); }
   static QWidget* wheel_widget(MainWindow& w) { return w.wheel_; }
   static std::array<int, body::kSlotCount>& emphasis(MainWindow& w) { return w.emphasis_; }
@@ -229,7 +234,9 @@ struct MainWindowProbe {
   static QAction* double_action(MainWindow& w, int kind) { return w.double_actions_[static_cast<std::size_t>(kind)]; }
   static bool compare_on(const MainWindow& w) { return w.compare_action_->isChecked(); }
   static QString partner_name(const MainWindow& w) { return w.partner_name_; }
-  static void save(MainWindow& w) { w.save_record(); }
+  // the storage behind the file box of AKTUELLEN Datensatz EINTRAGEN
+  static void save(MainWindow& w) { w.store_record(false); }
+  static void save_entry(MainWindow& w) { w.save_record(); }
   static void bind(MainWindow& w, const QString& path) { w.bind_data_file(path); }
   static QString data_file(const MainWindow& w) { return w.data_file_; }
   static std::optional<AafRecord> slot(const MainWindow& w, int i) { return w.slots_[static_cast<std::size_t>(i)]; }

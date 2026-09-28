@@ -65,38 +65,66 @@ TEST_CASE("haus_def mirrors the six stored cusps into twelve") {
 }
 
 TEST_CASE("ze_pl hands every sign its ruler, the old ones on demand") {
-  CHECK(sign_ruler(15.0 * kDegToRad, false) == body::kMars);
-  CHECK(sign_ruler(45.0 * kDegToRad, false) == body::kVenus);
-  CHECK(sign_ruler(75.0 * kDegToRad, false) == body::kMercury);
-  CHECK(sign_ruler(105.0 * kDegToRad, false) == body::kMoon);
-  CHECK(sign_ruler(135.0 * kDegToRad, false) == body::kSun);
-  CHECK(sign_ruler(165.0 * kDegToRad, false) == body::kMercury);
-  CHECK(sign_ruler(195.0 * kDegToRad, false) == body::kVenus);
-  CHECK(sign_ruler(225.0 * kDegToRad, false) == body::kPluto);
-  CHECK(sign_ruler(225.0 * kDegToRad, true) == body::kMars);
-  CHECK(sign_ruler(255.0 * kDegToRad, false) == body::kJupiter);
-  CHECK(sign_ruler(285.0 * kDegToRad, false) == body::kSaturn);
-  CHECK(sign_ruler(315.0 * kDegToRad, false) == body::kUranus);
-  CHECK(sign_ruler(315.0 * kDegToRad, true) == body::kSaturn);
-  CHECK(sign_ruler(345.0 * kDegToRad, false) == body::kNeptune);
-  CHECK(sign_ruler(345.0 * kDegToRad, true) == body::kJupiter);
-  CHECK(sign_ruler(0.0, false) == 0);
+  CHECK(sign_ruler(15.0 * kDegToRad, RulerSet::kModern) == body::kMars);
+  CHECK(sign_ruler(45.0 * kDegToRad, RulerSet::kModern) == body::kVenus);
+  CHECK(sign_ruler(75.0 * kDegToRad, RulerSet::kModern) == body::kMercury);
+  CHECK(sign_ruler(105.0 * kDegToRad, RulerSet::kModern) == body::kMoon);
+  CHECK(sign_ruler(135.0 * kDegToRad, RulerSet::kModern) == body::kSun);
+  CHECK(sign_ruler(165.0 * kDegToRad, RulerSet::kModern) == body::kMercury);
+  CHECK(sign_ruler(195.0 * kDegToRad, RulerSet::kModern) == body::kVenus);
+  CHECK(sign_ruler(225.0 * kDegToRad, RulerSet::kModern) == body::kPluto);
+  CHECK(sign_ruler(225.0 * kDegToRad, RulerSet::kClassic) == body::kMars);
+  CHECK(sign_ruler(255.0 * kDegToRad, RulerSet::kModern) == body::kJupiter);
+  CHECK(sign_ruler(285.0 * kDegToRad, RulerSet::kModern) == body::kSaturn);
+  CHECK(sign_ruler(315.0 * kDegToRad, RulerSet::kModern) == body::kUranus);
+  CHECK(sign_ruler(315.0 * kDegToRad, RulerSet::kClassic) == body::kSaturn);
+  CHECK(sign_ruler(345.0 * kDegToRad, RulerSet::kModern) == body::kNeptune);
+  CHECK(sign_ruler(345.0 * kDegToRad, RulerSet::kClassic) == body::kJupiter);
+  CHECK(sign_ruler(0.0, RulerSet::kModern) == 0);
+}
+
+TEST_CASE("the extended rulers give Taurus to Quaoar and Virgo to Chiron") {
+  // the tester's assignment, NEU with TA-QU and VI-CH, the rest as NEU
+  CHECK(sign_ruler(45.0 * kDegToRad, RulerSet::kExtended) == body::kQuaoar);
+  CHECK(sign_ruler(165.0 * kDegToRad, RulerSet::kExtended) == body::kChiron);
+  CHECK(sign_ruler(75.0 * kDegToRad, RulerSet::kExtended) == body::kMercury);
+  CHECK(sign_ruler(195.0 * kDegToRad, RulerSet::kExtended) == body::kVenus);
+  CHECK(sign_ruler(225.0 * kDegToRad, RulerSet::kExtended) == body::kPluto);
+  CHECK(sign_ruler(315.0 * kDegToRad, RulerSet::kExtended) == body::kUranus);
+  CHECK(sign_ruler(345.0 * kDegToRad, RulerSet::kExtended) == body::kNeptune);
+  // his two sets never name the extra bodies
+  CHECK(sign_ruler(45.0 * kDegToRad, RulerSet::kModern) == body::kVenus);
+  CHECK(sign_ruler(165.0 * kDegToRad, RulerSet::kClassic) == body::kMercury);
+  // without Quaoar or Chiron in the chart Venus and Mercury rule as under NEU
+  CHECK(ruler_stand_in(body::kQuaoar) == body::kVenus);
+  CHECK(ruler_stand_in(body::kChiron) == body::kMercury);
+  CHECK(ruler_stand_in(body::kMars) == body::kMars);
+  Chart c;
+  CHECK(carried_ruler(c, body::kQuaoar) == body::kVenus);
+  c.b[body::kQuaoar].present = true;
+  c.b[body::kQuaoar].valid = true;
+  CHECK(carried_ruler(c, body::kQuaoar) == body::kQuaoar);
+  CHECK(carried_ruler(c, 0) == 0);
+  // an AC in Virgo with Libra intercepted in the first house
+  const auto k = birth_rulers(160.0 * kDegToRad, 220.0 * kDegToRad, RulerSet::kExtended);
+  CHECK(k.first == body::kChiron);
+  CHECK(k.second == body::kVenus);
 }
 
 TEST_CASE("geb_herr names the ascendant ruler and the intercepted second") {
   // TEST02, AC 24 AR and cusp 2 at 1 GM leave Taurus whole in house 1
-  auto k = birth_rulers(24.29 * kDegToRad, 61.16 * kDegToRad, false);
+  auto k = birth_rulers(24.29 * kDegToRad, 61.16 * kDegToRad, RulerSet::kModern);
   CHECK(k.first == body::kMars);
   CHECK(k.second == body::kVenus);
   // TEST04, AC 19 PS with cusp 2 at 13 TA intercepts Aries
-  k = birth_rulers(348.98 * kDegToRad, 43.32 * kDegToRad, false);
+  k = birth_rulers(348.98 * kDegToRad, 43.32 * kDegToRad, RulerSet::kModern);
   CHECK(k.first == body::kNeptune);
   CHECK(k.second == body::kMars);
   // a plain chart, cusp 2 in the next sign carries no second ruler
-  k = birth_rulers(15.0 * kDegToRad, 40.0 * kDegToRad, false);
+  k = birth_rulers(15.0 * kDegToRad, 40.0 * kDegToRad, RulerSet::kModern);
   CHECK(k.first == body::kMars);
   CHECK(k.second == 0);
-  k = birth_rulers(0.0, 40.0 * kDegToRad, false);
+  k = birth_rulers(0.0, 40.0 * kDegToRad, RulerSet::kModern);
   CHECK(k.first == 0);
 }
 

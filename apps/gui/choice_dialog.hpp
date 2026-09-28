@@ -74,6 +74,21 @@ class ChoiceDialog : public QDialog {
   static int ask_step(QWidget* parent, const QString& title, const QStringList& info, const QStringList& buttons,
                       int default_index, const std::vector<int>& disabled = {});
 
+  /// Runs the box with the answer in force marked in his yellow label
+  /// colour, the choice stays the default.
+  ///
+  /// @param parent  the window the box belongs to
+  /// @param title   the window title
+  /// @param info    centered lines above the buttons
+  /// @param buttons the answers top to bottom
+  /// @param current the zero based answer in force, marked and preset
+  /// @return the zero based answer index, -1 when dismissed
+  static int ask_current(QWidget* parent, const QString& title, const QStringList& info, const QStringList& buttons,
+                         int current);
+
+  /// The object name of the marked answer, the style sheet paints it.
+  static constexpr const char* kCurrentName = "currentChoice";
+
  protected:
   void keyPressEvent(QKeyEvent* e) override;
 

@@ -51,7 +51,7 @@ and language, and at its foot the file tools CHAIN FILES and AAF FILE
 
 <h2>The first chart</h2>
 <p>
-The Input panel on the left is the whole input, the person stands
+The DATA panel on the left is the whole input, the person stands
 first. On top of it sit <b>Back</b> and <b>Forward</b>, the walk
 through the panel history. Every settled change counts as one
 step, a jump to a solar return, a loaded record or a slipped field
@@ -87,7 +87,9 @@ the Earth's surface rather than at its centre, his special pride.
 bodies Chiron, Quaoar and Xena, the selection of Robert's own final
 profile. The lunar node and the Black Moon each ride their own row with
 a True or Mean radio, the check turns the body on and the radio picks
-between the true and the mean formula. <b>Other elements</b> opens the
+between the true and the mean formula. On the wheel the true node stands
+in a thin frame, the mean node without one, and the true Black Moon on
+his dark square. <b>Other elements</b> opens the
 planet selection, the same dialog the VIEW menu carries, from which the
 asteroids, the planetoids and the Hamburg factors are picked one by
 one. <b>Heliocentric</b> turns the whole sky sun centred, the Earth
@@ -133,7 +135,7 @@ fresh name to start one with the current record, or an AAF file whose
 DAT twin is then built beside it. File names are not cut to his eight
 DOS letters, and a new file gets the .DAT or .AAF suffix when none is
 typed. The bound file and its record count
-stay visible in the Input panel. The hub then asks one question per
+stay visible in the DATA panel. The hub then asks one question per
 box, exactly like his dialog system. <b>FETCH records</b> first offers
 the bound data file or a <b>Choose another file</b> shortcut, the same
 file switch Robert built into every save and load path. For more than
@@ -152,8 +154,11 @@ leads on to the question. <b>SHOW CHART ONLY</b> opens the chart of the
 marked row in a window of its own, Space leads back to the list and F6
 turns it heliocentric. After the first use the list stays a browser,
 the original's way of looking through a whole file without taking any
-record. <b>ENTER the CURRENT record</b> appends the panel record to the
-file. A record of the same name raises the question <i>OVERWRITE the
+record. <b>ENTER the CURRENT record</b> first asks <i>Into which data
+file should the record be entered?</i>, with the bound data file first,
+<b>Choose another file</b> beside it and CANCEL. Another existing file
+takes the record and becomes the working file, a new name starts a file
+with this record as its first. The record is appended to the file. A record of the same name raises the question <i>OVERWRITE the
 SAME NAMED RECORD in the file ?</i>. OVERWRITE replaces every record of
 that name with the new one, SAVE the record IN ADDITION keeps the old
 record and adds the new one, CANCEL saves nothing. Where the data file
@@ -199,8 +204,11 @@ result gives way after his overwrite question, together with the SOLAR
 entry of that number, and <i>Mistake</i> leaves everything as it was.
 Fetching records into full slots follows the same rule with the number
 of the active chart. <b>CLEAN UP / RESET</b> asks <i>DELETE the DATA
-and STORED PICTURES of this session ?</i> and on OK empties all slots
-and returns to the plain wheel. Once a composite, a combine or a double
+and STORED PICTURES of this session ?</i> and on OK empties all slots,
+the stored pairs and the Back and Forward steps, ends every double
+wheel, composite and combine, and puts the DATA panel back on the chart
+of the first start, without a name and at the place the program opens
+with. Nothing of the chart that stood before is left on the screen. Once a composite, a combine or a double
 wheel was made, its entry under HOROSCOPE COMBINATION / COMPARISON in
 the HOROSCOPES menu names the pair behind the caption, for example
 <i>DOUBLE WHEEL / 90 DEGREE DIAL: NAME ONE-NAME TWO…</i> with each
@@ -435,8 +443,16 @@ one and partner two from the slots, and under Robert Hand for that
 residence. <b>COMBINE</b> takes two to five records one click after the
 other, asking after each whether to fetch another or to output, and
 averages moment and place into one chart, its place stored under the
-name <code>COMBIN-ORT</code> like in his data files. COMPOSITE and
-COMBINE switch Heliocentric off and carry the fixed point along.
+name <code>COMBIN-ORT</code> like in his data files. The combine is a
+level of its own beside the RADIX slots and never writes into them. Once
+it stands on the wheel a box says <i>YOU ARE NOW ON THE COMBINE LEVEL
+!</i> and offers LEAVE THE COMBINE LEVEL, back to the radix of the first
+record, DELETE EVERYTHING, which runs CLEAN UP / RESET with its own
+question, and CARRY ON, the default, which keeps the combine for further
+evaluations until a SATZ slot is clicked. COMPOSITE and COMBINE switch
+Heliocentric off and carry the fixed point along. A click on a SATZ slot
+of the IN-OUT menu ends a double wheel or composite on the wheel as
+well.
 </p>
 
 <h2>Special charts</h2>
@@ -466,15 +482,27 @@ modes leave it out, and the Hamburg factors never show. After a key
 the birth time can walk in hours, minutes or seconds while the sheet
 follows, and after the next key another date or order follows or the
 session ends.
-<b>SEPTAR</b> asks for the year of life of interest and the phase
-(seven months is the family's default, as in the original) and jumps to
-the solar return of the corresponding year. The result line names the
-covered life span, so the first solar return keeps its meaning of "1st
-SEPTAR = RADIX". <b>PLANETAR</b> and
+<b>SEPTAR</b> casts the Schwingungshoroskope of the Munich rhythm
+theory. A Septar always runs in months, twelve houses of seven months
+make the seven years one Septar governs, so its box asks only the period
+per house, SEVEN for the Septar and TEN for the Decar, then the year of
+life of interest and the special point. Septar number n is the solar
+return of the (n - 1)th birthday: at 30 the fifth Septar covers the
+years 28 to 35 and is the fourth solar return, at 70 the eleventh covers
+70 to 77. The result box names the Septar, the years it governs and the
+solar return with its calendar year, and below seven years "1. SEPTAR =
+RADIX" follows. <b>PLANETAR</b> and
 <b>PERSONAR</b> extend the returns beyond solar and lunar, and
 <b>PROGRESSED HOROSCOPE</b> and <b>DAY HOROSCOPE</b> bring the day for
 a year clock and the chart of any day at the birth's true solar time,
-both with Heliocentric switched off.
+both with Heliocentric switched off. A return or day chart cast at
+another place, a place file entry or the PREFERRED PLACE, names that
+place in the DATA panel and on the sheet, the birth record keeps its
+own.
+</p>
+<p>
+<b>HOUSE SYSTEM</b> in the MISCELLANEOUS menu offers his ten systems in
+one box, the system in force marked in his yellow label box.
 </p>
 
 <h2>Direction evaluations</h2>
@@ -549,9 +577,11 @@ TABLE and the DEGREE DATE LIST, and it defines or deletes own degrees
 for the list. The boxes that follow ask the direction, the date or year
 and month format, the beginning phase, the time unit and the period per
 house, then the SPECIAL POINT, kept from the last run, defined as an
-ecliptic degree or through a date, or none. A SEPTAR asks the same unit
-and period, then the year of life of interest and the special point in
+ecliptic degree or through a date, or none. A SEPTAR asks the period in
+months, then the year of life of interest and the special point in
 a box that names the Septar being cast, and names the years it governs.
+The TRIGGER TABLE and the DEGREE DATE LIST write every date with the whole
+year, the list of a seven year period spans 84 years and more.
 The <b>DYNAMOGRAM</b> draws the summed intensity curves after
 Krafft-Goerner over five years of life, and with <i>WATCH the SINGLE
 ARCS ?</i> it first shows one screen per pass of its analysis. The
@@ -580,8 +610,11 @@ the same yellow box on a conjunction,
 the <b>DEGREE LIST G/H</b> the sorted degrees and the <b>INGRESSES</b>
 the sign entries.
 Under MISCELLANEOUS, <b>RISE / SET</b> tables the rising, meridian and
-setting clocks, <b>ECLIPSES</b> the new and full moons with the eclipse
-letters, his Sun or Moon symbol on every seventh row, and, on demand, their aspects to the valid record, and
+setting clocks, the body of every block with its symbol and its tag in
+bold blue on the Longitude row, <b>ECLIPSES</b> the new and full moons with the eclipse
+letters, his Sun or Moon symbol on every seventh row, and, on demand, their aspects to the valid record.
+An eclipse row wears a pale yellow for the sun and a pale blue for the
+moon, an aspect of the record a light grey, and
 <b>GREAT ( = PLATONIC ) YEAR</b> the precession driven age point.
 </p>
 <p>
@@ -629,7 +662,11 @@ the reference frame, the size of the symbols, the orbs (the HORCOM
 count of twelve degrees over the divisor, or an own table with his
 button for equally probable orbs, the planet weights and the orb
 factor), the degrees and retrograde marks, where the chart begins, the
-old or new sign rulers, the colours of the ring and the histograms with
+sign rulers (NEW with Pluto, Uranus and Neptune for Scorpio, Aquarius
+and Pisces, OLD with Mars, Saturn and Jupiter there, and NEW with QU, CH,
+which also gives Taurus to Quaoar and Virgo to Chiron, with Venus and
+Mercury standing in while the chart leaves Quaoar or Chiron out, the
+choice kept for the next start), the colours of the ring and the histograms with
 every row of SET COLOURS showing its colour, the histogram weights, the
 counted divisors with the compact midpoint list, the line colour and
 style of every aspect family in the ASPECT LINES screen, where Enter or
@@ -751,14 +788,16 @@ and right after STATISTICS or TIME WANDERING it refuses once with
 <h2>Comfort</h2>
 <p>
 <b>DEFAULTS OVERVIEW</b> at the head of the VIEW menu shows the panel
-of his main screen with every default in force, and the name, place,
-date and UT of the record stand in his yellow label boxes like there.
+of his main screen with every default in force. The captions of its
+sections, Name, Place, Date, UT, HOUSES, Level and the parameter groups,
+stand in his yellow label boxes, the values beside and under them plain.
 <b>TEXT SIZE</b> in the VIEW menu scales the text of the whole shell.
 LARGER TEXT and SMALLER TEXT (Ctrl+Plus, Ctrl+Minus) step through 80,
 90, 100, 115, 130, 150, 175 and 200 percent, the steps below the normal size kept small so the text stays readable, and
 NORMAL TEXT (Ctrl+0) returns to 100 percent. The size is remembered
-between runs, and the column headings of every table stand bold at the
-size of their cells. Under
+between runs. The column headings of every table and list stand bold in
+yellow at the size of their cells, over rows in the plain weight so they
+read as headings. Under
 <b>COLOURS</b> the shell wears one of two dresses, <b>BLACK on WHITE</b>
 like the working screens of the original, the default, or <b>NIGHT
 SKY</b>, the dark theme with gold headings and the starry banner of his

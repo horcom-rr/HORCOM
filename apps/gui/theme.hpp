@@ -247,12 +247,14 @@ QWidget#dockTitleBar {
   background: @headBg@;
   border: 1px solid @edge@;
 }
+/* the titles as large as the panel text under them, the tester read the
+   smaller letters as not bold */
 QLabel#dockTitle {
   color: @headInk@;
   font-family: "Courier New", monospace;
-  font-size: @12px@;
+  font-size: @14px@;
   font-weight: bold;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   text-transform: uppercase;
 }
 QToolButton#dockTitleButton {
@@ -315,6 +317,9 @@ QGroupBox::title {
   color: @headInk@;
   font-weight: bold;
 }
+/* The rows of a list stand in the plain weight so the bold column heads
+   above them read as bold, his FW_BOLD gave both the same face and the
+   tester asked twice for the heads to stand out */
 QTableWidget {
   background: @field@;
   alternate-background-color: @panel@;
@@ -322,6 +327,7 @@ QTableWidget {
   border: 1px solid @edge@;
   font-family: "Courier New", monospace;
   font-size: @13px@;
+  font-weight: normal;
   selection-background-color: @selBg@;
   selection-color: @selInk@;
 }
@@ -364,6 +370,24 @@ QHeaderView::section {
 QTableCornerButton::section {
   background: @headBg@;
   border: none;
+}
+/* the column heads a list writes above its table as labels, the same
+   yellow box and bold face as the heads of a table */
+QLabel#listHead {
+  background: @headBg@;
+  color: @headInk@;
+  border-bottom: 1px solid @edge@;
+  padding: 4px 8px;
+  font-family: "Courier New", monospace;
+  font-size: @13px@;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+/* the answer in force of a question box, his yellow label box */
+QPushButton#currentChoice {
+  background: @checkBg@;
+  color: #000000;
+  border: 2px solid @checkEdge@;
 }
 QComboBox, QDateEdit, QTimeEdit, QSpinBox, QDoubleSpinBox, QLineEdit {
   background: @field@;
@@ -544,10 +568,13 @@ QScrollBar::handle:horizontal {
 QScrollBar::handle:horizontal:hover {
   background: @selBg@;
 }
+/* the rows of a list in the plain weight like the table rows, the bold
+   column head of the record chooser reads as its head */
 QListWidget {
   background: @field@;
   border: 1px solid @edge@;
   font-family: "Courier New", monospace;
+  font-weight: normal;
 }
 /* the record chooser needs picks to stand out at a glance, his yellow
    label box against black is the strongest paper theme highlight, and

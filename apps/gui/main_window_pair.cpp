@@ -233,6 +233,38 @@ void MainWindow::combin_chart() {
   update_double_actions();
   // moda& = @druck_graph_ein after the picks
   chart_output(menu_item::kCombin, false);
+  combin_level_question();
+}
+
+// a rewrite addition on the tester's wish. His COMBIN became a level of
+// its own like the SOLAR level of plant2, only a SATZ click left it and the
+// tester found no way back, the question names the three ways
+void MainWindow::combin_level_question() {
+  if (combin_name1_.empty()) {
+    return;
+  }
+  const int es = ChoiceDialog::ask(this, tr("COMBIN"),
+                                   {tr("SIE BEFINDEN SICH NUN IN DER COMBIN - EBENE !"), QString(),
+                                    tr("COMBIN-EBENE VERLASSEN ? ALLES LÖSCHEN ? oder WEITER MACHEN ?")},
+                                   {tr("COMBIN-EBENE VERLASSEN ( zurück zum RADIX )"),
+                                    tr("ALLES LÖSCHEN ( AUFRÄUMEN / RÜCKSETZEN )"), tr("WEITER MACHEN")},
+                                   2);
+  if (es == 0) {
+    // the record of the first click, the RADIX or SOLAR row it came from,
+    // a recalled pair without its row shows the record of the first part
+    const std::optional<SlotChoice> origin = combin_origin_;
+    const bool held = origin && origin->index >= 0 &&
+                      (origin->solar ? solar_slots_[static_cast<std::size_t>(origin->index)].has_value()
+                                     : slots_[static_cast<std::size_t>(origin->index)].has_value());
+    if (held) {
+      activate_slot(*origin);
+    } else {
+      apply_record(record_, false);
+    }
+  } else if (es == 1) {
+    // his RÜCKSETZEN ? box still asks, the answer loses the session
+    clear_slots();
+  }
 }
 
 // ported from a12 with a12i and a12a, the MODUS box and the two SATZ
@@ -343,7 +375,7 @@ DisplayList MainWindow::a12_sheet(const Chart& inner, const Chart& outer, const 
   sheet_text(dl, 4.0, 14.0, tr("INNEN-Kreis"), 12.0);
   sheet_text(dl, 224.0, 14.0, tr("INNEN : ") + rhythm_chart_label(), 12.0);
   sheet_text(dl, 224.0, 26.0, QString::fromStdString(own.name).left(20), 12.0);
-  place(QString::fromStdString(record_.place), lon_->value(), lat_->value(), 510.0, 14.0, 24.0, 12.0);
+  place(QString::fromStdString(own.place), lon_->value(), lat_->value(), 510.0, 14.0, 24.0, 12.0);
   moment(inner, 376.0, 14.0, 24.0);
   sheet_text(dl, 114.0, 14.0, tr("AUSSEN-Kreis"), 13.0);
   sheet_text(dl, 224.0, 444.0, tr("AUSSEN: ") + partner_label_, 13.0);

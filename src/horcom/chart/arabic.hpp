@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "horcom/chart/chart.hpp"
+#include "horcom/chart/signs.hpp"
 
 // The arabic parts of the original arabt screen. Every part follows
 // the one formula base plus first minus second, on a day birth, and
@@ -105,11 +106,11 @@ void delete_own_arabic(const std::filesystem::path& dir);
 /// @param af    the formula mode
 /// @param own_dir the folder holding ARABTEI1.INT and ARABTEI2.INT,
 ///               empty skips the own points
-/// @param classic_rulers his alt!, the house rulers Hv read the old
-///               rulers of Scorpio, Aquarius and Pisces
+/// @param rulers the sign rulers the house rulers Hv read, his alt! took
+///               the old ones of Scorpio, Aquarius and Pisces
 /// @return the 37 parts in his screen order, the own points replacing
 ///         the first rows like his arabte
 [[nodiscard]] std::vector<ArabicPart> arabic_parts(const Chart& chart, ArabicFormula af, const std::filesystem::path& own_dir = {},
-                                                   bool classic_rulers = false);
+                                                   RulerSet rulers = RulerSet::kModern);
 
 }  // namespace horcom

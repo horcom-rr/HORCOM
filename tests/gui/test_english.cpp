@@ -305,7 +305,8 @@ TEST_CASE("the CHANGE CHART DEFAULTS wizard speaks English") {
   CHECK_FALSE(all.contains("BEGINN HOROSKOP"));
   CHECK_FALSE(all.contains("HERRSCHER"));
   CHECK(MainWindowProbe::konsta(*w).begz == 3);
-  CHECK(MainWindowProbe::alt_rulers(*w));
+  CHECK(MainWindowProbe::rulers(*w) == RulerSet::kClassic);
+  MainWindowProbe::set_rulers(*w, RulerSet::kModern);
 }
 
 TEST_CASE("the COMPOSITE session speaks English") {
@@ -385,7 +386,7 @@ TEST_CASE("the COMBINE session speaks English") {
         DialogDriver::click(caption)(d);
       };
     };
-    drive.then(answer("SATZ1")).then(answer("SATZ2")).then(answer("OUTPUT"));
+    drive.then(answer("SATZ1")).then(answer("SATZ2")).then(answer("OUTPUT")).then(answer("CARRY ON"));
     MainWindowProbe::combin_chart(*w);
     INFO(drive.titles().join(" | ").toStdString());
     CHECK(drive.pending() == 0);
@@ -396,6 +397,7 @@ TEST_CASE("the COMBINE session speaks English") {
   CHECK(all.contains("FETCH record 3 ?"));
   CHECK(all.contains("OUTPUT ?"));
   CHECK_FALSE(all.contains("HOLEN"));
+  CHECK(all.contains("YOU ARE NOW ON THE COMBINE LEVEL !"));
   CHECK(MainWindowProbe::sheet(*w).place == "COMBIN-ORT");
 }
 

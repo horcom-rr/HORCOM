@@ -121,6 +121,10 @@ DisplayList build_midpoint_trees(const std::vector<MidpointTree>& trees, int pag
       // plinkl of plein2, the sprite inverted on a dark patch
       add(inverted_patch(x, y, kSpriteSize));
       p.color = kInvertedInk;
+    } else if (glyphs.frame_nodes && (slot == body::kNodeAsc || slot == body::kNodeDesc)) {
+      for (const Primitive& f : framed_patch(x, y, kSpriteSize)) {
+        add(f);
+      }
     }
     add(p);
   };

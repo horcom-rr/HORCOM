@@ -190,6 +190,19 @@ constexpr int kHistorySettleMs = 800;
 // the panel history keeps this many steps
 constexpr std::size_t kHistoryDepth = 200;
 
+// the settings key of the sign rulers, 0 his NEU, 1 his ALT, 2 NEU with
+// Quaoar and Chiron
+constexpr const char* kRulersKey = "vorgaben/rulers";
+
+// the chart of the first start and of AUFRÄUMEN, a moment without a
+// person at the place the panel opens with
+constexpr int kStartDay = 13;
+constexpr int kStartMonth = 10;
+constexpr int kStartYear = 1992;
+constexpr int kStartHour = 3;
+constexpr double kStartLon = 11.3244;
+constexpr double kStartLat = 48.1742;
+
 
 // the fractional variant, seconds carry the double's precision so the
 // panel does not throw away the accuracy the place file already knows
@@ -198,8 +211,11 @@ void to_dms_frac(double value, int& deg, int& min, double& sec) {
   deg = static_cast<int>(a);
   const double rem = (a - deg) * 60.0;
   min = static_cast<int>(rem);
-  sec = (rem - min) * 60.0;
-  // guard the sexagesimal rollover a floating point round could produce
+  // the thousandth of a second the box shows, 73.99999999 degrees read
+  // 73° 59' 60" before the carry
+  constexpr double kSecondSteps = 1000.0;
+  sec = std::round((rem - min) * 60.0 * kSecondSteps) / kSecondSteps;
+  // guard the sexagesimal rollover the round can produce
   if (sec >= 60.0) {
     sec -= 60.0;
     ++min;
@@ -359,6 +375,12 @@ MainWindow::MainWindow(VsopTables vsop, Ephemerides eph, std::filesystem::path d
   aspect_settings_ = konsta_.aspect_settings();
   // horm&, the BEZUGS-SYSTEM of the profile
   mundane_frame_ = konsta_.horm == 2;
+  // the sign rulers of ZUORDNUNG ZEICHENHERRSCHER, his NEU until chosen
+  switch (QSettings().value(kRulersKey, 0).toInt()) {
+    case 1: rulers_ = RulerSet::kClassic; break;
+    case 2: rulers_ = RulerSet::kExtended; break;
+    default: rulers_ = RulerSet::kModern; break;
+  }
   // the colours of HINTERGRUND-FARBEN once chosen, the dress otherwise
   if (QSettings().value(theme::kOwnColorsKey, false).toBool() && qApp != nullptr) {
     theme::set_own_colors(theme::dialog_color(konsta_.col_dial), theme::passive_color(konsta_.col_backg));
@@ -422,8 +444,9 @@ void MainWindow::build_ui() {
     }
   });
 
-  // the input panel
-  auto* input_dock = new QDockWidget(tr("Eingabe"), this);
+  // the input panel, DATEN as the tester named it, the data of the chart
+  // on screen whether typed or fetched
+  auto* input_dock = new QDockWidget(tr("DATEN"), this);
   input_dock->setFeatures(QDockWidget::DockWidgetMovable);
   dress_dock_title(input_dock);
   auto* form_host = new QWidget(input_dock);
@@ -488,9 +511,9 @@ void MainWindow::build_ui() {
   // the original entered dates as plain TT MM JJJJ fields and a
   // calendar widget cannot hold years before Christ, so the date is a
   // text field, TT.MM.JJJJ, years BC with the vC of his chooser list
-  date_ = new QLineEdit("13.10.1992", form_host);
+  date_ = new QLineEdit(QString::asprintf("%02d.%02d.%04d", kStartDay, kStartMonth, kStartYear), form_host);
   date_->setMaxLength(14);
-  time_ = new QTimeEdit(QTime(3, 0), form_host);
+  time_ = new QTimeEdit(QTime(kStartHour, 0), form_host);
   time_->setDisplayFormat("HH:mm:ss");
   // arrow keys and the mouse wheel step the fields, the tiny stepper
   // buttons would only clutter the panel
@@ -510,13 +533,13 @@ void MainWindow::build_ui() {
   lon_ = new QDoubleSpinBox(form_host);
   lon_->setRange(-180.0, 180.0);
   lon_->setDecimals(10);
-  lon_->setValue(11.3244);
+  lon_->setValue(kStartLon);
   lon_->setButtonSymbols(QAbstractSpinBox::NoButtons);
   lon_->setVisible(false);
   lat_ = new QDoubleSpinBox(form_host);
   lat_->setRange(-89.99, 89.99);
   lat_->setDecimals(10);
-  lat_->setValue(48.1742);
+  lat_->setValue(kStartLat);
   lat_->setButtonSymbols(QAbstractSpinBox::NoButtons);
   lat_->setVisible(false);
   // Länge visible row, deg ° min ' sec " + O/W letter
@@ -1663,6 +1686,8 @@ MainWindow::PanelState MainWindow::panel_state() const {
   s.record = record_;
   s.solar = active_is_solar_;
   s.slot = active_is_solar_ ? active_solar_ : active_slot_;
+  s.combin = {combin_name1_, combin_moment1_, combin_name2_, combin_moment2_, combin_note_,
+              combin_list_,  combin_na_,      combin_origin_};
   return s;
 }
 
@@ -1756,6 +1781,16 @@ void MainWindow::restore_state(const PanelState& s) {
   active_solar_ = active_is_solar_ ? s.slot : -1;
   active_slot_ = !s.solar && holds(false, s.slot) ? s.slot : -1;
   record_ = s.record;
+  // the rows of a COMBIN belong to its step, a step back to the radix
+  // had left COMBIN in the centre and COMBIN-ORT in the corner
+  combin_name1_ = s.combin.name1;
+  combin_moment1_ = s.combin.moment1;
+  combin_name2_ = s.combin.name2;
+  combin_moment2_ = s.combin.moment2;
+  combin_note_ = s.combin.note;
+  combin_list_ = s.combin.list;
+  combin_na_ = s.combin.na;
+  combin_origin_ = s.combin.origin;
   current_state_ = s;
   current_state_.slot = active_is_solar_ ? active_solar_ : active_slot_;
   current_state_.solar = active_is_solar_;
@@ -2671,6 +2706,7 @@ void MainWindow::midpoint_tree() {
     const WheelOptions dress = radix_wheel_options(chart, s);
     glyphs.invert_nodes = dress.invert_nodes;
     glyphs.invert_apogee = dress.invert_apogee;
+    glyphs.frame_nodes = dress.frame_nodes;
   }
   const auto draw = [&]() {
     canvas->set_plain_list(build_midpoint_trees(shown, page, text, sorted, close, shown_emphasis(), glyphs));
@@ -3721,6 +3757,8 @@ void MainWindow::rise_set() {
   std::vector<QLabel*> notes;
   for (const QString& h : {tr("AUFGANG"), tr("MERIDIAN-DURCHGANG"), tr("UNTERGANG")}) {
     notes.push_back(new QLabel(h + marker, &dialog));
+    // the column heads of the list in the bold yellow box of a table head
+    notes.back()->setObjectName("listHead");
     heads->addWidget(notes.back(), 1);
   }
   v->addLayout(heads);
@@ -3785,6 +3823,9 @@ void MainWindow::rise_set() {
     table->setItem(row + 1, col, new QTableWidgetItem(tr("Sternz.(GRW.)= %1°").arg(mt.gst_deg, 7, 'f', 3)));
     QTableWidgetItem* len = zodiac_item(mt.el);
     len->setText(tr("Länge   = ") + tag(s) + " " + len->text());
+    // his plein2 stood in this row, the tester wants the body of each
+    // block to stand out, its sprite and tag bold in colour
+    len->setData(kBodyMarkRole, s);
     table->setItem(row + 2, col, len);
     table->setItem(row + 3, col, new QTableWidgetItem(tr("Breite  = ") + (mt.eb < 0.0 ? "-" : "") +
                                                       grmise_text(mt.eb * kRadToDeg)));
@@ -4028,8 +4069,12 @@ void MainWindow::eclipse_table() {
   dialog.setWindowTitle(tr("FINSTERNISSE....| WEITER mit Leertaste ! | ENDE mit 'ESC' !"));
   auto* v = new QVBoxLayout(&dialog);
   auto* heads = new QHBoxLayout();
-  heads->addWidget(new QLabel(tr("NEUMOND-DATEN | SONNENFINSTERNISSE (UT)"), &dialog), 1);
-  heads->addWidget(new QLabel(tr("VOLLMOND-DATEN | MONDFINSTERNISSE (UT)"), &dialog), 1);
+  // the column heads of the list in the bold yellow box of a table head
+  for (const QString& h : {tr("NEUMOND-DATEN | SONNENFINSTERNISSE (UT)"), tr("VOLLMOND-DATEN | MONDFINSTERNISSE (UT)")}) {
+    auto* head = new QLabel(h, &dialog);
+    head->setObjectName("listHead");
+    heads->addWidget(head, 1);
+  }
   v->addLayout(heads);
   auto* table = new QTableWidget(static_cast<int>(kRows), 8, &dialog);
   table->horizontalHeader()->setVisible(false);
@@ -4078,8 +4123,12 @@ void MainWindow::eclipse_table() {
       }
       auto* t = new QTableWidgetItem(r.text);
       if (r.inverse) {
-        t->setBackground(QColor(0, 0, 0));
-        t->setForeground(QColor(0xFF, 0xFF, 0xFF));
+        // his tinv stamped the hits white on black, the tester asked for
+        // light colours instead. An eclipse wears the pale tone of its
+        // light, the aspects of the record light grey
+        const QColor eclipse = light == body::kSun ? QColor(0xFF, 0xF3, 0xA8) : QColor(0xC8, 0xE0, 0xFF);
+        t->setBackground(r.aspect ? QColor(0xDD, 0xDD, 0xDD) : eclipse);
+        t->setForeground(QColor(0x00, 0x00, 0x00));
       }
       table->setItem(row, col, t);
       if (r.aspect) {
@@ -4306,7 +4355,7 @@ WheelOptions MainWindow::radix_wheel_options(const Chart& chart, const ChartSett
   // the GEBURTSHERRSCHER, the original stamps him inverted like the
   // nodes, the Planeten-Auswahl red marking rides on top of that
   if (!s.heliocentric && chart.houses.ok) {
-    const int kp = sign_ruler(chart.houses.cusp[1], alt_rulers_);
+    const int kp = carried_ruler(chart, sign_ruler(chart.houses.cusp[1], rulers_));
     if (kp > 0 && kp < body::kSlotCount) {
       wopt.ruler_slot = kp;
       if (ruler_red_ && wopt.emphasis[static_cast<std::size_t>(kp)] == 0) {
@@ -4314,15 +4363,17 @@ WheelOptions MainWindow::radix_wheel_options(const Chart& chart, const ChartSett
       }
     }
     // geb_herr adds the ruler of a sign intercepted in the first house
-    const int k3 = birth_rulers(chart.houses.cusp[1], chart.houses.cusp[2], alt_rulers_).second;
+    const int k3 = carried_ruler(chart, birth_rulers(chart.houses.cusp[1], chart.houses.cusp[2], rulers_).second);
     if (k3 > 0 && k3 < body::kSlotCount) {
       wopt.ruler_slot2 = k3;
     }
   }
   // the original stamped the true nodes inverted like the rulers, the
   // author's family asked for them as normal planets, so only the true
-  // apogee keeps his SRCINVERT dress
+  // apogee keeps his SRCINVERT dress. The true node wears a thin frame
+  // instead so it still differs from the mean one, the tester's cue
   wopt.invert_nodes = false;
+  wopt.frame_nodes = s.true_node;
   wopt.invert_apogee = s.true_apogee;
   return wopt;
 }
@@ -4355,7 +4406,7 @@ Histogram MainWindow::sheet_histogram(const Chart& chart, const ChartSettings& s
   opt.points = histogram_points(konsta_.pn);
   opt.double_first_house = konsta_.haus1_dop;
   opt.double_ruler = konsta_.gebherr_dop;
-  opt.classic_rulers = alt_rulers_;
+  opt.rulers = rulers_;
   // elem1 and kard_fix_gem walk every computed body, the Planeten-Auswahl
   // only thins the drawing
   return chart_histogram(chart, s, opt);
@@ -4375,6 +4426,18 @@ void MainWindow::combin_of(const std::vector<AafRecord>& parts, const std::vecto
   if (parts.size() < 2) {
     return;
   }
+  // his COMBIN stood in od = 0, ze = 2 beside the RADIX rows. The panel
+  // leaves the slot of the first click before it changes, the settled step
+  // of the mean moment wrote the COMBIN over that RADIX and it could not
+  // be left again
+  combin_origin_.reset();
+  if (active_slot_ >= 0 || (active_is_solar_ && active_solar_ >= 0)) {
+    combin_origin_ = SlotChoice{active_is_solar_, active_is_solar_ ? active_solar_ : active_slot_};
+  }
+  active_slot_ = -1;
+  active_solar_ = -1;
+  active_is_solar_ = false;
+  update_slot_actions();
   const Calendar cal = current_settings().calendar;
   std::vector<ChartInput> inputs;
   for (const AafRecord& r : parts) {
@@ -4535,7 +4598,8 @@ void MainWindow::data_file_io() {
         fetch_from_file();
         return;
       case 1:
-        save_record();
+        // the hub has chosen its file already, the record goes straight in
+        store_record(false);
         return;
       case 2:
         delete_from_file();
@@ -4670,6 +4734,11 @@ void MainWindow::set_slot(int index, const AafRecord& r, bool activate, const QS
 // sessions his direkt goes on into eingabe, the EINGABE- und ANZEIGE-BOX
 // of the slot, whose ABSPEICHERN writes the edited record to the file
 void MainWindow::open_slot(const SlotChoice& c) {
+  // his SATZ click changed the level, every special view of the chart
+  // before ends with it, a Doppelkreis or Composit with its partner and
+  // MULTI, HARMONICS, the directed axes and the arc rings of the person
+  // that stood there
+  leave_views({});
   activate_slot(c);
   const auto i = static_cast<std::size_t>(c.index);
   const auto& stored = c.solar ? solar_slots_[i] : slots_[i];
@@ -4934,8 +5003,10 @@ void MainWindow::leave_views(std::initializer_list<const QAction*> keep) {
   }
 }
 
-//RR AUFRÄUMEN / RÜCKSETZEN, ported from areg, the slots empty and the
-// views return to the plain wheel
+//RR AUFRÄUMEN / RÜCKSETZEN, ported from areg with areg11 and a1. His
+// areg11 cleared every record of the session, the one on screen with it,
+// and a1 closed every picture, so the port empties the slots, leaves the
+// views and puts the panel back on the chart of the first start
 void MainWindow::clear_slots() {
   //RR DATEN und GESPEICHERTE BILDER dieser Sitzung LÖSCHEN ?
   const auto answer = QMessageBox::question(this, tr("RÜCKSETZEN ?"),
@@ -4944,12 +5015,11 @@ void MainWindow::clear_slots() {
   if (answer != QMessageBox::Ok) {
     return;
   }
-  // the steps of Zurück and Vor are data of this session too
+  // the steps of Zurück and Vor are data of this session too, the reset
+  // itself is no step
   history_timer_->stop();
   pending_.reset();
-  back_.clear();
-  forward_.clear();
-  update_history_actions();
+  restoring_ = true;
   slots_.fill(std::nullopt);
   double_slots_.fill(std::nullopt);
   update_double_actions();
@@ -4965,9 +5035,46 @@ void MainWindow::clear_slots() {
   last_page_ = DisplayList{};
   last_shot_ = QPixmap();
   double_clear();
+  // the pair views and their partner go before the panel changes, a
+  // Doppelkreis or Composit would otherwise draw on over the new chart
+  reset_views();
+  reset_panel();
   update_slot_actions();
   update_solar_actions();
-  reset_views();
+  restoring_ = false;
+  back_.clear();
+  forward_.clear();
+  current_state_ = panel_state();
+  state_init_ = true;
+  update_history_actions();
+}
+
+void MainWindow::set_rulers(RulerSet set) {
+  rulers_ = set;
+  QSettings().setValue(kRulersKey, set == RulerSet::kClassic ? 1 : (set == RulerSet::kExtended ? 2 : 0));
+}
+
+void MainWindow::reset_panel() {
+  AafRecord start;
+  start.day = kStartDay;
+  start.month = kStartMonth;
+  start.year = kStartYear;
+  start.hour = kStartHour;
+  start.set_longitude(kStartLon);
+  start.set_latitude(kStartLat);
+  // apply_record drops the COMBIN, progression and transit place memories
+  // of the chart that stood before
+  apply_record(start, false);
+  // the whole seconds of the record fields would round the start place
+  {
+    const QSignalBlocker b1(lon_);
+    const QSignalBlocker b2(lat_);
+    lon_->setValue(kStartLon);
+    lat_->setValue(kStartLat);
+    sync_coord_boxes();
+  }
+  recompute();
+  refresh_record_label();
 }
 
 // ported from ave with plgen11, plgenkl and fixp_def. One question per
@@ -5133,25 +5240,33 @@ void MainWindow::vorgaben_overview() {
   outer->addLayout(row);
   row->setSpacing(28);
   const auto head = [](const QString& s) { return theme::heading_span(s) + "<br>"; };
+  // a caption and its value on one line, the caption up to its colon in
+  // the heading box and the value plain behind it
+  const auto caption_value = [](const QString& line) {
+    const qsizetype colon = line.indexOf(':');
+    if (colon < 0) {
+      return line.toHtmlEscaped() + "<br>";
+    }
+    return theme::heading_span(line.left(colon + 1).toHtmlEscaped()) + line.mid(colon + 1).toHtmlEscaped() + "<br>";
+  };
   const ClassicSheetText sheet = classic_sheet_text();
   QString left;
-  // his deftextcol(2), blue on yellow, carries the name and the place with
-  // their captions and in mainkont_dat_zeit the date and the clock, the
-  // tester asked for the yellow date back
-  left += head(tr("Name :")) + head(QString::fromStdString(sheet.name).toHtmlEscaped());
-  left += head(tr("Ort :")) + head(QString::fromStdString(sheet.place).toHtmlEscaped());
+  // his deftextcol(2), blue on yellow, carried the name, the place, the
+  // date and the clock with their captions. The tester wants the yellow
+  // box on the captions of the sections alone and the data plain
+  left += head(tr("Name :")) + QString::fromStdString(sheet.name).toHtmlEscaped() + "<br>";
+  left += head(tr("Ort :")) + QString::fromStdString(sheet.place).toHtmlEscaped() + "<br>";
   left += QString::fromStdString(sheet.lon).toHtmlEscaped() + "<br>" +
           QString::fromStdString(sheet.lat).toHtmlEscaped() + "<br><br>";
-  left += head(QString::fromStdString(sheet.date).toHtmlEscaped()) +
-          head(QString::fromStdString(sheet.ut).toHtmlEscaped()) + "<br>";
+  left += caption_value(QString::fromStdString(sheet.date)) + caption_value(QString::fromStdString(sheet.ut)) + "<br>";
   if (!record_.comment.empty()) {
     // his BEM line stood plain, textc resets the colour before it
     left += tr("BEM:") + "<br>" + QString::fromStdString(record_.comment).toHtmlEscaped() + "<br><br>";
   }
-  left += head(tr("HÄUSER : %1").arg(houses_->currentText()));
-  left += "<br>" + head(QString::fromStdString(sheet.mode));
+  left += caption_value(tr("HÄUSER : %1").arg(houses_->currentText()));
+  left += "<br>" + QString::fromStdString(sheet.mode).toHtmlEscaped() + "<br>";
   //RR Ebene : RADIX
-  left += head(tr("Ebene : %1").arg(uhr_slot_ >= 0 && active_slot_ == uhr_slot_ && !active_is_solar_ ? "UHR" : "RADIX"));
+  left += caption_value(tr("Ebene : %1").arg(uhr_slot_ >= 0 && active_slot_ == uhr_slot_ && !active_is_solar_ ? "UHR" : "RADIX"));
   QString mid;
   mid += head(tr("PARAM. Ephemeride:"));
   mid += tr("Ekl.Länge: %1").arg(QString::fromStdString(konsta_.appa_name.empty() ? "App.1" : konsta_.appa_name)) + "<br>";
@@ -5183,8 +5298,8 @@ void MainWindow::vorgaben_overview() {
   mid += head(tr("Zusatz-Plan:")) + (extra.isEmpty() ? tr("KEINE") : extra.join("  ")) + "<br><br>";
   mid += head(tr("PARAM. Horoskop:"));
   //RR Aspekt-Orbes : Selbst definiert bzw. Von HORCOM gegeben
-  mid += (aspect_settings_.equal_probability ? tr("Aspekt-Orbes : Selbst definiert")
-                                             : tr("Aspekt-Orbes : Von HORCOM gegeben")) + QString("<br>");
+  mid += (aspect_settings_.equal_probability ? tr("Aspekt-Orben : Selbst definiert")
+                                             : tr("Aspekt-Orben : Von HORCOM gegeben")) + QString("<br>");
   mid += tr("Orbis-Faktor = %1").arg(aspect_settings_.orb) + "<br>";
   // his m$ and e$ = "Aspekte 1....", voll! wins with Kompakt-Auswertung
   QString m = aspect_settings_.divisors <= 1 ? tr("Ohne Asp.-Linien")
@@ -5199,7 +5314,11 @@ void MainWindow::vorgaben_overview() {
   static constexpr const char* kBegin[5] = {QT_TR_NOOP("Aszendent"), QT_TR_NOOP("MC"), QT_TR_NOOP("0 Widder"),
                                             QT_TR_NOOP("0 Waage"), QT_TR_NOOP("Eigene Wahl")};
   mid += tr("Beginn Horoskop : %1").arg(tr(kBegin[std::clamp(konsta_.begz, 1, 5) - 1])) + "<br>";
-  mid += (alt_rulers_ ? tr("Zuordng.ZE-PL: Alt") : tr("Zuordng.ZE-PL: Neu")) + QString("<br>");
+  // his n$ Alt or Neu, the third set a rewrite addition
+  mid += (rulers_ == RulerSet::kClassic    ? tr("Zuordng.ZE-PL: Alt")
+          : rulers_ == RulerSet::kExtended ? tr("Zuordng.ZE-PL: Neu QU CH")
+                                           : tr("Zuordng.ZE-PL: Neu")) +
+         QString("<br>");
   //RR COMPOS. Mittl. STZ, COMPOS. n. R.HAND or COMPOSIT Schemat.
   mid += (konsta_.comp_mstz ? tr("COMPOS. Mittl. STZ")
                             : (konsta_.comp_hand ? tr("COMPOS. n. R.HAND") : tr("COMPOSIT Schemat."))) +
@@ -5222,9 +5341,10 @@ void MainWindow::vorgaben_overview() {
     right += QFileInfo(data_file_).fileName().toHtmlEscaped() + "<br>";
     right += tr("Anzahl Dats.: %1").arg(data_count_) + "<br>";
   }
-  // his deftextcol(0) with "Drucker-Option EIN" or "AUS", "Hardcopy : DIN A5" or "DIN A4"
-  right += "<br>" + head(konsta_.prenbl != 0 ? tr("Drucker-Option EIN") : tr("Drucker-Option AUS"));
-  right += head(konsta_.halbs != 0 ? tr("Hardcopy : DIN A5") : tr("Hardcopy : DIN A4"));
+  // his deftextcol(0) with "Drucker-Option EIN" or "AUS", "Hardcopy : DIN A5"
+  // or "DIN A4", the setting stands plain like every other value
+  right += "<br>" + (konsta_.prenbl != 0 ? tr("Drucker-Option EIN") : tr("Drucker-Option AUS")) + "<br>";
+  right += (konsta_.halbs != 0 ? tr("Hardcopy : DIN A5") : tr("Hardcopy : DIN A4")) + "<br>";
   right += "<br>" + head(tr("Auflösung:"));
   right += QString("X:Y = %1: %2").arg(width()).arg(height()) + "<br><br>";
   // the dress of the shell is a rewrite addition, his Farbe line above
@@ -5252,7 +5372,9 @@ void MainWindow::choose_house_system() {
                           tr("KEINE Häuser,NUR AC und MC"),
                           tr("WEDER HÄUSER noch  AC oder MC"),
                           tr("WEDER HÄUSER noch  AC oder MC noch MONDKNOTEN")};
-  const int es = ChoiceDialog::ask(this, tr("HÄUSERSYSTEM WÄHLEN !"), {}, items, houses_->currentIndex());
+  // the system in force wears the yellow label box, the tester wanted to
+  // see it at a glance
+  const int es = ChoiceDialog::ask_current(this, tr("HÄUSERSYSTEM WÄHLEN !"), {}, items, houses_->currentIndex());
   if (es >= 0 && es < houses_->count()) {
     houses_->setCurrentIndex(es);
   }
@@ -5812,6 +5934,9 @@ void MainWindow::pair_chart(int kind) {
       if (konsta_.prenbl != 0) {
         wart(kItem[kind]);
       }
+      if (kind == kDoubleCombin) {
+        combin_level_question();
+      }
       return;
     }
   }
@@ -5840,6 +5965,8 @@ void MainWindow::recall_double(int kind) {
     leave_views({});
     apply_record(pair.base, false);
     combin_of(pair.parts, pair.sets);
+    // the stored pair names no SATZ of its own
+    combin_origin_.reset();
     return;
   }
   QAction* view = kind == kDoubleComposit ? composite_action_ : compare_action_;
@@ -5965,6 +6092,7 @@ void MainWindow::apply_record(const AafRecord& r, bool claim_slot) {
   combin_note_.clear();
   combin_list_.clear();
   combin_na_.clear();
+  combin_origin_.reset();
   prog_event_note_.clear();
   prog_radix_note_.clear();
   transit_place_.reset();
@@ -6011,20 +6139,25 @@ void MainWindow::apply_record(const AafRecord& r, bool claim_slot) {
   lat_->setValue(r.latitude());
   sync_coord_boxes();
   if (refresh_sommer_effect_) refresh_sommer_effect_();
+  // the sheet names the place of the panel, the fields take the new
+  // record before the wheel is drawn
+  sync_record_fields();
   recompute();
   refresh_record_label();
 }
 
-void MainWindow::refresh_record_label() {
+void MainWindow::sync_record_fields() {
   // the panel name fields mirror the record without firing edits back
-  {
-    const QSignalBlocker bg(given_);
-    const QSignalBlocker bs(surname_);
-    const QSignalBlocker bp(place_field_);
-    given_->setText(QString::fromStdString(record_.given).trimmed());
-    surname_->setText(QString::fromStdString(record_.surname).trimmed());
-    place_field_->setText(QString::fromStdString(record_.place).trimmed());
-  }
+  const QSignalBlocker bg(given_);
+  const QSignalBlocker bs(surname_);
+  const QSignalBlocker bp(place_field_);
+  given_->setText(QString::fromStdString(record_.given).trimmed());
+  surname_->setText(QString::fromStdString(record_.surname).trimmed());
+  place_field_->setText(QString::fromStdString(record_.place).trimmed());
+}
+
+void MainWindow::refresh_record_label() {
+  sync_record_fields();
   const CalendarDate d = panel_day();
   //RR vC, the historical count of his record list
   const QString year = d.year > 0 ? QString::number(d.year) : QString("%1 vC").arg(1 - d.year);
@@ -6048,8 +6181,8 @@ void MainWindow::open_aspektarium() {
   }
   // o1$ = " ORBES selbst definiert !" or " ORBES nach HORCOM- Zählung !"
   // + "   ORBIS - Faktor = " + STR$(orb)
-  const QString banner = (aspect_settings_.equal_probability ? tr(" ORBES selbst definiert !")
-                                                             : tr(" ORBES nach HORCOM- Zählung !")) +
+  const QString banner = (aspect_settings_.equal_probability ? tr(" ORBEN selbst definiert !")
+                                                             : tr(" ORBEN nach HORCOM- Zählung !")) +
                          tr("   ORBIS - Faktor = %1").arg(aspect_settings_.orb);
   QStringList answers{tr("  8  "), tr(" 12 ")};
   if (!aspect_settings_.equal_probability) {
@@ -6083,6 +6216,7 @@ void MainWindow::open_aspektarium() {
     // histogram inset
     in.invert_nodes = dress.invert_nodes;
     in.invert_apogee = dress.invert_apogee;
+    in.frame_nodes = dress.frame_nodes;
     in.rhythm = konsta_.ryt;
     AspektariumText text;
     // TRIM$(horgt$) + "es Aspektarium  | " + sol$(od,ze)
@@ -6129,6 +6263,15 @@ void MainWindow::edit_record() {
     if (std::filesystem::exists(dat)) {
       bind_data_file(QString::fromStdWString(dat.wstring()));
     }
+  }
+  // the COMBIN level holds no RADIX slot, an edited COMBIN takes a slot of
+  // its own like ERGEBNIS als RADIX instead of the first one of the pair
+  if (active_slot_ < 0 && !active_is_solar_ && !combin_name1_.empty()) {
+    const int slot = claim_radix_slot(-1);
+    if (slot >= 0) {
+      set_slot(slot, dialog.record(), true);
+    }
+    return;
   }
   apply_record(dialog.record());
 }
@@ -6279,6 +6422,43 @@ AafRecord MainWindow::panel_record() const {
 // overwrite question, and where the AAF twin exists it is the pilot,
 // the record lands there too and the DAT is rebuilt from it
 void MainWindow::save_record() {
+  // the tester wants to store into another file too, the box offers the
+  // bound file and another one like the fetch of fetch_from_file, a new
+  // name starts a file with this record like a2dat
+  // without a bound file only the choice of a file is left, the box would
+  // offer nothing to enter into
+  int action = 1;
+  if (!data_file_.isEmpty()) {
+    action = ChoiceDialog::ask(this, tr("AKTUELLEN Datensatz EINTRAGEN"),
+                               {tr("In welche Daten-Datei soll der Datensatz eingetragen werden?")},
+                               {tr("In %1").arg(QFileInfo(data_file_).fileName()), tr("Andere Datei wählen…"),
+                                tr("ABBRUCH")},
+                               0);
+  }
+  if (action < 0 || action == 2) {
+    return;
+  }
+  if (action == 1) {
+    const QString path = with_suffix(
+        QFileDialog::getSaveFileName(this, tr("Daten-Datei wählen oder neu anlegen"), collection_start(data_file_, data_dir_),
+                                     tr("HORCOM Daten-Dateien (*.DAT *.dat)"), nullptr, QFileDialog::DontConfirmOverwrite),
+        "DAT");
+    if (path.isEmpty()) {
+      return;
+    }
+    const std::filesystem::path dat(path.toStdWString());
+    if (!std::filesystem::exists(dat)) {
+      if (!write_chart_file(dat, {dat_from_record(panel_record())})) {
+        QMessageBox::warning(this, "HORCOM", tr("Die Datei ließ sich nicht anlegen."));
+        return;
+      }
+      bind_data_file(path);
+      //RR NEUE DATEN-DATEI <path> !
+      QMessageBox::information(this, "HORCOM", tr("NEUE DATEN-DATEI %1 !").arg(QString::fromStdWString(dat.filename().wstring())));
+      return;
+    }
+    bind_data_file(path);
+  }
   store_record(false);
 }
 
@@ -6456,9 +6636,13 @@ ClassicSheetText MainWindow::sheet_text_for(const AafRecord& r, const ChartInput
   }
   const auto coord = [](const char* tag, double v, char pos, char neg) {
     const char hemi = v < 0.0 ? neg : pos;
-    const double a = std::abs(v);
-    const int d = static_cast<int>(a);
-    return QString::asprintf("%s %d\xC2\xB0 %4.1f'%c", tag, d, (a - d) * 60.0, hemi).toStdString();
+    // the tenth of a minute rounds before the split, 73.99999 degrees read
+    // 73° 60.0' without the carry
+    const long tenths = std::lround(std::abs(v) * kArcminPerDeg * 10.0);
+    const long per_degree = static_cast<long>(kArcminPerDeg * 10.0);
+    return QString::asprintf("%s %ld\xC2\xB0 %4.1f'%c", tag, tenths / per_degree,
+                             static_cast<double>(tenths % per_degree) / 10.0, hemi)
+        .toStdString();
   };
   // Lä: and Br:, the place line of the form
   t.lon = coord(tr("Lä:").toUtf8().constData(), in.lon_deg_east, 'E', 'W');
@@ -6484,6 +6668,9 @@ ClassicSheetText MainWindow::sheet_text_for(const AafRecord& r, const ChartInput
 ClassicSheetText MainWindow::classic_sheet_text() const {
   ClassicSheetText t = sheet_text_for(record_, current_input(), last_chart_ ? &*last_chart_ : nullptr,
                                       current_settings(), panel_calendar_);
+  // the place of the chart on screen, a derived chart cast at the event
+  // place of his ort_wahl names it while record_ keeps the birth place
+  t.place = place_field_->text().trimmed().toStdString();
   // the paired sheets fill the a13aus corners. Composit reads from the
   // live partner state, combin from its own saved memory so both
   // parents plus the mid moment stay visible
@@ -6683,6 +6870,7 @@ void MainWindow::full_reset() {
     return;
   }
   QSettings().remove(theme::kViewGroup);
+  QSettings().remove(kRulersKey);
   keep_konsta_file_ = true;
   quit_confirmed_ = true;
   restart_();

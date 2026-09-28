@@ -109,7 +109,7 @@ TEST_CASE("VORGABEN HOROSKOP walks on from the chosen topic and R steps back") {
   MainWindowProbe::apply(*w, evening_birth());
   Konsta& k = MainWindowProbe::konsta(*w);
   k.begz = 1;
-  MainWindowProbe::alt_rulers(*w) = false;
+  MainWindowProbe::rulers(*w) = RulerSet::kModern;
   {
     DialogDriver drive;
     drive.then(DialogDriver::click("BEGINN des Horoskops"))  // GEWÜNSCHTES THEMA ANKLICKEN !
@@ -124,14 +124,16 @@ TEST_CASE("VORGABEN HOROSKOP walks on from the chosen topic and R steps back") {
     CHECK(drive.titles().at(1) == drive.titles().at(3));
   }
   CHECK(k.begz == 2);
-  CHECK(MainWindowProbe::alt_rulers(*w));
+  CHECK(MainWindowProbe::rulers(*w) == RulerSet::kClassic);
+  // the choice stays for the next start, the other cases want his NEU
+  MainWindowProbe::set_rulers(*w, RulerSet::kModern);
   const WheelOptions o = MainWindowProbe::wheel_options(*w);
   CHECK(o.begin == 2);
   // horbeg puts the MC on the left of the wheel
   CHECK(MainWindowProbe::wheel(*w).items.size() > 0);
 }
 
-TEST_CASE("ORBES BESTIMMEN takes his equally probable orbs and the factor") {
+TEST_CASE("ORBEN BESTIMMEN takes his equally probable orbs and the factor") {
   auto w = MainWindowProbe::make();
   MainWindowProbe::apply(*w, evening_birth());
   AspectSettings& a = MainWindowProbe::aspect_settings(*w);
@@ -141,15 +143,15 @@ TEST_CASE("ORBES BESTIMMEN takes his equally probable orbs and the factor") {
   QString first_field;
   {
     DialogDriver drive;
-    drive.then(DialogDriver::click("ORBES BESTIMMEN"))
-        .then(DialogDriver::click("NEU SELBST"))                    // ORBES der ASPEKTE EINZELN VORGEBEN ?
-        .then(DialogDriver::click("GLEICH WAHRSCHEINLICHE"))         // ORBES der GRUND-ASPEKTE EINGEBEN !
+    drive.then(DialogDriver::click("ORBEN BESTIMMEN"))
+        .then(DialogDriver::click("NEU SELBST"))                    // ORBEN der ASPEKTE EINZELN VORGEBEN ?
+        .then(DialogDriver::click("GLEICH WAHRSCHEINLICHE"))         // ORBEN der GRUND-ASPEKTE EINGEBEN !
         .then([&first_field](QDialog* d) {                           // the same table with his presets
           first_field = d->findChildren<QLineEdit*>().at(0)->text().trimmed();
           DialogDriver::click("Weiter")(d);
         })
-        .then(DialogDriver::click("NEIN"))                            // GEWICHTUNG der PLANETEN-ORBES ?
-        .then(DialogDriver::click("150"))                             // FAKTOR vor ORBIS in PROZENTEN
+        .then(DialogDriver::click("NEIN"))                            // GEWICHTUNG der PLANETEN-ORBEN ?
+        .then(DialogDriver::click("150"))                             // FAKTOR von ORBEN in PROZENTEN
         .then(DialogDriver::click("EXIT"));                           // GRADE und RÜCKLÄUFIGKEITEN ?
     MainWindowProbe::vorgaben_horoskop(*w);
     CHECK(drive.pending() == 0);
@@ -176,7 +178,7 @@ TEST_CASE("orbis_asp refuses an overlapping orb and shows the entry again") {
   QString again;
   {
     DialogDriver drive;
-    drive.then(DialogDriver::click("ORBES BESTIMMEN"))
+    drive.then(DialogDriver::click("ORBEN BESTIMMEN"))
         .then(DialogDriver::click("NEU SELBST"))
         .then([](QDialog* d) {
           // 20 degrees on the quintil reach into the sextil
@@ -311,7 +313,7 @@ TEST_CASE("GRADE, KLEIN-SYMBOLE and the histogram points reach the wheel") {
     DialogDriver drive;
     drive.then(DialogDriver::click("GRÖßE der SYMBOLE"))
         .then(DialogDriver::click("KLEIN"))                    // KLEIN-SYMBOLE in HOROSKOPEN ?
-        .then(DialogDriver::click("EXIT"));                     // ORBES der ASPEKTE
+        .then(DialogDriver::click("EXIT"));                     // ORBEN der ASPEKTE
     MainWindowProbe::vorgaben_horoskop(*w);
     CHECK(drive.pending() == 0);
   }
@@ -383,12 +385,51 @@ TEST_CASE("the old rulers of alt! reach the birth ruler of the wheel") {
   }
   REQUIRE(hour >= 0);
   const double ac = MainWindowProbe::chart(*w).houses.cusp[1];
-  MainWindowProbe::alt_rulers(*w) = false;
-  CHECK(MainWindowProbe::wheel_options(*w).ruler_slot == sign_ruler(ac, false));
-  MainWindowProbe::alt_rulers(*w) = true;
-  const int classic = sign_ruler(ac, true);
-  CHECK(classic != sign_ruler(ac, false));
+  MainWindowProbe::rulers(*w) = RulerSet::kModern;
+  CHECK(MainWindowProbe::wheel_options(*w).ruler_slot == sign_ruler(ac, RulerSet::kModern));
+  MainWindowProbe::rulers(*w) = RulerSet::kClassic;
+  const int classic = sign_ruler(ac, RulerSet::kClassic);
+  CHECK(classic != sign_ruler(ac, RulerSet::kModern));
   CHECK(MainWindowProbe::wheel_options(*w).ruler_slot == classic);
+}
+
+TEST_CASE("NEU mit QU, CH rules Taurus by Quaoar and Virgo by Chiron, Venus and Mercury stand in") {
+  auto w = MainWindowProbe::make();
+  // find a birth hour whose ascendant stands in Taurus or Virgo
+  int hour = -1;
+  int sign = -1;
+  for (int h = 0; h < 24 && hour < 0; ++h) {
+    MainWindowProbe::apply(*w, evening_birth(h));
+    sign = static_cast<int>(MainWindowProbe::chart(*w).houses.cusp[1] / (kPi / 6.0));
+    if (sign == 1 || sign == 5) {
+      hour = h;
+    }
+  }
+  REQUIRE(hour >= 0);
+  const int extra = sign == 1 ? body::kQuaoar : body::kChiron;
+  const int stand_in = sign == 1 ? body::kVenus : body::kMercury;
+  // the third set chosen in the box, the choice kept for the next start
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("ZUORDNUNG ZEICHENHERRSCHER"))
+        .then(DialogDriver::click("NEU mit QU, CH"))
+        .then(DialogDriver::click("EXIT"));
+    MainWindowProbe::vorgaben_horoskop(*w);
+    CHECK(drive.pending() == 0);
+  }
+  CHECK(MainWindowProbe::rulers(*w) == RulerSet::kExtended);
+  CHECK(MainWindowProbe::rulers(*MainWindowProbe::make()) == RulerSet::kExtended);
+  // without the extra bodies the old ruler stands in
+  MainWindowProbe::preset_extras(*w, false, false, false);
+  MainWindowProbe::apply(*w, evening_birth(hour));
+  CHECK(MainWindowProbe::wheel_options(*w).ruler_slot == stand_in);
+  // with CH QU XE computed the extra body rules the ascendant
+  MainWindowProbe::preset_extras(*w, true, false, false);
+  MainWindowProbe::apply(*w, evening_birth(hour));
+  CHECK(MainWindowProbe::wheel_options(*w).ruler_slot == extra);
+  // his NEU again for the other cases
+  MainWindowProbe::set_rulers(*w, RulerSet::kModern);
+  CHECK(MainWindowProbe::rulers(*MainWindowProbe::make()) == RulerSet::kModern);
 }
 
 TEST_CASE("the KOMPAKT-AUSWERTUNG lists the midpoints and bes2 names the chart") {
@@ -505,7 +546,7 @@ TEST_CASE("the ASPEKTARIUM asks his MAXIMALER Teiler box first") {
     CHECK(drive.unexpected() == 0);
   }
   CHECK(buttons.size() == 3);
-  CHECK(info.contains(QString::fromUtf8("ORBES nach HORCOM- Zählung !")));
+  CHECK(info.contains(QString::fromUtf8("ORBEN nach HORCOM- Zählung !")));
   CHECK(info.contains("MAXIMALER Teiler ?"));
   CHECK(sheet_title == "ASPEKTARIUM");
   // nasp& comes back after the sheet
@@ -837,7 +878,8 @@ TEST_CASE("COMBIN takes up to five SATZ clicks with his HOLEN box between") {
           holen = labels(d);
           DialogDriver::click("HOLEN")(d);
         })
-        .then(DialogDriver::click("SATZ2"));
+        .then(DialogDriver::click("SATZ2"))
+        .then(DialogDriver::click("WEITER MACHEN"));  // COMBIN-EBENE VERLASSEN ?
     MainWindowProbe::combin_chart(*w);
     CHECK(drive.pending() == 0);
     CHECK(drive.unexpected() == 0);
@@ -862,9 +904,13 @@ TEST_CASE("COMBIN takes up to five SATZ clicks with his HOLEN box between") {
     centre = centre || (p.kind == Primitive::Kind::kText && p.text == "COMBIN");
   }
   CHECK(centre);
-  // the slots keep their own places
+  // the slots keep their own places, also once the step of the mean
+  // moment settles, it had written the COMBIN over the first RADIX
+  MainWindowProbe::flush_history(*w);
   REQUIRE(MainWindowProbe::slot(*w, 0).has_value());
   CHECK(MainWindowProbe::slot(*w, 0)->lon_deg == 10);
+  CHECK(MainWindowProbe::slot(*w, 0)->surname == "ERSTERFALL");
+  CHECK(MainWindowProbe::slot(*w, 0)->place != "COMBIN-ORT");
   // the DOPPEL-DATEN row brings all three back without a question
   MainWindowProbe::apply(*w, one);
   CHECK(MainWindowProbe::sheet(*w).place != "COMBIN-ORT");
@@ -888,7 +934,7 @@ TEST_CASE("COMBIN of two outputs at once when no further RADIX slot is filled") 
   MainWindowProbe::put_slot(*w, 1, two);
   {
     DialogDriver drive;
-    drive.then(DialogDriver::click("SATZ1")).then(DialogDriver::click("SATZ2"));
+    drive.then(DialogDriver::click("SATZ1")).then(DialogDriver::click("SATZ2")).then(DialogDriver::click("WEITER MACHEN"));
     MainWindowProbe::combin_chart(*w);
     CHECK(drive.pending() == 0);
     CHECK(drive.unexpected() == 0);
@@ -913,7 +959,7 @@ TEST_CASE("ERGEBNIS als RADIX takes the COMBIN with its mean moment and place") 
   MainWindowProbe::put_slot(*w, 1, two);
   {
     DialogDriver drive;
-    drive.then(DialogDriver::click("SATZ1")).then(DialogDriver::click("SATZ2"));
+    drive.then(DialogDriver::click("SATZ1")).then(DialogDriver::click("SATZ2")).then(DialogDriver::click("WEITER MACHEN"));
     MainWindowProbe::combin_chart(*w);
   }
   const double mean_jd = MainWindowProbe::panel_jd(*w);
@@ -975,9 +1021,9 @@ TEST_CASE("R steps back from the GEWICHTUNG and the HALBSUMMENLISTE boxes like h
   QStringList seen;
   {
     DialogDriver drive;
-    drive.then(DialogDriver::click("ORBES BESTIMMEN"))
-        .then(DialogDriver::click("HORCOM - Z"))  // ORBES der ASPEKTE EINZELN VORGEBEN ?
-        .then(press(Qt::Key_R))                   // GEWICHTUNG der PLANETEN-ORBES ÄNDERN ?
+    drive.then(DialogDriver::click("ORBEN BESTIMMEN"))
+        .then(DialogDriver::click("HORCOM - Z"))  // ORBEN der ASPEKTE EINZELN VORGEBEN ?
+        .then(press(Qt::Key_R))                   // GEWICHTUNG der PLANETEN-ORBEN ÄNDERN ?
         .then(DialogDriver::click("EXIT"));       // orbis_pla sent him back to avh4
     MainWindowProbe::vorgaben_horoskop(*w);
     CHECK(drive.pending() == 0);

@@ -1349,7 +1349,7 @@ void MainWindow::vorgaben_direktionen() {
         b = ChoiceDialog::ask(this, tr("KENNZEICHNUNG bestimmter PLANETEN bzw. ASPEKTE in TABELLEN ?"), {},
                               {tr("KEINERLEI KENNZEICHNUNG !"), tr("NUR SYMBOLE von MA,SA,UR,NE,PL INVERTIEREN !"),
                                tr("NUR ASPEKTE EINFÄRBEN : HARTE in ROT,HARMONISCHE in GRÜN !"),
-                               tr("SOWHL SYMBOLE INVERTIEREN als auch ASPEKTE EINFÄRBEN !"), exit},
+                               tr("SOWOHL SYMBOLE INVERTIEREN als auch ASPEKTE EINFÄRBEN !"), exit},
                               std::clamp(konsta_.plinv, 0, 3));
         if (b >= 0 && b <= 3) {
           konsta_.plinv = b;

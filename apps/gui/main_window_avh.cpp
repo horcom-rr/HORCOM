@@ -376,12 +376,12 @@ void MainWindow::vorgaben_horoskop() {
   const int chosen = ChoiceDialog::ask(
       this, tr("GEWÜNSCHTES THEMA ANKLICKEN ! "), {},
       {tr("Bezugs-System EKLIPTIK oder ÄQUATOR ? "), tr("Langsame BILDSCHIRME SPEICHERN ? "),
-       tr("GRÖßE der SYMBOLE im Horoskop "), tr("ORBES BESTIMMEN "),
+       tr("GRÖßE der SYMBOLE im Horoskop "), tr("ORBEN BESTIMMEN "),
        tr("GRADE und RÜCKLÄUFIGKEIT im Horoskop ANZEIGEN ? "), tr("BEGINN des Horoskops "),
        tr("ZUORDNUNG ZEICHENHERRSCHER "), tr("FARBEN bzw. SCHRAFFUR im HOROSKOP-RING und HISTOGRAMMEN"),
        tr("HISTOGRAMM der ELEMENTE und KARD-FIX-GEM "),
        tr("ASPEKTE bzw. ASPEKT - Linien bzw. HALBSUMMEN im Horoskop "),
-       tr("FARBE FESTLEGEN bei DOPPELKREIS ÄUßERE SYMBOLE bzw. RÜCKLÄUFIGKEITS-ANZEIEGE"), x},
+       tr("FARBE FESTLEGEN bei DOPPELKREIS ÄUßERE SYMBOLE bzw. RÜCKLÄUFIGKEITS-ANZEIGE"), x},
       0);
   if (chosen < 0 || chosen > 10) {
     return;
@@ -499,14 +499,20 @@ void MainWindow::vorgaben_horoskop() {
         break;
       }
       case kRulers: {
+        // his NEU and ALT, and as a third set the tester's NEU with Quaoar
+        // for Taurus and Chiron for Virgo, a rewrite addition
+        static constexpr RulerSet kSets[3] = {RulerSet::kModern, RulerSet::kClassic, RulerSet::kExtended};
+        const int now = rulers_ == RulerSet::kClassic ? 1 : (rulers_ == RulerSet::kExtended ? 2 : 0);
         const int b = ChoiceDialog::ask_step(this, tr("AUSWAHL"),
                                              {tr("ZUORDNUNG ZEICHEN-HERRSCHER ?"), QString(),
-                                              tr("NEU : SC-PL   AQ-UR   PS-NE"), tr("ALT : SC-MA   AQ-SA   PS-JU")},
-                                             {tr("NEU"), tr("ALT"), x}, alt_rulers_ ? 1 : 0);
-        step = step_of(b, 2);
-        // alt! lives for the session only, his settings file never kept it
-        if (b == 0 || b == 1) {
-          alt_rulers_ = b == 1;
+                                              tr("NEU : SC-PL   AQ-UR   PS-NE"), tr("ALT : SC-MA   AQ-SA   PS-JU"),
+                                              tr("NEU mit QU, CH : TA-QU   VI-CH   SC-PL   AQ-UR   PS-NE")},
+                                             {tr("NEU"), tr("ALT"), tr("NEU mit QU, CH"), x}, now);
+        step = step_of(b, 3);
+        // his alt! lived for the session, the port keeps the choice so the
+        // third set need not be chosen anew every start
+        if (b >= 0 && b <= 2) {
+          set_rulers(kSets[b]);
         }
         break;
       }
@@ -572,9 +578,9 @@ MainWindow::WizardStep MainWindow::orb_topic() {
   for (;;) {
     const bool own = aspect_settings_.equal_probability;
     const int es = ChoiceDialog::ask_step(
-        this, tr("ORBES der ASPEKTE EINZELN VORGEBEN ?"), {},
-        {tr("ORBES nach HORCOM - ZÄHLUNG : ORB = 12°/ TEILER  z.B 3° für QUADRAT ( TEILER = 4 )"),
-         own ? tr("ORBES sind SELBST DEFINIERT") : QStringLiteral("  "), tr("ORBES NEU SELBST DEFINIEREN"), x},
+        this, tr("ORBEN der ASPEKTE EINZELN VORGEBEN ?"), {},
+        {tr("ORBEN nach HORCOM - ZÄHLUNG : ORBIS = 12°/ TEILER  z.B 3° für QUADRAT ( TEILER = 4 )"),
+         own ? tr("ORBEN sind SELBST DEFINIERT") : QStringLiteral("  "), tr("ORBEN NEU SELBST DEFINIEREN"), x},
         own ? 1 : 0, own ? std::vector<int>{} : std::vector<int>{1});
     if (es == ChoiceDialog::kBack) {
       return WizardStep::kBack;
@@ -604,14 +610,15 @@ MainWindow::WizardStep MainWindow::orb_topic() {
       return WizardStep::kExit;
     }
     persist_konsta();
-    // FAKTOR vor ORBIS in PROZENTEN
+    // his FAKTOR vor ORBIS in PROZENTEN, the tester's plural ORBEN in the
+    // whole series
     int def = 5;
     for (int i = 0; i < 5; ++i) {
       if (aspect_settings_.orb == kFactors[i]) {
         def = i;
       }
     }
-    const int fk = ChoiceDialog::ask_step(this, tr("FAKTOR vor ORBIS in PROZENTEN"), {},
+    const int fk = ChoiceDialog::ask_step(this, tr("FAKTOR von ORBEN in PROZENTEN"), {},
                                           {tr(" 50 %"), tr(" 80 %"), tr("100 %"), tr("150 %"), tr("200 %"),
                                            tr("SONSTIGE"), x},
                                           def);
@@ -661,7 +668,7 @@ bool MainWindow::orb_table_dialog() {
   }
   for (;;) {
     QDialog d(this);
-    d.setWindowTitle(tr("ORBES der GRUND-ASPEKTE EINGEBEN !"));
+    d.setWindowTitle(tr("ORBEN der GRUND-ASPEKTE EINGEBEN !"));
     auto* v = new QVBoxLayout(&d);
     auto* head = new QLabel(tr("TEILER    ASPEKT             EINGABE ( EDITIEREN ! ) "), &d);
     head->setFont(theme::mono_font());
@@ -684,7 +691,7 @@ bool MainWindow::orb_table_dialog() {
     // h$ = " GEOZENTRISCH " bzw. "TOPOZENTRISCH" bzw. " HELIOZENTRISCH "
     const QString h = helio ? tr(" HELIOZENTRISCH ")
                             : (current_settings().topocentric_parallax ? tr("TOPOZENTRISCH") : tr(" GEOZENTRISCH "));
-    auto* txt = new QLabel(tr("Wenn Sie den folgenden Button anklicken,werden Orbes gewählt,die%1etwa GLEICHE "
+    auto* txt = new QLabel(tr("Wenn Sie den folgenden Button anklicken,werden Orben gewählt,die%1etwa GLEICHE "
                               "Wahrscheinlichkeit für alle Aspekte mit Teiler  1 bis 12 aufweisen ! ( 1930 bis 2050 )"
                               "          Näheres,siehe Erläuterung 4 !")
                                .arg(h),
@@ -692,7 +699,7 @@ bool MainWindow::orb_table_dialog() {
     txt->setWordWrap(true);
     txt->setMaximumWidth(320);
     right->addWidget(txt);
-    auto* equal = new QPushButton(tr("ORBES für GLEICH WAHRSCHEINLICHE ASPEKTE"), &d);
+    auto* equal = new QPushButton(tr("ORBEN für GLEICH WAHRSCHEINLICHE ASPEKTE"), &d);
     right->addWidget(equal);
     right->addStretch(1);
     auto* buttons = new QHBoxLayout();
@@ -764,7 +771,7 @@ bool MainWindow::orb_table_dialog() {
 // ported from orbis_pla, R on its first box steps back to the orbs
 MainWindow::WizardStep MainWindow::orb_weight_dialog() {
   const int b = ChoiceDialog::ask_step(this, tr("AUSWAHL"),
-                                       {QString(), tr("GEWICHTUNG der"), tr("PLANETEN-ORBES"), tr("ÄNDERN ?")},
+                                       {QString(), tr("GEWICHTUNG der"), tr("PLANETEN-ORBEN"), tr("ÄNDERN ?")},
                                        {tr(" NEIN "), tr("JA"), tr("EXIT")}, 0);
   if (b == ChoiceDialog::kBack) {
     return WizardStep::kBack;
@@ -784,7 +791,7 @@ MainWindow::WizardStep MainWindow::orb_weight_dialog() {
   constexpr int kExtraRow = 15;
   for (;;) {
     QDialog d(this);
-    d.setWindowTitle(tr("ORBES - GEWICHTE der PLANETEN in % EINGEBEN !"));
+    d.setWindowTitle(tr("ORBEN - GEWICHTE der PLANETEN in % EINGEBEN !"));
     auto* v = new QVBoxLayout(&d);
     v->addWidget(new QLabel(tr(" AN CURSOR-POSITION EDITIEREN ! NORMAL = 100 % "), &d));
     auto* row = new QHBoxLayout();
