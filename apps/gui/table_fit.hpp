@@ -86,7 +86,7 @@ class TableZoom final : public QObject {
   /// Fits the text to the window now instead of after the resize
   /// settled, the tests and the first show use it.
   void apply() {
-    if (table_ == nullptr || !table_->isVisible()) {
+    if (!table_->isVisible()) {
       return;
     }
     // the state reached stands while it fits and the window kept its size,
@@ -192,7 +192,10 @@ class TableZoom final : public QObject {
     }
   }
 
-  QPointer<QTableWidget> table_;
+  // the zoom dies as the table's child, so a plain pointer suffices. The
+  // filter still sees the focus leave the table while it is destroyed,
+  // where a QPointer of the table's type would downcast what is left of it
+  QTableWidget* const table_;
   bool fixed_rows_ = false;
   int base_px_ = 0;
   int head_px_ = 0;

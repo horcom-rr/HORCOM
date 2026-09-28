@@ -23,6 +23,7 @@
 #include "horcom/render/wheel.hpp"
 #include "probe.hpp"
 #include "robert_text.hpp"
+#include "table_fit.hpp"
 #include "wheel_widget.hpp"
 #include "zodiac_cells.hpp"
 
@@ -923,4 +924,19 @@ TEST_CASE("VORGABEN EPHEMERIDE runs his ave as a chain") {
   CHECK(kept_rows.contains(QString::fromUtf8("FIXPUNKT 12\xC2\xB0LE30' BEIBEHALTEN")));
   CHECK(kept_rows.contains(QString::fromUtf8("FIXPUNKT 12\xC2\xB0LE30' LÖSCHEN")));
   CHECK(MainWindowProbe::fixpunkt(*w) * kRadToDeg == doctest::Approx(132.5));
+}
+
+TEST_CASE("the table zoom lets its table close with the focus in it") {
+  QWidget window;
+  auto* table = new QTableWidget(3, 2, &window);
+  new TableZoom(table, true);
+  table->setFocus();
+  window.show();
+  QApplication::processEvents();
+  // the destructor clears the focus through the zoom's filter while the
+  // table is only a QWidget any more, the sanitizer build checks that the
+  // filter never treats it as a table then
+  REQUIRE(table->hasFocus());
+  delete table;
+  CHECK(window.findChild<QTableWidget*>() == nullptr);
 }
