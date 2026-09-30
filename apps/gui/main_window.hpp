@@ -244,8 +244,10 @@ class MainWindow : public QMainWindow {
   /// The five result lines of grossj1 for the active chart.
   ///
   /// @param outside receives the NICHT MEHR im ZEITALTER flag
+  /// @param marked  true for escaped rich lines with the date of the chart
+  ///                and the longitude of its age point in his yellow box
   /// @return mes1$ through mes5$
-  [[nodiscard]] QStringList great_year_lines(bool& outside) const;
+  [[nodiscard]] QStringList great_year_lines(bool& outside, bool marked = false) const;
   /// AUFGANG / UNTERGANG, his auf_unt screens.
   void rise_set();
   /// FINSTERNISSE, his finst screen of lunations and eclipses.
@@ -921,6 +923,12 @@ class MainWindow : public QMainWindow {
   /// @return the four hsa0 header lines above his tables, record,
   ///         moment, sidereal time and place with the moon phase
   [[nodiscard]] QStringList hsa0_lines(const Chart& chart) const;
+  /// One hsa0 line for a rich label, the Mond-Phase caption in his yellow
+  /// label box.
+  ///
+  /// @param line a line of hsa0_lines
+  /// @return the escaped line with the caption marked
+  [[nodiscard]] QString hsa0_marked(const QString& line) const;
   /// The a18kopf header lines above a result table.
   ///
   /// @param title       his di$, the name of the run
@@ -1248,6 +1256,9 @@ class MainWindow : public QMainWindow {
   /// Sets the calendar rule and mirrors it into the NOCH JULIANISCH box.
   void set_panel_calendar(Calendar cal);
   bool set_partner(const AafRecord& r);
+  /// @return the partner of a pair view in the banner, surname and first
+  ///         given name
+  [[nodiscard]] QString partner_banner_name() const;
   QString record_label_;
   AafRecord record_;
   /// the bound working collection of DATEN-DATEI EIN-AUSGABE
@@ -1327,7 +1338,7 @@ class MainWindow : public QMainWindow {
   /// the sign rulers of ZUORDNUNG ZEICHENHERRSCHER, his alt! chose the old
   /// Mars, Saturn and Jupiter for the session, the port keeps the choice of
   /// the three sets in the settings
-  RulerSet rulers_ = RulerSet::kModern;
+  RulerSet rulers_ = RulerSet::kExtended;
   /// the wheel shows a plain chart, the right mouse opens einzel_plan_wahl
   bool plain_view_ = false;
   /// the capture hook switches the clock without the takeover question

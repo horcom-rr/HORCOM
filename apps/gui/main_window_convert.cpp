@@ -2,9 +2,9 @@
 // horcom, the C++ rewrite of HORCOM by Robert Rettig (1989 to 2010)
 // Copyright (c) 2026 Dominik Schwimmbeck
 
-// The converter entries of EPHEMERIDE and DIVERSES, each its own menu
-// entry like his menu, the WINKEL-UMRECHNUNG of rechne1 lives with the
-// input boxes.
+// The converter entries of DIVERSES, his ET, UT and JD entries of
+// EPHEMERIDE joined them, each its own menu entry like his menu, the
+// WINKEL-UMRECHNUNG of rechne1 lives with the input boxes.
 
 #include <cmath>
 #include <limits>

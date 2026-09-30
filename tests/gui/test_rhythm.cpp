@@ -6,11 +6,13 @@
 #include <QLabel>
 #include <QRegularExpression>
 #include <QTableWidget>
+#include <algorithm>
 #include <cmath>
 #include <filesystem>
 #include <initializer_list>
 #include <optional>
 #include <utility>
+#include <vector>
 
 #include "dialog_driver.hpp"
 #include "doctest.h"
@@ -19,6 +21,7 @@
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
 #include "horcom/render/rhythm_panel.hpp"
+#include "horcom/time/calendar.hpp"
 #include "probe.hpp"
 #include "wheel_widget.hpp"
 #include "zodiac_cells.hpp"
@@ -439,6 +442,10 @@ TEST_CASE("SEPTAR walks his chain and the walk dates it from the offset") {
   const QString period = period_info.join(QChar(0x0A));
   CHECK(period.contains("  SEPTAR "));
   CHECK(period.contains("ZEIT-EINHEIT beim SEPTAR : MONAT"));
+  // the period counts per house, the DECAR half of the line is gone
+  CHECK(period.contains("Monate pro Haus"));
+  CHECK(period.contains("SIEBEN = 7 Jahre je SEPTAR"));
+  CHECK_FALSE(period.contains("DECAR"));
   const QString info = special_info.join(QChar(0x0A));
   CHECK(info.contains("  5.SEPTAR "));
   CHECK_FALSE(info.contains("  RADIX "));
@@ -625,4 +632,65 @@ TEST_CASE("the Rhythmenlehre runs geocentric like CLR hrg!") {
   CHECK_FALSE(MainWindowProbe::settings(*w).heliocentric);
   // the geocentric Sun rules and triggers again
   CHECK(points.contains("SO"));
+}
+
+TEST_CASE("the GRAD-DATUM-LISTE runs each phase from its first date to its last, degrees and dates bold") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::houses(*w, 1);
+  MainWindowProbe::apply(*w, morning_birth());
+  const double birth = MainWindowProbe::chart(*w).jd_ut;
+  const double tja = MainWindowProbe::chart(*w).ta.tropical_year_days;
+  for (const char* sense : {"RECHTS", "LINKS"}) {
+    QStringList degree;
+    QStringList dates;
+    bool bold = true;
+    DialogDriver drive;
+    drive.then(DialogDriver::click(sense))
+        .then(DialogDriver::click("EINS"))
+        .then(DialogDriver::click("JAHR"))
+        .then(DialogDriver::click("SIEBEN"))
+        .then([&](QDialog* d) {
+          degree = table_column(d, 0);
+          dates = table_column(d, 2);
+          if (const auto* t = d->findChild<QTableWidget*>()) {
+            for (int r = 0; r < t->rowCount(); ++r) {
+              for (const int c : {0, 2}) {
+                const QTableWidgetItem* item = t->item(r, c);
+                bold = bold && (item == nullptr || item->font().bold());
+              }
+            }
+          }
+          d->reject();
+        });
+    MainWindowProbe::degree_date_list(*w);
+    INFO(sense);
+    CHECK(drive.pending() == 0);
+    CHECK(bold);
+    // the days of the list per phase, dd.mm.yyyy read as a julian day
+    const auto day_of = [](const QString& t) {
+      const QStringList f = t.split('.');
+      return julian_day({f.value(0).trimmed().toInt(), f.value(1).trimmed().toInt(), f.value(2).toInt(), 0.0, 0.0});
+    };
+    std::vector<std::vector<double>> phases;
+    for (int r = 0; r < degree.size(); ++r) {
+      if (degree[r].startsWith("PHASE")) {
+        phases.emplace_back();
+      } else if (!phases.empty()) {
+        phases.back().push_back(day_of(dates[r]));
+      }
+    }
+    REQUIRE(phases.size() == 12);
+    for (std::size_t k = 0; k < phases.size(); ++k) {
+      const std::vector<double>& p = phases[k];
+      REQUIRE(!p.empty());
+      // his zodiac order ran every phase backwards under RECHTS
+      CHECK(std::is_sorted(p.begin(), p.end()));
+      // phase k covers the years 7 k to 7 (k + 1), a day of rounding aside
+      CHECK(p.front() >= birth + 7.0 * static_cast<double>(k) * tja - 2.0);
+      CHECK(p.back() <= birth + 7.0 * static_cast<double>(k + 1) * tja + 2.0);
+    }
+    // the list opens in the first year of life and closes in the 84th
+    CHECK(phases.front().front() < birth + tja);
+    CHECK(phases.back().back() > birth + 83.0 * tja);
+  }
 }

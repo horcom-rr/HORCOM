@@ -4,6 +4,7 @@
 
 #include <QAbstractButton>
 #include <QKeyEvent>
+#include <QListWidget>
 #include <QLabel>
 #include <QTableWidget>
 #include <QTimer>
@@ -22,8 +23,10 @@
 #include "horcom/core/constants.hpp"
 #include "horcom/render/wheel.hpp"
 #include "probe.hpp"
+#include "robert_input.hpp"
 #include "robert_text.hpp"
 #include "table_fit.hpp"
+#include "theme.hpp"
 #include "wheel_widget.hpp"
 #include "zodiac_cells.hpp"
 
@@ -939,4 +942,130 @@ TEST_CASE("the table zoom lets its table close with the focus in it") {
   REQUIRE(table->hasFocus());
   delete table;
   CHECK(window.findChild<QTableWidget*>() == nullptr);
+}
+
+TEST_CASE("the sheets stand bold where the tester reads them and the Mond-Phase wears his yellow box") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, morning_birth());
+  const bool parallax = MainWindowProbe::settings(*w).topocentric_parallax;
+  // a column of a table is bold when every filled cell of it is
+  const auto bold_column = [](const QTableWidget* t, int c) {
+    bool any = false;
+    for (int r = 0; r < t->rowCount(); ++r) {
+      if (const QTableWidgetItem* item = t->item(r, c); item != nullptr && !item->text().isEmpty()) {
+        any = true;
+        if (!item->font().bold()) {
+          return false;
+        }
+      }
+    }
+    return any;
+  };
+  const auto plain_column = [](const QTableWidget* t, int c) {
+    for (int r = 0; r < t->rowCount(); ++r) {
+      if (const QTableWidgetItem* item = t->item(r, c); item != nullptr && item->font().bold()) {
+        return false;
+      }
+    }
+    return true;
+  };
+  bool coordinates = true;
+  QString head;
+  bool stars = false;
+  bool ingress = false;
+  bool histogram = false;
+  {
+    DialogDriver drive;
+    drive.then([&](QDialog* d) {
+      const auto* t = d->findChild<QTableWidget*>();
+      REQUIRE(t != nullptr);
+      // the numbers of the coordinate sheet read better bold, every cell
+      for (int r = 0; r < t->rowCount(); ++r) {
+        for (int c = 0; c < t->columnCount(); ++c) {
+          const QTableWidgetItem* item = t->item(r, c);
+          coordinates = coordinates && (item == nullptr || item->text().isEmpty() || item->font().bold());
+        }
+      }
+      coordinates = coordinates && bold_column(t, 1) && bold_column(t, 3);
+      for (const QLabel* l : d->findChildren<QLabel*>()) {
+        if (l->text().contains("Mond-Phase")) {
+          head = l->text();
+        }
+      }
+      d->reject();
+    });
+    MainWindowProbe::coordinate_table(*w, false);
+  }
+  CHECK(coordinates);
+  CHECK(head.contains(theme::heading_span("Mond-Phase")));
+  // the dock of the coordinates beside the wheel shows the same numbers bold
+  const QTableWidget* dock = MainWindowProbe::bodies(*w);
+  bool dock_bold = dock->rowCount() > 0;
+  for (int r = 0; r < dock->rowCount(); ++r) {
+    for (int c = 0; c < dock->columnCount(); ++c) {
+      const QTableWidgetItem* item = dock->item(r, c);
+      dock_bold = dock_bold && (item == nullptr || item->text().isEmpty() || item->font().bold());
+    }
+  }
+  CHECK(dock_bold);
+  {
+    DialogDriver drive;
+    drive.then([&](QDialog* d) {
+      const auto* t = d->findChild<QTableWidget*>();
+      REQUIRE(t != nullptr);
+      // the star, its longitude and its aspects bold, the rest plain
+      stars = bold_column(t, 0) && bold_column(t, 1) && plain_column(t, 3) && plain_column(t, 5);
+      d->reject();
+    });
+    MainWindowProbe::fixed_star_table(*w);
+  }
+  CHECK(stars);
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("SONNE"));
+    if (parallax) {
+      drive.then(DialogDriver::click("OK"));
+    }
+    drive.then(DialogDriver::fill({"1993"}, "OK")).then([&](QDialog* d) {
+      const auto* t = d->findChild<QTableWidget*>();
+      REQUIRE(t != nullptr);
+      ingress = bold_column(t, 1) && plain_column(t, 2);
+      d->reject();
+    });
+    MainWindowProbe::ingress_table(*w);
+  }
+  CHECK(ingress);
+  {
+    DialogDriver drive;
+    drive.then([&](QDialog* d) {
+      const auto* t = d->findChild<QTableWidget*>();
+      REQUIRE(t != nullptr);
+      histogram = bold_column(t, 0) && bold_column(t, 1) && bold_column(t, 3) &&
+                  t->selectionMode() == QAbstractItemView::NoSelection;
+      d->reject();
+    });
+    MainWindowProbe::histogram_view(*w);
+  }
+  CHECK(histogram);
+}
+
+TEST_CASE("the planets of EIN OBJEKT AUSWÄHLEN stand bold") {
+  auto w = MainWindowProbe::make();
+  bool bold = false;
+  int rows = 0;
+  DialogDriver drive;
+  drive.then([&](QDialog* d) {
+    const auto* list = d->findChild<QListWidget*>();
+    REQUIRE(list != nullptr);
+    rows = list->count();
+    bold = true;
+    for (int r = 0; r < list->count(); ++r) {
+      bold = bold && list->item(r)->font().bold();
+    }
+    d->reject();
+  });
+  (void)ask_object(w.get(), {{body::kSun, "SONNE"}, {body::kMoon, "MOND"}, {-1, QString()}});
+  CHECK(drive.pending() == 0);
+  CHECK(rows == 3);
+  CHECK(bold);
 }

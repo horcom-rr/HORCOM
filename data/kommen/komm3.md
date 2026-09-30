@@ -357,6 +357,8 @@ Sind Hilfs-Routinen für astronomische Überlegungen.Ebenso das Programm
 
 Ebenfalls eine astronomische Hilfs-Routine zur Ermittlung des Kalenderdatums aus dem in der Astronomie verwendeten "JULIANISCHEN DATUM",das ab dem Datum 1.1.4713 v.Chr. 12 h Tag für Tag zählt.
 
+*Anmerkung der Neufassung, in dieser Version stehen ET aus UT, UT aus ET und DATUM aus JD unter DIVERSES bei den anderen Umrechnungen.*
+
 ---
 
 ALLGEMEINES zum KALENDER:

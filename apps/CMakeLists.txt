@@ -86,6 +86,7 @@ if(Qt6_FOUND)
     gui/place_hub.hpp
     gui/transit_list_dialog.cpp
     gui/transit_list_dialog.hpp
+    gui/a18_rows.hpp
     gui/wheel_widget.cpp
     gui/wheel_widget.hpp
     gui/zeitzon_dialog.cpp

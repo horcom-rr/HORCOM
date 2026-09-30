@@ -383,12 +383,6 @@ QLabel#listHead {
   font-weight: bold;
   letter-spacing: 1px;
 }
-/* the answer in force of a question box, his yellow label box */
-QPushButton#currentChoice {
-  background: @checkBg@;
-  color: #000000;
-  border: 2px solid @checkEdge@;
-}
 QComboBox, QDateEdit, QTimeEdit, QSpinBox, QDoubleSpinBox, QLineEdit {
   background: @field@;
   border: 1px solid @edge@;
@@ -638,6 +632,9 @@ QToolButton:pressed {
 
 /// The text scale of the Ansicht menu, percent of the design size.
 inline constexpr int kTextScaleNormal = 100;
+/// The design size of the text of every widget in pixels, the QWidget
+/// rule of the style sheet.
+inline constexpr int kBodyPx = 14;
 /// The steps of SCHRIFT GRÖßER and SCHRIFT KLEINER. One step down takes
 /// every size a pixel smaller, one step up two pixels larger, the tester
 /// found the old even tenths too small downwards and too timid upwards.
@@ -757,6 +754,20 @@ inline QString heading_span(const QString& text) {
   return dark_now()
              ? QString("<span style='color:#FFFF00;font-weight:bold;font-size:110%'>%1</span>").arg(text)
              : QString("<span style='background-color:#FFFF00;color:#000000;font-weight:bold;font-size:110%'>&nbsp;%1&nbsp;</span>").arg(text);
+}
+
+/// A heading span at a size of its own. The rich text of a label takes
+/// sizes in pixels, a percent size leaves the text as large as before.
+///
+/// @param text the heading, already translated and escaped
+/// @param px   the size of its letters in pixels
+/// @return the rich text span for a QLabel
+inline QString heading_span_px(const QString& text, int px) {
+  const QString size = QString::number(px);
+  return dark_now()
+             ? QString("<span style='color:#FFFF00;font-weight:bold;font-size:%2px'>%1</span>").arg(text, size)
+             : QString("<span style='background-color:#FFFF00;color:#000000;font-weight:bold;font-size:%2px'>&nbsp;%1&nbsp;</span>")
+                   .arg(text, size);
 }
 
 }  // namespace horcom::theme

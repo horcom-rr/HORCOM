@@ -14,6 +14,7 @@
 #include <cmath>
 #include <numeric>
 
+#include "cell_weight.hpp"
 #include "choice_dialog.hpp"
 #include "event_filter.hpp"
 #include "horcom/chart/arabic.hpp"
@@ -331,6 +332,8 @@ void MainWindow::arabic_table() {
         }
       }
     }
+    // the point, its longitude and its aspects bold like the fixed stars
+    bold_columns(table, {0, 2, 3});
     table->resizeColumnsToContents();
   };
   LambdaFilter keys(LambdaFilter::keys([&](int key) {

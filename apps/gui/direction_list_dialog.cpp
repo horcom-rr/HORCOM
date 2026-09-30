@@ -16,6 +16,7 @@
 #include <QVBoxLayout>
 
 #include "a18_rows.hpp"
+#include "cell_weight.hpp"
 #include "horcom/chart/bodies.hpp"
 #include "horcom/core/constants.hpp"
 #include "horcom/time/calendar.hpp"
@@ -116,6 +117,11 @@ void DirectionListDialog::build() {
   a18::style_table(table_, display_.small_symbols);
   table_->setEditTriggers(QAbstractItemView::NoEditTriggers);
   table_->setSelectionBehavior(QAbstractItemView::SelectRows);
+  table_->horizontalHeader()->setSectionsClickable(true);
+  connect(table_->horizontalHeader(), &QHeaderView::sectionClicked, this, &DirectionListDialog::sort_by_column);
+  // the table takes the focus with a click only, a first focus would mark
+  // its first cell before anything was chosen
+  table_->setFocusPolicy(Qt::ClickFocus);
   count_ = new QLabel(this);
   auto* sort = new QPushButton(tr("LISTE SORTIEREN…"), this);
   auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, this);
@@ -167,21 +173,42 @@ void DirectionListDialog::fill() {
         break;
       }
     }
-    table_->setItem(row, kColWhen, new QTableWidgetItem(when));
+    // the dates and the aspects bold, the tester reads the list by them
+    auto* when_item = new QTableWidgetItem(when);
+    bold_cell(when_item);
+    table_->setItem(row, kColWhen, when_item);
     //RR EINZELNE PLANETEN ROT MARKIEREN
     auto* directed = new QTableWidgetItem(r.directed_text);
     a18::dress_factor(directed, r.directed, true, display_.plinv, display_.marked);
     table_->setItem(row, kColDirected, directed);
     auto* angle = new QTableWidgetItem(QString::asprintf("%3.0f", r.angle_deg));
     a18::colour_aspect(angle, r.angle_deg, display_.plinv);
+    bold_cell(angle);
     table_->setItem(row, kColAngle, angle);
     auto* target = new QTableWidgetItem(r.target_text);
     a18::dress_factor(target, r.target, false, display_.plinv, display_.marked);
     table_->setItem(row, kColTarget, target);
     table_->setItem(row, kColKind, new QTableWidgetItem(r.kind));
   }
-  count_->setText(tr("%1 Auslösungen").arg(rows_.size()));
+  count_->setText(a18::count_line(rows_.size()));
   table_->resizeColumnsToContents();
+}
+
+// a click on a column head orders the list by that column, the
+// directions of one value in time, like the transit list
+void DirectionListDialog::sort_by_column(int column) {
+  std::stable_sort(rows_.begin(), rows_.end(), [column](const Row& a, const Row& b) {
+    int c = 0;
+    switch (column) {
+      case kColDirected: c = a18::compare_factor(a.directed, a.directed_text, b.directed, b.directed_text); break;
+      case kColAngle: c = a18::compare_angle(a.angle_deg, b.angle_deg); break;
+      case kColTarget: c = a18::compare_factor(a.target, a.target_text, b.target, b.target_text); break;
+      case kColKind: c = QString::compare(a.kind, b.kind); break;
+      default: break;
+    }
+    return c != 0 ? c < 0 : a.years < b.years;
+  });
+  fill();
 }
 
 // ported from the sort question of dirend

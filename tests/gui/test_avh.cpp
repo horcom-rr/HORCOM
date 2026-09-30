@@ -11,7 +11,9 @@
 #include <QLineEdit>
 #include <QMenu>
 #include <QMouseEvent>
+#include <QPushButton>
 #include <QRegularExpression>
+#include <QSettings>
 #include <QTimer>
 
 #include "dialog_driver.hpp"
@@ -109,7 +111,7 @@ TEST_CASE("VORGABEN HOROSKOP walks on from the chosen topic and R steps back") {
   MainWindowProbe::apply(*w, evening_birth());
   Konsta& k = MainWindowProbe::konsta(*w);
   k.begz = 1;
-  MainWindowProbe::rulers(*w) = RulerSet::kModern;
+  MainWindowProbe::rulers(*w) = RulerSet::kExtended;
   {
     DialogDriver drive;
     drive.then(DialogDriver::click("BEGINN des Horoskops"))  // GEWÜNSCHTES THEMA ANKLICKEN !
@@ -125,8 +127,8 @@ TEST_CASE("VORGABEN HOROSKOP walks on from the chosen topic and R steps back") {
   }
   CHECK(k.begz == 2);
   CHECK(MainWindowProbe::rulers(*w) == RulerSet::kClassic);
-  // the choice stays for the next start, the other cases want his NEU
-  MainWindowProbe::set_rulers(*w, RulerSet::kModern);
+  // the choice stays for the next start, the other cases want the NEU
+  MainWindowProbe::set_rulers(*w, RulerSet::kExtended);
   const WheelOptions o = MainWindowProbe::wheel_options(*w);
   CHECK(o.begin == 2);
   // horbeg puts the MC on the left of the wheel
@@ -385,7 +387,8 @@ TEST_CASE("the old rulers of alt! reach the birth ruler of the wheel") {
   }
   REQUIRE(hour >= 0);
   const double ac = MainWindowProbe::chart(*w).houses.cusp[1];
-  MainWindowProbe::rulers(*w) = RulerSet::kModern;
+  // Scorpio, Aquarius and Pisces carry the same rulers in both NEU sets
+  MainWindowProbe::rulers(*w) = RulerSet::kExtended;
   CHECK(MainWindowProbe::wheel_options(*w).ruler_slot == sign_ruler(ac, RulerSet::kModern));
   MainWindowProbe::rulers(*w) = RulerSet::kClassic;
   const int classic = sign_ruler(ac, RulerSet::kClassic);
@@ -393,7 +396,7 @@ TEST_CASE("the old rulers of alt! reach the birth ruler of the wheel") {
   CHECK(MainWindowProbe::wheel_options(*w).ruler_slot == classic);
 }
 
-TEST_CASE("NEU mit QU, CH rules Taurus by Quaoar and Virgo by Chiron, Venus and Mercury stand in") {
+TEST_CASE("NEU rules Taurus by Quaoar and Virgo by Chiron, Venus and Mercury stand in") {
   auto w = MainWindowProbe::make();
   // find a birth hour whose ascendant stands in Taurus or Virgo
   int hour = -1;
@@ -408,15 +411,29 @@ TEST_CASE("NEU mit QU, CH rules Taurus by Quaoar and Virgo by Chiron, Venus and 
   REQUIRE(hour >= 0);
   const int extra = sign == 1 ? body::kQuaoar : body::kChiron;
   const int stand_in = sign == 1 ? body::kVenus : body::kMercury;
-  // the third set chosen in the box, the choice kept for the next start
+  // the tester's NEU is the NEU of the box and the set of a first start,
+  // his ALT stands beside it and nothing else
+  CHECK(MainWindowProbe::rulers(*w) == RulerSet::kExtended);
+  MainWindowProbe::set_rulers(*w, RulerSet::kClassic);
+  QStringList answers;
+  QString lines;
   {
     DialogDriver drive;
     drive.then(DialogDriver::click("ZUORDNUNG ZEICHENHERRSCHER"))
-        .then(DialogDriver::click("NEU mit QU, CH"))
+        .then([&answers, &lines](QDialog* d) {
+          for (const QPushButton* b : d->findChildren<QPushButton*>()) {
+            answers << b->text();
+          }
+          lines = labels(d);
+          DialogDriver::click("NEU")(d);
+        })
         .then(DialogDriver::click("EXIT"));
     MainWindowProbe::vorgaben_horoskop(*w);
     CHECK(drive.pending() == 0);
   }
+  CHECK(answers == QStringList{"NEU", "ALT", "EXIT"});
+  CHECK(lines.contains("NEU : TA-QU   VI-CH   SC-PL   AQ-UR   PS-NE"));
+  CHECK(lines.contains("ALT : TA-VE   VI-ME   SC-MA   AQ-SA   PS-JU"));
   CHECK(MainWindowProbe::rulers(*w) == RulerSet::kExtended);
   CHECK(MainWindowProbe::rulers(*MainWindowProbe::make()) == RulerSet::kExtended);
   // without the extra bodies the old ruler stands in
@@ -427,9 +444,11 @@ TEST_CASE("NEU mit QU, CH rules Taurus by Quaoar and Virgo by Chiron, Venus and 
   MainWindowProbe::preset_extras(*w, true, false, false);
   MainWindowProbe::apply(*w, evening_birth(hour));
   CHECK(MainWindowProbe::wheel_options(*w).ruler_slot == extra);
-  // his NEU again for the other cases
-  MainWindowProbe::set_rulers(*w, RulerSet::kModern);
-  CHECK(MainWindowProbe::rulers(*MainWindowProbe::make()) == RulerSet::kModern);
+  // a 0 an earlier version stored for his NEU of Venus and Mercury opens
+  // on the NEU of today
+  QSettings().setValue("vorgaben/rulers", 0);
+  CHECK(MainWindowProbe::rulers(*MainWindowProbe::make()) == RulerSet::kExtended);
+  MainWindowProbe::set_rulers(*w, RulerSet::kExtended);
 }
 
 TEST_CASE("the KOMPAKT-AUSWERTUNG lists the midpoints and bes2 names the chart") {
@@ -1212,4 +1231,44 @@ TEST_CASE("an empty DOPPEL-KREIS row runs a12 and COMPOSIT casts geocentric") {
     MainWindowProbe::composite_session(*w);
   }
   CHECK_FALSE(MainWindowProbe::settings(*w).heliocentric);
+}
+
+TEST_CASE("the pair charts name both partners of one family apart") {
+  auto w = MainWindowProbe::make();
+  AafRecord one = evening_birth(20);
+  one.surname = "FAMILIE";
+  one.given = "ANNA MARIA";
+  AafRecord two = evening_birth(8);
+  two.surname = "FAMILIE";
+  two.given = "BERND OTTO";
+  two.year = 1990;
+  MainWindowProbe::put_slot(*w, 0, one);
+  MainWindowProbe::put_slot(*w, 1, two);
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("SCHEMATISCHE"))
+        .then(DialogDriver::click("SATZ1"))
+        .then(DialogDriver::click("SATZ2"));
+    MainWindowProbe::composite_session(*w);
+  }
+  REQUIRE(MainWindowProbe::composite_on(*w));
+  // the surname alone read FAMILIE-FAMILIE, the banner carries the first
+  // two names and the corner rows his na$ of twenty letters
+  CHECK(MainWindowProbe::banner_record(*w) == "COMPOSIT FAMILIE ANNA-FAMILIE BERND");
+  ClassicSheetText t = MainWindowProbe::sheet(*w);
+  CHECK(t.pair_name1 == "1: FAMILIE ANNA MARIA");
+  CHECK(t.pair_name2 == "2: FAMILIE BERND OTTO");
+  MainWindowProbe::reset_views(*w);
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("SATZ1")).then(DialogDriver::click("SATZ2")).then(DialogDriver::click("WEITER MACHEN"));
+    MainWindowProbe::combin_chart(*w);
+  }
+  CHECK(MainWindowProbe::banner_record(*w).startsWith("COMBIN FAMILIE ANNA-FAMILIE BERND"));
+  t = MainWindowProbe::sheet(*w);
+  CHECK(t.pair_name1 == "1: FAMILIE ANNA MARIA");
+  CHECK(t.pair_name2 == "2: FAMILIE BERND OTTO");
+  // the COMBIN taken over as RADIX keeps his na$, ten letters of each
+  // whole name
+  CHECK(MainWindowProbe::combin_na(*w) == "FAMILIE AN-FAMILIE BE");
 }

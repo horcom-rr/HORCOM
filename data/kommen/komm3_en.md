@@ -357,6 +357,8 @@ Are auxiliary routines for astronomical considerations. Likewise the program
 
 Likewise an astronomical auxiliary routine for determining the calendar date from the "JULIAN DATE" used in astronomy, which counts day by day from the date 1.1.4713 BC, 12 h.
 
+*Note of this edition, in this version ET aus UT, UT aus ET and DATUM aus JD stand under DIVERSES with the other conversions.*
+
 ---
 
 GENERAL notes on the CALENDAR:

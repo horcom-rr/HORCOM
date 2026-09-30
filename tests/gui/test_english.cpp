@@ -306,7 +306,7 @@ TEST_CASE("the CHANGE CHART DEFAULTS wizard speaks English") {
   CHECK_FALSE(all.contains("HERRSCHER"));
   CHECK(MainWindowProbe::konsta(*w).begz == 3);
   CHECK(MainWindowProbe::rulers(*w) == RulerSet::kClassic);
-  MainWindowProbe::set_rulers(*w, RulerSet::kModern);
+  MainWindowProbe::set_rulers(*w, RulerSet::kExtended);
 }
 
 TEST_CASE("the COMPOSITE session speaks English") {

@@ -19,8 +19,10 @@
 #include <limits>
 #include <map>
 #include <set>
+#include <vector>
 
 #include "banner.hpp"
+#include "cell_weight.hpp"
 #include "choice_dialog.hpp"
 #include "horcom/chart/bodies.hpp"
 #include "horcom/chart/mundane.hpp"
@@ -168,7 +170,9 @@ QStringList MainWindow::rhythm_sol_lines() const {
   out << " " + tr("Auslösungen nach W.DÖBEREINER") + m;
   out << "  " + rhythm_chart_label() + " ";
   if (last_chart_) {
-    const QString unit = rhythm_unit_.isEmpty() ? QString() : (rhythm_months_ ? tr(" Monate") : tr(" Jahre"));
+    // the period counts per house, the tester asked the boxes to say so
+    const QString unit = rhythm_unit_.isEmpty() ? QString()
+                                                : (rhythm_months_ ? tr(" Monate") : tr(" Jahre")) + tr(" pro Haus");
     const CalendarDate d = calendar_date(last_chart_->jd_ut, current_settings().calendar);
     out << " " + tr("Datum") + ": " + datum3_text(d) + "  " + tr("Periode") + " : " + rhythm_phase_ + unit;
   }
@@ -533,8 +537,9 @@ QStringList MainWindow::septar_unit() {
   rhythm_unit_ = QStringLiteral(" Monate");
   eingm_ = rhythm_unit_;
   QStringList note = rhythm_sol_lines();
-  note << QString() << tr("ZEIT-EINHEIT beim SEPTAR : MONAT")
-       << tr("SIEBEN = 7 Jahre je SEPTAR , ZEHN = 10 Jahre ( DECAR )");
+  // the DECAR half of the line is gone, beside the period in months it
+  // confused the tester, the SIEBEN half names the usual choice
+  note << QString() << tr("ZEIT-EINHEIT beim SEPTAR : MONAT") << tr("SIEBEN = 7 Jahre je SEPTAR");
   return note;
 }
 
@@ -962,7 +967,10 @@ void MainWindow::rhythm_table(const RhythmRun& run) {
       const RhythmAge g = rhythm_age(t.value, run.clock.sn, false);
       when = QString("%1 %2").arg(QString(g.negative ? "-" : "") + QString::number(g.years), 3).arg(g.months, 4, 'f', 1);
     }
-    table->setItem(row, 0, new QTableWidgetItem(when));
+    // the dates bold like the GRAD-DATUM-LISTE
+    auto* when_item = new QTableWidgetItem(when);
+    bold_cell(when_item);
+    table->setItem(row, 0, when_item);
     // a175 stamps the sprite of the planet, it stands before the tag
     auto* planet = new QTableWidgetItem(slot_tag(t.slot));
     set_body_sprite(planet, t.slot, theme::ink_now());
@@ -995,19 +1003,35 @@ void MainWindow::rhythm_degree_list(const RhythmRun& run) {
   table->setItemDelegateForColumn(1, new SpriteRowDelegate(table));
   const Calendar cal = current_settings().calendar;
   const QColor red(0xE0, 0x00, 0x00);
+  // a negative period walks into the past, its walk order counts back
+  const double walk = run.opt.phase_years < 0.0 ? -1.0 : 1.0;
   for (int k = 0; k < rhythm_phase_count(run.opt); ++k) {
     const int house = rhythm_phase_house(run.opt, k + 1);
     phase_row(table, tr("PHASE %1 = HS %2").arg(k + run.opt.begin_house).arg(house));
+    // the half degrees of the phase in walk order, from its first date to
+    // its last. His a170 wrote them in zodiac order, so under RECHTS the
+    // dates of every phase ran backwards and the phase over 0 Aries broke
+    // in two. The list then opened on the end of the first phase and
+    // closed on the start of the last, the tester read it as beginning in
+    // the second house and ending in the eleventh
+    std::vector<std::size_t> in_phase;
     for (std::size_t i = 0; i < rows.size(); ++i) {
-      const DegreeDate& r = rows[i];
-      if (r.house != house) {
-        continue;
+      if (rows[i].house == house) {
+        in_phase.push_back(i);
       }
+    }
+    std::stable_sort(in_phase.begin(), in_phase.end(),
+                     [&rows, walk](std::size_t a, std::size_t b) { return rows[a].value * walk < rows[b].value * walk; });
+    for (const std::size_t i : in_phase) {
+      const DegreeDate& r = rows[i];
       const int row = table->rowCount();
       table->insertRow(row);
-      // za = w - 30 * FIX(w / 30), STR$(za,4,1)
+      // za = w - 30 * FIX(w / 30), STR$(za,4,1), the degrees and the dates
+      // bold as the tester asked
       const double za = r.degree - kDegPerSign * std::floor(r.degree / kDegPerSign);
-      table->setItem(row, 0, new QTableWidgetItem(QString::asprintf("%4.1f", za)));
+      auto* degree = new QTableWidgetItem(QString::asprintf("%4.1f", za));
+      bold_cell(degree);
+      table->setItem(row, 0, degree);
       const int sign = static_cast<int>(r.degree / kDegPerSign) % 12;
       auto* mark = new QTableWidgetItem;
       const bool cardinal = i % 180 == 0;
@@ -1040,7 +1064,9 @@ void MainWindow::rhythm_degree_list(const RhythmRun& run) {
       mark->setToolTip(mark->text());
       table->setItem(row, 1, mark);
       // the whole year, his datum$ kept two digits
-      table->setItem(row, 2, new QTableWidgetItem(datum_full_text(calendar_date(rhythm_jd(run.clock, r.value), cal))));
+      auto* date = new QTableWidgetItem(datum_full_text(calendar_date(rhythm_jd(run.clock, r.value), cal)));
+      bold_cell(date);
+      table->setItem(row, 2, date);
     }
   }
   table->resizeColumnsToContents();

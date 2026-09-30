@@ -67,8 +67,11 @@ TEST_CASE("the A4 page counts with his point weights and doubling switches") {
   MainWindowProbe::apply(*w, birth());
   Konsta& k = MainWindowProbe::konsta(*w);
   plain_weights(k);
+  // the Virgo ascendant makes Chiron the ruler of the NEU, it counts with
+  // the ZUSATZ weight of the point table
+  k.pn[15] = 1;
   const int plain = total(MainWindowProbe::histogram(*w).element_sign);
-  // GebHerr doppelt, the Virgo ascendant makes Mercury the ruler
+  // GebHerr doppelt
   k.gebherr_dop = true;
   CHECK(total(MainWindowProbe::histogram(*w).element_sign) == plain + 1);
   // 1.Haus doppelt, Jupiter stands in the first house

@@ -65,6 +65,7 @@
 #include "aspektarium_dialog.hpp"
 #include "auto_advance.hpp"
 #include "banner.hpp"
+#include "cell_weight.hpp"
 #include "direction_list_dialog.hpp"
 #include "horcom/chart/composite.hpp"
 #include "horcom/chart/distances.hpp"
@@ -190,9 +191,12 @@ constexpr int kHistorySettleMs = 800;
 // the panel history keeps this many steps
 constexpr std::size_t kHistoryDepth = 200;
 
-// the settings key of the sign rulers, 0 his NEU, 1 his ALT, 2 NEU with
-// Quaoar and Chiron
+// the settings key of the sign rulers, 1 his ALT, any other value the
+// NEU of the tester with Quaoar and Chiron
 constexpr const char* kRulersKey = "vorgaben/rulers";
+// the stored value of his ALT and of the NEU
+constexpr int kRulersClassic = 1;
+constexpr int kRulersNew = 2;
 
 // the chart of the first start and of AUFRÄUMEN, a moment without a
 // person at the place the panel opens with
@@ -202,6 +206,9 @@ constexpr int kStartYear = 1992;
 constexpr int kStartHour = 3;
 constexpr double kStartLon = 11.3244;
 constexpr double kStartLat = 48.1742;
+
+// the house system in the text of the house table, larger than the text
+constexpr double kHouseNameScale = 1.4;
 
 
 // the fractional variant, seconds carry the double's precision so the
@@ -325,6 +332,8 @@ QString slot_name(const AafRecord& r) {
 // the numbered corner rows of the paired sheets, ported from a13aus.
 //RR LEFT$(na$(oo,zz),20), his name cut keeps the row short of the wheel
 constexpr int kPairNameLength = 20;
+// the ten letters of each partner in the na$ of a pair record
+constexpr int kPairNaLength = 10;
 
 std::string pair_name_row(int nr, QString who, const QString& fallback) {
   who = who.trimmed();
@@ -332,6 +341,28 @@ std::string pair_name_row(int nr, QString who, const QString& fallback) {
     who = fallback;
   }
   return QString("%1: %2").arg(nr).arg(who.left(kPairNameLength)).toStdString();
+}
+
+// his na$, surname and given names as one line
+QString full_name(const AafRecord& r) {
+  return QString::fromStdString(record_name(r)).trimmed();
+}
+
+// the first two names of a record, the surname and the first given name.
+// The pair charts named each partner by the surname alone, two of one
+// family read alike and the tester asked for the first two names
+QString first_two_names(const AafRecord& r) {
+  QString given = QString::fromStdString(r.given).trimmed().section(' ', 0, 0);
+  // the star of an AAF line without a given name
+  if (given == QLatin1String("*")) {
+    given.clear();
+  }
+  return (QString::fromStdString(r.surname).trimmed() + " " + given).trimmed();
+}
+
+// his LEFT$(na$(od21,ze21),10) + "-" + LEFT$(na$(od22,ze22),10)
+QString pair_na(const AafRecord& a, const AafRecord& b) {
+  return full_name(a).left(kPairNaLength) + "-" + full_name(b).left(kPairNaLength);
 }
 
 std::string pair_moment_row(int nr, const CalendarDate& d) {
@@ -375,12 +406,11 @@ MainWindow::MainWindow(VsopTables vsop, Ephemerides eph, std::filesystem::path d
   aspect_settings_ = konsta_.aspect_settings();
   // horm&, the BEZUGS-SYSTEM of the profile
   mundane_frame_ = konsta_.horm == 2;
-  // the sign rulers of ZUORDNUNG ZEICHENHERRSCHER, his NEU until chosen
-  switch (QSettings().value(kRulersKey, 0).toInt()) {
-    case 1: rulers_ = RulerSet::kClassic; break;
-    case 2: rulers_ = RulerSet::kExtended; break;
-    default: rulers_ = RulerSet::kModern; break;
-  }
+  // the sign rulers of ZUORDNUNG ZEICHENHERRSCHER, the NEU until chosen.
+  // A value 0 stored by an earlier version meant his NEU of Venus and
+  // Mercury, the NEU with Quaoar and Chiron stands in for it
+  rulers_ = QSettings().value(kRulersKey, kRulersNew).toInt() == kRulersClassic ? RulerSet::kClassic
+                                                                                 : RulerSet::kExtended;
   // the colours of HINTERGRUND-FARBEN once chosen, the dress otherwise
   if (QSettings().value(theme::kOwnColorsKey, false).toBool() && qApp != nullptr) {
     theme::set_own_colors(theme::dialog_color(konsta_.col_dial), theme::passive_color(konsta_.col_backg));
@@ -1106,11 +1136,6 @@ void MainWindow::build_ui() {
   // every planet has its ingress table now, the caption says so
   ephem->addAction(tr("INGRESSE PLANETEN-MC-AC…"), this, &MainWindow::ingress_table);
   ephem->addSeparator();
-  //RR * ET aus UT, * UT aus ET, * DATUM aus JD
-  ephem->addAction(tr("ET aus UT…"), this, &MainWindow::et_from_ut);
-  ephem->addAction(tr("UT aus ET…"), this, &MainWindow::ut_from_et);
-  ephem->addAction(tr("DATUM aus JD…"), this, &MainWindow::date_from_jd);
-  ephem->addSeparator();
   ephem->addAction(tr("ERLÄUTERUNG 3…"), this, [erlaeuterung]() { erlaeuterung("komm3"); });
   // HOROSKOPE head, the toggles follow below in his order
   //RR VORGABEN HOROSKOP ÄNDERN
@@ -1328,10 +1353,17 @@ void MainWindow::build_ui() {
   statusBar()->hide();
   divers->addSeparator();
   //RR * AR-DE aus EL-EB, * EL-EB aus AR-DE, * LT aus UT, * UT aus LT
+  // the converters stand together in the order of the tester's eighth
+  // batch, his ET, UT and JD entries of EPHEMERIDE among them
   divers->addAction(tr("AR-DE aus EL-EB…"), this, &MainWindow::arde_from_eleb);
   divers->addAction(tr("EL-EB aus AR-DE…"), this, &MainWindow::eleb_from_arde);
-  divers->addAction(tr("LT aus UT…"), this, [this]() { local_time_convert(true); });
   divers->addAction(tr("UT aus LT…"), this, [this]() { local_time_convert(false); });
+  divers->addAction(tr("LT aus UT…"), this, [this]() { local_time_convert(true); });
+  //RR * ET aus UT, * UT aus ET, * DATUM aus JD
+  divers->addAction(tr("ET aus UT…"), this, &MainWindow::et_from_ut);
+  divers->addAction(tr("UT aus ET…"), this, &MainWindow::ut_from_et);
+  divers->addAction(tr("DATUM aus JD…"), this, &MainWindow::date_from_jd);
+  divers->addSeparator();
   //RR * WINKEL-UMRECHNUNG, F5 ( oder ALT + R ) = WINKEL/ZEIT DEZIMAL in G/H MIN SEK
   divers->addAction(tr("WINKEL-UMRECHNUNG…"), this, [this]() { angle_converter(this); });
   divers->addSeparator();
@@ -2113,13 +2145,13 @@ void MainWindow::recompute() {
     shown = &comp_holder;
     shown_aspects = &comp_aspects_holder;
     transit_drawn = true;
-    QString mine = QString::fromStdString(record_.surname).trimmed();
+    QString mine = first_two_names(record_);
     if (mine.isEmpty()) {
       mine = "RADIX";
     }
-    banner_->set_record(QString("COMPOSIT %1-%2").arg(mine, partner_name_));
+    banner_->set_record(QString("COMPOSIT %1-%2").arg(mine, partner_banner_name()));
   } else if (partner_chart_) {
-    QString mine = QString::fromStdString(record_.surname).trimmed();
+    QString mine = first_two_names(record_);
     if (mine.isEmpty()) {
       mine = "RADIX";
     }
@@ -2143,7 +2175,7 @@ void MainWindow::recompute() {
       show_full_sheet(a12_sheet(chart, *partner_chart_, s, true, build_double_wheel(d1, d2, s, da, opt)));
       cross_text = theme::heading_span(tr("VERGLEICH 90°")) + "&nbsp; ";
       cross_text += cross.empty() ? tr("keine") : cross_hits_text(cross);
-      banner_->set_record(QString::fromUtf8("90° %1 × %2").arg(mine, partner_name_));
+      banner_->set_record(QString::fromUtf8("90° %1 × %2").arg(mine, partner_banner_name()));
     } else {
       // the a12 double wheel, the partner outside at full scale, bes2
       // writes nothing in its centre, HELIOZ. in the hrg mode
@@ -2153,7 +2185,7 @@ void MainWindow::recompute() {
       show_full_sheet(a12_sheet(chart, *partner_chart_, s, false, build_double_wheel(chart, *partner_chart_, s, aspects, opt)));
       cross_text = theme::heading_span(tr("VERGLEICH")) + "&nbsp; ";
       cross_text += cross.empty() ? tr("keine") : cross_hits_text(cross);
-      banner_->set_record(QString("%1 × %2").arg(mine, partner_name_));
+      banner_->set_record(QString("%1 × %2").arg(mine, partner_banner_name()));
     }
     transit_drawn = true;
   }
@@ -2326,6 +2358,9 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects, bo
     retro->setForeground(QColor(0xE8, 0x5D, 0x4E));
     bodies_->setItem(row, kBodyRetro, retro);
   }
+  // the numbers bold like the PLANETEN-KOORDINATEN sheet, the tester read
+  // them better so, the dock of the cusps stays as he found it
+  bold_all(bodies_);
   bodies_->resizeColumnsToContents();
   // the columns only widen in a session, a chart with narrower values
   // keeps them, so the table and its dock stand still while one clicks
@@ -2610,6 +2645,8 @@ void MainWindow::fixed_star_table() {
     table->setItem(i, 8, new QTableWidgetItem(r.lightyears > 0 ? QString::asprintf("%6d", r.lightyears)
                                                                : QStringLiteral("    NN")));
   }
+  // the star, its longitude and its aspects bold, the tester reads them first
+  bold_columns(table, {0, 1, 2});
   table->resizeColumnsToContents();
   v->addWidget(table, 1);
   // his stelt, LEFT$(na$,25) + "|" + dm$ + ":" + datum3$ + "|" + sol$ + "|Eph.:" + gena4$
@@ -3124,6 +3161,18 @@ QStringList MainWindow::hsa0_lines(const Chart& chart) const {
   return out;
 }
 
+// the tester asked for the Mond-Phase caption in yellow, the caption is
+// the part of the phase text before its colon in either language
+QString MainWindow::hsa0_marked(const QString& line) const {
+  const QString caption = tr("Mond-Phase:%1° = %2%%3").section(':', 0, 0).toHtmlEscaped();
+  QString html = line.toHtmlEscaped();
+  const qsizetype at = html.indexOf(caption);
+  if (at >= 0) {
+    html.replace(at, caption.size(), theme::heading_span(caption));
+  }
+  return html;
+}
+
 // ported from hausa with the hsa0 header
 void MainWindow::house_table() {
   if (!last_chart_) {
@@ -3149,13 +3198,25 @@ void MainWindow::house_table() {
   dialog.setWindowTitle(tr("Häuser-Tabelle (%1)").arg(haus));
   auto* v = new QVBoxLayout(&dialog);
   for (const QString& line : hsa0_lines(chart)) {
-    v->addWidget(new QLabel(line, &dialog));
+    // his runs of blanks stay in the rich line
+    auto* l = new QLabel("<span style='white-space:pre'>" + hsa0_marked(line) + "</span>", &dialog);
+    l->setTextFormat(Qt::RichText);
+    v->addWidget(l);
   }
-  // his Häuserspitzen nach System, In wahrer ekliptikaler Länge u. AR
-  auto* title = new QLabel(tr("Häuserspitzen nach System %1 In wahrer ekliptikaler Länge u. AR").arg(haus), &dialog);
+  // his Häuserspitzen nach System, In wahrer ekliptikaler Länge u. AR. The
+  // system stands large in his yellow label box, the tester looks for it
+  // in the text and not in the box of HÄUSER-SYSTEM
+  auto* title = new QLabel(&dialog);
+  title->setTextFormat(Qt::RichText);
   QFont bold = title->font();
   bold.setBold(true);
   title->setFont(bold);
+  const int text_px =
+      theme::scaled_px(theme::kBodyPx, QSettings().value(theme::kTextScaleKey, theme::kTextScaleNormal).toInt());
+  const int name_px = static_cast<int>(std::lround(text_px * kHouseNameScale));
+  title->setText(tr("Häuserspitzen nach System %1 In wahrer ekliptikaler Länge u. AR")
+                     .toHtmlEscaped()
+                     .arg(theme::heading_span_px(haus.toHtmlEscaped(), name_px)));
   v->addWidget(title);
   const bool placidus = sys == HouseSystem::kPlacidus;
   // his ah& = 13, 14 for Äqual with the MC row, 15 for Vehlow with AC and MC
@@ -3171,6 +3232,9 @@ void MainWindow::house_table() {
   table->verticalHeader()->setVisible(false);
   table->verticalHeader()->setDefaultSectionSize(20);
   table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  // a sheet to read like the coordinate tables, no cell stands marked
+  table->setSelectionMode(QAbstractItemView::NoSelection);
+  table->setFocusPolicy(Qt::NoFocus);
   const double armcb = chart.armc_deg * kDegToRad;
   // his aeqh, the axis rows carry his labels, the equal systems name them
   // as houses and list the true angles in rows of their own
@@ -3201,8 +3265,13 @@ void MainWindow::house_table() {
       name = "MC";
       pa = chart.houses.angles.mc;
     }
-    table->setItem(t - 1, 0, new QTableWidgetItem(name));
-    table->setItem(t - 1, 1, new QTableWidgetItem(zodiac(pa) + QString::asprintf("  = %8.3f°", pa * kRadToDeg)));
+    auto* house = new QTableWidgetItem(name);
+    auto* longitude = new QTableWidgetItem(zodiac(pa) + QString::asprintf("  = %8.3f°", pa * kRadToDeg));
+    // the houses and their longitudes bold, the tester's eighth batch
+    bold_cell(house);
+    bold_cell(longitude);
+    table->setItem(t - 1, 0, house);
+    table->setItem(t - 1, 1, longitude);
     const Equatorial eq = ecliptic_to_equatorial(pa, 0.0, chart.ekls0);
     table->setItem(t - 1, 2, new QTableWidgetItem(QString::asprintf("%8.3f°", eq.ra * kRadToDeg)));
     table->setItem(t - 1, 3, new QTableWidgetItem(QString::asprintf("%8.3f°", eq.dec * kRadToDeg)));
@@ -3470,6 +3539,47 @@ void apply_ring_dress(const Konsta& k, WheelOptions& w) {
   w.outer_color = d.outer_color;
 }
 
+// the bars of the histogram table, the count in the ink of the table
+// and the bar in the colour of its element. The counts stood in the pale
+// element colours too and the tester could not read them
+class HistogramBarDelegate final : public QStyledItemDelegate {
+ public:
+  using QStyledItemDelegate::QStyledItemDelegate;
+
+  void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
+    QStyleOptionViewItem opt = option;
+    initStyleOption(&opt, index);
+    const QString text = opt.text;
+    const qsizetype at = text.indexOf(kBar);
+    const QVariant fg = index.data(Qt::ForegroundRole);
+    if (at < 0 || !fg.isValid()) {
+      QStyledItemDelegate::paint(painter, option, index);
+      return;
+    }
+    opt.text.clear();
+    const QStyle* style = opt.widget != nullptr ? opt.widget->style() : QApplication::style();
+    style->drawControl(QStyle::CE_ItemViewItem, &opt, painter, opt.widget);
+    const QRect r = style->subElementRect(QStyle::SE_ItemViewItemText, &opt, opt.widget);
+    const QFontMetrics fm(opt.font);
+    const int y = r.y() + (r.height() + fm.ascent() - fm.descent()) / 2;
+    const QString count = text.left(at);
+    painter->save();
+    painter->setFont(opt.font);
+    painter->setPen(theme::ink_now());
+    painter->drawText(r.x(), y, count);
+    // the bar keeps the plain weight, the bold blocks would stand thinner
+    QFont plain = opt.font;
+    plain.setBold(false);
+    painter->setFont(plain);
+    painter->setPen(fg.value<QBrush>().color());
+    painter->drawText(r.x() + fm.horizontalAdvance(count), y, text.mid(at));
+    painter->restore();
+  }
+
+  /// the full block that draws one unit of a bar
+  static constexpr QChar kBar{0x2588};
+};
+
 }  // namespace
 
 // ported from the HISTOGRAMM der ELEMENTE und KARD-FIX-GEM columns of
@@ -3487,6 +3597,10 @@ void MainWindow::histogram_view() {
   table->horizontalHeader()->setStretchLastSection(true);
   table->verticalHeader()->setVisible(false);
   table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  // a sheet to read like the coordinate tables, no cell to pick
+  table->setSelectionMode(QAbstractItemView::NoSelection);
+  table->setFocusPolicy(Qt::NoFocus);
+  table->setItemDelegate(new HistogramBarDelegate(table));
   auto* haus1 = new QCheckBox(tr("PUNKTE im 1. HAUS DOPPELT"), &dialog);
   haus1->setChecked(konsta_.haus1_dop);
   auto* herr = new QCheckBox(tr("1. GEBURTSHERRSCHER DOPPELT"), &dialog);
@@ -3507,6 +3621,7 @@ void MainWindow::histogram_view() {
       weights->setItem(0, i - 1, new QTableWidgetItem(QString::number(points[static_cast<std::size_t>(i)])));
     }
     weights->setItem(0, 14, new QTableWidgetItem(QString::number(points[body::kChiron])));
+    bold_all(weights);
     weights->resizeColumnsToContents();
     fit_columns(weights);
     weights->setFixedHeight(weights->horizontalHeader()->sizeHint().height() + weights->rowHeight(0) +
@@ -3545,7 +3660,7 @@ void MainWindow::histogram_view() {
       const int len = (value * 24 + top / 2) / top;
       QString s = QString::number(value) + "  ";
       for (int i = 0; i < len; ++i) {
-        s += QString::fromUtf8("█");
+        s += HistogramBarDelegate::kBar;
       }
       return s;
     };
@@ -3579,6 +3694,8 @@ void MainWindow::histogram_view() {
       table->setItem(r, 2, house_item);
       table->setItem(r, 3, sum_item);
     }
+    // the classes and the counts bold, the tester found them hard to read
+    bold_all(table);
     table->resizeColumnsToContents();
     fit_columns(table);
   };
@@ -4201,17 +4318,32 @@ QString age_name(int zal, bool capitals) {
 }  // namespace
 
 // ported from grossj1, the texts of the result and of the yellow box
-QStringList MainWindow::great_year_lines(bool& outside) const {
+QStringList MainWindow::great_year_lines(bool& outside, bool marked) const {
   const Chart& c = *last_chart_;
   const GreatYearPoint p =
       great_year_point(c.jd_ut, c.ta.tropical_year_days, c.smo.ekls, konsta_.jdgross, konsta_.zal_grossj);
   outside = p.outside;
   const Calendar cal = current_settings().calendar;
-  return {tr("Ekliptikale Bezugs-Länge = %1° Entspr. %2 - Zeitalter").arg(konsta_.zal_grossj, 3).arg(great_year_age_),
-          tr("Bezugs-Zeitpunkt = %1").arg(datum3_text(calendar_date(konsta_.jdgross, cal))),
-          tr("Längen - Differenz zur Bezugs - Länge = %1°").arg(std::abs(p.di_deg), 8, 'f', 4),
-          tr("Der 'Zeitalter - Punkt' für das Datum  %1 %2").arg(datum3_text(panel_day()), jul_mark(panel_calendar_)),
-          tr("hat die Ekliptikale Länge  %1 =  %2°").arg(zodiac(p.point_deg * kDegToRad)).arg(p.point_deg, 8, 'f', 4)};
+  const auto text = [marked](const QString& s) { return marked ? s.toHtmlEscaped() : s; };
+  // the tester looks for the date of the chart and the longitude of its
+  // age point, the rich lines carry them in his yellow label box
+  const auto mark = [marked](const QString& s) {
+    if (!marked) {
+      return s;
+    }
+    // the blanks of his fixed widths stand outside the box
+    const QString core = s.trimmed();
+    const qsizetype lead = s.indexOf(core);
+    return s.left(lead).toHtmlEscaped() + theme::heading_span(core.toHtmlEscaped()) +
+           s.mid(lead + core.size()).toHtmlEscaped();
+  };
+  return {text(tr("Ekliptikale Bezugs-Länge = %1° Entspr. %2 - Zeitalter").arg(konsta_.zal_grossj, 3).arg(great_year_age_)),
+          text(tr("Bezugs-Zeitpunkt = %1").arg(datum3_text(calendar_date(konsta_.jdgross, cal)))),
+          text(tr("Längen - Differenz zur Bezugs - Länge = %1°").arg(std::abs(p.di_deg), 8, 'f', 4)),
+          text(tr("Der 'Zeitalter - Punkt' für das Datum  %1 %2")).arg(mark(datum3_text(panel_day())), text(jul_mark(panel_calendar_))),
+          // the degree sign joins its number in the box
+          text(tr("hat die Ekliptikale Länge  %1 =  %2°")).replace(QStringLiteral("%2°"), QStringLiteral("%2"))
+              .arg(mark(zodiac(p.point_deg * kDegToRad)), mark(QString("%1°").arg(p.point_deg, 8, 'f', 4)))};
 }
 
 // ported from grossj. The reference date and the start of the age persist
@@ -4275,14 +4407,18 @@ void MainWindow::great_year() {
     great_year_on_ = true;
   }
   bool outside = false;
-  const QStringList mes = great_year_lines(outside);
+  const QStringList mes = great_year_lines(outside, true);
   if (outside) {
     // his NICHT MEHR im <zipu$> - ZEITALTER !
     QMessageBox::information(this, "HORCOM", tr("NICHT MEHR im %1 - ZEITALTER !").arg(great_year_age_));
   }
   // his d$ + " | " + sol$(od,ze) + " | Datum : " + datum3$ + " " + jul$(od,ze)
   const QString title = tr("%1 | RADIX | Datum : %2 %3").arg(who, datum3_text(panel_day()), jul_mark(panel_calendar_));
-  QMessageBox::information(this, title, mes.join(QChar(0x0A)));
+  // his lines keep their runs of blanks in the rich box
+  QMessageBox box(QMessageBox::Information, title, "<p style='white-space:pre'>" + mes.join("<br>") + "</p>",
+                  QMessageBox::Ok, this);
+  box.setTextFormat(Qt::RichText);
+  box.exec();
   persist_konsta();
 }
 
@@ -4446,20 +4582,14 @@ void MainWindow::combin_of(const std::vector<AafRecord>& parts, const std::vecto
   const ChartInput mixed = combin_input(inputs, cal);
   // go$(0,2) = "COMBIN-ORT", record data stays in his German
   set_panel_place({mixed.lon_deg_east, mixed.lat_deg, "COMBIN-ORT"});
-  const auto short_name = [](const AafRecord& r, int length) {
-    QString n = QString::fromStdString(r.surname).trimmed();
-    if (n.isEmpty()) {
-      n = QString::fromStdString(r.given).trimmed();
-    }
-    return n.left(length);
-  };
   combin_list_.clear();
   if (parts.size() == 2) {
     // the tester wanted the names and moments of both charts beside the
-    // mean, his comb! showed the names only
-    combin_name1_ = pair_name_row(1, short_name(parts[0], kDatNameLength), "RADIX");
+    // mean, his comb! showed the names only. The rows carry his na$, the
+    // surname alone had named two of one family alike
+    combin_name1_ = pair_name_row(1, full_name(parts[0]), "RADIX");
     combin_moment1_ = pair_moment_row(1, inputs[0].date_ut);
-    combin_name2_ = pair_name_row(2, short_name(parts[1], kDatNameLength), tr("Hor 2"));
+    combin_name2_ = pair_name_row(2, full_name(parts[1]), tr("Hor 2"));
     combin_moment2_ = pair_moment_row(2, inputs[1].date_ut);
   } else {
     // "SÄTZE: " + z$, the names LEFT$ 20 stacked above the bottom edge
@@ -4472,7 +4602,7 @@ void MainWindow::combin_of(const std::vector<AafRecord>& parts, const std::vecto
     combin_name2_.clear();
     combin_moment2_.clear();
     for (const AafRecord& r : parts) {
-      combin_list_.push_back(short_name(r, 20).toStdString());
+      combin_list_.push_back(full_name(r).left(kPairNameLength).toStdString());
     }
   }
   int s = static_cast<int>((mixed.date_ut.hour * 60.0 + mixed.date_ut.minute) * 60.0 + 0.5);
@@ -4484,10 +4614,11 @@ void MainWindow::combin_of(const std::vector<AafRecord>& parts, const std::vecto
                                                           mixed.date_ut.month, mixed.date_ut.year, s / 3600,
                                                           (s / 60) % 60, s % 60))
                      .toStdString();
-  // na$(od,ze) = LEFT$(na$(od21,ze21),10) + "-" + LEFT$(na$(od22,ze22),10)
-  const QString na = short_name(parts[0], 10) + "-" + short_name(parts[1], 10);
-  apply_moment(julian_day(mixed.date_ut, cal), "COMBIN " + na);
-  combin_na_ = na;
+  // the banner names the first two names of both partners, the record of
+  // the COMBIN keeps his na$(od,ze), ten letters of each whole name
+  apply_moment(julian_day(mixed.date_ut, cal),
+               "COMBIN " + first_two_names(parts[0]) + "-" + first_two_names(parts[1]));
+  combin_na_ = pair_na(parts[0], parts[1]);
   update_solar_actions();
 }
 
@@ -5051,7 +5182,7 @@ void MainWindow::clear_slots() {
 
 void MainWindow::set_rulers(RulerSet set) {
   rulers_ = set;
-  QSettings().setValue(kRulersKey, set == RulerSet::kClassic ? 1 : (set == RulerSet::kExtended ? 2 : 0));
+  QSettings().setValue(kRulersKey, set == RulerSet::kClassic ? kRulersClassic : kRulersNew);
 }
 
 void MainWindow::reset_panel() {
@@ -5314,7 +5445,8 @@ void MainWindow::vorgaben_overview() {
   static constexpr const char* kBegin[5] = {QT_TR_NOOP("Aszendent"), QT_TR_NOOP("MC"), QT_TR_NOOP("0 Widder"),
                                             QT_TR_NOOP("0 Waage"), QT_TR_NOOP("Eigene Wahl")};
   mid += tr("Beginn Horoskop : %1").arg(tr(kBegin[std::clamp(konsta_.begz, 1, 5) - 1])) + "<br>";
-  // his n$ Alt or Neu, the third set a rewrite addition
+  // his n$ Alt or Neu, the NEU names Quaoar and Chiron since it rules
+  // Taurus and Virgo by them
   mid += (rulers_ == RulerSet::kClassic    ? tr("Zuordng.ZE-PL: Alt")
           : rulers_ == RulerSet::kExtended ? tr("Zuordng.ZE-PL: Neu QU CH")
                                            : tr("Zuordng.ZE-PL: Neu")) +
@@ -5372,9 +5504,9 @@ void MainWindow::choose_house_system() {
                           tr("KEINE Häuser,NUR AC und MC"),
                           tr("WEDER HÄUSER noch  AC oder MC"),
                           tr("WEDER HÄUSER noch  AC oder MC noch MONDKNOTEN")};
-  // the system in force wears the yellow label box, the tester wanted to
-  // see it at a glance
-  const int es = ChoiceDialog::ask_current(this, tr("HÄUSERSYSTEM WÄHLEN !"), {}, items, houses_->currentIndex());
+  // his alerte(haw&), the system in force stands preset. The tester
+  // wanted it marked in the text of the house table, not in this box
+  const int es = ChoiceDialog::ask(this, tr("HÄUSERSYSTEM WÄHLEN !"), {}, items, houses_->currentIndex());
   if (es >= 0 && es < houses_->count()) {
     houses_->setCurrentIndex(es);
   }
@@ -5869,13 +6001,16 @@ bool MainWindow::set_partner(const AafRecord& r) {
   }
   partner_chart_ = partner;
   partner_input_ = pin;
-  partner_name_ = QString::fromStdString(r.surname).trimmed();
-  if (partner_name_.isEmpty()) {
-    partner_name_ = QString::fromStdString(r.given).trimmed();
-  }
+  // his LEFT$(na$(oo,zz),20) names the partner on the sheet, the whole
+  // name so two of one family stand apart
+  partner_name_ = full_name(r);
   partner_place_ = QString::fromStdString(r.place).trimmed();
   partner_record_ = r;
   return true;
+}
+
+QString MainWindow::partner_banner_name() const {
+  return partner_record_ ? first_two_names(*partner_record_) : partner_name_;
 }
 
 // the od = 0 slots of his DOPPEL-DATEN rows, the pair a double chart was
@@ -6083,6 +6218,18 @@ void MainWindow::preset_chart(const AafRecord& r, bool parallax, bool true_node)
 
 void MainWindow::apply_record(const AafRecord& r, bool claim_slot) {
   record_ = r;
+  // the progressed ring of SEKUNDÄR and SONNEN-BOGEN, the directed axes of
+  // prima and the walk screen of TRANSITE were cast for the chart before.
+  // His next menu entry drew the new chart plain, the port kept the ring
+  // and mixed the new radix with the old moment. The final recompute below
+  // draws the new chart
+  for (QAction* a : {arc_action_, directions_action_}) {
+    if (a != nullptr && a->isChecked()) {
+      const QSignalBlocker block(a);
+      a->setChecked(false);
+    }
+  }
+  a20_transits_ = false;
   // a change to a radix chart drops the combin memory, its origin lines
   // must not stay on other drawings
   combin_name1_.clear();

@@ -4,9 +4,12 @@
 
 #include <QComboBox>
 #include <QKeyEvent>
+#include <QHeaderView>
 #include <QLabel>
+#include <QTableWidget>
 #include <cmath>
 
+#include "a18_rows.hpp"
 #include "dialog_driver.hpp"
 #include "doctest.h"
 #include "probe.hpp"
@@ -339,4 +342,80 @@ TEST_CASE("the event place of the a18 tables carries the parallax lines of ereig
   CHECK(transit_box.contains("EREIGNIS-Ort = GEBURTS-Ort ?"));
   CHECK(mundane_box.contains("EREIGNISORT ? ( Wegen PARALLAXE )"));
   CHECK_FALSE(mundane_box.contains("PARALLAXE evtl."));
+}
+
+TEST_CASE("the TRANSITE table opens without a chosen row, dates and aspects bold, and sorts by a clicked head") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, birth());
+  int chosen = -1;
+  bool bold = true;
+  bool plain_bodies = true;
+  QColor trine;
+  QStringList running;
+  QStringList dates;
+  QString count;
+  DialogDriver drive;
+  drive.then(DialogDriver::click("30° => TEILER"))
+      .then(DialogDriver::click("ALLE"))
+      .then(DialogDriver::fill({"", "1", "11", "1992"}, "OK"))
+      .then(DialogDriver::fill({"", "30", "11", "1992"}, "OK"))
+      .then(DialogDriver::click("NEIN"));
+  settings_steps(drive, MainWindowProbe::settings(*w));
+  drive.then(DialogDriver::click("SORTIEREN")).then([&](QDialog* d) {
+    auto* t = d->findChild<QTableWidget*>();
+    REQUIRE(t != nullptr);
+    // his list had no preselected line, the black band of the first row
+    // read as a fault
+    chosen = static_cast<int>(t->selectedItems().size());
+    for (int r = 0; r < t->rowCount(); ++r) {
+      bold = bold && t->item(r, 0)->font().bold() && t->item(r, 3)->font().bold();
+      plain_bodies = plain_bodies && !t->item(r, 2)->font().bold();
+      if (t->item(r, 3)->text().trimmed() == "120") {
+        trine = t->item(r, 3)->foreground().color();
+      }
+    }
+    for (const QLabel* l : d->findChildren<QLabel*>()) {
+      if (l->text().contains("Auslösungen")) {
+        count = l->text();
+      }
+    }
+    // a click on the head of the running bodies groups the list by them
+    emit t->horizontalHeader()->sectionClicked(2);
+    for (int r = 0; r < t->rowCount(); ++r) {
+      running << t->item(r, 2)->text().section(' ', 0, 0);
+      dates << t->item(r, 0)->text();
+    }
+    d->reject();
+  });
+  MainWindowProbe::transit_list(*w);
+  CHECK(drive.pending() == 0);
+  CHECK(drive.unexpected() == 0);
+  CHECK(chosen == 0);
+  CHECK(bold);
+  CHECK(plain_bodies);
+  // the harmonic aspects in dark green on paper, the tester's wish
+  CHECK(trine == a18::kPaperGreen);
+  CHECK(count.contains("Spaltenkopf anklicken"));
+  REQUIRE(running.size() > 2);
+  // the bodies in the order of his slot table, each in time
+  const auto slot_of = [](const QString& tag) {
+    for (int slot = 0; slot < body::kSlotCount; ++slot) {
+      if (a18::slot_tag(slot) == tag) {
+        return slot;
+      }
+    }
+    return -1;
+  };
+  const auto day_of = [](const QString& t) {
+    const QStringList f = t.split('.');
+    return julian_day({f.value(0).toInt(), f.value(1).toInt(), f.value(2).toInt(), 0.0, 0.0});
+  };
+  for (int r = 1; r < running.size(); ++r) {
+    const int a = slot_of(running[r - 1]);
+    const int b = slot_of(running[r]);
+    CHECK(a <= b);
+    if (a == b) {
+      CHECK(day_of(dates[r - 1]) <= day_of(dates[r]));
+    }
+  }
 }

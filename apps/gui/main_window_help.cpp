@@ -82,6 +82,9 @@ void MainWindow::tag_help_stems(const std::vector<std::pair<QMenu*, QString>>& m
       {tr("HINTERGRUND-FARBEN…"), "komm9"},
       {tr("DATEIEN VERKETTEN…"), "komm9"},
       {tr("AAF-DATEI < > HORCOM-DATEI…"), "komm9"},
+      {tr("ET aus UT…"), "komm3"},
+      {tr("UT aus ET…"), "komm3"},
+      {tr("DATUM aus JD…"), "komm3"},
   };
   // the entries of a submenu answer to the stem of their menu
   const std::function<void(QMenu*, const QString&)> tag = [&](QMenu* menu, const QString& stem) {

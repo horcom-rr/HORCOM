@@ -13,6 +13,8 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QTableWidget>
+#include <QTextDocument>
+#include <cmath>
 
 #include "choice_dialog.hpp"
 #include "dialog_driver.hpp"
@@ -249,6 +251,15 @@ QString box_lines(QDialog* d) {
   return out.join(QChar(0x0A));
 }
 
+// the lines of a rich message with the padding of his yellow boxes and
+// the tags stripped, so they read like the plain lines
+QStringList plain_lines(QString html) {
+  html.remove(QStringLiteral("&nbsp;"));
+  QTextDocument doc;
+  doc.setHtml(html);
+  return doc.toPlainText().split(QChar(0x0A));
+}
+
 // the text of a message box, then close it
 DialogDriver::Step read_message(QString& title, QString& text) {
   return [&title, &text](QDialog* d) {
@@ -288,7 +299,10 @@ TEST_CASE("GROSSES JAHR keeps the CHAUVIN reference and shows the age point like
   CHECK(alert.contains("Zeitalters-Punkt : 330° Wassermann"));
   // the kept setting leaves his d$ empty
   CHECK(title.startsWith(" | RADIX | Datum : 11. 8.1999"));
-  const QStringList lines = text.split(QChar(0x0A));
+  // the date of the chart and the longitude of the age point stand in his
+  // yellow label box as the tester asked, the lines read as before
+  CHECK(text.contains(theme::heading_span("11. 8.1999")));
+  const QStringList lines = plain_lines(text);
   REQUIRE(lines.size() == 5);
   CHECK(lines[0] == "Ekliptikale Bezugs-Länge = 330° Entspr. Wassermann - Zeitalter");
   CHECK(lines[1] == "Bezugs-Zeitpunkt =  6. 1.1779   ");
@@ -299,6 +313,7 @@ TEST_CASE("GROSSES JAHR keeps the CHAUVIN reference and shows the age point like
   CHECK(lines[2] == QString::asprintf("L\u00e4ngen - Differenz zur Bezugs - L\u00e4nge = %8.4f\u00b0", std::abs(p.di_deg)));
   CHECK(lines[3].startsWith("Der 'Zeitalter - Punkt' f\u00fcr das Datum  11. 8.1999"));
   CHECK(lines[4].endsWith(QString::asprintf(" =  %8.4f\u00b0", p.point_deg)));
+  CHECK(text.contains(theme::heading_span(QString::asprintf("%.4f", p.point_deg) + QChar(0x00B0))));
   // the yellow box of his main screen repeats the lines with the record
   QString banner;
   drive.then([&banner](QDialog* d) {
@@ -345,7 +360,7 @@ TEST_CASE("GROSSES JAHR changes the age start and the reference and can switch t
   CHECK(k.jdgross == doctest::Approx(julian_day({21, 3, 2000, 12.0, 0.0})));
   CHECK(warning == "NICHT MEHR im FISCHE - ZEITALTER !");
   CHECK(title.startsWith("F\u00fcr DATENSATZ  :  TESTFALL"));
-  CHECK(text.startsWith("Ekliptikale Bezugs-L\u00e4nge = 360\u00b0 Entspr. FISCHE - Zeitalter"));
+  CHECK(plain_lines(text).value(0) == "Ekliptikale Bezugs-L\u00e4nge = 360\u00b0 Entspr. FISCHE - Zeitalter");
   // Anzeige abschalten ends the display, the box leaves the overview
   drive.then(DialogDriver::click("Anzeige abschalten"));
   MainWindowProbe::great_year(*w);
@@ -774,7 +789,7 @@ TEST_CASE("the entries added late to the menu tree carry the ERLÄUTERUNG of war
   CHECK(stem_of("ANSICH&T", "AAF-DATEI < > HORCOM-DATEI…") == "komm9");
 }
 
-TEST_CASE("the menus stand in the order of the tester's sixth batch") {
+TEST_CASE("the menus stand in the order of the tester's sixth and eighth batch") {
   auto w = MainWindowProbe::make();
   // the captions of a menu with a bar for every rule and every submenu by
   // its title, the grey heading rows included
@@ -805,10 +820,24 @@ TEST_CASE("the menus stand in the order of the tester's sixth batch") {
   CHECK_FALSE(file.contains("HOROSKOP als SVG SPEICHERN…"));
   CHECK(file.indexOf("ERLÄUTERUNG 2…") == file.size() - 1);
   CHECK(file[file.size() - 2] == "|");
+  // the ET, UT and JD entries left EPHEMERIDE for the conversions of
+  // DIVERSES in the eighth batch
   const QStringList ephem = layout("&EPHEMERIDE");
-  CHECK(ephem.contains("INGRESSE PLANETEN-MC-AC…"));
-  CHECK(ephem[1] == "|");
-  CHECK(ephem[ephem.size() - 2] == "|");
+  CHECK(ephem == QStringList{"VORGABEN EPHEMERIDE ÄNDERN…",
+                             "|",
+                             "PLANETEN-KOORDINATEN",
+                             "ZUSATZ-PLANETEN-KOORDINATEN",
+                             "HELIOZENTRISCHE VERSION EIN/AUS",
+                             "|",
+                             "STATISTIK G/H…",
+                             "ERLÄUTERUNG STATISTIK…",
+                             "|",
+                             "GRAD-LISTE G/H…",
+                             "FIX-STERN-POSITIONEN…",
+                             "ARABISCHE TEILE ( SENS.PUNKTE )…",
+                             "INGRESSE PLANETEN-MC-AC…",
+                             "|",
+                             "ERLÄUTERUNG 3…"});
   const QStringList horo = layout("H&OROSKOPE");
   // the new row of his list holds the three pair charts like the sub rows
   // of SCHRIFTGRÖßE and HOROSKOP SPEICHERN
@@ -873,8 +902,12 @@ TEST_CASE("the menus stand in the order of the tester's sixth batch") {
                               "|",
                               "AR-DE aus EL-EB…",
                               "EL-EB aus AR-DE…",
-                              "LT aus UT…",
                               "UT aus LT…",
+                              "LT aus UT…",
+                              "ET aus UT…",
+                              "UT aus ET…",
+                              "DATUM aus JD…",
+                              "|",
                               "WINKEL-UMRECHNUNG…",
                               "|",
                               "AUFGANG / UNTERGANG…",
@@ -1132,29 +1165,49 @@ TEST_CASE("ÜBER HORCOM carries his function key legend in grey") {
   CHECK_FALSE(f9->isEnabled());
 }
 
-TEST_CASE("HÄUSERSYSTEM WÄHLEN marks the system in force in his yellow box") {
+TEST_CASE("HÄUSERSYSTEM WÄHLEN presets the system like alerte and the house table marks it in the text") {
   auto w = MainWindowProbe::make();
   MainWindowProbe::houses(*w, 4);
-  QString marked;
-  int marks = 0;
+  MainWindowProbe::apply(*w, eclipse_birth());
+  QString preset;
+  int defaults = 0;
+  QString title;
+  QString phase;
   {
     DialogDriver drive;
-    drive.then([&marked, &marks](QDialog* d) {
-      for (const QPushButton* b : d->findChildren<QPushButton*>()) {
-        if (b->objectName() == ChoiceDialog::kCurrentName) {
-          marked = b->text();
-          ++marks;
-        }
-      }
-      d->reject();
-    });
+    drive
+        .then([&preset, &defaults](QDialog* d) {
+          for (const QPushButton* b : d->findChildren<QPushButton*>()) {
+            // his alerte(haw&), the system in force is the default answer
+            if (b->isDefault()) {
+              preset = b->text();
+              ++defaults;
+            }
+          }
+          DialogDriver::click("REGIOMONTANUS")(d);
+        })
+        .then([&title, &phase](QDialog* d) {
+          for (const QLabel* l : d->findChildren<QLabel*>()) {
+            if (l->text().contains("Regiomont.")) {
+              title = l->text();
+            }
+            if (l->text().contains("Mond-Phase")) {
+              phase = l->text();
+            }
+          }
+          d->reject();
+        });
     MainWindowProbe::choose_house_system(*w);
     CHECK(drive.pending() == 0);
   }
-  CHECK(marks == 1);
-  CHECK(marked == "REGIOMONTANUS");
-  // the style sheet paints the marked answer in the yellow of his boxes
-  CHECK(theme::stylesheet(100, false).contains("QPushButton#currentChoice"));
+  CHECK(defaults == 1);
+  CHECK(preset == "REGIOMONTANUS");
+  // the tester wants the system marked in the text of the table, large in
+  // his yellow label box, and no longer in the box of the choice
+  CHECK_FALSE(theme::stylesheet(100, false).contains("currentChoice"));
+  // forty percent above the text of the program at its scale
+  CHECK(title.contains(theme::heading_span_px("Regiomont.", static_cast<int>(std::lround(theme::kBodyPx * 1.4)))));
+  CHECK(phase.contains(theme::heading_span("Mond-Phase")));
 }
 
 TEST_CASE("a blank row of his boxes keeps its number but shows no empty field") {

@@ -80,6 +80,12 @@ class DirectionListDialog : public QDialog {
   /// @param mode 0 by time, 1 by aspects, 2 keeps the order of the walk
   void sort_rows(int mode);
 
+  /// Orders the list by one column like a click on its head, the
+  /// directions of one value in time.
+  ///
+  /// @param column the table column, the first column sorts by time
+  void sort_by_column(int column);
+
   /// Shows the list like dirend, LISTE SORTIEREN ? over the screen before
   /// the first page, then the table in the chosen order. The button of
   /// the table sorts again.

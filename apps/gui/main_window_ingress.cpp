@@ -15,6 +15,7 @@
 #include <limits>
 
 #include "calendar_mark.hpp"
+#include "cell_weight.hpp"
 #include "choice_dialog.hpp"
 #include "horcom/chart/bodies.hpp"
 #include "horcom/chart/signs.hpp"
@@ -187,6 +188,9 @@ void MainWindow::ingress_table() {
   table->setEditTriggers(QAbstractItemView::NoEditTriggers);
   table->setSelectionBehavior(QAbstractItemView::SelectRows);
   table->setSelectionMode(QAbstractItemView::SingleSelection);
+  // a click gives the table its focus, a first focus would mark the first
+  // cell before anything was chosen
+  table->setFocusPolicy(Qt::ClickFocus);
   table->setItemDelegate(new ZodiacDelegate(table));
   table->setFont(theme::mono_font());
   v->addWidget(table, 1);
@@ -262,7 +266,10 @@ void MainWindow::ingress_table() {
         if (!hit.ok) {
           continue;
         }
-        table->setItem(t, 1, new QTableWidgetItem(datum3_text(calendar_date(hit.jd_ut, cal))));
+        // the dates bold, the tester's eighth batch
+        auto* date = new QTableWidgetItem(datum3_text(calendar_date(hit.jd_ut, cal)));
+        bold_cell(date);
+        table->setItem(t, 1, date);
         table->setItem(t, 2, new QTableWidgetItem(clock_text(hit.jd_ut, cal)));
         const BodyLongitude bl = body_longitude(hit.jd_ut, choice.slot, ctx);
         table->setItem(t, 3, longitude_cell(bl.valid ? bl.el : kEps + t * kPi / 6.0));
@@ -304,9 +311,11 @@ void MainWindow::ingress_table() {
               table->setItem(t, kAngleDays + 1, longitude_cell(axis));
             }
           }
-          // his datum$ + "  " + ze$, the two digit year
-          table->setItem(t, c + 1,
-                         new QTableWidgetItem(datum_text(calendar_date(hit.jd_ut, cal)) + "  " + clock_text(hit.jd_ut, cal)));
+          // his datum$ + "  " + ze$, the two digit year, bold like the
+          // dates of the body tables
+          auto* when = new QTableWidgetItem(datum_text(calendar_date(hit.jd_ut, cal)) + "  " + clock_text(hit.jd_ut, cal));
+          bold_cell(when);
+          table->setItem(t, c + 1, when);
         }
       }
     }

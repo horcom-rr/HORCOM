@@ -266,261 +266,261 @@
 <context>
     <name>RobertInput</name>
     <message>
-        <location filename="../robert_input.cpp" line="34"/>
+        <location filename="../robert_input.cpp" line="35"/>
         <source>WIDDER</source>
         <translation>ARIES</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="34"/>
+        <location filename="../robert_input.cpp" line="35"/>
         <source>STIER</source>
         <translation>TAURUS</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="35"/>
+        <location filename="../robert_input.cpp" line="36"/>
         <source>ZWILLING</source>
         <translation>GEMINI</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="35"/>
+        <location filename="../robert_input.cpp" line="36"/>
         <source>KREBS</source>
         <translation>CANCER</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="36"/>
+        <location filename="../robert_input.cpp" line="37"/>
         <source>LÖWE</source>
         <translation>LEO</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="36"/>
+        <location filename="../robert_input.cpp" line="37"/>
         <source>JUNGFRAU</source>
         <translation>VIRGO</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="37"/>
+        <location filename="../robert_input.cpp" line="38"/>
         <source>WAAGE</source>
         <translation>LIBRA</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="37"/>
+        <location filename="../robert_input.cpp" line="38"/>
         <source>SKORPION</source>
         <translation>SCORPIO</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="38"/>
+        <location filename="../robert_input.cpp" line="39"/>
         <source>SCHÜTZE</source>
         <translation>SAGITTARIUS</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="38"/>
+        <location filename="../robert_input.cpp" line="39"/>
         <source>STEINBOCK</source>
         <translation>CAPRICORN</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="39"/>
+        <location filename="../robert_input.cpp" line="40"/>
         <source>WASSERMANN</source>
         <translation>AQUARIUS</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="39"/>
+        <location filename="../robert_input.cpp" line="40"/>
         <source>FISCHE</source>
         <translation>PISCES</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="117"/>
+        <location filename="../robert_input.cpp" line="118"/>
         <source>Mit DOPPELKLICK AUSWÄHLEN !</source>
         <translation>CHOOSE with a DOUBLE CLICK !</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="158"/>
+        <location filename="../robert_input.cpp" line="159"/>
         <source>ZEICHEN : %1</source>
         <translation>SIGN : %1</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="159"/>
+        <location filename="../robert_input.cpp" line="160"/>
         <source>GRAD-MINUTE-SEKUNDE  EINGEBEN :</source>
         <translation>ENTER DEGREE-MINUTE-SECOND :</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="172"/>
+        <location filename="../robert_input.cpp" line="173"/>
         <source>oder</source>
         <translation>or</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="173"/>
+        <location filename="../robert_input.cpp" line="174"/>
         <source>DEZIMALGRAD EINGEBEN :</source>
         <translation>ENTER DECIMAL DEGREES :</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="177"/>
+        <location filename="../robert_input.cpp" line="178"/>
         <source> ENTF </source>
         <translation> DEL </translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="126"/>
-        <location filename="../robert_input.cpp" line="178"/>
-        <location filename="../robert_input.cpp" line="632"/>
+        <location filename="../robert_input.cpp" line="127"/>
+        <location filename="../robert_input.cpp" line="179"/>
+        <location filename="../robert_input.cpp" line="638"/>
         <source> &amp;OK </source>
         <translation> &amp;OK </translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="203"/>
-        <location filename="../robert_input.cpp" line="666"/>
+        <location filename="../robert_input.cpp" line="204"/>
+        <location filename="../robert_input.cpp" line="672"/>
         <source>WINKEL &gt;360° </source>
         <translation>ANGLE &gt;360° </translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="216"/>
+        <location filename="../robert_input.cpp" line="217"/>
         <source>STUNDE-MINUTE-SEKUNDE :</source>
         <translation>HOUR-MINUTE-SECOND :</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="226"/>
-        <location filename="../robert_input.cpp" line="292"/>
-        <location filename="../robert_input.cpp" line="361"/>
-        <location filename="../robert_input.cpp" line="400"/>
-        <location filename="../robert_input.cpp" line="427"/>
-        <location filename="../robert_input.cpp" line="477"/>
-        <location filename="../robert_input.cpp" line="568"/>
+        <location filename="../robert_input.cpp" line="227"/>
+        <location filename="../robert_input.cpp" line="293"/>
+        <location filename="../robert_input.cpp" line="362"/>
+        <location filename="../robert_input.cpp" line="401"/>
+        <location filename="../robert_input.cpp" line="430"/>
+        <location filename="../robert_input.cpp" line="483"/>
+        <location filename="../robert_input.cpp" line="574"/>
         <source>&amp;OK</source>
         <translation>&amp;OK</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="253"/>
+        <location filename="../robert_input.cpp" line="254"/>
         <source> WENN v.CHR. , &apos;V&apos; EINGEBEN !</source>
         <translation> IF B.C. , ENTER &apos;V&apos; !</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="256"/>
+        <location filename="../robert_input.cpp" line="257"/>
         <source>DATUM :</source>
         <translation>DATE :</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="267"/>
+        <location filename="../robert_input.cpp" line="268"/>
         <source>TT</source>
         <translation>DD</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="271"/>
+        <location filename="../robert_input.cpp" line="272"/>
         <source>JJJJ</source>
         <translation>YYYY</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="312"/>
+        <location filename="../robert_input.cpp" line="313"/>
         <source>Datum INKORREKT !</source>
         <translation>Date INCORRECT !</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="417"/>
+        <location filename="../robert_input.cpp" line="418"/>
         <source>OBJEKTE AUSWÄHLEN !</source>
         <translation>CHOOSE OBJECTS !</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="446"/>
+        <location filename="../robert_input.cpp" line="449"/>
         <source>NICHTS GEWÄHLT !</source>
         <translation>NOTHING CHOSEN !</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="454"/>
+        <location filename="../robert_input.cpp" line="457"/>
         <source>EIN OBJEKT AUSWÄHLEN !</source>
         <translation>CHOOSE ONE OBJECT !</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="498"/>
+        <location filename="../robert_input.cpp" line="504"/>
         <source>ZIFFERN-EINGABE</source>
         <translation>DIGIT ENTRY</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="539"/>
+        <location filename="../robert_input.cpp" line="545"/>
         <source>Eingabe  GEOGRAPHISCHER  Koordinaten</source>
         <translation>Input of GEOGRAPHIC coordinates</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="566"/>
+        <location filename="../robert_input.cpp" line="572"/>
         <source>GEOGRAPHISCHE Länge  :</source>
         <translation>GEOGRAPHIC longitude :</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="567"/>
+        <location filename="../robert_input.cpp" line="573"/>
         <source>GEOGRAPHISCHE Breite :</source>
         <translation>GEOGRAPHIC latitude  :</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="604"/>
+        <location filename="../robert_input.cpp" line="610"/>
         <source>Links GRAD-MINUTE-SEKUNDE eingeben,Rechts DEZIMALWERTE</source>
         <translation>Left DEGREE-MINUTE-SECOND, right DECIMAL values</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="622"/>
+        <location filename="../robert_input.cpp" line="628"/>
         <source>DEZIMAL:</source>
         <translation>DECIMAL:</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="627"/>
+        <location filename="../robert_input.cpp" line="633"/>
         <source>REKTASZENSION :</source>
         <translation>RIGHT ASCENS.:</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="627"/>
+        <location filename="../robert_input.cpp" line="633"/>
         <source>EKLIPT. Länge :</source>
         <translation>ECLIPT. long. :</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="631"/>
+        <location filename="../robert_input.cpp" line="637"/>
         <source>DEKLINATION   :</source>
         <translation>DECLINATION   :</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="631"/>
+        <location filename="../robert_input.cpp" line="637"/>
         <source>EKLIPT. Breite:</source>
         <translation>ECLIPT. lat.  :</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="646"/>
+        <location filename="../robert_input.cpp" line="652"/>
         <source>&apos;N&apos; oder &apos;S&apos; </source>
         <translation>&apos;N&apos; or &apos;S&apos; </translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="671"/>
+        <location filename="../robert_input.cpp" line="677"/>
         <source>WINKEL &gt;90° </source>
         <translation>ANGLE &gt;90° </translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="713"/>
+        <location filename="../robert_input.cpp" line="719"/>
         <source>WINKEL(ZEIT)-UMRECHNUNG  ERGEBNIS :&apos;ENTER&apos;</source>
         <translation>ANGLE(TIME) CONVERSION  RESULT :&apos;ENTER&apos;</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="717"/>
+        <location filename="../robert_input.cpp" line="723"/>
         <source>DEZIMAL-GRAD ( h ) =&gt; GRAD ( h ) -MIN-SEK</source>
         <translation>DECIMAL DEGREES ( h ) =&gt; DEGREES ( h ) -MIN-SEC</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="720"/>
+        <location filename="../robert_input.cpp" line="726"/>
         <source>DEZIMAL-GRAD ( h )</source>
         <translation>DECIMAL DEGREES ( h )</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="722"/>
+        <location filename="../robert_input.cpp" line="728"/>
         <source>GRAD ( h )</source>
         <translation>DEGREES ( h )</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="724"/>
+        <location filename="../robert_input.cpp" line="730"/>
         <source>MIN</source>
         <translation>MIN</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="726"/>
+        <location filename="../robert_input.cpp" line="732"/>
         <source>SEK</source>
         <translation>SEC</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="728"/>
+        <location filename="../robert_input.cpp" line="734"/>
         <source>CLEAR</source>
         <translation>CLEAR</translation>
     </message>
     <message>
-        <location filename="../robert_input.cpp" line="729"/>
+        <location filename="../robert_input.cpp" line="735"/>
         <source>QUIT</source>
         <translation>QUIT</translation>
     </message>
@@ -998,49 +998,48 @@
 <context>
     <name>horcom::DirectionListDialog</name>
     <message>
-        <location filename="../direction_list_dialog.cpp" line="113"/>
+        <location filename="../direction_list_dialog.cpp" line="114"/>
         <source>Winkel</source>
         <translation>Angle</translation>
     </message>
     <message>
-        <location filename="../direction_list_dialog.cpp" line="107"/>
+        <location filename="../direction_list_dialog.cpp" line="108"/>
         <source>Datum</source>
         <translation>Date</translation>
     </message>
     <message>
-        <location filename="../direction_list_dialog.cpp" line="109"/>
+        <location filename="../direction_list_dialog.cpp" line="110"/>
         <source>LJ  MO</source>
         <translation>YR  MO</translation>
     </message>
     <message>
-        <location filename="../direction_list_dialog.cpp" line="111"/>
+        <location filename="../direction_list_dialog.cpp" line="112"/>
         <source>BOGEN</source>
         <translation>ARC</translation>
     </message>
     <message>
-        <location filename="../direction_list_dialog.cpp" line="113"/>
+        <location filename="../direction_list_dialog.cpp" line="114"/>
         <source>Gerichtet</source>
         <translation>Directed</translation>
     </message>
     <message>
-        <location filename="../direction_list_dialog.cpp" line="113"/>
+        <location filename="../direction_list_dialog.cpp" line="114"/>
         <source>Ziel</source>
         <translation>Target</translation>
     </message>
     <message>
-        <location filename="../direction_list_dialog.cpp" line="113"/>
+        <location filename="../direction_list_dialog.cpp" line="114"/>
         <source>Art</source>
         <translation>Kind</translation>
     </message>
     <message>
-        <location filename="../direction_list_dialog.cpp" line="120"/>
+        <location filename="../direction_list_dialog.cpp" line="123"/>
         <source>LISTE SORTIEREN…</source>
         <translation>SORT LIST…</translation>
     </message>
     <message>
-        <location filename="../direction_list_dialog.cpp" line="183"/>
         <source>%1 Auslösungen</source>
-        <translation>%1 triggers</translation>
+        <translation type="vanished">%1 triggers</translation>
     </message>
 </context>
 <context>
@@ -1124,106 +1123,106 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation type="vanished">Input</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="645"/>
+        <location filename="../main_window.cpp" line="675"/>
         <source>Parallaxe (topozentrisch)</source>
         <translation>Parallax (topocentric)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5261"/>
+        <location filename="../main_window.cpp" line="5390"/>
         <source>Wahrer Mondknoten</source>
         <translation>True lunar node</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5262"/>
+        <location filename="../main_window.cpp" line="5391"/>
         <source>Wahres Apogäum</source>
         <translation>True apogee</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="711"/>
-        <location filename="../main_window.cpp" line="2162"/>
-        <location filename="../main_window.cpp" line="6575"/>
-        <location filename="../main_window_coord.cpp" line="156"/>
+        <location filename="../main_window.cpp" line="741"/>
+        <location filename="../main_window.cpp" line="2206"/>
+        <location filename="../main_window.cpp" line="6739"/>
+        <location filename="../main_window_coord.cpp" line="157"/>
         <source>Heliozentrisch</source>
         <translation>Heliocentric</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="785"/>
-        <location filename="../main_window.cpp" line="2606"/>
-        <location filename="../main_window.cpp" line="2643"/>
-        <location filename="../main_window.cpp" line="3003"/>
-        <location filename="../main_window.cpp" line="6207"/>
-        <location filename="../main_window.cpp" line="6626"/>
+        <location filename="../main_window.cpp" line="815"/>
+        <location filename="../main_window.cpp" line="2652"/>
+        <location filename="../main_window.cpp" line="2689"/>
+        <location filename="../main_window.cpp" line="3049"/>
+        <location filename="../main_window.cpp" line="6357"/>
+        <location filename="../main_window.cpp" line="6790"/>
         <location filename="../main_window_auswertung.cpp" line="471"/>
-        <location filename="../main_window_rhythm.cpp" line="173"/>
-        <location filename="../main_window_rhythm.cpp" line="931"/>
-        <location filename="../main_window_rhythm.cpp" line="978"/>
-        <location filename="../main_window_arabic.cpp" line="268"/>
-        <location filename="../main_window_ingress.cpp" line="256"/>
+        <location filename="../main_window_rhythm.cpp" line="177"/>
+        <location filename="../main_window_rhythm.cpp" line="950"/>
+        <location filename="../main_window_rhythm.cpp" line="1000"/>
+        <location filename="../main_window_arabic.cpp" line="269"/>
+        <location filename="../main_window_ingress.cpp" line="257"/>
         <source>Datum</source>
         <translation>Date</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="788"/>
+        <location filename="../main_window.cpp" line="818"/>
         <source>Zeit</source>
         <translation>Time</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="800"/>
+        <location filename="../main_window.cpp" line="830"/>
         <source>Zeit-Zonen Katalog</source>
         <translation>Time zone catalogue</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="808"/>
+        <location filename="../main_window.cpp" line="838"/>
         <source>Länge (Ost +)</source>
         <translation>Longitude (east +)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="809"/>
+        <location filename="../main_window.cpp" line="839"/>
         <source>Breite (Nord +)</source>
         <translation>Latitude (north +)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="810"/>
-        <location filename="../main_window.cpp" line="3474"/>
+        <location filename="../main_window.cpp" line="840"/>
+        <location filename="../main_window.cpp" line="3582"/>
         <location filename="../main_window_statist_list.cpp" line="306"/>
         <source>Häuser</source>
         <translation>Houses</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="852"/>
+        <location filename="../main_window.cpp" line="882"/>
         <source>Transite</source>
         <translation>Transits</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="862"/>
+        <location filename="../main_window.cpp" line="892"/>
         <source>Transit-Datum</source>
         <translation>Transit date</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="863"/>
+        <location filename="../main_window.cpp" line="893"/>
         <source>Zeit (UT)</source>
         <translation>Time (UT)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="911"/>
-        <location filename="../main_window.cpp" line="3152"/>
+        <location filename="../main_window.cpp" line="941"/>
+        <location filename="../main_window.cpp" line="3218"/>
         <source>Länge</source>
         <translation>Longitude</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="911"/>
-        <location filename="../main_window.cpp" line="2545"/>
-        <location filename="../main_window_coord.cpp" line="463"/>
+        <location filename="../main_window.cpp" line="941"/>
+        <location filename="../main_window.cpp" line="2589"/>
+        <location filename="../main_window_coord.cpp" line="466"/>
         <source>Breite</source>
         <translation>Latitude</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="911"/>
+        <location filename="../main_window.cpp" line="941"/>
         <source>Deklin.</source>
         <translation>Declin.</translation>
     </message>
     <message>
-        <location filename="../main_window_coord.cpp" line="465"/>
+        <location filename="../main_window_coord.cpp" line="468"/>
         <source>Entf.</source>
         <translation>Dist.</translation>
     </message>
@@ -1234,32 +1233,32 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation>The chosen record could not be computed.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4321"/>
-        <location filename="../main_window_rhythm.cpp" line="166"/>
+        <location filename="../main_window.cpp" line="4454"/>
+        <location filename="../main_window_rhythm.cpp" line="168"/>
         <source>Mundan</source>
         <translation>Mundane</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="7093"/>
+        <location filename="../main_window.cpp" line="7257"/>
         <source>Über HORCOM</source>
         <translation>About HORCOM</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1917"/>
+        <location filename="../main_window.cpp" line="1961"/>
         <source>Geog. Breite zu groß für dieses Häusersystem</source>
         <translation>Geographic latitude too high for this house system</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2011"/>
-        <location filename="../main_window.cpp" line="2133"/>
-        <location filename="../main_window.cpp" line="2143"/>
-        <location filename="../main_window.cpp" line="4624"/>
-        <location filename="../main_window.cpp" line="5326"/>
+        <location filename="../main_window.cpp" line="2055"/>
+        <location filename="../main_window.cpp" line="2177"/>
+        <location filename="../main_window.cpp" line="2187"/>
+        <location filename="../main_window.cpp" line="4753"/>
+        <location filename="../main_window.cpp" line="5456"/>
         <source>keine</source>
         <translation>none</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2258"/>
+        <location filename="../main_window.cpp" line="2302"/>
         <source>außerhalb der Ephemeride</source>
         <translation>outside the ephemeris</translation>
     </message>
@@ -1274,386 +1273,386 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation>No solar return found</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3225"/>
+        <location filename="../main_window.cpp" line="3296"/>
         <source>Punkt</source>
         <translation>Point</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="456"/>
+        <location filename="../main_window.cpp" line="486"/>
         <source>◀ Zurück</source>
         <translation>◀ Back</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="458"/>
+        <location filename="../main_window.cpp" line="488"/>
         <source>Zum vorhergehenden Schritt (Alt+Links oder Strg+Z)</source>
         <translation>To the previous step (Alt+Left or Ctrl+Z)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="461"/>
+        <location filename="../main_window.cpp" line="491"/>
         <source>Vor ▶</source>
         <translation>Forward ▶</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="463"/>
+        <location filename="../main_window.cpp" line="493"/>
         <source>Schritt wiederherstellen (Alt+Rechts oder Strg+Y)</source>
         <translation>Restore the step (Alt+Right or Ctrl+Y)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="491"/>
+        <location filename="../main_window.cpp" line="521"/>
         <source>Vorname</source>
         <translation>First name</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="492"/>
+        <location filename="../main_window.cpp" line="522"/>
         <source>Name</source>
         <translation>Name</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="653"/>
+        <location filename="../main_window.cpp" line="683"/>
         <source>Zusatz-Planeten CH QU XE</source>
         <translation>Additional planets CH QU XE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="661"/>
-        <location filename="../main_window.cpp" line="3288"/>
+        <location filename="../main_window.cpp" line="691"/>
+        <location filename="../main_window.cpp" line="3359"/>
         <source>Hamburger Planeten</source>
         <translation>Hamburg planets</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5339"/>
+        <location filename="../main_window.cpp" line="5469"/>
         <source>Nachthimmel</source>
         <translation>Night sky</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2008"/>
-        <location filename="../main_window.cpp" line="3603"/>
+        <location filename="../main_window.cpp" line="2052"/>
+        <location filename="../main_window.cpp" line="3718"/>
         <source>TRANSITE</source>
         <translation>TRANSITS</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2132"/>
+        <location filename="../main_window.cpp" line="2176"/>
         <source>VERGLEICH 90°</source>
         <translation>COMPARISON 90°</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2142"/>
+        <location filename="../main_window.cpp" line="2186"/>
         <source>VERGLEICH</source>
         <translation>COMPARISON</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2361"/>
+        <location filename="../main_window.cpp" line="2405"/>
         <source>MONDPHASE</source>
         <translation>MOON PHASE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2362"/>
+        <location filename="../main_window.cpp" line="2406"/>
         <source>&amp;nbsp; %1° (%2%)</source>
         <translation>&amp;nbsp; %1° (%2%)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2377"/>
+        <location filename="../main_window.cpp" line="2421"/>
         <source>ASPEKTE</source>
         <translation>ASPECTS</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2378"/>
+        <location filename="../main_window.cpp" line="2422"/>
         <source>&amp;nbsp; konj %1  opp %2  trigon %3  quadrat %4  sextil %5</source>
         <translation>&amp;nbsp; conj %1  opp %2  trine %3  square %4  sextile %5</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2544"/>
-        <location filename="../main_window_arabic.cpp" line="255"/>
+        <location filename="../main_window.cpp" line="2588"/>
+        <location filename="../main_window_arabic.cpp" line="256"/>
         <source>Ekl.Länge</source>
         <translation>Ecl. longitude</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2544"/>
-        <location filename="../main_window_arabic.cpp" line="255"/>
+        <location filename="../main_window.cpp" line="2588"/>
+        <location filename="../main_window_arabic.cpp" line="256"/>
         <source>Aspekte</source>
         <translation>Aspects</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2544"/>
+        <location filename="../main_window.cpp" line="2588"/>
         <source>Qualität</source>
         <translation>Quality</translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="56"/>
+        <location filename="../main_window_arabic.cpp" line="57"/>
         <location filename="../main_window_multi.cpp" line="155"/>
         <source>   FIXPUNKT</source>
         <translation>   FIXED POINT</translation>
     </message>
     <message>
         <location filename="../main_window_statist_cond.cpp" line="52"/>
-        <location filename="../main_window_arabic.cpp" line="62"/>
+        <location filename="../main_window_arabic.cpp" line="63"/>
         <location filename="../main_window_multi.cpp" line="172"/>
         <source>  ASZENDENT</source>
         <translation>  ASCENDANT</translation>
     </message>
     <message>
         <location filename="../main_window_statist_cond.cpp" line="53"/>
-        <location filename="../main_window_arabic.cpp" line="63"/>
+        <location filename="../main_window_arabic.cpp" line="64"/>
         <location filename="../main_window_multi.cpp" line="173"/>
         <source>     MC</source>
         <translation>     MC</translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="78"/>
+        <location filename="../main_window_arabic.cpp" line="79"/>
         <source> EKLIPTIK-GRAD</source>
         <translation> ECLIPTIC DEGREE</translation>
     </message>
     <message>
         <location filename="../main_window_statist_cond.cpp" line="359"/>
-        <location filename="../main_window_arabic.cpp" line="92"/>
-        <location filename="../main_window_arabic.cpp" line="100"/>
+        <location filename="../main_window_arabic.cpp" line="93"/>
+        <location filename="../main_window_arabic.cpp" line="101"/>
         <source>STRING-Eingabe !</source>
         <translation>TEXT entry !</translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="92"/>
+        <location filename="../main_window_arabic.cpp" line="93"/>
         <source> NAME DEFINIEREN ! </source>
         <translation> DEFINE the NAME ! </translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="100"/>
+        <location filename="../main_window_arabic.cpp" line="101"/>
         <source> BEMERKUNG EINTRAGEN ? </source>
         <translation> ENTER a REMARK ? </translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="104"/>
+        <location filename="../main_window_arabic.cpp" line="105"/>
         <source> Bitte 3 Glieder wählen, </source>
         <translation> Please choose 3 terms, </translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="104"/>
+        <location filename="../main_window_arabic.cpp" line="105"/>
         <source> gemäß der Formel.       </source>
         <translation> after the formula.      </translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="105"/>
+        <location filename="../main_window_arabic.cpp" line="106"/>
         <source> Z.B für  AC+SO-MO :     </source>
         <translation> E.g. for  AC+SO-MO :    </translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="105"/>
+        <location filename="../main_window_arabic.cpp" line="106"/>
         <source> Nacheinander auf        </source>
         <translation> one after the other on  </translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="106"/>
+        <location filename="../main_window_arabic.cpp" line="107"/>
         <source> AC .. OK,SO .. OK       </source>
         <translation> AC .. OK,SO .. OK       </translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="106"/>
+        <location filename="../main_window_arabic.cpp" line="107"/>
         <source> und MO .. OK KLICKEN.   </source>
         <translation> and MO .. OK CLICK.     </translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="125"/>
+        <location filename="../main_window_arabic.cpp" line="126"/>
         <source>SPITZE HAUS NR.?</source>
         <translation>CUSP of HOUSE NO.?</translation>
     </message>
     <message>
         <location filename="../main_window_statist_cond.cpp" line="115"/>
         <location filename="../main_window_statist_cond.cpp" line="233"/>
-        <location filename="../main_window_arabic.cpp" line="125"/>
+        <location filename="../main_window_arabic.cpp" line="126"/>
         <source>HERR von HAUS NR.?</source>
         <translation>RULER of HOUSE NO.?</translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="131"/>
+        <location filename="../main_window_arabic.cpp" line="132"/>
         <source> Spitze Haus  </source>
         <translation> Cusp house   </translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="131"/>
+        <location filename="../main_window_arabic.cpp" line="132"/>
         <source> Herr v.Haus  </source>
         <translation> Ruler house  </translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="134"/>
+        <location filename="../main_window_arabic.cpp" line="135"/>
         <source>Ekliptikale Länge Eingeben</source>
         <translation>Enter the Ecliptic Longitude</translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="141"/>
+        <location filename="../main_window_arabic.cpp" line="142"/>
         <source> Eklipt.-Grad </source>
         <translation> Eclipt. deg. </translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="148"/>
+        <location filename="../main_window_arabic.cpp" line="149"/>
         <source>.Glied </source>
         <translation>.term </translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="161"/>
+        <location filename="../main_window_arabic.cpp" line="162"/>
         <source>WeiterEN PUNKT definierEN ?</source>
         <translation>DEFINE a FURTHER POINT ?</translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="198"/>
+        <location filename="../main_window_arabic.cpp" line="199"/>
         <source>Eigen-Punkte </source>
         <translation>Own points </translation>
     </message>
     <message>
         <location filename="../main_window_statist_cond.cpp" line="375"/>
-        <location filename="../main_window_arabic.cpp" line="205"/>
+        <location filename="../main_window_arabic.cpp" line="206"/>
         <source>TRADITIONELLE FORMEL ?</source>
         <translation>TRADITIONAL FORMULA ?</translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="205"/>
-        <location filename="../main_window_arabic.cpp" line="216"/>
+        <location filename="../main_window_arabic.cpp" line="206"/>
+        <location filename="../main_window_arabic.cpp" line="217"/>
         <source>IMMER als &apos;TAG - GEBURT&apos;</source>
         <translation>ALWAYS as &apos;DAY BIRTH&apos;</translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="206"/>
-        <location filename="../main_window_arabic.cpp" line="216"/>
+        <location filename="../main_window_arabic.cpp" line="207"/>
+        <location filename="../main_window_arabic.cpp" line="217"/>
         <source>IMMER als &apos;NACHT-GEBURT&apos;</source>
         <translation>ALWAYS as &apos;NIGHT BIRTH&apos;</translation>
     </message>
     <message>
         <location filename="../main_window_statist_cond.cpp" line="377"/>
-        <location filename="../main_window_arabic.cpp" line="207"/>
-        <location filename="../main_window_arabic.cpp" line="216"/>
+        <location filename="../main_window_arabic.cpp" line="208"/>
+        <location filename="../main_window_arabic.cpp" line="217"/>
         <source>TRADITIONELL</source>
         <translation>TRADITIONAL</translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="207"/>
+        <location filename="../main_window_arabic.cpp" line="208"/>
         <source>TAG</source>
         <translation>DAY</translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="207"/>
+        <location filename="../main_window_arabic.cpp" line="208"/>
         <source>NACHT</source>
         <translation>NIGHT</translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="215"/>
+        <location filename="../main_window_arabic.cpp" line="216"/>
         <source>Tradit.</source>
         <translation>Tradit.</translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="215"/>
+        <location filename="../main_window_arabic.cpp" line="216"/>
         <source>Tag-Geb.</source>
         <translation>Day b.</translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="215"/>
+        <location filename="../main_window_arabic.cpp" line="216"/>
         <source>Nacht-Gb.</source>
         <translation>Night b.</translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="221"/>
+        <location filename="../main_window_arabic.cpp" line="222"/>
         <source>bereits definiert !</source>
         <translation>already defined !</translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="223"/>
+        <location filename="../main_window_arabic.cpp" line="224"/>
         <source>Wollen Sie </source>
         <translation>Do you want </translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="223"/>
+        <location filename="../main_window_arabic.cpp" line="224"/>
         <source>  DEFINIEREN ?</source>
         <translation>  to DEFINE ?</translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="223"/>
+        <location filename="../main_window_arabic.cpp" line="224"/>
         <source>  LÖSCHEN    ?</source>
         <translation>  to DELETE  ?</translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="225"/>
+        <location filename="../main_window_arabic.cpp" line="226"/>
         <source>NEU DEFINIEREN</source>
         <translation>DEFINE NEW</translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="225"/>
+        <location filename="../main_window_arabic.cpp" line="226"/>
         <source>TABELLEN-AUSGABE</source>
         <translation>TABLE OUTPUT</translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="251"/>
+        <location filename="../main_window_arabic.cpp" line="252"/>
         <source>ARABISCHE TEILE</source>
         <translation>ARABIC PARTS</translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="255"/>
+        <location filename="../main_window_arabic.cpp" line="256"/>
         <source>Formel</source>
         <translation>Formula</translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="255"/>
+        <location filename="../main_window_arabic.cpp" line="256"/>
         <source>Name des Punktes</source>
         <translation>Name of the point</translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="256"/>
+        <location filename="../main_window_arabic.cpp" line="257"/>
         <source>Bemerkungen</source>
         <translation>Remarks</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2607"/>
-        <location filename="../main_window_arabic.cpp" line="269"/>
+        <location filename="../main_window.cpp" line="2653"/>
+        <location filename="../main_window_arabic.cpp" line="270"/>
         <source>Eph.:</source>
         <translation>Eph.:</translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="273"/>
+        <location filename="../main_window_arabic.cpp" line="274"/>
         <source>Formel : </source>
         <translation>Formula : </translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="275"/>
+        <location filename="../main_window_arabic.cpp" line="276"/>
         <source>SORTIEREN:</source>
         <translation>SORT:</translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="275"/>
+        <location filename="../main_window_arabic.cpp" line="276"/>
         <source>  |  N = nach Namen</source>
         <translation>  |  N = by name</translation>
     </message>
     <message>
-        <location filename="../main_window_arabic.cpp" line="300"/>
+        <location filename="../main_window_arabic.cpp" line="301"/>
         <source>UNGÜLTIGE DEFINITION</source>
         <translation>INVALID DEFINITION</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3474"/>
+        <location filename="../main_window.cpp" line="3582"/>
         <location filename="../main_window_statist_list.cpp" line="305"/>
-        <location filename="../main_window_ingress.cpp" line="256"/>
-        <location filename="../main_window_ingress.cpp" line="279"/>
+        <location filename="../main_window_ingress.cpp" line="257"/>
+        <location filename="../main_window_ingress.cpp" line="283"/>
         <source>Zeichen</source>
         <translation>Sign</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3137"/>
+        <location filename="../main_window.cpp" line="3195"/>
         <source>Häuser-Tabelle (%1)</source>
         <translation>House table (%1)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3152"/>
+        <location filename="../main_window.cpp" line="3218"/>
         <source>Haus</source>
         <translation>House</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2545"/>
-        <location filename="../main_window.cpp" line="3152"/>
+        <location filename="../main_window.cpp" line="2589"/>
+        <location filename="../main_window.cpp" line="3218"/>
         <source>Dekl.</source>
         <translation>Decl.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3155"/>
+        <location filename="../main_window.cpp" line="3221"/>
         <source>Polhöhe</source>
         <translation>Pole height</translation>
     </message>
     <message>
-        <location filename="../main_window_coord.cpp" line="170"/>
-        <location filename="../main_window_coord.cpp" line="233"/>
+        <location filename="../main_window_coord.cpp" line="171"/>
+        <location filename="../main_window_coord.cpp" line="234"/>
         <source>Wahr</source>
         <translation>True</translation>
     </message>
@@ -1666,151 +1665,151 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation type="vanished">Black Moon,MEAN   AG</translation>
     </message>
     <message>
-        <location filename="../main_window_coord.cpp" line="233"/>
+        <location filename="../main_window_coord.cpp" line="234"/>
         <source>Mittel</source>
         <translation>Mean</translation>
     </message>
     <message>
-        <location filename="../main_window_coord.cpp" line="463"/>
-        <location filename="../main_window_coord.cpp" line="465"/>
+        <location filename="../main_window_coord.cpp" line="466"/>
         <location filename="../main_window_coord.cpp" line="468"/>
+        <location filename="../main_window_coord.cpp" line="471"/>
         <source>Pl</source>
         <translation>Pl</translation>
     </message>
     <message>
-        <location filename="../main_window_coord.cpp" line="463"/>
+        <location filename="../main_window_coord.cpp" line="466"/>
         <source>Ekl. Länge</source>
         <translation>Ecl. Long.</translation>
     </message>
     <message>
-        <location filename="../main_window_coord.cpp" line="463"/>
+        <location filename="../main_window_coord.cpp" line="466"/>
         <source>Vel.&apos;</source>
         <translation>Vel.&apos;</translation>
     </message>
     <message>
-        <location filename="../main_window_coord.cpp" line="463"/>
+        <location filename="../main_window_coord.cpp" line="466"/>
         <source>A</source>
         <translation>A</translation>
     </message>
     <message>
-        <location filename="../main_window_coord.cpp" line="465"/>
-        <location filename="../main_window_coord.cpp" line="467"/>
+        <location filename="../main_window_coord.cpp" line="468"/>
+        <location filename="../main_window_coord.cpp" line="470"/>
         <source>Rekt.°</source>
         <translation>R.A.°</translation>
     </message>
     <message>
-        <location filename="../main_window_coord.cpp" line="465"/>
-        <location filename="../main_window_coord.cpp" line="467"/>
+        <location filename="../main_window_coord.cpp" line="468"/>
+        <location filename="../main_window_coord.cpp" line="470"/>
         <source>Dekl.°</source>
         <translation>Decl.°</translation>
     </message>
     <message>
-        <location filename="../main_window_coord.cpp" line="465"/>
+        <location filename="../main_window_coord.cpp" line="468"/>
         <source> Name          Abkrz.</source>
         <translation> Name          Abbr.</translation>
     </message>
     <message>
-        <location filename="../main_window_coord.cpp" line="467"/>
+        <location filename="../main_window_coord.cpp" line="470"/>
         <source>Knot.ND</source>
         <translation>Node N</translation>
     </message>
     <message>
-        <location filename="../main_window_coord.cpp" line="467"/>
+        <location filename="../main_window_coord.cpp" line="470"/>
         <source>Knot.SD</source>
         <translation>Node S</translation>
     </message>
     <message>
-        <location filename="../main_window_coord.cpp" line="468"/>
+        <location filename="../main_window_coord.cpp" line="471"/>
         <source>Apsiden</source>
         <translation>Apsides</translation>
     </message>
     <message>
-        <location filename="../main_window_coord.cpp" line="521"/>
+        <location filename="../main_window_coord.cpp" line="524"/>
         <source>e Planeten-Koordinaten </source>
         <translation> Planet Coordinates </translation>
     </message>
     <message>
-        <location filename="../main_window_coord.cpp" line="539"/>
+        <location filename="../main_window_coord.cpp" line="542"/>
         <source>Invertiert : MA,SA,UR,NE,PL und die WAHREN Werte</source>
         <translation>Inverted : MA,SA,UR,NE,PL and the TRUE values</translation>
     </message>
     <message>
-        <location filename="../main_window_coord.cpp" line="540"/>
+        <location filename="../main_window_coord.cpp" line="543"/>
         <source>( KENNZEICHNUNG in VORGABEN DIREKTIONEN ÄNDERN )</source>
         <translation>( MARKING in CHANGE DIRECTION DEFAULTS )</translation>
     </message>
     <message>
-        <location filename="../main_window_coord.cpp" line="162"/>
+        <location filename="../main_window_coord.cpp" line="163"/>
         <source> Ephemeride: Mittl.Äquin.</source>
         <translation> Ephemeris: Mean Equin.</translation>
     </message>
     <message>
-        <location filename="../main_window_coord.cpp" line="164"/>
+        <location filename="../main_window_coord.cpp" line="165"/>
         <source> Ephemeride:</source>
         <translation> Ephemeris:</translation>
     </message>
     <message>
-        <location filename="../main_window_coord.cpp" line="531"/>
+        <location filename="../main_window_coord.cpp" line="534"/>
         <source>Fixpunkt = %1</source>
         <translation>Fixed point = %1</translation>
     </message>
     <message>
-        <location filename="../main_window_coord.cpp" line="535"/>
+        <location filename="../main_window_coord.cpp" line="538"/>
         <source>MOND-Apsiden : Wahrer Wert</source>
         <translation>MOON apsides : True value</translation>
     </message>
     <message>
-        <location filename="../main_window_coord.cpp" line="535"/>
+        <location filename="../main_window_coord.cpp" line="538"/>
         <source>MOND-Apsiden : Mittelwert</source>
         <translation>MOON apsides : Mean value</translation>
     </message>
     <message>
-        <location filename="../main_window_coord.cpp" line="649"/>
+        <location filename="../main_window_coord.cpp" line="652"/>
         <source>ZEIT VARIIEREN ?</source>
         <translation>VARY THE TIME ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="982"/>
+        <location filename="../main_window.cpp" line="1012"/>
         <source>EI&amp;N-AUSG.</source>
         <translation>I&amp;N-OUT</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="983"/>
+        <location filename="../main_window.cpp" line="1013"/>
         <source>&amp;EPHEMERIDE</source>
         <translation>&amp;EPHEMERIS</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="984"/>
+        <location filename="../main_window.cpp" line="1014"/>
         <source>H&amp;OROSKOPE</source>
         <translation>H&amp;OROSCOPES</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="985"/>
+        <location filename="../main_window.cpp" line="1015"/>
         <source>&amp;AUSWERTUNG</source>
         <translation>E&amp;VALUATION</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1019"/>
+        <location filename="../main_window.cpp" line="1049"/>
         <source>DATEN-DATEI EIN-AUSGABE…</source>
         <translation>DATA FILE IN-OUT…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1021"/>
+        <location filename="../main_window.cpp" line="1051"/>
         <source>NEU-EINGABE von DATENSÄTZEN…</source>
         <translation>NEW ENTRY of RECORDS…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1023"/>
+        <location filename="../main_window.cpp" line="1053"/>
         <source>AKTUELLEN Datensatz EINTRAGEN…</source>
         <translation>ENTER the CURRENT record…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1033"/>
+        <location filename="../main_window.cpp" line="1063"/>
         <source>RADIX-DATEN:</source>
         <translation>RADIX DATA:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1046"/>
+        <location filename="../main_window.cpp" line="1076"/>
         <source>SOLAR...-DATEN:</source>
         <translation>SOLAR... DATA:</translation>
     </message>
@@ -1819,13 +1818,13 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation type="vanished">DOUBLE DATA:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2093"/>
-        <location filename="../main_window.cpp" line="5878"/>
+        <location filename="../main_window.cpp" line="2137"/>
+        <location filename="../main_window.cpp" line="6011"/>
         <source>COMPOSIT</source>
         <translation>COMPOSITE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5878"/>
+        <location filename="../main_window.cpp" line="6011"/>
         <location filename="../main_window_pair.cpp" line="246"/>
         <source>COMBIN</source>
         <translation>COMBINE</translation>
@@ -1835,27 +1834,27 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation type="vanished">DOUBLE WHEEL</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1064"/>
+        <location filename="../main_window.cpp" line="1094"/>
         <source>AUFRÄUMEN / RÜCKSETZEN</source>
         <translation>CLEAN UP / RESET</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1073"/>
+        <location filename="../main_window.cpp" line="1103"/>
         <source>HOROSKOP als SVG SPEICHERN…</source>
         <translation>SAVE HOROSCOPE as SVG…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1075"/>
+        <location filename="../main_window.cpp" line="1105"/>
         <source>HOROSKOP als PDF SPEICHERN…</source>
         <translation>SAVE HOROSCOPE as PDF…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1076"/>
+        <location filename="../main_window.cpp" line="1106"/>
         <source>DRUCKEN…</source>
         <translation>PRINT…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1078"/>
+        <location filename="../main_window.cpp" line="1108"/>
         <source>ERLÄUTERUNG 2…</source>
         <translation>COMMENTARY 2…</translation>
     </message>
@@ -1865,44 +1864,44 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation>QUIT</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1081"/>
+        <location filename="../main_window.cpp" line="1111"/>
         <source>VORGABEN EPHEMERIDE ÄNDERN…</source>
         <translation>CHANGE EPHEMERIS DEFAULTS…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1086"/>
-        <location filename="../main_window_coord.cpp" line="457"/>
+        <location filename="../main_window.cpp" line="1116"/>
+        <location filename="../main_window_coord.cpp" line="460"/>
         <source>PLANETEN-KOORDINATEN</source>
         <translation>PLANET COORDINATES</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1087"/>
-        <location filename="../main_window_coord.cpp" line="457"/>
+        <location filename="../main_window.cpp" line="1117"/>
+        <location filename="../main_window_coord.cpp" line="460"/>
         <source>ZUSATZ-PLANETEN-KOORDINATEN</source>
         <translation>EXTRA PLANET COORDINATES</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1089"/>
+        <location filename="../main_window.cpp" line="1119"/>
         <source>HELIOZENTRISCHE VERSION EIN/AUS</source>
         <translation>HELIOCENTRIC VERSION ON/OFF</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1097"/>
+        <location filename="../main_window.cpp" line="1127"/>
         <source>ERLÄUTERUNG STATISTIK…</source>
         <translation>COMMENTARY STATISTICS…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1370"/>
+        <location filename="../main_window.cpp" line="1402"/>
         <source>HISTOGRAMME…</source>
         <translation>HISTOGRAMS…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1102"/>
+        <location filename="../main_window.cpp" line="1132"/>
         <source>FIX-STERN-POSITIONEN…</source>
         <translation>FIXED STAR POSITIONS…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1104"/>
+        <location filename="../main_window.cpp" line="1134"/>
         <source>ARABISCHE TEILE ( SENS.PUNKTE )…</source>
         <translation>ARABIC PARTS ( SENS.POINTS )…</translation>
     </message>
@@ -1911,119 +1910,119 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation type="vanished">INGRESSES SUN-MOON-MC-AC…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1114"/>
+        <location filename="../main_window.cpp" line="1139"/>
         <source>ERLÄUTERUNG 3…</source>
         <translation>COMMENTARY 3…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1117"/>
+        <location filename="../main_window.cpp" line="1142"/>
         <source>VORGABEN HOROSKOP ÄNDERN…</source>
         <translation>CHANGE HOROSCOPE DEFAULTS…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1121"/>
+        <location filename="../main_window.cpp" line="1146"/>
         <source>HOROSKOP - GRAPHIK</source>
         <translation>HOROSCOPE GRAPHIC</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1218"/>
-        <location filename="../main_window.cpp" line="1236"/>
+        <location filename="../main_window.cpp" line="1243"/>
+        <location filename="../main_window.cpp" line="1261"/>
         <source>SOLAR…</source>
         <translation>SOLAR…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1229"/>
+        <location filename="../main_window.cpp" line="1254"/>
         <source>SEPTAR…</source>
         <translation>SEPTAR…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1220"/>
+        <location filename="../main_window.cpp" line="1245"/>
         <source>LUNAR…</source>
         <translation>LUNAR…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1222"/>
+        <location filename="../main_window.cpp" line="1247"/>
         <source>PLANETAR…</source>
         <translation>PLANETAR…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1223"/>
+        <location filename="../main_window.cpp" line="1248"/>
         <source>PERSONAR…</source>
         <translation>PERSONAR…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1219"/>
-        <location filename="../main_window.cpp" line="1237"/>
+        <location filename="../main_window.cpp" line="1244"/>
+        <location filename="../main_window.cpp" line="1262"/>
         <source>SOLAR-LISTE…</source>
         <translation>SOLAR LIST…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1221"/>
+        <location filename="../main_window.cpp" line="1246"/>
         <source>LUNAR-LISTE…</source>
         <translation>LUNAR LIST…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1250"/>
+        <location filename="../main_window.cpp" line="1275"/>
         <source>TAGES-HOROSKOP…</source>
         <translation>DAY HOROSCOPE…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1251"/>
+        <location filename="../main_window.cpp" line="1276"/>
         <source>PROGRESSIONS-HOROSKOP…</source>
         <translation>PROGRESSED HOROSCOPE…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1231"/>
+        <location filename="../main_window.cpp" line="1256"/>
         <source>ERLÄUTERUNG 5…</source>
         <translation>COMMENTARY 5…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1228"/>
+        <location filename="../main_window.cpp" line="1253"/>
         <location filename="../main_window_help.cpp" line="67"/>
         <source>MÜNCHNER RHYTHMENLEHRE…</source>
         <translation>MUNICH RHYTHM THEORY…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1232"/>
+        <location filename="../main_window.cpp" line="1257"/>
         <source>ERLÄUTERUNG 6…</source>
         <translation>COMMENTARY 6…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1230"/>
+        <location filename="../main_window.cpp" line="1255"/>
         <location filename="../main_window_help.cpp" line="68"/>
         <source>GRAD-DATUM-LISTE…</source>
         <translation>DEGREE DATE LIST…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1288"/>
+        <location filename="../main_window.cpp" line="1313"/>
         <location filename="../main_window_help.cpp" line="75"/>
         <source>LINEAR-GRAPHIK…</source>
         <translation>LINEAR GRAPHIC…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1257"/>
+        <location filename="../main_window.cpp" line="1282"/>
         <source>ERLÄUTERUNG 7…</source>
         <translation>COMMENTARY 7…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1300"/>
+        <location filename="../main_window.cpp" line="1325"/>
         <location filename="../main_window_help.cpp" line="78"/>
         <source>HÄUSER-SYSTEM…</source>
         <translation>HOUSE SYSTEM…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1302"/>
+        <location filename="../main_window.cpp" line="1327"/>
         <location filename="../main_window_help.cpp" line="79"/>
         <source>HÄUSER-TABELLE…</source>
         <translation>HOUSE TABLE…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1303"/>
+        <location filename="../main_window.cpp" line="1328"/>
         <source>ERLÄUTERUNG 8…</source>
         <translation>COMMENTARY 8…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1306"/>
+        <location filename="../main_window.cpp" line="1331"/>
         <source>KORREKTUR…</source>
         <translation>CORRECTION…</translation>
     </message>
@@ -2098,78 +2097,78 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation>While the CLOCK is VISIBLE the CHART is REDRAWN EVERY 15 SEC !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5757"/>
-        <location filename="../main_window.cpp" line="6855"/>
+        <location filename="../main_window.cpp" line="5887"/>
+        <location filename="../main_window.cpp" line="7019"/>
         <location filename="../main_window_auswertung.cpp" line="844"/>
         <location filename="../main_window_a18.cpp" line="319"/>
         <location filename="../main_window_a18.cpp" line="498"/>
         <location filename="../main_window_wander.cpp" line="1163"/>
         <location filename="../main_window_statist_list.cpp" line="386"/>
         <location filename="../main_window_statist_list.cpp" line="506"/>
-        <location filename="../main_window_avh.cpp" line="1120"/>
+        <location filename="../main_window_avh.cpp" line="1122"/>
         <source>NEIN</source>
         <translation>NO</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1339"/>
+        <location filename="../main_window.cpp" line="1371"/>
         <source>AUFGANG / UNTERGANG…</source>
         <translation>RISE / SET…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1341"/>
+        <location filename="../main_window.cpp" line="1373"/>
         <source>FINSTERNISSE…</source>
         <translation>ECLIPSES…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1467"/>
+        <location filename="../main_window.cpp" line="1499"/>
         <location filename="../main_window_help.cpp" line="83"/>
         <source>DATEIEN VERKETTEN…</source>
         <translation>CHAIN FILES…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1469"/>
+        <location filename="../main_window.cpp" line="1501"/>
         <location filename="../main_window_help.cpp" line="84"/>
         <source>AAF-DATEI &lt; &gt; HORCOM-DATEI…</source>
         <translation>AAF FILE &lt; &gt; HORCOM FILE…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1314"/>
+        <location filename="../main_window.cpp" line="1339"/>
         <source>ORT-WANDERN…</source>
         <translation>PLACE WANDERING…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1345"/>
+        <location filename="../main_window.cpp" line="1377"/>
         <source>GROßES ( = PLATONISCHES ) JAHR…</source>
         <translation>GREAT ( = PLATONIC ) YEAR…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1347"/>
+        <location filename="../main_window.cpp" line="1379"/>
         <source>ERLÄUTERUNG 9…</source>
         <translation>COMMENTARY 9…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1349"/>
+        <location filename="../main_window.cpp" line="1381"/>
         <source>ÄNDERUNGEN / HINWEISE / KURZANL.…</source>
         <translation>CHANGES / NOTES / QUICK GUIDE…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1147"/>
+        <location filename="../main_window.cpp" line="1172"/>
         <source>COMBIN…</source>
         <translation>COMBINE…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1195"/>
+        <location filename="../main_window.cpp" line="1220"/>
         <source>ERLÄUTERUNG 4…</source>
         <translation>COMMENTARY 4…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1254"/>
+        <location filename="../main_window.cpp" line="1279"/>
         <location filename="../main_window_help.cpp" line="72"/>
         <source>PRIMÄR-DIREKTION ( E.C.KÜHR )…</source>
         <translation>PRIMARY DIRECTION ( E.C.KÜHR )…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1013"/>
+        <location filename="../main_window.cpp" line="1043"/>
         <source>ÜBER HORCOM</source>
         <translation>ABOUT HORCOM</translation>
     </message>
@@ -2178,57 +2177,57 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation type="vanished">EDIT RECORD…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1028"/>
+        <location filename="../main_window.cpp" line="1058"/>
         <source>ORTS-DATEIEN / ORT SUCHEN…</source>
         <translation>PLACE FILES / FIND PLACE…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1356"/>
+        <location filename="../main_window.cpp" line="1388"/>
         <source>ANSICH&amp;T</source>
         <translation>VIE&amp;W</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1389"/>
+        <location filename="../main_window.cpp" line="1421"/>
         <source>SCHRIFT GRÖßER</source>
         <translation>LARGER TEXT</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1391"/>
+        <location filename="../main_window.cpp" line="1423"/>
         <source>SCHRIFT KLEINER</source>
         <translation>SMALLER TEXT</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1393"/>
+        <location filename="../main_window.cpp" line="1425"/>
         <source>NORMALE SCHRIFT</source>
         <translation>NORMAL TEXT</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1399"/>
+        <location filename="../main_window.cpp" line="1431"/>
         <source>FARBEN</source>
         <translation>COLOURS</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1412"/>
+        <location filename="../main_window.cpp" line="1444"/>
         <source>SCHWARZ auf WEIß</source>
         <translation>BLACK on WHITE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1417"/>
+        <location filename="../main_window.cpp" line="1449"/>
         <source>NACHTHIMMEL</source>
         <translation>NIGHT SKY</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1438"/>
+        <location filename="../main_window.cpp" line="1470"/>
         <source>PLANETEN-AUSWAHL…</source>
         <translation>PLANET SELECTION…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1441"/>
+        <location filename="../main_window.cpp" line="1473"/>
         <source>SPRACHE / LANGUAGE</source>
         <translation>SPRACHE / LANGUAGE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1457"/>
+        <location filename="../main_window.cpp" line="1489"/>
         <source>AUTOMATISCH ( SYSTEMSPRACHE )</source>
         <translation>AUTOMATIC ( SYSTEM LANGUAGE )</translation>
     </message>
@@ -2261,7 +2260,7 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <location filename="../main_window_korrektur.cpp" line="106"/>
         <location filename="../main_window_a18.cpp" line="86"/>
         <location filename="../main_window_a18.cpp" line="969"/>
-        <location filename="../main_window_ingress.cpp" line="63"/>
+        <location filename="../main_window_ingress.cpp" line="64"/>
         <source>SONNE</source>
         <translation>SUN</translation>
     </message>
@@ -2269,7 +2268,7 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <location filename="../main_window_korrektur.cpp" line="106"/>
         <location filename="../main_window_a18.cpp" line="87"/>
         <location filename="../main_window_a18.cpp" line="969"/>
-        <location filename="../main_window_ingress.cpp" line="64"/>
+        <location filename="../main_window_ingress.cpp" line="65"/>
         <source>MOND</source>
         <translation>MOON</translation>
     </message>
@@ -2346,11 +2345,11 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation>Event PLACE = birth PLACE ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2740"/>
-        <location filename="../main_window.cpp" line="2884"/>
-        <location filename="../main_window.cpp" line="2987"/>
-        <location filename="../main_window.cpp" line="3050"/>
-        <location filename="../main_window.cpp" line="3897"/>
+        <location filename="../main_window.cpp" line="2786"/>
+        <location filename="../main_window.cpp" line="2930"/>
+        <location filename="../main_window.cpp" line="3033"/>
+        <location filename="../main_window.cpp" line="3096"/>
+        <location filename="../main_window.cpp" line="4012"/>
         <location filename="../main_window_korrektur.cpp" line="213"/>
         <location filename="../main_window_a18.cpp" line="486"/>
         <location filename="../main_window_a18.cpp" line="1322"/>
@@ -2367,13 +2366,13 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <location filename="../main_window_dynamo.cpp" line="381"/>
         <location filename="../main_window_dynamo.cpp" line="388"/>
         <location filename="../main_window_dynamo.cpp" line="395"/>
-        <location filename="../main_window_rhythm.cpp" line="723"/>
-        <location filename="../main_window_coord.cpp" line="625"/>
-        <location filename="../main_window_coord.cpp" line="649"/>
-        <location filename="../main_window_arabic.cpp" line="162"/>
-        <location filename="../main_window_arabic.cpp" line="239"/>
-        <location filename="../main_window_avh.cpp" line="775"/>
-        <location filename="../main_window_avh.cpp" line="875"/>
+        <location filename="../main_window_rhythm.cpp" line="740"/>
+        <location filename="../main_window_coord.cpp" line="628"/>
+        <location filename="../main_window_coord.cpp" line="652"/>
+        <location filename="../main_window_arabic.cpp" line="163"/>
+        <location filename="../main_window_arabic.cpp" line="240"/>
+        <location filename="../main_window_avh.cpp" line="777"/>
+        <location filename="../main_window_avh.cpp" line="877"/>
         <location filename="../main_window_print.cpp" line="277"/>
         <source> NEIN </source>
         <translation> NO </translation>
@@ -2390,7 +2389,7 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
     </message>
     <message>
         <location filename="../main_window_korrektur.cpp" line="246"/>
-        <location filename="../main_window_help.cpp" line="243"/>
+        <location filename="../main_window_help.cpp" line="246"/>
         <source>RADIX</source>
         <translation>RADIX</translation>
     </message>
@@ -2605,22 +2604,22 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation> END the TESTS </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="912"/>
+        <location filename="../main_window.cpp" line="942"/>
         <source>Kn.ND</source>
         <translation>Node N</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="912"/>
+        <location filename="../main_window.cpp" line="942"/>
         <source>Kn.SD</source>
         <translation>Node S</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="912"/>
+        <location filename="../main_window.cpp" line="942"/>
         <source>Perihel</source>
         <translation>Perihelion</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="912"/>
+        <location filename="../main_window.cpp" line="942"/>
         <source>Aphel</source>
         <translation>Aphelion</translation>
     </message>
@@ -2630,59 +2629,59 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation>House </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2776"/>
+        <location filename="../main_window.cpp" line="2822"/>
         <source>Zu verkettende Dateien wählen</source>
         <translation>Choose files to chain</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2777"/>
+        <location filename="../main_window.cpp" line="2823"/>
         <source>HORCOM Daten (*.DAT *.dat *.AAF *.aaf)</source>
         <translation>HORCOM data (*.DAT *.dat *.AAF *.aaf)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2783"/>
+        <location filename="../main_window.cpp" line="2829"/>
         <source>Ketten-Datei</source>
         <translation>Chain file</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2868"/>
+        <location filename="../main_window.cpp" line="2914"/>
         <source>AAF (*.aaf *.AAF)</source>
         <translation>AAF (*.aaf *.AAF)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2812"/>
+        <location filename="../main_window.cpp" line="2858"/>
         <source>Die Ketten-Datei ließ sich nicht schreiben.</source>
         <translation>The chain file could not be written.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2815"/>
+        <location filename="../main_window.cpp" line="2861"/>
         <source>%1 Datensätze verkettet.</source>
         <translation>%1 records chained.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2903"/>
+        <location filename="../main_window.cpp" line="2949"/>
         <source>Die HORCOM-Datei ließ sich nicht schreiben.</source>
         <translation>The HORCOM file could not be written.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2924"/>
-        <location filename="../main_window.cpp" line="5564"/>
+        <location filename="../main_window.cpp" line="2970"/>
+        <location filename="../main_window.cpp" line="5694"/>
         <source>Die Datei ließ sich nicht lesen.</source>
         <translation>The file could not be read.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5577"/>
+        <location filename="../main_window.cpp" line="5707"/>
         <source>Nichts zu bereinigen, %1 Datensätze.</source>
         <translation>Nothing to tidy, %1 records.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5525"/>
-        <location filename="../main_window.cpp" line="5581"/>
+        <location filename="../main_window.cpp" line="5655"/>
+        <location filename="../main_window.cpp" line="5711"/>
         <source>Die Datei ließ sich nicht schreiben.</source>
         <translation>The file could not be written.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="480"/>
+        <location filename="../main_window.cpp" line="510"/>
         <source>Daten-Datei</source>
         <translation>Data file</translation>
     </message>
@@ -2693,80 +2692,80 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
     </message>
     <message>
         <location filename="../main_window_avh.cpp" line="170"/>
-        <location filename="../main_window_avh.cpp" line="552"/>
+        <location filename="../main_window_avh.cpp" line="554"/>
         <source>ROT</source>
         <translation>RED</translation>
     </message>
     <message>
         <location filename="../main_window_avh.cpp" line="173"/>
-        <location filename="../main_window_avh.cpp" line="552"/>
+        <location filename="../main_window_avh.cpp" line="554"/>
         <source>SCHWARZ</source>
         <translation>BLACK</translation>
     </message>
     <message>
         <location filename="../main_window_avh.cpp" line="172"/>
-        <location filename="../main_window_avh.cpp" line="552"/>
+        <location filename="../main_window_avh.cpp" line="554"/>
         <source>BLAU</source>
         <translation>BLUE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6742"/>
+        <location filename="../main_window.cpp" line="6906"/>
         <source>Die Vorgaben ließen sich nicht speichern.</source>
         <translation>The defaults could not be saved.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="843"/>
-        <location filename="../main_window.cpp" line="3222"/>
+        <location filename="../main_window.cpp" line="873"/>
+        <location filename="../main_window.cpp" line="3293"/>
         <source>Planeten-Auswahl</source>
         <translation>Planet selection</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3225"/>
+        <location filename="../main_window.cpp" line="3296"/>
         <source>Zeigen</source>
         <translation>Show</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3225"/>
+        <location filename="../main_window.cpp" line="3296"/>
         <source>Rot</source>
         <translation>Red</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3381"/>
+        <location filename="../main_window.cpp" line="3452"/>
         <source>Geburtsherrscher rot hervorheben</source>
         <translation>Highlight the birth ruler red</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3384"/>
+        <location filename="../main_window.cpp" line="3455"/>
         <source>Zurücksetzen</source>
         <translation>Reset</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="1016"/>
+        <location filename="../main_window_rhythm.cpp" line="1054"/>
         <source> (Spiegel)</source>
         <translation> (mirror)</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="708"/>
+        <location filename="../main_window_rhythm.cpp" line="725"/>
         <source>Die Grade ließen sich nicht speichern.</source>
         <translation>The degrees could not be saved.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3470"/>
+        <location filename="../main_window.cpp" line="3578"/>
         <source>Histogramme</source>
         <translation>Histograms</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3474"/>
+        <location filename="../main_window.cpp" line="3582"/>
         <source>Klasse</source>
         <translation>Class</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3489"/>
+        <location filename="../main_window.cpp" line="3601"/>
         <source>Zusatz</source>
         <translation>Extras</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3559"/>
+        <location filename="../main_window.cpp" line="3672"/>
         <source>-</source>
         <translation>-</translation>
     </message>
@@ -3043,7 +3042,7 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
     <message>
         <location filename="../main_window_wander.cpp" line="544"/>
         <location filename="../main_window_wander.cpp" line="671"/>
-        <location filename="../main_window_coord.cpp" line="580"/>
+        <location filename="../main_window_coord.cpp" line="583"/>
         <source>TAGE</source>
         <translation>DAYS</translation>
     </message>
@@ -3051,7 +3050,7 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <location filename="../main_window_wander.cpp" line="544"/>
         <location filename="../main_window_wander.cpp" line="671"/>
         <location filename="../main_window_wander.cpp" line="763"/>
-        <location filename="../main_window_coord.cpp" line="580"/>
+        <location filename="../main_window_coord.cpp" line="583"/>
         <source>STUNDEN</source>
         <translation>HOURS</translation>
     </message>
@@ -3059,7 +3058,7 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <location filename="../main_window_wander.cpp" line="544"/>
         <location filename="../main_window_wander.cpp" line="671"/>
         <location filename="../main_window_wander.cpp" line="763"/>
-        <location filename="../main_window_coord.cpp" line="580"/>
+        <location filename="../main_window_coord.cpp" line="583"/>
         <source>MINUTEN</source>
         <translation>MINUTES</translation>
     </message>
@@ -3067,7 +3066,7 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <location filename="../main_window_wander.cpp" line="545"/>
         <location filename="../main_window_wander.cpp" line="672"/>
         <location filename="../main_window_wander.cpp" line="764"/>
-        <location filename="../main_window_coord.cpp" line="581"/>
+        <location filename="../main_window_coord.cpp" line="584"/>
         <source>ZEIT-EINHEIT ?</source>
         <translation>TIME UNIT ?</translation>
     </message>
@@ -3075,7 +3074,7 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <location filename="../main_window_wander.cpp" line="551"/>
         <location filename="../main_window_wander.cpp" line="678"/>
         <location filename="../main_window_wander.cpp" line="769"/>
-        <location filename="../main_window_coord.cpp" line="586"/>
+        <location filename="../main_window_coord.cpp" line="589"/>
         <source> als BELIEBIGE ZAHL EINGEBEN !</source>
         <translation> ENTER as ANY NUMBER !</translation>
     </message>
@@ -3083,7 +3082,7 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <location filename="../main_window_wander.cpp" line="557"/>
         <location filename="../main_window_wander.cpp" line="684"/>
         <location filename="../main_window_wander.cpp" line="775"/>
-        <location filename="../main_window_coord.cpp" line="593"/>
+        <location filename="../main_window_coord.cpp" line="596"/>
         <source>RICHTUNG ?</source>
         <translation>DIRECTION ?</translation>
     </message>
@@ -3091,7 +3090,7 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <location filename="../main_window_wander.cpp" line="557"/>
         <location filename="../main_window_wander.cpp" line="684"/>
         <location filename="../main_window_wander.cpp" line="775"/>
-        <location filename="../main_window_coord.cpp" line="593"/>
+        <location filename="../main_window_coord.cpp" line="596"/>
         <source>VOR</source>
         <translation>FORWARD</translation>
     </message>
@@ -3099,21 +3098,21 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <location filename="../main_window_wander.cpp" line="557"/>
         <location filename="../main_window_wander.cpp" line="684"/>
         <location filename="../main_window_wander.cpp" line="775"/>
-        <location filename="../main_window_coord.cpp" line="593"/>
+        <location filename="../main_window_coord.cpp" line="596"/>
         <source>ZURÜCK</source>
         <translation>BACK</translation>
     </message>
     <message>
         <location filename="../main_window_wander.cpp" line="583"/>
         <location filename="../main_window_wander.cpp" line="703"/>
-        <location filename="../main_window_coord.cpp" line="571"/>
+        <location filename="../main_window_coord.cpp" line="574"/>
         <source>Vorwärts !</source>
         <translation>Forward !</translation>
     </message>
     <message>
         <location filename="../main_window_wander.cpp" line="583"/>
         <location filename="../main_window_wander.cpp" line="703"/>
-        <location filename="../main_window_coord.cpp" line="571"/>
+        <location filename="../main_window_coord.cpp" line="574"/>
         <source>Rückwärts!</source>
         <translation>Backward!</translation>
     </message>
@@ -3126,7 +3125,7 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <location filename="../main_window_wander.cpp" line="627"/>
         <location filename="../main_window_wander.cpp" line="733"/>
         <location filename="../main_window_wander.cpp" line="819"/>
-        <location filename="../main_window_coord.cpp" line="608"/>
+        <location filename="../main_window_coord.cpp" line="611"/>
         <source>Weiter Mit NEUER ZEITEINHEIT ?</source>
         <translation>On with a NEW TIME UNIT ?</translation>
     </message>
@@ -3135,14 +3134,14 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <location filename="../main_window_wander.cpp" line="734"/>
         <location filename="../main_window_wander.cpp" line="820"/>
         <location filename="../main_window_wander.cpp" line="1146"/>
-        <location filename="../main_window_coord.cpp" line="609"/>
+        <location filename="../main_window_coord.cpp" line="612"/>
         <source> NEIN = ENDE </source>
         <translation> NO = END </translation>
     </message>
     <message>
         <location filename="../main_window_wander.cpp" line="643"/>
         <location filename="../main_window_wander.cpp" line="830"/>
-        <location filename="../main_window_coord.cpp" line="624"/>
+        <location filename="../main_window_coord.cpp" line="627"/>
         <source>VARIIERTE ZEIT in RADIX ÜBERNEHMEN ?</source>
         <translation>TAKE the VARIED TIME into the RADIX ?</translation>
     </message>
@@ -3340,7 +3339,7 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <location filename="../main_window_wander.cpp" line="1072"/>
         <location filename="../main_window_uhr.cpp" line="209"/>
         <location filename="../main_window_dynamo.cpp" line="367"/>
-        <location filename="../main_window_rhythm.cpp" line="619"/>
+        <location filename="../main_window_rhythm.cpp" line="636"/>
         <source> Information </source>
         <translation> Information </translation>
     </message>
@@ -3351,7 +3350,7 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
     </message>
     <message>
         <location filename="../main_window_wander.cpp" line="959"/>
-        <location filename="../main_window_rhythm.cpp" line="978"/>
+        <location filename="../main_window_rhythm.cpp" line="1000"/>
         <source>GRAD</source>
         <translation>DEGREES</translation>
     </message>
@@ -3522,283 +3521,286 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation>TIME WANDERING</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="755"/>
+        <location filename="../main_window.cpp" line="785"/>
         <source>Ortszeit</source>
         <translation>Local time</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="508"/>
+        <location filename="../main_window.cpp" line="538"/>
         <source>Orts-Dateien</source>
         <translation>Place files</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="449"/>
+        <location filename="../main_window.cpp" line="479"/>
         <source>DATEN</source>
         <translation>DATA</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="672"/>
+        <location filename="../main_window.cpp" line="702"/>
         <source>Mondknoten</source>
         <translation>Lunar node</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="674"/>
-        <location filename="../main_window.cpp" line="682"/>
+        <location filename="../main_window.cpp" line="704"/>
+        <location filename="../main_window.cpp" line="712"/>
         <source>Wahrer</source>
         <translation>True</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="675"/>
-        <location filename="../main_window.cpp" line="683"/>
+        <location filename="../main_window.cpp" line="705"/>
+        <location filename="../main_window.cpp" line="713"/>
         <source>Mittlerer</source>
         <translation>Mean</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="677"/>
+        <location filename="../main_window.cpp" line="707"/>
         <source>Schwarzer Mond</source>
         <translation>Black Moon</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="715"/>
+        <location filename="../main_window.cpp" line="745"/>
         <source>Sommerzeit</source>
         <translation>Summer time</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="718"/>
+        <location filename="../main_window.cpp" line="748"/>
         <source>doppelt</source>
         <translation>double</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="719"/>
+        <location filename="../main_window.cpp" line="749"/>
         <source>DOPPELTE SOMMERZEIT = DDSZ, zwei Stunden Zuschlag</source>
         <translation>DOUBLE SUMMER TIME = DDST, two hours added</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="728"/>
+        <location filename="../main_window.cpp" line="758"/>
         <source>wirksame Zeit-Zone bei aktivem Sommerzeit-Zuschlag</source>
         <translation>effective time zone with the summer time added</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="734"/>
+        <location filename="../main_window.cpp" line="764"/>
         <source>(Ortszeit LTT = WOZ)</source>
         <translation>(local time LTT)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="735"/>
+        <location filename="../main_window.cpp" line="765"/>
         <source>(Ortszeit LMT = MOZ)</source>
         <translation>(local time LMT)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="756"/>
+        <location filename="../main_window.cpp" line="786"/>
         <source>ORTSZEIT (HISTORISCHE HOROSKOPE), die Uhr folgt der geographischen Länge</source>
         <translation>LOCAL TIME (HISTORICAL CHARTS), the clock follows the geographic longitude</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="757"/>
+        <location filename="../main_window.cpp" line="787"/>
         <source>noch julianisch</source>
         <translation>still Julian</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="758"/>
+        <location filename="../main_window.cpp" line="788"/>
         <source>NOCH JULIANISCH ( NACH 1582 ), das Datum gilt im julianischen Kalender</source>
         <translation>STILL JULIAN ( AFTER 1582 ), the date is in the Julian calendar</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="791"/>
+        <location filename="../main_window.cpp" line="821"/>
         <source>Ortsname</source>
         <translation>Place name</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="803"/>
+        <location filename="../main_window.cpp" line="833"/>
         <source>Zeit-Zone</source>
         <translation>Time zone</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="847"/>
-        <location filename="../main_window.cpp" line="3284"/>
+        <location filename="../main_window.cpp" line="877"/>
+        <location filename="../main_window.cpp" line="3355"/>
         <source>Andere Elemente</source>
         <translation>Other elements</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="902"/>
+        <location filename="../main_window.cpp" line="932"/>
         <source>Planeten-Koordinaten</source>
         <translation>Planet coordinates</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="920"/>
+        <location filename="../main_window.cpp" line="950"/>
         <source>Häuser-Spitzen</source>
         <translation>House cusps</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="981"/>
+        <location filename="../main_window.cpp" line="1011"/>
         <source>&amp;ÜBER HORCOM</source>
         <translation>&amp;ABOUT HORCOM</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="986"/>
+        <location filename="../main_window.cpp" line="1016"/>
         <source>D&amp;IVERSES</source>
         <translation>M&amp;ISCELLANEOUS</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="996"/>
+        <location filename="../main_window.cpp" line="1026"/>
         <source>EINFÜHRUNG = ERLÄUTERUNG 1</source>
         <translation>INTRODUCTION = EXPLANATION 1</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1001"/>
+        <location filename="../main_window.cpp" line="1031"/>
         <source>FUNKTIONS-Tasten : F1 ( oder ALT + E ) = ZUSTÄNDIGE ERLÄUTERUNG</source>
         <translation>FUNCTION keys : F1 ( or ALT + E ) = EXPLANATION in charge</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1002"/>
+        <location filename="../main_window.cpp" line="1032"/>
         <source>F2 ( oder ALT + A ) = HOROSKOP ANSEHEN ( In sonstigen Ausgaben )</source>
         <translation>F2 ( or ALT + A ) = VIEW CHART ( in other outputs )</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1003"/>
+        <location filename="../main_window.cpp" line="1033"/>
         <source>F3 ( oder ALT + C ) =  RECHNER ( CALCULATOR ) STARTEN</source>
         <translation>F3 ( or ALT + C ) =  START the CALCULATOR</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1004"/>
+        <location filename="../main_window.cpp" line="1034"/>
         <source>F5 ( oder ALT + R ) = WINKEL/ZEIT DEZIMAL in G/H MIN SEK</source>
         <translation>F5 ( or ALT + R ) = ANGLE/TIME DECIMAL to D/H MIN SEC</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1005"/>
+        <location filename="../main_window.cpp" line="1035"/>
         <source>F6 ( oder ALT + H ) = HELIO- bzw. GEOZENTRISCH UMSCHALTEN</source>
         <translation>F6 ( or ALT + H ) = SWITCH HELIO- or GEOCENTRIC</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1006"/>
+        <location filename="../main_window.cpp" line="1036"/>
         <source>F7 ( oder ALT + F ) = AUSGABE als BILD SPEICHERN ( PNG )</source>
         <translation>F7 ( or ALT + F ) = SAVE OUTPUT as PICTURE ( PNG )</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1007"/>
+        <location filename="../main_window.cpp" line="1037"/>
         <source>F8 ( oder ALT + D ) = DRUCKER-OPTION EIN-AUS</source>
         <translation>F8 ( or ALT + D ) = PRINTER OPTION ON-OFF</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1008"/>
+        <location filename="../main_window.cpp" line="1038"/>
         <source>F9 ( oder ALT + M ) = DOPPEL-AUSDRUCK AKTIVIEREN</source>
         <translation>F9 ( or ALT + M ) = ACTIVATE DOUBLE PRINT</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1016"/>
+        <location filename="../main_window.cpp" line="1046"/>
         <source>VORGABEN EIN-AUSGABE ÄNDERN…</source>
         <translation>CHANGE IN-OUT DEFAULTS…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1100"/>
+        <location filename="../main_window.cpp" line="1130"/>
         <source>GRAD-LISTE G/H…</source>
         <translation>DEGREE LIST G/H…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1110"/>
+        <location filename="../main_window.cpp" line="1363"/>
+        <location filename="../main_window_help.cpp" line="85"/>
         <source>ET aus UT…</source>
         <translation>ET from UT…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1111"/>
+        <location filename="../main_window.cpp" line="1364"/>
+        <location filename="../main_window_help.cpp" line="86"/>
         <source>UT aus ET…</source>
         <translation>UT from ET…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1112"/>
+        <location filename="../main_window.cpp" line="1365"/>
+        <location filename="../main_window_help.cpp" line="87"/>
         <source>DATUM aus JD…</source>
         <translation>DATE from JD…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1130"/>
+        <location filename="../main_window.cpp" line="1155"/>
         <source>HOROSKOP-KOMBINATION / VERGLEICH</source>
         <translation>HOROSCOPE COMBINATION / COMPARISON</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1214"/>
+        <location filename="../main_window.cpp" line="1239"/>
         <source>VORGABEN DIREKTIONEN ÄNDERN…</source>
         <translation>CHANGE DIRECTION DEFAULTS…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1261"/>
+        <location filename="../main_window.cpp" line="1286"/>
         <location filename="../main_window_help.cpp" line="69"/>
         <source>DYNAMOGRAMM…</source>
         <translation>DYNAMOGRAM…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1252"/>
+        <location filename="../main_window.cpp" line="1277"/>
         <location filename="../main_window_help.cpp" line="70"/>
         <source>SEKUNDÄR-DIREKTION…</source>
         <translation>SECONDARY DIRECTION…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1253"/>
+        <location filename="../main_window.cpp" line="1278"/>
         <location filename="../main_window_help.cpp" line="71"/>
         <source>SONNE (MOND)-BOGEN-DIREKTION…</source>
         <translation>SOLAR (LUNAR) ARC DIRECTION…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1255"/>
+        <location filename="../main_window.cpp" line="1280"/>
         <location filename="../main_window_help.cpp" line="73"/>
         <source>SYMB. DIREKTION: ÄQUATORIAL…</source>
         <translation>SYMB. DIRECTION: EQUATORIAL…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1291"/>
+        <location filename="../main_window.cpp" line="1316"/>
         <location filename="../main_window_help.cpp" line="76"/>
         <source>TRANSITE…</source>
         <translation>TRANSITS…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1331"/>
+        <location filename="../main_window.cpp" line="1358"/>
         <source>AR-DE aus EL-EB…</source>
         <translation>RA-DE from EL-EB…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1332"/>
+        <location filename="../main_window.cpp" line="1359"/>
         <source>EL-EB aus AR-DE…</source>
         <translation>EL-EB from RA-DE…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1333"/>
+        <location filename="../main_window.cpp" line="1361"/>
         <source>LT aus UT…</source>
         <translation>LT from UT…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1334"/>
+        <location filename="../main_window.cpp" line="1360"/>
         <source>UT aus LT…</source>
         <translation>UT from LT…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1336"/>
+        <location filename="../main_window.cpp" line="1368"/>
         <source>WINKEL-UMRECHNUNG…</source>
         <translation>ANGLE CONVERSION…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1426"/>
+        <location filename="../main_window.cpp" line="1458"/>
         <location filename="../main_window_help.cpp" line="82"/>
         <source>HINTERGRUND-FARBEN…</source>
         <translation>BACKGROUND COLOURS…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1354"/>
+        <location filename="../main_window.cpp" line="1386"/>
         <source>DESKTOP ( QUIT HORCOM )</source>
         <translation>DESKTOP ( QUIT HORCOM )</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1060"/>
+        <location filename="../main_window.cpp" line="1090"/>
         <location filename="../main_window_help.cpp" line="81"/>
         <source>ERGEBNIS als RADIX…</source>
         <translation>RESULT as RADIX…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1295"/>
+        <location filename="../main_window.cpp" line="1320"/>
         <location filename="../main_window_help.cpp" line="77"/>
         <source>MUNDAN-ASPEKTE…</source>
         <translation>MUNDANE ASPECTS…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1383"/>
+        <location filename="../main_window.cpp" line="1415"/>
         <source>KOORDINATEN-TAFEL EIN / AUS</source>
         <translation>COORDINATE PANEL ON / OFF</translation>
     </message>
@@ -3828,124 +3830,124 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation>The natal Sun could not be determined</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2822"/>
+        <location filename="../main_window.cpp" line="2868"/>
         <source>Wie umwandeln ?</source>
         <translation>How to convert ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2823"/>
+        <location filename="../main_window.cpp" line="2869"/>
         <source>AAF - in HORCOM - Format ( = AAF-Datei IMPORTIEREN )</source>
         <translation>AAF into HORCOM format ( = IMPORT an AAF file )</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2824"/>
+        <location filename="../main_window.cpp" line="2870"/>
         <source>HORCOM - in AAF - Format</source>
         <translation>HORCOM into AAF format</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2824"/>
+        <location filename="../main_window.cpp" line="2870"/>
         <source>AAF-Help von M.GARMS aufrufen</source>
         <translation>Open the AAF help by M.GARMS</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2832"/>
+        <location filename="../main_window.cpp" line="2878"/>
         <source>HORCOM-Format umwandeln in AAF-Format ist nur sinnvoll</source>
         <translation>Converting HORCOM format into AAF format only makes sense</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2833"/>
+        <location filename="../main_window.cpp" line="2879"/>
         <source>Wenn Sie ältere HORCOM-Dateien überabeiten oder mit Usern austauschen wollen</source>
         <translation>When you revise older HORCOM files or want to exchange them with users</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2834"/>
+        <location filename="../main_window.cpp" line="2880"/>
         <source>deren Programm das AAF-Format aber nicht das HORCOM-Format versteht !!</source>
         <translation>whose program understands the AAF format but not the HORCOM format !!</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2835"/>
-        <location filename="../main_window.cpp" line="2936"/>
+        <location filename="../main_window.cpp" line="2881"/>
+        <location filename="../main_window.cpp" line="2982"/>
         <source> TROTZDEM WEITER </source>
         <translation> CONTINUE ANYWAY </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2850"/>
+        <location filename="../main_window.cpp" line="2896"/>
         <source>ANDEREN Namen EINGEBEN !</source>
         <translation>ENTER ANOTHER name !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2866"/>
+        <location filename="../main_window.cpp" line="2912"/>
         <source>Umzuwandelndes  AAF - FILE Auswählen !</source>
         <translation>Choose the  AAF FILE to convert !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2876"/>
+        <location filename="../main_window.cpp" line="2922"/>
         <source>DATEI ???</source>
         <translation>FILE ???</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2883"/>
+        <location filename="../main_window.cpp" line="2929"/>
         <source>Existierendes File</source>
         <translation>Existing file</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2883"/>
+        <location filename="../main_window.cpp" line="2929"/>
         <source>ERSETZEN ?</source>
         <translation>REPLACE ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2884"/>
-        <location filename="../main_window.cpp" line="2987"/>
-        <location filename="../main_window.cpp" line="3050"/>
+        <location filename="../main_window.cpp" line="2930"/>
+        <location filename="../main_window.cpp" line="3033"/>
+        <location filename="../main_window.cpp" line="3096"/>
         <location filename="../main_window_uhr.cpp" line="172"/>
         <location filename="../main_window_dynamo.cpp" line="381"/>
         <source> JA </source>
         <translation> YES </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2908"/>
-        <location filename="../main_window.cpp" line="2973"/>
+        <location filename="../main_window.cpp" line="2954"/>
+        <location filename="../main_window.cpp" line="3019"/>
         <source> Aus dem File %1</source>
         <translation> From the file %1</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2909"/>
-        <location filename="../main_window.cpp" line="2974"/>
+        <location filename="../main_window.cpp" line="2955"/>
+        <location filename="../main_window.cpp" line="3020"/>
         <source> Wird ein File %1 gebildet !</source>
         <translation> A file %1 is built !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2915"/>
+        <location filename="../main_window.cpp" line="2961"/>
         <source>Umzuwandelndes  HORCOM - FILE Auswählen !</source>
         <translation>Choose the  HORCOM FILE to convert !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2933"/>
+        <location filename="../main_window.cpp" line="2979"/>
         <source>Ein AAF-File %1 existiert schon !</source>
         <translation>An AAF file %1 exists already !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2934"/>
+        <location filename="../main_window.cpp" line="2980"/>
         <source>ANDEREN Namen für das AAF - FILE eingeben ?</source>
         <translation>Enter ANOTHER name for the AAF FILE ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2934"/>
+        <location filename="../main_window.cpp" line="2980"/>
         <source> Sonst evtl. INFORMATIONS-VERLUST ! </source>
         <translation> Otherwise possible LOSS of INFORMATION ! </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2935"/>
+        <location filename="../main_window.cpp" line="2981"/>
         <source> Falls es sich um ein ORIGINÄRES AAF-FILE handelt ! </source>
         <translation> If it is an ORIGINAL AAF FILE ! </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2936"/>
+        <location filename="../main_window.cpp" line="2982"/>
         <source> JA = Name ÄNDERN </source>
         <translation> YES = CHANGE the name </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2956"/>
+        <location filename="../main_window.cpp" line="3002"/>
         <source>Die AAF-Datei ließ sich nicht schreiben.</source>
         <translation>The AAF file could not be written.</translation>
     </message>
@@ -4185,52 +4187,61 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation>SET the COLOUR of the OUTER SYMBOLS of the DOUBLE WHEEL and of the RETROGRADE MARK</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="509"/>
-        <source>NEU mit QU, CH : TA-QU   VI-CH   SC-PL   AQ-UR   PS-NE</source>
-        <translation>NEW with QU, CH : TA-QU   VI-CH   SC-PL   AQ-UR   PS-NE</translation>
+        <location filename="../main_window_avh.cpp" line="510"/>
+        <source>NEU : TA-QU   VI-CH   SC-PL   AQ-UR   PS-NE</source>
+        <translation>NEW : TA-QU   VI-CH   SC-PL   AQ-UR   PS-NE</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="581"/>
+        <location filename="../main_window_avh.cpp" line="511"/>
+        <source>ALT : TA-VE   VI-ME   SC-MA   AQ-SA   PS-JU</source>
+        <translation>OLD : TA-VE   VI-ME   SC-MA   AQ-SA   PS-JU</translation>
+    </message>
+    <message>
+        <source>NEU mit QU, CH : TA-QU   VI-CH   SC-PL   AQ-UR   PS-NE</source>
+        <translation type="vanished">NEW with QU, CH : TA-QU   VI-CH   SC-PL   AQ-UR   PS-NE</translation>
+    </message>
+    <message>
+        <location filename="../main_window_avh.cpp" line="583"/>
         <source>ORBEN der ASPEKTE EINZELN VORGEBEN ?</source>
         <translation>SET the ORBS of the ASPECTS ONE BY ONE ?</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="582"/>
+        <location filename="../main_window_avh.cpp" line="584"/>
         <source>ORBEN nach HORCOM - ZÄHLUNG : ORBIS = 12°/ TEILER  z.B 3° für QUADRAT ( TEILER = 4 )</source>
         <translation>ORBS by HORCOM COUNT : ORB = 12°/ DIVISOR  e.g. 3° for the SQUARE ( DIVISOR = 4 )</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="583"/>
+        <location filename="../main_window_avh.cpp" line="585"/>
         <source>ORBEN sind SELBST DEFINIERT</source>
         <translation>ORBS are SELF-DEFINED</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="583"/>
+        <location filename="../main_window_avh.cpp" line="585"/>
         <source>ORBEN NEU SELBST DEFINIEREN</source>
         <translation>DEFINE the ORBS ANEW</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="621"/>
+        <location filename="../main_window_avh.cpp" line="623"/>
         <source>FAKTOR von ORBEN in PROZENTEN</source>
         <translation>FACTOR of the ORBS in PERCENT</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="671"/>
+        <location filename="../main_window_avh.cpp" line="673"/>
         <source>ORBEN der GRUND-ASPEKTE EINGEBEN !</source>
         <translation>ENTER the ORBS of the BASIC ASPECTS !</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="694"/>
+        <location filename="../main_window_avh.cpp" line="696"/>
         <source>Wenn Sie den folgenden Button anklicken,werden Orben gewählt,die%1etwa GLEICHE Wahrscheinlichkeit für alle Aspekte mit Teiler  1 bis 12 aufweisen ! ( 1930 bis 2050 )          Näheres,siehe Erläuterung 4 !</source>
         <translation>When you click the following button, orbs are chosen that give%1about EQUAL probability to all aspects with divisor  1 to 12 ! ( 1930 to 2050 )          For details, see explanation 4 !</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="702"/>
+        <location filename="../main_window_avh.cpp" line="704"/>
         <source>ORBEN für GLEICH WAHRSCHEINLICHE ASPEKTE</source>
         <translation>ORBS for EQUALLY PROBABLE ASPECTS</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="794"/>
+        <location filename="../main_window_avh.cpp" line="796"/>
         <source>ORBEN - GEWICHTE der PLANETEN in % EINGEBEN !</source>
         <translation>ENTER the ORB WEIGHTS of the PLANETS in % !</translation>
     </message>
@@ -4378,68 +4389,65 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation>STARTING DEGREE of the CHART !</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="507"/>
+        <location filename="../main_window_avh.cpp" line="509"/>
         <source>ZUORDNUNG ZEICHEN-HERRSCHER ?</source>
         <translation>ASSIGNMENT of SIGN RULERS ?</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="508"/>
         <source>NEU : SC-PL   AQ-UR   PS-NE</source>
-        <translation>NEW : SC-PL   AQ-UR   PS-NE</translation>
+        <translation type="vanished">NEW : SC-PL   AQ-UR   PS-NE</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="508"/>
         <source>ALT : SC-MA   AQ-SA   PS-JU</source>
-        <translation>OLD : SC-MA   AQ-SA   PS-JU</translation>
+        <translation type="vanished">OLD : SC-MA   AQ-SA   PS-JU</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5911"/>
-        <location filename="../main_window_avh.cpp" line="510"/>
+        <location filename="../main_window.cpp" line="6044"/>
+        <location filename="../main_window_avh.cpp" line="512"/>
         <source>NEU</source>
         <translation>NEW</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="510"/>
+        <location filename="../main_window_avh.cpp" line="512"/>
         <source>ALT</source>
         <translation>OLD</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="510"/>
         <source>NEU mit QU, CH</source>
-        <translation>NEW with QU, CH</translation>
+        <translation type="vanished">NEW with QU, CH</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="526"/>
+        <location filename="../main_window_avh.cpp" line="528"/>
         <source> - und KARD / FIX / GEM ?</source>
         <translation> - and CARD / FIX / MUT ?</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="527"/>
+        <location filename="../main_window_avh.cpp" line="529"/>
         <source>Nur für ZEICHEN</source>
         <translation>Only for SIGNS</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="527"/>
+        <location filename="../main_window_avh.cpp" line="529"/>
         <source>Für ZEICHEN und HÄUSER</source>
         <translation>For SIGNS and HOUSES</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="528"/>
+        <location filename="../main_window_avh.cpp" line="530"/>
         <source>HISTOGRAMME WEGLASSEN !</source>
         <translation>LEAVE OUT the HISTOGRAMS !</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="550"/>
+        <location filename="../main_window_avh.cpp" line="552"/>
         <source>Bei DOPPELKREIS für ÄUßERE SYMBOLE</source>
         <translation>For the OUTER SYMBOLS of the DOUBLE WHEEL</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="551"/>
+        <location filename="../main_window_avh.cpp" line="553"/>
         <source>Und bei RÜCKLÄUFIGKEITS-ANZEIGE</source>
         <translation>And for the RETROGRADE MARK</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="551"/>
+        <location filename="../main_window_avh.cpp" line="553"/>
         <source>Die FARBE FESTLEGEN !</source>
         <translation>SET the COLOUR !</translation>
     </message>
@@ -4464,32 +4472,32 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation type="vanished">FACTOR before the ORB in PERCENT</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="622"/>
+        <location filename="../main_window_avh.cpp" line="624"/>
         <source> 50 %</source>
         <translation> 50 %</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="622"/>
+        <location filename="../main_window_avh.cpp" line="624"/>
         <source> 80 %</source>
         <translation> 80 %</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="622"/>
+        <location filename="../main_window_avh.cpp" line="624"/>
         <source>100 %</source>
         <translation>100 %</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="622"/>
+        <location filename="../main_window_avh.cpp" line="624"/>
         <source>150 %</source>
         <translation>150 %</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="622"/>
+        <location filename="../main_window_avh.cpp" line="624"/>
         <source>200 %</source>
         <translation>200 %</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="638"/>
+        <location filename="../main_window_avh.cpp" line="640"/>
         <source>GEWÜNSCHTER PROZENTSATZ !</source>
         <translation>DESIRED PERCENTAGE !</translation>
     </message>
@@ -4498,22 +4506,22 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation type="vanished">ENTER the ORBS of the BASIC ASPECTS !</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="673"/>
+        <location filename="../main_window_avh.cpp" line="675"/>
         <source>TEILER    ASPEKT             EINGABE ( EDITIEREN ! ) </source>
         <translation>DIVISOR   ASPECT             ENTRY ( EDIT ! ) </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="692"/>
+        <location filename="../main_window_avh.cpp" line="694"/>
         <source> HELIOZENTRISCH </source>
         <translation> HELIOCENTRIC </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="693"/>
+        <location filename="../main_window_avh.cpp" line="695"/>
         <source>TOPOZENTRISCH</source>
         <translation>TOPOCENTRIC</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="693"/>
+        <location filename="../main_window_avh.cpp" line="695"/>
         <source> GEOZENTRISCH </source>
         <translation> GEOCENTRIC </translation>
     </message>
@@ -4526,27 +4534,27 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation type="vanished">ORBS for EQUALLY PROBABLE ASPECTS</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="752"/>
+        <location filename="../main_window_avh.cpp" line="754"/>
         <source>ÜBERDECKENDER ORBIS !</source>
         <translation>OVERLAPPING ORB !</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="754"/>
+        <location filename="../main_window_avh.cpp" line="756"/>
         <source>ZU GROßER ORBIS !</source>
         <translation>ORB TOO LARGE !</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="757"/>
+        <location filename="../main_window_avh.cpp" line="759"/>
         <source>BEI NR. %1</source>
         <translation>AT NO. %1</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="757"/>
+        <location filename="../main_window_avh.cpp" line="759"/>
         <source>NOCHMAL</source>
         <translation>AGAIN</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="774"/>
+        <location filename="../main_window_avh.cpp" line="776"/>
         <source>GEWICHTUNG der</source>
         <translation>WEIGHTING of the</translation>
     </message>
@@ -4555,107 +4563,107 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation type="vanished">PLANET ORBS</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="774"/>
+        <location filename="../main_window_avh.cpp" line="776"/>
         <source>ÄNDERN ?</source>
         <translation>CHANGE ?</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="774"/>
+        <location filename="../main_window_avh.cpp" line="776"/>
         <source>PLANETEN-ORBEN</source>
         <translation>PLANET ORBS</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="787"/>
+        <location filename="../main_window_avh.cpp" line="789"/>
         <source>FIXPUNKT     = FP </source>
         <translation>FIXED POINT  = FP </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="787"/>
-        <location filename="../main_window_avh.cpp" line="887"/>
+        <location filename="../main_window_avh.cpp" line="789"/>
+        <location filename="../main_window_avh.cpp" line="889"/>
         <source>SONNE        = SO </source>
         <translation>SUN          = SO </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="787"/>
-        <location filename="../main_window_avh.cpp" line="887"/>
+        <location filename="../main_window_avh.cpp" line="789"/>
+        <location filename="../main_window_avh.cpp" line="889"/>
         <source>MOND         = MO </source>
         <translation>MOON         = MO </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="787"/>
-        <location filename="../main_window_avh.cpp" line="887"/>
+        <location filename="../main_window_avh.cpp" line="789"/>
+        <location filename="../main_window_avh.cpp" line="889"/>
         <source>MERKUR       = ME </source>
         <translation>MERCURY      = ME </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="788"/>
-        <location filename="../main_window_avh.cpp" line="887"/>
+        <location filename="../main_window_avh.cpp" line="790"/>
+        <location filename="../main_window_avh.cpp" line="889"/>
         <source>VENUS        = VE </source>
         <translation>VENUS        = VE </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="788"/>
-        <location filename="../main_window_avh.cpp" line="888"/>
+        <location filename="../main_window_avh.cpp" line="790"/>
+        <location filename="../main_window_avh.cpp" line="890"/>
         <source>MARS         = MA </source>
         <translation>MARS         = MA </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="788"/>
-        <location filename="../main_window_avh.cpp" line="888"/>
+        <location filename="../main_window_avh.cpp" line="790"/>
+        <location filename="../main_window_avh.cpp" line="890"/>
         <source>JUPITER      = JU </source>
         <translation>JUPITER      = JU </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="788"/>
-        <location filename="../main_window_avh.cpp" line="888"/>
+        <location filename="../main_window_avh.cpp" line="790"/>
+        <location filename="../main_window_avh.cpp" line="890"/>
         <source>SATURN       = SA </source>
         <translation>SATURN       = SA </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="789"/>
-        <location filename="../main_window_avh.cpp" line="888"/>
+        <location filename="../main_window_avh.cpp" line="791"/>
+        <location filename="../main_window_avh.cpp" line="890"/>
         <source>URANUS       = UR </source>
         <translation>URANUS       = UR </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="789"/>
-        <location filename="../main_window_avh.cpp" line="889"/>
+        <location filename="../main_window_avh.cpp" line="791"/>
+        <location filename="../main_window_avh.cpp" line="891"/>
         <source>NEPTUN       = NE </source>
         <translation>NEPTUNE      = NE </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="789"/>
-        <location filename="../main_window_avh.cpp" line="889"/>
+        <location filename="../main_window_avh.cpp" line="791"/>
+        <location filename="../main_window_avh.cpp" line="891"/>
         <source>PLUTO        = PL </source>
         <translation>PLUTO        = PL </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="789"/>
-        <location filename="../main_window_avh.cpp" line="889"/>
+        <location filename="../main_window_avh.cpp" line="791"/>
+        <location filename="../main_window_avh.cpp" line="891"/>
         <source>MONDKNOTEN N = DR </source>
         <translation>NORTH NODE   = DR </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="790"/>
-        <location filename="../main_window_avh.cpp" line="889"/>
+        <location filename="../main_window_avh.cpp" line="792"/>
+        <location filename="../main_window_avh.cpp" line="891"/>
         <source>MONDKNOTEN S = DS </source>
         <translation>SOUTH NODE   = DS </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="790"/>
-        <location filename="../main_window_avh.cpp" line="890"/>
+        <location filename="../main_window_avh.cpp" line="792"/>
+        <location filename="../main_window_avh.cpp" line="892"/>
         <source>ASZENDENT    = AC </source>
         <translation>ASCENDANT    = AC </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="790"/>
-        <location filename="../main_window_avh.cpp" line="890"/>
+        <location filename="../main_window_avh.cpp" line="792"/>
+        <location filename="../main_window_avh.cpp" line="892"/>
         <source>MEDIUM COELI = MC </source>
         <translation>MEDIUM COELI = MC </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="790"/>
-        <location filename="../main_window_avh.cpp" line="890"/>
+        <location filename="../main_window_avh.cpp" line="792"/>
+        <location filename="../main_window_avh.cpp" line="892"/>
         <source>ZUSATZ-PLANETEN   </source>
         <translation>EXTRA PLANETS     </translation>
     </message>
@@ -4664,792 +4672,793 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation type="vanished">ENTER the ORB WEIGHTS of the PLANETS in % !</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="796"/>
+        <location filename="../main_window_avh.cpp" line="798"/>
         <source> AN CURSOR-POSITION EDITIEREN ! NORMAL = 100 % </source>
         <translation> EDIT AT the CURSOR POSITION ! NORMAL = 100 % </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="820"/>
+        <location filename="../main_window_avh.cpp" line="822"/>
         <source>ALLE auf 100 %</source>
         <translation>ALL to 100 %</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="850"/>
+        <location filename="../main_window_avh.cpp" line="852"/>
         <source>ZUSATZ-PLANETEN</source>
         <translation>EXTRA PLANETS</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="851"/>
+        <location filename="../main_window_avh.cpp" line="853"/>
         <source>ZU GROßER ORBIS bei %1 </source>
         <translation>ORB TOO LARGE for %1 </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="873"/>
+        <location filename="../main_window_avh.cpp" line="875"/>
         <source>GEWICHTUNG für HISTOGRAMM der ELEMENTE und KARD/FIX/GEM ÄNDERN?</source>
         <translation>CHANGE the WEIGHTING for the HISTOGRAM of the ELEMENTS and CARD/FIX/MUT?</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="874"/>
+        <location filename="../main_window_avh.cpp" line="876"/>
         <source>ZIFFER von 0 bis 9</source>
         <translation>DIGIT from 0 to 9</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="893"/>
+        <location filename="../main_window_avh.cpp" line="895"/>
         <source>PUNKTE-WERT 0....9 EINGEBEN !</source>
         <translation>ENTER the POINT VALUE 0....9 !</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="895"/>
+        <location filename="../main_window_avh.cpp" line="897"/>
         <source> AN CURSOR-POSITION EDITIEREN ! </source>
         <translation> EDIT AT the CURSOR POSITION ! </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="909"/>
+        <location filename="../main_window_avh.cpp" line="911"/>
         <source>1.GEBURTSHERRSCHER  DOPPELT</source>
         <translation>1st BIRTH RULER  DOUBLE</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="925"/>
+        <location filename="../main_window_avh.cpp" line="927"/>
         <source>ALLE auf 1</source>
         <translation>ALL to 1</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="978"/>
+        <location filename="../main_window_avh.cpp" line="980"/>
         <source>FARBEN im HOROSKOP-RING u.HISTOGRAMMEN ?</source>
         <translation>COLOURS in the CHART RING and HISTOGRAMS ?</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="979"/>
+        <location filename="../main_window_avh.cpp" line="981"/>
         <source>HOROSKOP-RING und HISTOGRAMME :          SCHRAFFIERT STANDARD-FARBEN</source>
         <translation>CHART RING and HISTOGRAMS :          HATCHED STANDARD COLOURS</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="980"/>
+        <location filename="../main_window_avh.cpp" line="982"/>
         <source>HOROSKOP-RING und HISTOGRAMME :          SCHRAFFIERT EIGENE FARBEN  </source>
         <translation>CHART RING and HISTOGRAMS :          HATCHED OWN COLOURS  </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="981"/>
+        <location filename="../main_window_avh.cpp" line="983"/>
         <source>HOROSKOP-RING und HISTOGRAMME :          FARBIG PUR  EIGENE FARBEN  </source>
         <translation>CHART RING and HISTOGRAMS :          SOLID OWN COLOURS  </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="982"/>
+        <location filename="../main_window_avh.cpp" line="984"/>
         <source>ZEICHEN-SYMBOLE: SCHWARZ   HISTOGRAMME:     WEIß                    </source>
         <translation>SIGN SYMBOLS: BLACK   HISTOGRAMS:     WHITE                    </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="983"/>
+        <location filename="../main_window_avh.cpp" line="985"/>
         <source>ZEICHEN-SYMBOLE: SCHWARZ   HISTOGRAMME:  SCHRAFFIERT EIGENE FARBEN  </source>
         <translation>SIGN SYMBOLS: BLACK   HISTOGRAMS:  HATCHED OWN COLOURS  </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="984"/>
+        <location filename="../main_window_avh.cpp" line="986"/>
         <source>ZEICHEN-SYMBOLE: SCHWARZ   HISTOGRAMME:  FARBIG PUR  EIGENE FARBEN  </source>
         <translation>SIGN SYMBOLS: BLACK   HISTOGRAMS:  SOLID OWN COLOURS  </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="985"/>
+        <location filename="../main_window_avh.cpp" line="987"/>
         <source>ZEICHEN-SYMBOLE: FARBIG    HISTOGRAMME:     WEIß                    </source>
         <translation>SIGN SYMBOLS: COLOURED   HISTOGRAMS:     WHITE                    </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="986"/>
+        <location filename="../main_window_avh.cpp" line="988"/>
         <source>ZEICHEN-SYMBOLE: FARBIG    HISTOGRAMME:  SCHRAFFIERT EIGENE FARBEN  </source>
         <translation>SIGN SYMBOLS: COLOURED   HISTOGRAMS:  HATCHED OWN COLOURS  </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="987"/>
+        <location filename="../main_window_avh.cpp" line="989"/>
         <source>ZEICHEN-SYMBOLE: FARBIG    HISTOGRAMME:  FARBIG PUR  EIGENE FARBEN  </source>
         <translation>SIGN SYMBOLS: COLOURED   HISTOGRAMS:  SOLID OWN COLOURS  </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="1022"/>
+        <location filename="../main_window_avh.cpp" line="1024"/>
         <source>FEUER - ZEICHEN &gt; </source>
         <translation>FIRE  - SIGNS &gt; </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="1022"/>
+        <location filename="../main_window_avh.cpp" line="1024"/>
         <source>ERD   - ZEICHEN &gt; </source>
         <translation>EARTH - SIGNS &gt; </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="1023"/>
+        <location filename="../main_window_avh.cpp" line="1025"/>
         <source>LUFT  - ZEICHEN &gt; </source>
         <translation>AIR   - SIGNS &gt; </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="1023"/>
+        <location filename="../main_window_avh.cpp" line="1025"/>
         <source>WASSER- ZEICHEN &gt; </source>
         <translation>WATER - SIGNS &gt; </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="1037"/>
+        <location filename="../main_window_avh.cpp" line="1039"/>
         <source> ( RGB - COLOR : %1 )</source>
         <translation> ( RGB - COLOR : %1 )</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="1076"/>
+        <location filename="../main_window_avh.cpp" line="1078"/>
         <source> FARBE für %1 ANKLICKEN ! </source>
         <translation> CLICK the COLOUR for %1 ! </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="1102"/>
+        <location filename="../main_window_avh.cpp" line="1104"/>
         <source> ASPEKTE ZÄHLEN mit Teiler 1...</source>
         <translation> COUNT ASPECTS with divisor 1...</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="1103"/>
+        <location filename="../main_window_avh.cpp" line="1105"/>
         <source> SELBST DEFINIERT</source>
         <translation> SELF-DEFINED</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="1104"/>
+        <location filename="../main_window_avh.cpp" line="1106"/>
         <source>AUSWERTUNGEN im HOROSKOP-FORMULAR ?</source>
         <translation>EVALUATIONS on the CHART SHEET ?</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="1105"/>
+        <location filename="../main_window_avh.cpp" line="1107"/>
         <source>OHNE ASPEKT - LINIEN</source>
         <translation>WITHOUT ASPECT LINES</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="1119"/>
+        <location filename="../main_window_avh.cpp" line="1121"/>
         <source>HALBSUMMENLISTE HINZUNEHMEN ?</source>
         <translation>ADD the MIDPOINT LIST ?</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="1119"/>
+        <location filename="../main_window_avh.cpp" line="1121"/>
         <source> = &apos;KOMPAKT-AUSWERTUNG&apos; !</source>
         <translation> = &apos;COMPACT EVALUATION&apos; !</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="1134"/>
+        <location filename="../main_window_avh.cpp" line="1136"/>
         <source>ASPEKT - LINIEN</source>
         <translation>ASPECT LINES</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="1148"/>
+        <location filename="../main_window_avh.cpp" line="1150"/>
         <source>TEILER auf 12 FESTGELEGT !</source>
         <translation>DIVISOR SET to 12 !</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="1176"/>
+        <location filename="../main_window_avh.cpp" line="1178"/>
         <source>LINIEN - STIL für %1 FESTLEGEN !</source>
         <translation>SET the LINE STYLE for %1 !</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="1177"/>
+        <location filename="../main_window_avh.cpp" line="1179"/>
         <source>DURCHGEZOGEN</source>
         <translation>SOLID</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="1177"/>
+        <location filename="../main_window_avh.cpp" line="1179"/>
         <source>GESTRICHELT</source>
         <translation>DASHED</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="1177"/>
+        <location filename="../main_window_avh.cpp" line="1179"/>
         <source>STRICHPUNKTIERT </source>
         <translation>DASH-DOTTED </translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="1177"/>
+        <location filename="../main_window_avh.cpp" line="1179"/>
         <source>KEINE LINIE</source>
         <translation>NO LINE</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="1187"/>
+        <location filename="../main_window_avh.cpp" line="1189"/>
         <source> LINIEN - FARBEN für %1  WÄHLEN bzw. ÄNDERN !</source>
         <translation> CHOOSE or CHANGE the LINE COLOUR for %1 !</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="526"/>
+        <location filename="../main_window_avh.cpp" line="528"/>
         <source>HISTOGRAMME für ELEMENTE</source>
         <translation>HISTOGRAMS for ELEMENTS</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3076"/>
+        <location filename="../main_window.cpp" line="3122"/>
         <source> Name: %1 | Ort: %2</source>
         <translation> Name: %1 | Place: %2</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3085"/>
+        <location filename="../main_window.cpp" line="3131"/>
         <source>Zeit (UT): </source>
         <translation>Time (UT): </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3089"/>
+        <location filename="../main_window.cpp" line="3135"/>
         <source>STZ 0H GRW =%1| ARMC=%2|JD=%3|T=%4</source>
         <translation>ST 0H GRW =%1| ARMC=%2|JD=%3|T=%4</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3101"/>
+        <location filename="../main_window.cpp" line="3147"/>
         <source> Abnehmend</source>
         <translation> Waning</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3103"/>
+        <location filename="../main_window.cpp" line="3149"/>
         <source>  Neumond</source>
         <translation>  New moon</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3105"/>
+        <location filename="../main_window.cpp" line="3151"/>
         <source> Zunehmend</source>
         <translation> Waxing</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3107"/>
+        <location filename="../main_window.cpp" line="3153"/>
         <source> Vollmond</source>
         <translation> Full moon</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3109"/>
+        <location filename="../main_window.cpp" line="3155"/>
+        <location filename="../main_window.cpp" line="3164"/>
         <source>Mond-Phase:%1° = %2%%3</source>
         <translation>Moon phase:%1° = %2%%3</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3123"/>
-        <location filename="../main_window_arabic.cpp" line="178"/>
+        <location filename="../main_window.cpp" line="3181"/>
+        <location filename="../main_window_arabic.cpp" line="179"/>
         <source>Kein Häusersystem gewählt !</source>
         <translation>No house system chosen !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3143"/>
+        <location filename="../main_window.cpp" line="3205"/>
         <source>Häuserspitzen nach System %1 In wahrer ekliptikaler Länge u. AR</source>
         <translation>House cusps by system %1 in true ecliptic longitude and RA</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3275"/>
+        <location filename="../main_window.cpp" line="3346"/>
         <source>Asteroiden</source>
         <translation>Asteroids</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3280"/>
+        <location filename="../main_window.cpp" line="3351"/>
         <source>Planetoiden</source>
         <translation>Planetoids</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3478"/>
-        <location filename="../main_window_avh.cpp" line="911"/>
+        <location filename="../main_window.cpp" line="3590"/>
+        <location filename="../main_window_avh.cpp" line="913"/>
         <source>PUNKTE im 1. HAUS DOPPELT</source>
         <translation>POINTS in the 1st HOUSE DOUBLE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3480"/>
+        <location filename="../main_window.cpp" line="3592"/>
         <source>1. GEBURTSHERRSCHER DOPPELT</source>
         <translation>1st BIRTH RULER DOUBLE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3603"/>
+        <location filename="../main_window.cpp" line="3718"/>
         <source>SEKUNDÄR-DIREKTION</source>
         <translation>SECONDARY DIRECTION</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3603"/>
+        <location filename="../main_window.cpp" line="3718"/>
         <source>SONNEN-BOGEN-DIREKTION</source>
         <translation>SOLAR ARC DIRECTION</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3604"/>
+        <location filename="../main_window.cpp" line="3719"/>
         <source>MOND-BOGEN-DIREKTION</source>
         <translation>LUNAR ARC DIRECTION</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3625"/>
+        <location filename="../main_window.cpp" line="3740"/>
         <location filename="../main_window_statist_cond.cpp" line="40"/>
-        <location filename="../main_window_rhythm.cpp" line="634"/>
-        <location filename="../main_window_arabic.cpp" line="56"/>
+        <location filename="../main_window_rhythm.cpp" line="651"/>
+        <location filename="../main_window_arabic.cpp" line="57"/>
         <location filename="../main_window_multi.cpp" line="160"/>
         <source> SONNE</source>
         <translation> SUN</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3626"/>
+        <location filename="../main_window.cpp" line="3741"/>
         <location filename="../main_window_statist_cond.cpp" line="41"/>
-        <location filename="../main_window_rhythm.cpp" line="634"/>
-        <location filename="../main_window_arabic.cpp" line="57"/>
+        <location filename="../main_window_rhythm.cpp" line="651"/>
+        <location filename="../main_window_arabic.cpp" line="58"/>
         <location filename="../main_window_multi.cpp" line="161"/>
         <source> MOND</source>
         <translation> MOON</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3627"/>
+        <location filename="../main_window.cpp" line="3742"/>
         <location filename="../main_window_statist_cond.cpp" line="42"/>
-        <location filename="../main_window_rhythm.cpp" line="635"/>
-        <location filename="../main_window_arabic.cpp" line="57"/>
+        <location filename="../main_window_rhythm.cpp" line="652"/>
+        <location filename="../main_window_arabic.cpp" line="58"/>
         <location filename="../main_window_multi.cpp" line="162"/>
         <source> MERKUR</source>
         <translation> MERCURY</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3628"/>
+        <location filename="../main_window.cpp" line="3743"/>
         <location filename="../main_window_statist_cond.cpp" line="43"/>
-        <location filename="../main_window_rhythm.cpp" line="635"/>
-        <location filename="../main_window_arabic.cpp" line="58"/>
+        <location filename="../main_window_rhythm.cpp" line="652"/>
+        <location filename="../main_window_arabic.cpp" line="59"/>
         <location filename="../main_window_multi.cpp" line="163"/>
         <source> VENUS</source>
         <translation> VENUS</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3629"/>
+        <location filename="../main_window.cpp" line="3744"/>
         <location filename="../main_window_statist_cond.cpp" line="44"/>
-        <location filename="../main_window_rhythm.cpp" line="636"/>
-        <location filename="../main_window_arabic.cpp" line="58"/>
+        <location filename="../main_window_rhythm.cpp" line="653"/>
+        <location filename="../main_window_arabic.cpp" line="59"/>
         <location filename="../main_window_multi.cpp" line="164"/>
         <source> MARS</source>
         <translation> MARS</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3630"/>
+        <location filename="../main_window.cpp" line="3745"/>
         <location filename="../main_window_statist_cond.cpp" line="45"/>
-        <location filename="../main_window_rhythm.cpp" line="636"/>
-        <location filename="../main_window_arabic.cpp" line="59"/>
+        <location filename="../main_window_rhythm.cpp" line="653"/>
+        <location filename="../main_window_arabic.cpp" line="60"/>
         <location filename="../main_window_multi.cpp" line="165"/>
         <source> JUPITER</source>
         <translation> JUPITER</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3631"/>
+        <location filename="../main_window.cpp" line="3746"/>
         <location filename="../main_window_statist_cond.cpp" line="46"/>
-        <location filename="../main_window_rhythm.cpp" line="637"/>
-        <location filename="../main_window_arabic.cpp" line="59"/>
+        <location filename="../main_window_rhythm.cpp" line="654"/>
+        <location filename="../main_window_arabic.cpp" line="60"/>
         <location filename="../main_window_multi.cpp" line="166"/>
         <source> SATURN</source>
         <translation> SATURN</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3632"/>
+        <location filename="../main_window.cpp" line="3747"/>
         <location filename="../main_window_statist_cond.cpp" line="47"/>
-        <location filename="../main_window_rhythm.cpp" line="637"/>
-        <location filename="../main_window_arabic.cpp" line="60"/>
+        <location filename="../main_window_rhythm.cpp" line="654"/>
+        <location filename="../main_window_arabic.cpp" line="61"/>
         <location filename="../main_window_multi.cpp" line="167"/>
         <source> URANUS</source>
         <translation> URANUS</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3633"/>
+        <location filename="../main_window.cpp" line="3748"/>
         <location filename="../main_window_statist_cond.cpp" line="48"/>
-        <location filename="../main_window_rhythm.cpp" line="638"/>
-        <location filename="../main_window_arabic.cpp" line="60"/>
+        <location filename="../main_window_rhythm.cpp" line="655"/>
+        <location filename="../main_window_arabic.cpp" line="61"/>
         <location filename="../main_window_multi.cpp" line="168"/>
         <source> NEPTUN</source>
         <translation> NEPTUNE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3634"/>
+        <location filename="../main_window.cpp" line="3749"/>
         <location filename="../main_window_statist_cond.cpp" line="49"/>
-        <location filename="../main_window_rhythm.cpp" line="638"/>
-        <location filename="../main_window_arabic.cpp" line="61"/>
+        <location filename="../main_window_rhythm.cpp" line="655"/>
+        <location filename="../main_window_arabic.cpp" line="62"/>
         <location filename="../main_window_multi.cpp" line="169"/>
         <source> PLUTO</source>
         <translation> PLUTO</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3635"/>
+        <location filename="../main_window.cpp" line="3750"/>
         <location filename="../main_window_statist_cond.cpp" line="62"/>
-        <location filename="../main_window_rhythm.cpp" line="103"/>
-        <location filename="../main_window_arabic.cpp" line="75"/>
+        <location filename="../main_window_rhythm.cpp" line="105"/>
+        <location filename="../main_window_arabic.cpp" line="76"/>
         <source> CHIRON         a=13.61  e=0.38  i=6.94°  T=50 Jahre </source>
         <translation> CHIRON         a=13.61  e=0.38  i=6.94°  T=50 years </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3636"/>
+        <location filename="../main_window.cpp" line="3751"/>
         <location filename="../main_window_statist_cond.cpp" line="65"/>
-        <location filename="../main_window_rhythm.cpp" line="105"/>
+        <location filename="../main_window_rhythm.cpp" line="107"/>
         <source> CERES</source>
         <translation> CERES</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3637"/>
+        <location filename="../main_window.cpp" line="3752"/>
         <location filename="../main_window_statist_cond.cpp" line="66"/>
-        <location filename="../main_window_rhythm.cpp" line="106"/>
+        <location filename="../main_window_rhythm.cpp" line="108"/>
         <source> PALLAS</source>
         <translation> PALLAS</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3638"/>
+        <location filename="../main_window.cpp" line="3753"/>
         <location filename="../main_window_statist_cond.cpp" line="67"/>
-        <location filename="../main_window_rhythm.cpp" line="107"/>
+        <location filename="../main_window_rhythm.cpp" line="109"/>
         <source> JUNO</source>
         <translation> JUNO</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3639"/>
+        <location filename="../main_window.cpp" line="3754"/>
         <location filename="../main_window_statist_cond.cpp" line="68"/>
-        <location filename="../main_window_rhythm.cpp" line="108"/>
+        <location filename="../main_window_rhythm.cpp" line="110"/>
         <source> VESTA</source>
         <translation> VESTA</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3640"/>
+        <location filename="../main_window.cpp" line="3755"/>
         <location filename="../main_window_statist_cond.cpp" line="77"/>
-        <location filename="../main_window_rhythm.cpp" line="117"/>
+        <location filename="../main_window_rhythm.cpp" line="119"/>
         <source> QUAOAR         a=43.25 e=0.035 i=  7.99°   T=284 Jr.</source>
         <translation> QUAOAR         a=43.25 e=0.035 i=  7.99°   T=284 yr.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3641"/>
+        <location filename="../main_window.cpp" line="3756"/>
         <location filename="../main_window_statist_cond.cpp" line="78"/>
-        <location filename="../main_window_rhythm.cpp" line="118"/>
+        <location filename="../main_window_rhythm.cpp" line="120"/>
         <source> KOMET HALLEY   a=17.94 e=0.97  i=162.24°   T= 76 Jr.</source>
         <translation> COMET HALLEY   a=17.94 e=0.97  i=162.24°   T= 76 yr.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3642"/>
+        <location filename="../main_window.cpp" line="3757"/>
         <location filename="../main_window_statist_cond.cpp" line="79"/>
-        <location filename="../main_window_rhythm.cpp" line="119"/>
+        <location filename="../main_window_rhythm.cpp" line="121"/>
         <source> PHOLUS         a=20.23 e=0.57  i= 24.70°   T= 91 Jr.</source>
         <translation> PHOLUS         a=20.23 e=0.57  i= 24.70°   T= 91 yr.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3643"/>
+        <location filename="../main_window.cpp" line="3758"/>
         <location filename="../main_window_statist_cond.cpp" line="80"/>
-        <location filename="../main_window_rhythm.cpp" line="120"/>
+        <location filename="../main_window_rhythm.cpp" line="122"/>
         <source> DAMOKLES       a=11.82 e=0.87  i= 61.84°   T= 41 Jr.</source>
         <translation> DAMOCLES       a=11.82 e=0.87  i= 61.84°   T= 41 yr.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3644"/>
+        <location filename="../main_window.cpp" line="3759"/>
         <location filename="../main_window_statist_cond.cpp" line="81"/>
-        <location filename="../main_window_rhythm.cpp" line="121"/>
+        <location filename="../main_window_rhythm.cpp" line="123"/>
         <source> NESSUS         a=24.46 e=0.52  i= 15.66°   T=121 Jr.</source>
         <translation> NESSUS         a=24.46 e=0.52  i= 15.66°   T=121 yr.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3645"/>
+        <location filename="../main_window.cpp" line="3760"/>
         <location filename="../main_window_statist_cond.cpp" line="82"/>
-        <location filename="../main_window_rhythm.cpp" line="122"/>
+        <location filename="../main_window_rhythm.cpp" line="124"/>
         <source> XENA           a=67.66 e=0.44  i= 44.12°   T=557 Jr.</source>
         <translation> XENA           a=67.66 e=0.44  i= 44.12°   T=557 yr.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3660"/>
+        <location filename="../main_window.cpp" line="3775"/>
         <source>Für ALLE vorgewählen ECHTEN Planeten  :  FESTES Datum </source>
         <translation>For ALL preselected REAL planets  :  FIXED date </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3663"/>
+        <location filename="../main_window.cpp" line="3778"/>
         <source>Liste für EINZELNEN Planeten bei LAUFENDEM Datum ?</source>
         <translation>List for a SINGLE planet over RUNNING dates ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3664"/>
+        <location filename="../main_window.cpp" line="3779"/>
         <source>KEINE HYPOTHETISCHEN Planeten verwenden ! ! !</source>
         <translation>Do NOT use HYPOTHETICAL planets ! ! !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3665"/>
+        <location filename="../main_window.cpp" line="3780"/>
         <source>EINZELNER Planet  :  Datum LAUFEND</source>
         <translation>SINGLE planet  :  date RUNNING</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3672"/>
+        <location filename="../main_window.cpp" line="3787"/>
         <source>WAHRE POSITION ?</source>
         <translation>TRUE POSITION ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3672"/>
+        <location filename="../main_window.cpp" line="3787"/>
         <source>SCHEINBARE POSITION ?</source>
         <translation>APPARENT POSITION ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3673"/>
+        <location filename="../main_window.cpp" line="3788"/>
         <source>WAHR</source>
         <translation>TRUE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3673"/>
+        <location filename="../main_window.cpp" line="3788"/>
         <source>SCHEINBAR</source>
         <translation>APPARENT</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3683"/>
+        <location filename="../main_window.cpp" line="3798"/>
         <source>EREIGNIS-ORT und DATUM EINGEBEN !  -&gt;  EVENTL. TAB - TASTE !</source>
         <translation>ENTER the EVENT PLACE and DATE !  -&gt;  TAB KEY if needed !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3699"/>
+        <location filename="../main_window.cpp" line="3814"/>
         <source>Geog. Breite zu groß ! Nur bis  +- %1° &gt;&gt; ABBRECHEN !</source>
         <translation>Geog. latitude too large ! Only up to  +- %1° &gt;&gt; CANCELLING !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3740"/>
+        <location filename="../main_window.cpp" line="3855"/>
         <source>* AUFGANG.........| WEITER mit Leertaste ! | ENDE mit &apos;ESC&apos; !</source>
         <translation>* RISING..........| ON with Space ! | END with &apos;ESC&apos; !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3746"/>
+        <location filename="../main_window.cpp" line="3861"/>
         <source>AUFGANG</source>
         <translation>RISING</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3746"/>
+        <location filename="../main_window.cpp" line="3861"/>
         <source>MERIDIAN-DURCHGANG</source>
         <translation>MERIDIAN TRANSIT</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3746"/>
+        <location filename="../main_window.cpp" line="3861"/>
         <source>UNTERGANG</source>
         <translation>SETTING</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3765"/>
+        <location filename="../main_window.cpp" line="3880"/>
         <source> Wahre Werte </source>
         <translation> True values </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3765"/>
+        <location filename="../main_window.cpp" line="3880"/>
         <source> Scheinbare Werte </source>
         <translation> Apparent values </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3765"/>
+        <location filename="../main_window.cpp" line="3880"/>
         <source> | Zeiten in UT ( GMT )</source>
         <translation> | Times in UT ( GMT )</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3771"/>
+        <location filename="../main_window.cpp" line="3886"/>
         <source>Ortsname NN </source>
         <translation>Place name NN </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3774"/>
+        <location filename="../main_window.cpp" line="3889"/>
         <source>Geog. Länge :</source>
         <translation>Geog. long. :</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3775"/>
+        <location filename="../main_window.cpp" line="3890"/>
         <source>Geog. Breite:</source>
         <translation>Geog. lat.  :</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3811"/>
+        <location filename="../main_window.cpp" line="3926"/>
         <source>Sternz.(GRW.)= %1°</source>
         <translation>Sid.T.(GRW.)= %1°</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3813"/>
+        <location filename="../main_window.cpp" line="3928"/>
         <source>Länge   = </source>
         <translation>Long.   = </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3818"/>
+        <location filename="../main_window.cpp" line="3933"/>
         <source>Breite  = </source>
         <translation>Lat.    = </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3839"/>
+        <location filename="../main_window.cpp" line="3954"/>
         <source>AUßER BEREICH !</source>
         <translation>OUT OF RANGE !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3896"/>
+        <location filename="../main_window.cpp" line="4011"/>
         <source>ASPEKTE mit GÜLTIGEM DATENSATZ</source>
         <translation>ASPECTS with the VALID RECORD</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3896"/>
+        <location filename="../main_window.cpp" line="4011"/>
         <source>UNTERSUCHEN ?</source>
         <translation>EXAMINE ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3904"/>
+        <location filename="../main_window.cpp" line="4019"/>
         <source>° = MAX. TEILER </source>
         <translation>° = MAX. DIVISOR </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3907"/>
+        <location filename="../main_window.cpp" line="4022"/>
         <source>360 ° = 0° = KONJUNKTION</source>
         <translation>360 ° = 0° = CONJUNCTION</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3915"/>
+        <location filename="../main_window.cpp" line="4030"/>
         <source>ORBIS-FAKTOR ?</source>
         <translation>ORB FACTOR ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3924"/>
+        <location filename="../main_window.cpp" line="4039"/>
         <source>SUCH-DATUM EINGEBEN !</source>
         <translation>ENTER the SEARCH DATE !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4057"/>
+        <location filename="../main_window.cpp" line="4172"/>
         <source>FINSTERNISSE....| WEITER mit Leertaste ! | ENDE mit &apos;ESC&apos; !</source>
         <translation>ECLIPSES....| ON with Space ! | END with &apos;ESC&apos; !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4061"/>
+        <location filename="../main_window.cpp" line="4176"/>
         <source>NEUMOND-DATEN | SONNENFINSTERNISSE (UT)</source>
         <translation>NEW MOONS | SOLAR ECLIPSES (UT)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4061"/>
+        <location filename="../main_window.cpp" line="4176"/>
         <source>VOLLMOND-DATEN | MONDFINSTERNISSE (UT)</source>
         <translation>FULL MOONS | LUNAR ECLIPSES (UT)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4078"/>
+        <location filename="../main_window.cpp" line="4193"/>
         <source>&apos;ZT&apos;=ZENTRAL | &apos;EX&apos;=EXZENT | &apos;TOT&apos;=TOTAL | &apos;RF&apos;=RINGF | &apos;N&apos; = NÖRDL &apos;S&apos; = SÜDL</source>
         <translation>&apos;ZT&apos;=CENTRAL | &apos;EX&apos;=NON-CENTRAL | &apos;TOT&apos;=TOTAL | &apos;RF&apos;=ANNULAR | &apos;N&apos; = NORTH &apos;S&apos; = SOUTH</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4080"/>
+        <location filename="../main_window.cpp" line="4195"/>
         <source>,Ohne Parallaxe</source>
         <translation>,Without parallax</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4081"/>
+        <location filename="../main_window.cpp" line="4196"/>
         <source>&apos;KERNSCH&apos; = KERNSCHATTEN | &apos;HALBSCH&apos;=HALBSCHATTEN | EPHEM:</source>
         <translation>&apos;KERNSCH&apos; = UMBRAL | &apos;HALBSCH&apos;=PENUMBRAL | EPHEM:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4087"/>
+        <location filename="../main_window.cpp" line="4202"/>
         <source>Mit ASPEKTEN SO - bzw. MO - mit %1  %2</source>
         <translation>With ASPECTS of SO or MO to %1  %2</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5288"/>
+        <location filename="../main_window.cpp" line="5417"/>
         <source>Aspekt-Orben : Selbst definiert</source>
         <translation>Aspect orbs : self defined</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5289"/>
+        <location filename="../main_window.cpp" line="5418"/>
         <source>Aspekt-Orben : Von HORCOM gegeben</source>
         <translation>Aspect orbs : Given by HORCOM</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5306"/>
+        <location filename="../main_window.cpp" line="5436"/>
         <source>Zuordng.ZE-PL: Neu QU CH</source>
         <translation>Sign rulers: New QU CH</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5879"/>
+        <location filename="../main_window.cpp" line="6012"/>
         <source>DOPPEL-KREIS / 90-GRAD-KREIS</source>
         <translation>DOUBLE WHEEL / 90 DEGREE DIAL</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5909"/>
+        <location filename="../main_window.cpp" line="6042"/>
         <source>LETZTES GESPEICHERTES BILD DARSTELLEN ?</source>
         <translation>SHOW the LAST STORED PICTURE ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5911"/>
+        <location filename="../main_window.cpp" line="6044"/>
         <source>LETZTES GESPEICHERTES BILD</source>
         <translation>LAST STORED PICTURE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6166"/>
+        <location filename="../main_window.cpp" line="6316"/>
         <source> ORBEN selbst definiert !</source>
         <translation> ORBS self-defined !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6167"/>
+        <location filename="../main_window.cpp" line="6317"/>
         <source> ORBEN nach HORCOM- Zählung !</source>
         <translation> ORBS by HORCOM count !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6205"/>
+        <location filename="../main_window.cpp" line="6355"/>
         <source>%1es Aspektarium  | %2</source>
         <translation>%1 Aspectarium  | %2</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3786"/>
-        <location filename="../main_window.cpp" line="4091"/>
+        <location filename="../main_window.cpp" line="3901"/>
+        <location filename="../main_window.cpp" line="4206"/>
         <source>Weiter mit Leertaste</source>
         <translation>On with Space</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3787"/>
-        <location filename="../main_window.cpp" line="4092"/>
+        <location filename="../main_window.cpp" line="3902"/>
+        <location filename="../main_window.cpp" line="4207"/>
         <source>Zurück mit &apos;R&apos;</source>
         <translation>Back with &apos;R&apos;</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3788"/>
-        <location filename="../main_window.cpp" line="4093"/>
+        <location filename="../main_window.cpp" line="3903"/>
+        <location filename="../main_window.cpp" line="4208"/>
         <source>Ende mit &apos;ESC&apos;</source>
         <translation>End with &apos;ESC&apos;</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4177"/>
+        <location filename="../main_window.cpp" line="4292"/>
         <source>Widder</source>
         <translation>Aries</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4177"/>
+        <location filename="../main_window.cpp" line="4292"/>
         <location filename="../main_window_multi.cpp" line="218"/>
         <source>WIDDER</source>
         <translation>ARIES</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4178"/>
+        <location filename="../main_window.cpp" line="4293"/>
         <source>Fische</source>
         <translation>Pisces</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4178"/>
+        <location filename="../main_window.cpp" line="4293"/>
         <location filename="../main_window_multi.cpp" line="219"/>
         <source>FISCHE</source>
         <translation>PISCES</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4179"/>
+        <location filename="../main_window.cpp" line="4294"/>
         <source>Wassermann</source>
         <translation>Aquarius</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4179"/>
+        <location filename="../main_window.cpp" line="4294"/>
         <location filename="../main_window_multi.cpp" line="219"/>
         <source>WASSERMANN</source>
         <translation>AQUARIUS</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4180"/>
+        <location filename="../main_window.cpp" line="4295"/>
         <source>Steinbock</source>
         <translation>Capricorn</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4180"/>
+        <location filename="../main_window.cpp" line="4295"/>
         <location filename="../main_window_multi.cpp" line="219"/>
         <source>STEINBOCK</source>
         <translation>CAPRICORN</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4198"/>
+        <location filename="../main_window.cpp" line="4326"/>
         <source>Ekliptikale Bezugs-Länge = %1° Entspr. %2 - Zeitalter</source>
         <translation>Ecliptic reference longitude = %1° Corresp. %2 age</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4199"/>
+        <location filename="../main_window.cpp" line="4327"/>
         <source>Bezugs-Zeitpunkt = %1</source>
         <translation>Reference moment = %1</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4200"/>
+        <location filename="../main_window.cpp" line="4328"/>
         <source>Längen - Differenz zur Bezugs - Länge = %1°</source>
         <translation>Longitude difference to the reference longitude = %1°</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4201"/>
+        <location filename="../main_window.cpp" line="4329"/>
         <source>Der &apos;Zeitalter - Punkt&apos; für das Datum  %1 %2</source>
         <translation>The &apos;age point&apos; for the date  %1 %2</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4202"/>
+        <location filename="../main_window.cpp" line="4330"/>
         <source>hat die Ekliptikale Länge  %1 =  %2°</source>
         <translation>has the ecliptic longitude  %1 =  %2°</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2986"/>
-        <location filename="../main_window.cpp" line="4222"/>
-        <location filename="../main_window.cpp" line="4771"/>
-        <location filename="../main_window.cpp" line="4908"/>
+        <location filename="../main_window.cpp" line="3032"/>
+        <location filename="../main_window.cpp" line="4351"/>
+        <location filename="../main_window.cpp" line="4902"/>
+        <location filename="../main_window.cpp" line="5039"/>
         <location filename="../main_window_a18.cpp" line="1550"/>
         <location filename="../main_window_a18.cpp" line="1552"/>
         <location filename="../main_window_a18.cpp" line="1560"/>
         <location filename="../main_window_a18.cpp" line="1728"/>
-        <location filename="../main_window_help.cpp" line="185"/>
+        <location filename="../main_window_help.cpp" line="188"/>
         <location filename="../main_window_uhr.cpp" line="143"/>
         <location filename="../main_window_uhr.cpp" line="170"/>
         <location filename="../main_window_dynamo.cpp" line="380"/>
@@ -5457,9 +5466,9 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <location filename="../main_window_dynamo.cpp" line="394"/>
         <location filename="../main_window_dynamo.cpp" line="401"/>
         <location filename="../main_window_dynamo.cpp" line="444"/>
-        <location filename="../main_window_rhythm.cpp" line="206"/>
-        <location filename="../main_window_rhythm.cpp" line="461"/>
-        <location filename="../main_window_rhythm.cpp" line="479"/>
+        <location filename="../main_window_rhythm.cpp" line="210"/>
+        <location filename="../main_window_rhythm.cpp" line="465"/>
+        <location filename="../main_window_rhythm.cpp" line="483"/>
         <location filename="../main_window_print.cpp" line="292"/>
         <location filename="../main_window_print.cpp" line="331"/>
         <location filename="../main_window_print.cpp" line="405"/>
@@ -5467,39 +5476,39 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation>DECISION !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1123"/>
+        <location filename="../main_window.cpp" line="1148"/>
         <source>ASPEKTARIUM G/H…</source>
         <translation>ASPECTARIUM G/H…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1125"/>
+        <location filename="../main_window.cpp" line="1150"/>
         <source>HALBSUMMEN-GRAPHIK G/H…</source>
         <translation>MIDPOINT GRAPHIC G/H…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1256"/>
+        <location filename="../main_window.cpp" line="1281"/>
         <location filename="../main_window_help.cpp" line="74"/>
         <source>SYMB. DIREKTION: EKLIPT. G/H…</source>
         <translation>SYMB. DIRECTION: ECLIPT. G/H…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1309"/>
+        <location filename="../main_window.cpp" line="1334"/>
         <source>ZEIT-WANDERN G/H…</source>
         <translation>TIME WANDERING G/H…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1319"/>
+        <location filename="../main_window.cpp" line="1344"/>
         <source>UHR G/H…</source>
         <translation>CLOCK G/H…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1266"/>
+        <location filename="../main_window.cpp" line="1291"/>
         <location filename="../main_window_help.cpp" line="80"/>
         <source>MULTIPLE DIREKTIONEN / HARMONICS G/H…</source>
         <translation>MULTIPLE DIRECTIONS / HARMONICS G/H…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1384"/>
+        <location filename="../main_window.cpp" line="1416"/>
         <source>HÄUSER-SPITZEN EIN / AUS</source>
         <translation>HOUSE CUSPS ON / OFF</translation>
     </message>
@@ -5508,162 +5517,162 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation type="vanished">BACKGROUND COLOURS</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2094"/>
+        <location filename="../main_window.cpp" line="2138"/>
         <source>Mittl.STZ...</source>
         <translation>Mean ST...</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2095"/>
+        <location filename="../main_window.cpp" line="2139"/>
         <source>N.ROB. HAND</source>
         <translation>acc. ROB. HAND</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2096"/>
+        <location filename="../main_window.cpp" line="2140"/>
         <source>Schematisch</source>
         <translation>Schematic</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2129"/>
+        <location filename="../main_window.cpp" line="2173"/>
         <source>90°- KREIS</source>
         <translation>90° DIAL</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2139"/>
+        <location filename="../main_window.cpp" line="2183"/>
         <source>HELIOZ.</source>
         <translation>HELIOC.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2539"/>
+        <location filename="../main_window.cpp" line="2583"/>
         <source>FIX-STERN-POSITIONEN</source>
         <translation>FIXED STAR POSITIONS</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2544"/>
+        <location filename="../main_window.cpp" line="2588"/>
         <source>Stern - Name</source>
         <translation>Star - Name</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2545"/>
+        <location filename="../main_window.cpp" line="2589"/>
         <source>Astron.Name</source>
         <translation>Astron.name</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2545"/>
+        <location filename="../main_window.cpp" line="2589"/>
         <source>Rekt.</source>
         <translation>R.A.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2545"/>
+        <location filename="../main_window.cpp" line="2589"/>
         <source>D/LJ</source>
         <translation>D/LY</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2784"/>
+        <location filename="../main_window.cpp" line="2830"/>
         <source>AAF (*.aaf *.AAF);;HORCOM Daten-Dateien (*.DAT *.dat)</source>
         <translation>AAF (*.aaf *.AAF);;HORCOM data files (*.DAT *.dat)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2850"/>
+        <location filename="../main_window.cpp" line="2896"/>
         <source>Name OHNE EXTENSION !</source>
         <translation>Name WITHOUT EXTENSION !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4223"/>
+        <location filename="../main_window.cpp" line="4352"/>
         <source>Einstellung Beibehalten ?</source>
         <translation>Keep the setting ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4223"/>
+        <location filename="../main_window.cpp" line="4352"/>
         <source>Bezugsdatum : %1</source>
         <translation>Reference date : %1</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4224"/>
+        <location filename="../main_window.cpp" line="4353"/>
         <source>Zeitalters-Punkt : %1° %2</source>
         <translation>Age point : %1° %2</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4225"/>
+        <location filename="../main_window.cpp" line="4354"/>
         <source> Beibehalten </source>
         <translation> Keep </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4225"/>
+        <location filename="../main_window.cpp" line="4354"/>
         <source> Ändern </source>
         <translation> Change </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4225"/>
+        <location filename="../main_window.cpp" line="4354"/>
         <source>Anzeige abschalten = Programm beenden</source>
         <translation>Switch the display off = end the program</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4236"/>
+        <location filename="../main_window.cpp" line="4365"/>
         <source>Für DATENSATZ  :  %1</source>
         <translation>For RECORD  :  %1</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4237"/>
+        <location filename="../main_window.cpp" line="4366"/>
         <source>Zeitalter - Start wählen !</source>
         <translation>Choose the start of the age !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4238"/>
+        <location filename="../main_window.cpp" line="4367"/>
         <source>Ekliptik-Grad Eingeben ab dem gerechnet werden soll !</source>
         <translation>Enter the ecliptic degree to count from !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4239"/>
+        <location filename="../main_window.cpp" line="4368"/>
         <source>Z.B. 330° für den Beginn des &apos;Wassermann&apos; - Zeitalters</source>
         <translation>E.g. 330° for the start of the &apos;Aquarius&apos; age</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4240"/>
+        <location filename="../main_window.cpp" line="4369"/>
         <source>Der &apos;Zeitalters - Punkt&apos; wandert von dort ab RÜCKLÄUFIG !</source>
         <translation>From there the &apos;age point&apos; moves RETROGRADE !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4241"/>
+        <location filename="../main_window.cpp" line="4370"/>
         <source>WIDDER     =  30°</source>
         <translation>ARIES      =  30°</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4241"/>
+        <location filename="../main_window.cpp" line="4370"/>
         <source>FISCHE     = 360°</source>
         <translation>PISCES     = 360°</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4241"/>
+        <location filename="../main_window.cpp" line="4370"/>
         <source>WASSERMANN = 330°</source>
         <translation>AQUARIUS   = 330°</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4242"/>
+        <location filename="../main_window.cpp" line="4371"/>
         <source>STEINBOCK  = 300°</source>
         <translation>CAPRICORN  = 300°</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4252"/>
+        <location filename="../main_window.cpp" line="4381"/>
         <source>Bezugsdatum Eingeben entsprechend %1° = %2</source>
         <translation>Enter the reference date for %1° = %2</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4253"/>
+        <location filename="../main_window.cpp" line="4382"/>
         <source>Die Geschwindigkeit des &apos;Zeitalter - Punktes&apos; ist :</source>
         <translation>The speed of the &apos;age point&apos; is :</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4254"/>
+        <location filename="../main_window.cpp" line="4383"/>
         <source>Pro Zeichen ca. 2148 Jahre ~  50.269&quot; pro Jahr</source>
         <translation>Per sign about 2148 years ~  50.269&quot; per year</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4269"/>
+        <location filename="../main_window.cpp" line="4398"/>
         <source>NICHT MEHR im %1 - ZEITALTER !</source>
         <translation>NO LONGER in the %1 AGE !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4272"/>
+        <location filename="../main_window.cpp" line="4401"/>
         <source>%1 | RADIX | Datum : %2 %3</source>
         <translation>%1 | RADIX | Date : %2 %3</translation>
     </message>
@@ -5821,14 +5830,14 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
     </message>
     <message>
         <location filename="../main_window_statist_cond.cpp" line="61"/>
-        <location filename="../main_window_rhythm.cpp" line="102"/>
-        <location filename="../main_window_arabic.cpp" line="74"/>
+        <location filename="../main_window_rhythm.cpp" line="104"/>
+        <location filename="../main_window_arabic.cpp" line="75"/>
         <source>  SCHWARZER MOND  </source>
         <translation>  BLACK MOON  </translation>
     </message>
     <message>
         <location filename="../main_window_statist_cond.cpp" line="63"/>
-        <location filename="../main_window_rhythm.cpp" line="104"/>
+        <location filename="../main_window_rhythm.cpp" line="106"/>
         <source>    TRANSPLUTO  HYPOTHETISCH</source>
         <translation>    TRANSPLUTO  HYPOTHETICAL</translation>
     </message>
@@ -5839,49 +5848,49 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
     </message>
     <message>
         <location filename="../main_window_statist_cond.cpp" line="69"/>
-        <location filename="../main_window_rhythm.cpp" line="109"/>
+        <location filename="../main_window_rhythm.cpp" line="111"/>
         <source>    CUPIDO    HYPOTHETISCH</source>
         <translation>    CUPIDO    HYPOTHETICAL</translation>
     </message>
     <message>
         <location filename="../main_window_statist_cond.cpp" line="70"/>
-        <location filename="../main_window_rhythm.cpp" line="110"/>
+        <location filename="../main_window_rhythm.cpp" line="112"/>
         <source>    HADES     HYP.</source>
         <translation>    HADES     HYP.</translation>
     </message>
     <message>
         <location filename="../main_window_statist_cond.cpp" line="71"/>
-        <location filename="../main_window_rhythm.cpp" line="111"/>
+        <location filename="../main_window_rhythm.cpp" line="113"/>
         <source>    ZEUS      HYP.</source>
         <translation>    ZEUS      HYP.</translation>
     </message>
     <message>
         <location filename="../main_window_statist_cond.cpp" line="72"/>
-        <location filename="../main_window_rhythm.cpp" line="112"/>
+        <location filename="../main_window_rhythm.cpp" line="114"/>
         <source>    KRONOS    HYP.</source>
         <translation>    KRONOS    HYP.</translation>
     </message>
     <message>
         <location filename="../main_window_statist_cond.cpp" line="73"/>
-        <location filename="../main_window_rhythm.cpp" line="113"/>
+        <location filename="../main_window_rhythm.cpp" line="115"/>
         <source>    APOLLON   HYP.</source>
         <translation>    APOLLON   HYP.</translation>
     </message>
     <message>
         <location filename="../main_window_statist_cond.cpp" line="74"/>
-        <location filename="../main_window_rhythm.cpp" line="114"/>
+        <location filename="../main_window_rhythm.cpp" line="116"/>
         <source>    ADMETOS   HYP.</source>
         <translation>    ADMETOS   HYP.</translation>
     </message>
     <message>
         <location filename="../main_window_statist_cond.cpp" line="75"/>
-        <location filename="../main_window_rhythm.cpp" line="115"/>
+        <location filename="../main_window_rhythm.cpp" line="117"/>
         <source>    VULKANUS  HYP.</source>
         <translation>    VULKANUS  HYP.</translation>
     </message>
     <message>
         <location filename="../main_window_statist_cond.cpp" line="76"/>
-        <location filename="../main_window_rhythm.cpp" line="116"/>
+        <location filename="../main_window_rhythm.cpp" line="118"/>
         <source>    POSEIDON  HYP.</source>
         <translation>    POSEIDON  HYP.</translation>
     </message>
@@ -6686,191 +6695,196 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation>STATISTICS FILE : %1 BYTES = %2 RECORDS</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="168"/>
+        <location filename="../main_window_rhythm.cpp" line="170"/>
         <source>Auslösungen nach W.DÖBEREINER</source>
         <translation>Triggers after W.DÖBEREINER</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="171"/>
-        <location filename="../main_window_rhythm.cpp" line="217"/>
-        <location filename="../main_window_rhythm.cpp" line="801"/>
-        <location filename="../main_window_rhythm.cpp" line="861"/>
+        <location filename="../main_window_rhythm.cpp" line="175"/>
+        <location filename="../main_window_rhythm.cpp" line="221"/>
+        <location filename="../main_window_rhythm.cpp" line="820"/>
+        <location filename="../main_window_rhythm.cpp" line="880"/>
         <source> Monate</source>
         <translation> Months</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="171"/>
-        <location filename="../main_window_rhythm.cpp" line="217"/>
-        <location filename="../main_window_rhythm.cpp" line="801"/>
-        <location filename="../main_window_rhythm.cpp" line="861"/>
+        <location filename="../main_window_rhythm.cpp" line="175"/>
+        <location filename="../main_window_rhythm.cpp" line="221"/>
+        <location filename="../main_window_rhythm.cpp" line="820"/>
+        <location filename="../main_window_rhythm.cpp" line="880"/>
         <source> Jahre</source>
         <translation> Years</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="173"/>
-        <location filename="../main_window_rhythm.cpp" line="803"/>
-        <location filename="../main_window_rhythm.cpp" line="865"/>
+        <location filename="../main_window_rhythm.cpp" line="175"/>
+        <source> pro Haus</source>
+        <translation> per house</translation>
+    </message>
+    <message>
+        <location filename="../main_window_rhythm.cpp" line="177"/>
+        <location filename="../main_window_rhythm.cpp" line="822"/>
+        <location filename="../main_window_rhythm.cpp" line="884"/>
         <source>Periode</source>
         <translation>Period</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="184"/>
+        <location filename="../main_window_rhythm.cpp" line="188"/>
         <source>%1 Bis %2  LEBENS-Jahre</source>
         <translation>%1 To %2  YEARS of LIFE</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="204"/>
+        <location filename="../main_window_rhythm.cpp" line="208"/>
         <source>ZEIT-EINHEIT MARKIEREN!</source>
         <translation>MARK the TIME UNIT!</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="204"/>
+        <location filename="../main_window_rhythm.cpp" line="208"/>
         <source>NORMAL ist &apos;JAHR&apos;</source>
         <translation>NORMAL is &apos;YEAR&apos;</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="205"/>
+        <location filename="../main_window_rhythm.cpp" line="209"/>
         <source>Bei &apos;SEPTAREN&apos; i,a. &apos;MONAT&apos;</source>
         <translation>With &apos;SEPTARS&apos; usually &apos;MONTH&apos;</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="206"/>
+        <location filename="../main_window_rhythm.cpp" line="210"/>
         <source>JAHR</source>
         <translation>YEAR</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="206"/>
-        <location filename="../main_window_rhythm.cpp" line="563"/>
+        <location filename="../main_window_rhythm.cpp" line="210"/>
+        <location filename="../main_window_rhythm.cpp" line="580"/>
         <source>MONAT</source>
         <translation>MONTH</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="217"/>
-        <location filename="../main_window_rhythm.cpp" line="270"/>
+        <location filename="../main_window_rhythm.cpp" line="221"/>
+        <location filename="../main_window_rhythm.cpp" line="274"/>
         <source>PARAMETER RICHTIG ?</source>
         <translation>PARAMETER CORRECT ?</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="217"/>
+        <location filename="../main_window_rhythm.cpp" line="221"/>
         <source>ZEITEINHEIT : </source>
         <translation>TIME UNIT : </translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="218"/>
-        <location filename="../main_window_rhythm.cpp" line="271"/>
-        <location filename="../main_window_rhythm.cpp" line="698"/>
+        <location filename="../main_window_rhythm.cpp" line="222"/>
+        <location filename="../main_window_rhythm.cpp" line="275"/>
+        <location filename="../main_window_rhythm.cpp" line="715"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="218"/>
-        <location filename="../main_window_rhythm.cpp" line="271"/>
+        <location filename="../main_window_rhythm.cpp" line="222"/>
+        <location filename="../main_window_rhythm.cpp" line="275"/>
         <source>ÄNDERN</source>
         <translation>CHANGE</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="243"/>
+        <location filename="../main_window_rhythm.cpp" line="247"/>
         <source> Periode PRO HAUS ? </source>
         <translation> Period PER HOUSE ? </translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="244"/>
-        <location filename="../main_window_rhythm.cpp" line="480"/>
+        <location filename="../main_window_rhythm.cpp" line="248"/>
+        <location filename="../main_window_rhythm.cpp" line="484"/>
         <source>EINS</source>
         <translation>ONE</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="244"/>
+        <location filename="../main_window_rhythm.cpp" line="248"/>
         <source>DREI</source>
         <translation>THREE</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="244"/>
-        <location filename="../main_window_rhythm.cpp" line="480"/>
+        <location filename="../main_window_rhythm.cpp" line="248"/>
+        <location filename="../main_window_rhythm.cpp" line="484"/>
         <source>VIER</source>
         <translation>FOUR</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="244"/>
+        <location filename="../main_window_rhythm.cpp" line="248"/>
         <source>FÜNF</source>
         <translation>FIVE</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="244"/>
+        <location filename="../main_window_rhythm.cpp" line="248"/>
         <source>SECHS</source>
         <translation>SIX</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="244"/>
-        <location filename="../main_window_rhythm.cpp" line="480"/>
+        <location filename="../main_window_rhythm.cpp" line="248"/>
+        <location filename="../main_window_rhythm.cpp" line="484"/>
         <source>SIEBEN</source>
         <translation>SEVEN</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="245"/>
+        <location filename="../main_window_rhythm.cpp" line="249"/>
         <source>ZEHN</source>
         <translation>TEN</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="256"/>
+        <location filename="../main_window_rhythm.cpp" line="260"/>
         <source>Periode PRO HAUS IN  Monaten ! </source>
         <translation>Period PER HOUSE IN  Months ! </translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="256"/>
+        <location filename="../main_window_rhythm.cpp" line="260"/>
         <source>Periode PRO HAUS IN  Jahren ! </source>
         <translation>Period PER HOUSE IN  Years ! </translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="270"/>
+        <location filename="../main_window_rhythm.cpp" line="274"/>
         <source>Periode/Haus : </source>
         <translation>Period/House : </translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="325"/>
+        <location filename="../main_window_rhythm.cpp" line="329"/>
         <source>SONDERPUNKT </source>
         <translation>SPECIAL POINT </translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="341"/>
+        <location filename="../main_window_rhythm.cpp" line="345"/>
         <source>INDIREKT über DATUM DEFINIEREN</source>
         <translation>DEFINE INDIRECTLY by DATE</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="343"/>
+        <location filename="../main_window_rhythm.cpp" line="347"/>
         <source> BEIBEHALTEN</source>
         <translation> KEEP</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="343"/>
-        <location filename="../main_window_rhythm.cpp" line="348"/>
+        <location filename="../main_window_rhythm.cpp" line="347"/>
+        <location filename="../main_window_rhythm.cpp" line="352"/>
         <source>als EKLIPTIK-GRAD NEU DEFINIEREN</source>
         <translation>DEFINE ANEW as ECLIPTIC DEGREE</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="344"/>
-        <location filename="../main_window_arabic.cpp" line="225"/>
+        <location filename="../main_window_rhythm.cpp" line="348"/>
+        <location filename="../main_window_arabic.cpp" line="226"/>
         <source> LÖSCHEN</source>
         <translation> DELETE</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="349"/>
+        <location filename="../main_window_rhythm.cpp" line="353"/>
         <source>KEIN </source>
         <translation>NO </translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="356"/>
+        <location filename="../main_window_rhythm.cpp" line="360"/>
         <source>( FIXPUNKT ) WÄHLEN ?</source>
         <translation>( FIXED POINT ) CHOOSE ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5178"/>
-        <location filename="../main_window_rhythm.cpp" line="364"/>
+        <location filename="../main_window.cpp" line="5307"/>
+        <location filename="../main_window_rhythm.cpp" line="368"/>
         <source>Ekliptikale Länge Eingeben !</source>
         <translation>Enter the Ecliptic Longitude !</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="378"/>
+        <location filename="../main_window_rhythm.cpp" line="382"/>
         <source>INDIREKT über Datum definieren !</source>
         <translation>define INDIRECTLY by date !</translation>
     </message>
@@ -6879,160 +6893,164 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <location filename="../main_window_korrektur.cpp" line="64"/>
         <location filename="../main_window_statist.cpp" line="319"/>
         <location filename="../main_window_statist.cpp" line="334"/>
-        <location filename="../main_window_rhythm.cpp" line="416"/>
-        <location filename="../main_window_avh.cpp" line="757"/>
+        <location filename="../main_window_rhythm.cpp" line="420"/>
+        <location filename="../main_window_avh.cpp" line="759"/>
         <source>!! ACHTUNG !!</source>
         <translation>!! ATTENTION !!</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="417"/>
+        <location filename="../main_window_rhythm.cpp" line="421"/>
         <source>HÄUSER NICHT SCHULGERECHT !</source>
         <translation>HOUSES NOT AS THE SCHOOL TEACHES !</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="417"/>
+        <location filename="../main_window_rhythm.cpp" line="421"/>
         <source>&apos;PLACIDUS ERFORDERLICH !</source>
         <translation>&apos;PLACIDUS REQUIRED !</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="418"/>
+        <location filename="../main_window_rhythm.cpp" line="422"/>
         <source>NEUWAHL</source>
         <translation>CHOOSE AGAIN</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="438"/>
+        <location filename="../main_window_rhythm.cpp" line="442"/>
         <source>AUSWERTE-MODUS</source>
         <translation>EVALUATION MODE</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="439"/>
+        <location filename="../main_window_rhythm.cpp" line="443"/>
         <source>GRAPHIK ( HOROSKOP )</source>
         <translation>GRAPHIC ( HOROSCOPE )</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="439"/>
+        <location filename="../main_window_rhythm.cpp" line="443"/>
         <source>AUSLÖSUNGS-TABELLE</source>
         <translation>TRIGGER TABLE</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="439"/>
+        <location filename="../main_window_rhythm.cpp" line="443"/>
         <source>GRAD-DATUM-LISTE ausgeben</source>
         <translation>output the DEGREE DATE LIST</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="440"/>
+        <location filename="../main_window_rhythm.cpp" line="444"/>
         <source> GRADE für GRAD-DATUM-LISTE NEU DEFINIEREN ! </source>
         <translation> DEFINE NEW DEGREES for the DEGREE DATE LIST ! </translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="441"/>
+        <location filename="../main_window_rhythm.cpp" line="445"/>
         <source>SELBST DEFINIERTE GRADE LÖSCHEN ?</source>
         <translation>DELETE the SELF DEFINED DEGREES ?</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="462"/>
+        <location filename="../main_window_rhythm.cpp" line="466"/>
         <source>RICHTUNGSSINN MARKIEREN !</source>
         <translation>MARK the SENSE of DIRECTION !</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="462"/>
+        <location filename="../main_window_rhythm.cpp" line="466"/>
         <source>NORMAL ist &apos;RECHTS&apos; !</source>
         <translation>NORMAL is &apos;RIGHT&apos; !</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="463"/>
+        <location filename="../main_window_rhythm.cpp" line="467"/>
         <source>RECHTS ( IM Uhrzeigersinn )</source>
         <translation>RIGHT ( CLOCKWISE )</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="463"/>
+        <location filename="../main_window_rhythm.cpp" line="467"/>
         <source>LINKS ( GEGEN den Uhrzeigersinn )</source>
         <translation>LEFT ( COUNTER clockwise )</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="468"/>
+        <location filename="../main_window_rhythm.cpp" line="472"/>
         <source>RECHTS</source>
         <translation>RIGHT</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="468"/>
+        <location filename="../main_window_rhythm.cpp" line="472"/>
         <source>LINKS </source>
         <translation>LEFT </translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="479"/>
+        <location filename="../main_window_rhythm.cpp" line="483"/>
         <source>BEGINN-PHASE MARKIEREN !</source>
         <translation>MARK the BEGINNING PHASE !</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="528"/>
-        <location filename="../main_window_rhythm.cpp" line="592"/>
-        <location filename="../main_window_rhythm.cpp" line="601"/>
+        <location filename="../main_window_rhythm.cpp" line="542"/>
+        <source>SIEBEN = 7 Jahre je SEPTAR</source>
+        <translation>SEVEN = 7 years per SEPTAR</translation>
+    </message>
+    <message>
+        <location filename="../main_window_rhythm.cpp" line="555"/>
+        <location filename="../main_window_rhythm.cpp" line="609"/>
+        <location filename="../main_window_rhythm.cpp" line="618"/>
         <source>Septar</source>
         <translation>Septar</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="529"/>
+        <location filename="../main_window_rhythm.cpp" line="556"/>
         <source>Septar braucht die geozentrische Sonne. Heliozentrisch abschalten und erneut versuchen.</source>
         <translation>Septar needs the geocentric Sun. Switch heliocentric off and try again.</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="552"/>
+        <location filename="../main_window_rhythm.cpp" line="542"/>
         <source>ZEIT-EINHEIT beim SEPTAR : MONAT</source>
         <translation>TIME UNIT of the SEPTAR : MONTH</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="553"/>
         <source>SIEBEN = 7 Jahre je SEPTAR , ZEHN = 10 Jahre ( DECAR )</source>
-        <translation>SEVEN = 7 years per SEPTAR , TEN = 10 years ( DECAR )</translation>
+        <translation type="vanished">SEVEN = 7 years per SEPTAR , TEN = 10 years ( DECAR )</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="568"/>
+        <location filename="../main_window_rhythm.cpp" line="585"/>
         <source>INTERESSIERENDES LEBENSJAHR ?  GANZE ZAHL</source>
         <translation>YEAR of LIFE of INTEREST ?  WHOLE NUMBER</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="592"/>
+        <location filename="../main_window_rhythm.cpp" line="609"/>
         <source>Natale Sonne konnte nicht bestimmt werden.</source>
         <translation>The natal Sun could not be determined.</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="601"/>
+        <location filename="../main_window_rhythm.cpp" line="618"/>
         <source>Kein Septar gefunden.</source>
         <translation>No septar found.</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="614"/>
+        <location filename="../main_window_rhythm.cpp" line="631"/>
         <source>SEPTAR NR. %1 Gilt bei der Periode von %2 und der Zeit-Einheit %3</source>
         <translation>SEPTAR NO. %1 Holds for the Period of %2 and the Time Unit %3</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="615"/>
+        <location filename="../main_window_rhythm.cpp" line="632"/>
         <source>Für die LEBENS-Jahre von %1 bis %2</source>
         <translation>For the YEARS of LIFE from %1 to %2</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="617"/>
+        <location filename="../main_window_rhythm.cpp" line="634"/>
         <source>= %1. SOLAR , Kalender-Jahr %2</source>
         <translation>= %1. SOLAR , calendar year %2</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="622"/>
+        <location filename="../main_window_rhythm.cpp" line="639"/>
         <source> 1. SEPTAR = RADIX !</source>
         <translation> 1. SEPTAR = RADIX !</translation>
     </message>
     <message>
         <location filename="../main_window_statist_cond.cpp" line="50"/>
-        <location filename="../main_window_rhythm.cpp" line="643"/>
-        <location filename="../main_window_arabic.cpp" line="61"/>
+        <location filename="../main_window_rhythm.cpp" line="660"/>
+        <location filename="../main_window_arabic.cpp" line="62"/>
         <location filename="../main_window_multi.cpp" line="170"/>
         <source>  MONDKNOTEN N</source>
         <translation>  LUNAR NODE N</translation>
     </message>
     <message>
         <location filename="../main_window_statist_cond.cpp" line="51"/>
-        <location filename="../main_window_rhythm.cpp" line="644"/>
-        <location filename="../main_window_arabic.cpp" line="62"/>
+        <location filename="../main_window_rhythm.cpp" line="661"/>
+        <location filename="../main_window_arabic.cpp" line="63"/>
         <location filename="../main_window_multi.cpp" line="171"/>
         <source>  MONDKNOTEN S</source>
         <translation>  LUNAR NODE S</translation>
@@ -7044,158 +7062,158 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
     </message>
     <message>
         <location filename="../main_window_statist_cond.cpp" line="102"/>
-        <location filename="../main_window_rhythm.cpp" line="653"/>
-        <location filename="../main_window_arabic.cpp" line="76"/>
+        <location filename="../main_window_rhythm.cpp" line="670"/>
+        <location filename="../main_window_arabic.cpp" line="77"/>
         <location filename="../main_window_multi.cpp" line="192"/>
         <source>   HAUS NR.     </source>
         <translation>   HOUSE NO.    </translation>
     </message>
     <message>
         <location filename="../main_window_statist_cond.cpp" line="103"/>
-        <location filename="../main_window_rhythm.cpp" line="654"/>
-        <location filename="../main_window_arabic.cpp" line="77"/>
+        <location filename="../main_window_rhythm.cpp" line="671"/>
+        <location filename="../main_window_arabic.cpp" line="78"/>
         <location filename="../main_window_multi.cpp" line="193"/>
         <source> HERR v. HAUS NR.</source>
         <translation> RULER of HOUSE NO.</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="655"/>
+        <location filename="../main_window_rhythm.cpp" line="672"/>
         <location filename="../main_window_multi.cpp" line="194"/>
         <source> 0 GRAD eines ZEICHENS</source>
         <translation> 0 DEGREE of a SIGN</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="662"/>
+        <location filename="../main_window_rhythm.cpp" line="679"/>
         <source>GRAD EINGEBEN ! ( 0....359° ) , Auch HALBE Grade !</source>
         <translation>ENTER the DEGREE ! ( 0....359° ) , HALF degrees too !</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="664"/>
+        <location filename="../main_window_rhythm.cpp" line="681"/>
         <source> Nur GANZE oder HALBE GRADE Eingeben</source>
         <translation> Enter WHOLE or HALF DEGREES only</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="664"/>
+        <location filename="../main_window_rhythm.cpp" line="681"/>
         <source> Z.B: 125  =  5 GRAD LÖWE</source>
         <translation> E.G: 125  =  5 DEGREES LEO</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="677"/>
+        <location filename="../main_window_rhythm.cpp" line="694"/>
         <source>Dieser PUNKT ist BEREITS VORHANDEN </source>
         <translation>This POINT EXISTS ALREADY </translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="680"/>
+        <location filename="../main_window_rhythm.cpp" line="697"/>
         <source>Punkt ist NICHT von W.DÖBEREINER bzw. M.R. !</source>
         <translation>Point is NOT from W.DÖBEREINER or the M.R. !</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="697"/>
+        <location filename="../main_window_rhythm.cpp" line="714"/>
         <source> PLANETEN : %1 - %2</source>
         <translation> PLANETS : %1 - %2</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="698"/>
+        <location filename="../main_window_rhythm.cpp" line="715"/>
         <source> KORRIGIEREN </source>
         <translation> CORRECT </translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="719"/>
+        <location filename="../main_window_rhythm.cpp" line="736"/>
         <source>KEINE ZUSÄTZLICHEN Grade definiert !</source>
         <translation>NO ADDITIONAL degrees defined !</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="722"/>
+        <location filename="../main_window_rhythm.cpp" line="739"/>
         <source>ALLE selbst definierten Grade WIRKLICH LÖSCHEN ?</source>
         <translation>REALLY DELETE ALL self defined degrees ?</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="800"/>
+        <location filename="../main_window_rhythm.cpp" line="819"/>
         <source>Auslösung nach DÖBEREINER:</source>
         <translation>Trigger after DÖBEREINER:</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="805"/>
+        <location filename="../main_window_rhythm.cpp" line="824"/>
         <source>NEGATIVE Periode !</source>
         <translation>NEGATIVE Period !</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="806"/>
+        <location filename="../main_window_rhythm.cpp" line="825"/>
         <source>Richtung VERGANGENHEIT !</source>
         <translation>Direction PAST !</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="815"/>
+        <location filename="../main_window_rhythm.cpp" line="834"/>
         <source>Von </source>
         <translation>From </translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="815"/>
+        <location filename="../main_window_rhythm.cpp" line="834"/>
         <source> BIS </source>
         <translation> TO </translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="816"/>
+        <location filename="../main_window_rhythm.cpp" line="835"/>
         <source>( LJ/MON )</source>
         <translation>( YR/MON )</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="825"/>
+        <location filename="../main_window_rhythm.cpp" line="844"/>
         <source>WEITER mit </source>
         <translation>ON with </translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="825"/>
-        <location filename="../main_window_arabic.cpp" line="275"/>
+        <location filename="../main_window_rhythm.cpp" line="844"/>
+        <location filename="../main_window_arabic.cpp" line="276"/>
         <source>Leertaste</source>
         <translation>Space</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="852"/>
-        <location filename="../main_window_rhythm.cpp" line="863"/>
-        <location filename="../main_window_rhythm.cpp" line="928"/>
-        <location filename="../main_window_rhythm.cpp" line="976"/>
+        <location filename="../main_window_rhythm.cpp" line="871"/>
+        <location filename="../main_window_rhythm.cpp" line="882"/>
+        <location filename="../main_window_rhythm.cpp" line="947"/>
+        <location filename="../main_window_rhythm.cpp" line="998"/>
         <source>Auslösung nach W.DÖBEREINER</source>
         <translation>Trigger after W.DÖBEREINER</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="853"/>
+        <location filename="../main_window_rhythm.cpp" line="872"/>
         <source>WEITER mit Leertaste</source>
         <translation>ON with Space</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="865"/>
+        <location filename="../main_window_rhythm.cpp" line="884"/>
         <source>Richtung:</source>
         <translation>Direction:</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="867"/>
+        <location filename="../main_window_rhythm.cpp" line="886"/>
         <source> Vergangenheit!</source>
         <translation> Past!</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="873"/>
+        <location filename="../main_window_rhythm.cpp" line="892"/>
         <source>|Länge: %1 |Breite: %2</source>
         <translation>|Longitude: %1 |Latitude: %2</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="931"/>
+        <location filename="../main_window_rhythm.cpp" line="950"/>
         <source>LJ  MO</source>
         <translation>YR  MO</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="931"/>
+        <location filename="../main_window_rhythm.cpp" line="950"/>
         <source>PL</source>
         <translation>PL</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="931"/>
+        <location filename="../main_window_rhythm.cpp" line="950"/>
         <source>ART</source>
         <translation>KIND</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="938"/>
-        <location filename="../main_window_rhythm.cpp" line="986"/>
+        <location filename="../main_window_rhythm.cpp" line="957"/>
+        <location filename="../main_window_rhythm.cpp" line="1010"/>
         <source>PHASE %1 = HS %2</source>
         <translation>PHASE %1 = H %2</translation>
     </message>
@@ -7206,96 +7224,96 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation>The radix coordinate of the chosen body could not be determined.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4450"/>
-        <location filename="../main_window.cpp" line="6656"/>
-        <location filename="../main_window.cpp" line="6698"/>
+        <location filename="../main_window.cpp" line="4577"/>
+        <location filename="../main_window.cpp" line="6820"/>
+        <location filename="../main_window.cpp" line="6862"/>
         <source>Hor 2</source>
         <translation>Chart 2</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4534"/>
-        <location filename="../main_window.cpp" line="5707"/>
-        <location filename="../main_window.cpp" line="6411"/>
+        <location filename="../main_window.cpp" line="4662"/>
+        <location filename="../main_window.cpp" line="5837"/>
+        <location filename="../main_window.cpp" line="6575"/>
         <source>Daten-Datei wählen oder neu anlegen</source>
         <translation>Choose or create a data file</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4535"/>
-        <location filename="../main_window.cpp" line="5399"/>
+        <location filename="../main_window.cpp" line="4663"/>
+        <location filename="../main_window.cpp" line="5529"/>
         <source>HORCOM Daten-Dateien (*.DAT *.dat);;AAF (*.AAF *.aaf)</source>
         <translation>HORCOM data files (*.DAT *.dat);;AAF (*.AAF *.aaf)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4563"/>
-        <location filename="../main_window.cpp" line="5717"/>
-        <location filename="../main_window.cpp" line="6420"/>
+        <location filename="../main_window.cpp" line="4691"/>
+        <location filename="../main_window.cpp" line="5847"/>
+        <location filename="../main_window.cpp" line="6584"/>
         <source>Die Datei ließ sich nicht anlegen.</source>
         <translation>The file could not be created.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4569"/>
-        <location filename="../main_window.cpp" line="5723"/>
-        <location filename="../main_window.cpp" line="6425"/>
+        <location filename="../main_window.cpp" line="4697"/>
+        <location filename="../main_window.cpp" line="5853"/>
+        <location filename="../main_window.cpp" line="6589"/>
         <source>NEUE DATEN-DATEI %1 !</source>
         <translation>NEW DATA FILE %1 !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4579"/>
-        <location filename="../main_window.cpp" line="5510"/>
-        <location filename="../main_window.cpp" line="6482"/>
+        <location filename="../main_window.cpp" line="4707"/>
+        <location filename="../main_window.cpp" line="5640"/>
+        <location filename="../main_window.cpp" line="6646"/>
         <source>DATEI : %1</source>
         <translation>FILE : %1</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4580"/>
+        <location filename="../main_window.cpp" line="4708"/>
         <source>Datensätze HOLEN ?</source>
         <translation>FETCH records ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4580"/>
+        <location filename="../main_window.cpp" line="4708"/>
         <source>AKTUELLEN Datensatz EINTRAGEN ?</source>
         <translation>ENTER the CURRENT record ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4581"/>
+        <location filename="../main_window.cpp" line="4709"/>
         <source>Datensätze LÖSCHEN ?</source>
         <translation>DELETE records ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4581"/>
+        <location filename="../main_window.cpp" line="4709"/>
         <source>Datei TRIMMEN ?</source>
         <translation>TRIM the file ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4582"/>
+        <location filename="../main_window.cpp" line="4710"/>
         <source>Datei MINIMIEREN ?</source>
         <translation>MINIMIZE the file ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4582"/>
+        <location filename="../main_window.cpp" line="4710"/>
         <source>ANDERE DATEI wählen…</source>
         <translation>Choose OTHER FILE…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2825"/>
-        <location filename="../main_window.cpp" line="2835"/>
-        <location filename="../main_window.cpp" line="2884"/>
-        <location filename="../main_window.cpp" line="2936"/>
-        <location filename="../main_window.cpp" line="2987"/>
-        <location filename="../main_window.cpp" line="3050"/>
-        <location filename="../main_window.cpp" line="3604"/>
-        <location filename="../main_window.cpp" line="3897"/>
-        <location filename="../main_window.cpp" line="4583"/>
-        <location filename="../main_window.cpp" line="4663"/>
-        <location filename="../main_window.cpp" line="4909"/>
-        <location filename="../main_window.cpp" line="5391"/>
-        <location filename="../main_window.cpp" line="5511"/>
-        <location filename="../main_window.cpp" line="5607"/>
-        <location filename="../main_window.cpp" line="5789"/>
-        <location filename="../main_window.cpp" line="6404"/>
-        <location filename="../main_window.cpp" line="6484"/>
-        <location filename="../main_window.cpp" line="6832"/>
-        <location filename="../main_window.cpp" line="7044"/>
+        <location filename="../main_window.cpp" line="2871"/>
+        <location filename="../main_window.cpp" line="2881"/>
+        <location filename="../main_window.cpp" line="2930"/>
+        <location filename="../main_window.cpp" line="2982"/>
+        <location filename="../main_window.cpp" line="3033"/>
+        <location filename="../main_window.cpp" line="3096"/>
+        <location filename="../main_window.cpp" line="3719"/>
+        <location filename="../main_window.cpp" line="4012"/>
+        <location filename="../main_window.cpp" line="4711"/>
+        <location filename="../main_window.cpp" line="4792"/>
+        <location filename="../main_window.cpp" line="5040"/>
+        <location filename="../main_window.cpp" line="5521"/>
+        <location filename="../main_window.cpp" line="5641"/>
+        <location filename="../main_window.cpp" line="5737"/>
+        <location filename="../main_window.cpp" line="5919"/>
+        <location filename="../main_window.cpp" line="6567"/>
+        <location filename="../main_window.cpp" line="6648"/>
+        <location filename="../main_window.cpp" line="6996"/>
+        <location filename="../main_window.cpp" line="7208"/>
         <location filename="../main_window_auswertung.cpp" line="168"/>
         <location filename="../main_window_auswertung.cpp" line="414"/>
         <location filename="../main_window_auswertung.cpp" line="712"/>
@@ -7308,8 +7326,8 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <location filename="../main_window_a18.cpp" line="969"/>
         <location filename="../main_window_a18.cpp" line="1032"/>
         <location filename="../main_window_a18.cpp" line="1561"/>
-        <location filename="../main_window_help.cpp" line="186"/>
-        <location filename="../main_window_help.cpp" line="243"/>
+        <location filename="../main_window_help.cpp" line="189"/>
+        <location filename="../main_window_help.cpp" line="246"/>
         <location filename="../main_window_wander.cpp" line="384"/>
         <location filename="../main_window_wander.cpp" line="747"/>
         <location filename="../main_window_wander.cpp" line="970"/>
@@ -7326,12 +7344,12 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <location filename="../main_window_dynamo.cpp" line="388"/>
         <location filename="../main_window_dynamo.cpp" line="395"/>
         <location filename="../main_window_dynamo.cpp" line="403"/>
-        <location filename="../main_window_rhythm.cpp" line="245"/>
-        <location filename="../main_window_rhythm.cpp" line="344"/>
-        <location filename="../main_window_rhythm.cpp" line="349"/>
-        <location filename="../main_window_rhythm.cpp" line="441"/>
-        <location filename="../main_window_rhythm.cpp" line="698"/>
-        <location filename="../main_window_ingress.cpp" line="107"/>
+        <location filename="../main_window_rhythm.cpp" line="249"/>
+        <location filename="../main_window_rhythm.cpp" line="348"/>
+        <location filename="../main_window_rhythm.cpp" line="353"/>
+        <location filename="../main_window_rhythm.cpp" line="445"/>
+        <location filename="../main_window_rhythm.cpp" line="715"/>
+        <location filename="../main_window_ingress.cpp" line="108"/>
         <location filename="../main_window_pair.cpp" line="71"/>
         <location filename="../main_window_multi.cpp" line="140"/>
         <location filename="../main_window_print.cpp" line="277"/>
@@ -7342,73 +7360,73 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation>CANCEL</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4629"/>
-        <location filename="../main_window.cpp" line="5329"/>
+        <location filename="../main_window.cpp" line="4758"/>
+        <location filename="../main_window.cpp" line="5459"/>
         <source>Anzahl Dats.: %1</source>
         <translation>Record count: %1</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4660"/>
+        <location filename="../main_window.cpp" line="4789"/>
         <source>SORTIER-MODUS ?  DATEI : %1</source>
         <translation>SORT MODE ?  FILE : %1</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4661"/>
+        <location filename="../main_window.cpp" line="4790"/>
         <source>ALPHABETISCH: 1., 2. und 3. NAME</source>
         <translation>ALPHABETICAL: 1st, 2nd and 3rd NAME</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4661"/>
+        <location filename="../main_window.cpp" line="4790"/>
         <source>ALPHABETISCH: 2. und 3. NAME</source>
         <translation>ALPHABETICAL: 2nd and 3rd NAME</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4662"/>
+        <location filename="../main_window.cpp" line="4791"/>
         <source>ALPHABETISCH: nur 3. NAME</source>
         <translation>ALPHABETICAL: 3rd NAME only</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4662"/>
+        <location filename="../main_window.cpp" line="4791"/>
         <source>GEBURTSTAG</source>
         <translation>BIRTHDAY</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4662"/>
+        <location filename="../main_window.cpp" line="4791"/>
         <location filename="../main_window_auswertung.cpp" line="91"/>
         <location filename="../main_window_a18.cpp" line="236"/>
-        <location filename="../main_window_rhythm.cpp" line="472"/>
+        <location filename="../main_window_rhythm.cpp" line="476"/>
         <source>DATUM</source>
         <translation>DATE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5076"/>
+        <location filename="../main_window.cpp" line="5205"/>
         <source>GEWÜNSCHTES THEMA ANKLICKEN !</source>
         <translation>CLICK THE DESIRED TOPIC !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5077"/>
-        <location filename="../main_window.cpp" line="5094"/>
+        <location filename="../main_window.cpp" line="5206"/>
+        <location filename="../main_window.cpp" line="5223"/>
         <source>MODUS DER Planeten-POSITIONEN ?</source>
         <translation>MODE OF THE planet POSITIONS ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5078"/>
+        <location filename="../main_window.cpp" line="5207"/>
         <source>MONDKNOTEN : MITTELWERT ? oder WAHRER Wert ?</source>
         <translation>LUNAR NODE : MEAN ? or TRUE value ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5079"/>
+        <location filename="../main_window.cpp" line="5208"/>
         <source>SO,MO und Planeten MIT oder OHNE Parallaxe ?</source>
         <translation>SU,MO and planets WITH or WITHOUT parallax ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5079"/>
+        <location filename="../main_window.cpp" line="5208"/>
         <source>ZUSATZ - PLANETEN WÄHLEN ?</source>
         <translation>CHOOSE EXTRA PLANETS ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5080"/>
-        <location filename="../main_window.cpp" line="5173"/>
+        <location filename="../main_window.cpp" line="5209"/>
+        <location filename="../main_window.cpp" line="5302"/>
         <source>FIXPUNKT als &apos;PLANET&apos; DEFINIEREN ?</source>
         <translation>DEFINE a FIXED POINT as &apos;PLANET&apos; ?</translation>
     </message>
@@ -7417,84 +7435,84 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation type="vanished">DISTANCE VALUES of the GREAT PLANETS RELATIVE or ABSOLUTE ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5080"/>
-        <location filename="../main_window.cpp" line="5097"/>
-        <location filename="../main_window.cpp" line="5111"/>
-        <location filename="../main_window.cpp" line="5125"/>
-        <location filename="../main_window.cpp" line="5150"/>
-        <location filename="../main_window.cpp" line="5170"/>
-        <location filename="../main_window.cpp" line="5172"/>
-        <location filename="../main_window.cpp" line="5737"/>
-        <location filename="../main_window.cpp" line="6473"/>
+        <location filename="../main_window.cpp" line="5209"/>
+        <location filename="../main_window.cpp" line="5226"/>
+        <location filename="../main_window.cpp" line="5240"/>
+        <location filename="../main_window.cpp" line="5254"/>
+        <location filename="../main_window.cpp" line="5279"/>
+        <location filename="../main_window.cpp" line="5299"/>
+        <location filename="../main_window.cpp" line="5301"/>
+        <location filename="../main_window.cpp" line="5867"/>
+        <location filename="../main_window.cpp" line="6637"/>
         <location filename="../main_window_a18.cpp" line="1303"/>
         <location filename="../main_window_a18.cpp" line="1442"/>
         <location filename="../main_window_avh.cpp" line="121"/>
         <location filename="../main_window_avh.cpp" line="374"/>
-        <location filename="../main_window_avh.cpp" line="577"/>
-        <location filename="../main_window_avh.cpp" line="709"/>
-        <location filename="../main_window_avh.cpp" line="775"/>
-        <location filename="../main_window_avh.cpp" line="875"/>
-        <location filename="../main_window_avh.cpp" line="987"/>
-        <location filename="../main_window_avh.cpp" line="1106"/>
+        <location filename="../main_window_avh.cpp" line="579"/>
+        <location filename="../main_window_avh.cpp" line="711"/>
+        <location filename="../main_window_avh.cpp" line="777"/>
+        <location filename="../main_window_avh.cpp" line="877"/>
+        <location filename="../main_window_avh.cpp" line="989"/>
+        <location filename="../main_window_avh.cpp" line="1108"/>
         <source>EXIT</source>
         <translation>EXIT</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1029"/>
+        <location filename="../main_window.cpp" line="1059"/>
         <source>ORT in Orts-Datei EINTRAGEN…</source>
         <translation>ENTER PLACE into a place file…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1366"/>
+        <location filename="../main_window.cpp" line="1398"/>
         <source>VORGABEN-ÜBERSICHT…</source>
         <translation>DEFAULTS OVERVIEW…</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="1039"/>
+        <location filename="../main_window_avh.cpp" line="1041"/>
         <source>FARBEN NICHT ÄNDERN</source>
         <translation>DO NOT CHANGE THE COLOURS</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="1039"/>
+        <location filename="../main_window_avh.cpp" line="1041"/>
         <source>      EXIT</source>
         <translation>      EXIT</translation>
     </message>
     <message>
-        <location filename="../main_window_avh.cpp" line="1043"/>
+        <location filename="../main_window_avh.cpp" line="1045"/>
         <source>FARBEN für HOROSKOP - RING FESTLEGEN ! ( ANKLICKEN )</source>
         <translation>SET COLOURS for the HOROSCOPE RING ! ( CLICK )</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2375"/>
+        <location filename="../main_window.cpp" line="2419"/>
         <source>SPIEGELUNG</source>
         <translation>MIRROR</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5095"/>
+        <location filename="../main_window.cpp" line="5224"/>
         <source>APPARENT 1 = Mit LICHTLAUFZEIT-EFFEKT</source>
         <translation>APPARENT 1 = With LIGHT TIME EFFECT</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5096"/>
+        <location filename="../main_window.cpp" line="5225"/>
         <source>APPARENT 2 = ZUSÄTZLICH ABERRATION</source>
         <translation>APPARENT 2 = PLUS ABERRATION</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5097"/>
+        <location filename="../main_window.cpp" line="5226"/>
         <source>WAHR = GEOMETRISCHE POSITION</source>
         <translation>TRUE = GEOMETRIC POSITION</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2737"/>
-        <location filename="../main_window.cpp" line="3049"/>
-        <location filename="../main_window.cpp" line="3662"/>
-        <location filename="../main_window.cpp" line="3671"/>
-        <location filename="../main_window.cpp" line="3896"/>
-        <location filename="../main_window.cpp" line="5109"/>
-        <location filename="../main_window.cpp" line="5123"/>
-        <location filename="../main_window.cpp" line="5147"/>
-        <location filename="../main_window.cpp" line="5908"/>
-        <location filename="../main_window.cpp" line="6174"/>
+        <location filename="../main_window.cpp" line="2783"/>
+        <location filename="../main_window.cpp" line="3095"/>
+        <location filename="../main_window.cpp" line="3777"/>
+        <location filename="../main_window.cpp" line="3786"/>
+        <location filename="../main_window.cpp" line="4011"/>
+        <location filename="../main_window.cpp" line="5238"/>
+        <location filename="../main_window.cpp" line="5252"/>
+        <location filename="../main_window.cpp" line="5276"/>
+        <location filename="../main_window.cpp" line="6041"/>
+        <location filename="../main_window.cpp" line="6324"/>
         <location filename="../main_window_auswertung.cpp" line="746"/>
         <location filename="../main_window_auswertung.cpp" line="843"/>
         <location filename="../main_window_auswertung.cpp" line="1090"/>
@@ -7502,7 +7520,7 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <location filename="../main_window_a18.cpp" line="1431"/>
         <location filename="../main_window_a18.cpp" line="1441"/>
         <location filename="../main_window_convert.cpp" line="174"/>
-        <location filename="../main_window_help.cpp" line="242"/>
+        <location filename="../main_window_help.cpp" line="245"/>
         <location filename="../main_window_wander.cpp" line="341"/>
         <location filename="../main_window_wander.cpp" line="382"/>
         <location filename="../main_window_wander.cpp" line="545"/>
@@ -7535,29 +7553,29 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <location filename="../main_window_statist_list.cpp" line="181"/>
         <location filename="../main_window_statist_list.cpp" line="505"/>
         <location filename="../main_window_statist_list.cpp" line="555"/>
-        <location filename="../main_window_rhythm.cpp" line="216"/>
-        <location filename="../main_window_rhythm.cpp" line="269"/>
-        <location filename="../main_window_rhythm.cpp" line="471"/>
-        <location filename="../main_window_rhythm.cpp" line="697"/>
-        <location filename="../main_window_rhythm.cpp" line="722"/>
-        <location filename="../main_window_coord.cpp" line="581"/>
-        <location filename="../main_window_coord.cpp" line="593"/>
-        <location filename="../main_window_coord.cpp" line="608"/>
-        <location filename="../main_window_coord.cpp" line="624"/>
-        <location filename="../main_window_coord.cpp" line="649"/>
-        <location filename="../main_window_arabic.cpp" line="161"/>
-        <location filename="../main_window_arabic.cpp" line="204"/>
-        <location filename="../main_window_arabic.cpp" line="224"/>
-        <location filename="../main_window_arabic.cpp" line="239"/>
+        <location filename="../main_window_rhythm.cpp" line="220"/>
+        <location filename="../main_window_rhythm.cpp" line="273"/>
+        <location filename="../main_window_rhythm.cpp" line="475"/>
+        <location filename="../main_window_rhythm.cpp" line="714"/>
+        <location filename="../main_window_rhythm.cpp" line="739"/>
+        <location filename="../main_window_coord.cpp" line="584"/>
+        <location filename="../main_window_coord.cpp" line="596"/>
+        <location filename="../main_window_coord.cpp" line="611"/>
+        <location filename="../main_window_coord.cpp" line="627"/>
+        <location filename="../main_window_coord.cpp" line="652"/>
+        <location filename="../main_window_arabic.cpp" line="162"/>
+        <location filename="../main_window_arabic.cpp" line="205"/>
+        <location filename="../main_window_arabic.cpp" line="225"/>
+        <location filename="../main_window_arabic.cpp" line="240"/>
         <location filename="../main_window_avh.cpp" line="414"/>
         <location filename="../main_window_avh.cpp" line="448"/>
         <location filename="../main_window_avh.cpp" line="461"/>
-        <location filename="../main_window_avh.cpp" line="506"/>
-        <location filename="../main_window_avh.cpp" line="526"/>
-        <location filename="../main_window_avh.cpp" line="549"/>
-        <location filename="../main_window_avh.cpp" line="773"/>
-        <location filename="../main_window_avh.cpp" line="872"/>
-        <location filename="../main_window_avh.cpp" line="1118"/>
+        <location filename="../main_window_avh.cpp" line="508"/>
+        <location filename="../main_window_avh.cpp" line="528"/>
+        <location filename="../main_window_avh.cpp" line="551"/>
+        <location filename="../main_window_avh.cpp" line="775"/>
+        <location filename="../main_window_avh.cpp" line="874"/>
+        <location filename="../main_window_avh.cpp" line="1120"/>
         <location filename="../main_window_pair.cpp" line="115"/>
         <location filename="../main_window_pair.cpp" line="213"/>
         <location filename="../main_window_multi.cpp" line="224"/>
@@ -7568,118 +7586,118 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation>SELECTION</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5110"/>
+        <location filename="../main_window.cpp" line="5239"/>
         <source>MONDKNOTEN :</source>
         <translation>LUNAR NODE :</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5110"/>
+        <location filename="../main_window.cpp" line="5239"/>
         <source>MITTELWERT ?</source>
         <translation>MEAN VALUE ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3663"/>
-        <location filename="../main_window.cpp" line="3672"/>
-        <location filename="../main_window.cpp" line="5110"/>
-        <location filename="../main_window.cpp" line="5909"/>
+        <location filename="../main_window.cpp" line="3778"/>
+        <location filename="../main_window.cpp" line="3787"/>
+        <location filename="../main_window.cpp" line="5239"/>
+        <location filename="../main_window.cpp" line="6042"/>
         <location filename="../main_window_a18.cpp" line="968"/>
         <location filename="../main_window_dynamo.cpp" line="402"/>
-        <location filename="../main_window_arabic.cpp" line="205"/>
+        <location filename="../main_window_arabic.cpp" line="206"/>
         <location filename="../main_window_pair.cpp" line="214"/>
         <location filename="../main_window_multi.cpp" line="138"/>
         <source>oder</source>
         <translation>or</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4908"/>
+        <location filename="../main_window.cpp" line="5039"/>
         <source>Nur für GEÜBTE !</source>
         <translation>Only for the EXPERIENCED !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4908"/>
+        <location filename="../main_window.cpp" line="5039"/>
         <source>Das CHAOS DROHT !</source>
         <translation>CHAOS LOOMS !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5110"/>
+        <location filename="../main_window.cpp" line="5239"/>
         <source>WAHRER WERT ?</source>
         <translation>TRUE VALUE ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5111"/>
+        <location filename="../main_window.cpp" line="5240"/>
         <source>WAHR = MOMENTAN</source>
         <translation>TRUE = INSTANT</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5111"/>
+        <location filename="../main_window.cpp" line="5240"/>
         <source>MITTEL</source>
         <translation>MEAN</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5124"/>
+        <location filename="../main_window.cpp" line="5253"/>
         <source>SO,MO und Planeten mit Parallaxe ?</source>
         <translation>SU,MO and planets with parallax ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5124"/>
+        <location filename="../main_window.cpp" line="5253"/>
         <source>Vom EREIGNISORT aus</source>
         <translation>Seen from the EVENT PLACE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5125"/>
+        <location filename="../main_window.cpp" line="5254"/>
         <source>Mit = Topozentrisch</source>
         <translation>With = Topocentric</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5125"/>
+        <location filename="../main_window.cpp" line="5254"/>
         <source>Ohne = Geozentrisch</source>
         <translation>Without = Geocentric</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5142"/>
+        <location filename="../main_window.cpp" line="5271"/>
         <source>HAMBURGER PLANETEN</source>
         <translation>HAMBURG PLANETS</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5148"/>
+        <location filename="../main_window.cpp" line="5277"/>
         <source>ZUSATZ - PLANETEN ?</source>
         <translation>EXTRA PLANETS ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5148"/>
+        <location filename="../main_window.cpp" line="5277"/>
         <source>BISHER GEWÄHLT :</source>
         <translation>CHOSEN SO FAR :</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5149"/>
-        <location filename="../main_window.cpp" line="5150"/>
-        <location filename="../main_window.cpp" line="5285"/>
+        <location filename="../main_window.cpp" line="5278"/>
+        <location filename="../main_window.cpp" line="5279"/>
+        <location filename="../main_window.cpp" line="5414"/>
         <source>KEINE</source>
         <translation>NONE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5150"/>
+        <location filename="../main_window.cpp" line="5279"/>
         <source>NEU - WAHL</source>
         <translation>NEW CHOICE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5150"/>
+        <location filename="../main_window.cpp" line="5279"/>
         <source>NICHT ÄNDERN</source>
         <translation>DO NOT CHANGE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5171"/>
+        <location filename="../main_window.cpp" line="5300"/>
         <source>KEIN FIXPUNKT  DEFINIERT !</source>
         <translation>NO FIXED POINT  DEFINED !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5169"/>
-        <location filename="../main_window.cpp" line="5171"/>
+        <location filename="../main_window.cpp" line="5298"/>
+        <location filename="../main_window.cpp" line="5300"/>
         <source>FIXPUNKT als EKLIPTIK-GRAD NEU DEFINIEREN</source>
         <translation>REDEFINE the FIXED POINT as an ECLIPTIC DEGREE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5172"/>
+        <location filename="../main_window.cpp" line="5301"/>
         <source>KEINEN FIXPUNKT DEFINIEREN !</source>
         <translation>DEFINE NO FIXED POINT !</translation>
     </message>
@@ -7913,84 +7931,84 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation> deleted !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5211"/>
+        <location filename="../main_window.cpp" line="5340"/>
         <source>Parameter - Einstellungen = VORGABEN</source>
         <translation>Parameters - Settings = DEFAULTS</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5219"/>
+        <location filename="../main_window.cpp" line="5348"/>
         <source> Datensatz : %1 </source>
         <translation> Record : %1 </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5244"/>
+        <location filename="../main_window.cpp" line="5373"/>
         <source>Name :</source>
         <translation>Name :</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5245"/>
+        <location filename="../main_window.cpp" line="5374"/>
         <source>Ort :</source>
         <translation>Place :</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5251"/>
+        <location filename="../main_window.cpp" line="5380"/>
         <source>BEM:</source>
         <translation>REM:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5253"/>
+        <location filename="../main_window.cpp" line="5382"/>
         <source>HÄUSER : %1</source>
         <translation>HOUSES : %1</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5256"/>
+        <location filename="../main_window.cpp" line="5385"/>
         <source>Ebene : %1</source>
         <translation>Level : %1</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5258"/>
+        <location filename="../main_window.cpp" line="5387"/>
         <source>PARAM. Ephemeride:</source>
         <translation>PARAM. Ephemeris:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5259"/>
+        <location filename="../main_window.cpp" line="5388"/>
         <source>Ekl.Länge: %1</source>
         <translation>Ecl.longitude: %1</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5260"/>
-        <location filename="../main_window_coord.cpp" line="171"/>
+        <location filename="../main_window.cpp" line="5389"/>
+        <location filename="../main_window_coord.cpp" line="172"/>
         <source>Mit Parallaxe</source>
         <translation>With parallax</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5260"/>
-        <location filename="../main_window_coord.cpp" line="171"/>
+        <location filename="../main_window.cpp" line="5389"/>
+        <location filename="../main_window_coord.cpp" line="172"/>
         <source>Ohne Parallaxe</source>
         <translation>Without parallax</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5261"/>
+        <location filename="../main_window.cpp" line="5390"/>
         <source>Mittl. Mondknoten</source>
         <translation>Mean lunar node</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5262"/>
+        <location filename="../main_window.cpp" line="5391"/>
         <source>Mittl. Apogäum</source>
         <translation>Mean apogee</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5285"/>
+        <location filename="../main_window.cpp" line="5414"/>
         <source>Zusatz-Plan:</source>
         <translation>Extra plan:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5286"/>
+        <location filename="../main_window.cpp" line="5415"/>
         <source>PARAM. Horoskop:</source>
         <translation>PARAM. Horoscope:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5290"/>
+        <location filename="../main_window.cpp" line="5419"/>
         <source>Orbis-Faktor = %1</source>
         <translation>Orb factor = %1</translation>
     </message>
@@ -7999,12 +8017,12 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation type="vanished">Aspect orbs : self defined</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5322"/>
+        <location filename="../main_window.cpp" line="5452"/>
         <source>Fixpunkt : %1°</source>
         <translation>Fixed point : %1°</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5322"/>
+        <location filename="../main_window.cpp" line="5452"/>
         <source>Kein Fixpunkt</source>
         <translation>No fixed point</translation>
     </message>
@@ -8017,190 +8035,189 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation type="vanished">Distances : absolute in AU</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5324"/>
+        <location filename="../main_window.cpp" line="5454"/>
         <source>Daten-Datei:</source>
         <translation>Data file:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5335"/>
+        <location filename="../main_window.cpp" line="5465"/>
         <source>Auflösung:</source>
         <translation>Resolution:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5319"/>
-        <location filename="../main_window.cpp" line="5339"/>
+        <location filename="../main_window.cpp" line="5449"/>
+        <location filename="../main_window.cpp" line="5469"/>
         <source>Weiß</source>
         <translation>White</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5359"/>
+        <location filename="../main_window.cpp" line="5489"/>
         <source>KEINE Häuser,NUR AC und MC</source>
         <translation>NO houses, ONLY AC and MC</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5360"/>
+        <location filename="../main_window.cpp" line="5490"/>
         <source>WEDER HÄUSER noch  AC oder MC</source>
         <translation>NEITHER HOUSES nor  AC or MC</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5361"/>
+        <location filename="../main_window.cpp" line="5491"/>
         <source>WEDER HÄUSER noch  AC oder MC noch MONDKNOTEN</source>
         <translation>NEITHER HOUSES nor  AC or MC nor LUNAR NODES</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5364"/>
+        <location filename="../main_window.cpp" line="5494"/>
         <source>HÄUSERSYSTEM WÄHLEN !</source>
         <translation>CHOOSE THE HOUSE SYSTEM !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5386"/>
-        <location filename="../main_window.cpp" line="6401"/>
+        <location filename="../main_window.cpp" line="5516"/>
         <source>keine gebunden</source>
         <translation>none bound</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5389"/>
+        <location filename="../main_window.cpp" line="5519"/>
         <source>Datensätze HOLEN</source>
         <translation>FETCH records</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5390"/>
+        <location filename="../main_window.cpp" line="5520"/>
         <source>Aus welcher Daten-Datei sollen Datensätze geholt werden?</source>
         <translation>From which data file should records be fetched?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5391"/>
+        <location filename="../main_window.cpp" line="5521"/>
         <source>Aus %1</source>
         <translation>From %1</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5391"/>
-        <location filename="../main_window.cpp" line="6404"/>
+        <location filename="../main_window.cpp" line="5521"/>
+        <location filename="../main_window.cpp" line="6566"/>
         <source>Andere Datei wählen…</source>
         <translation>Choose another file…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5398"/>
+        <location filename="../main_window.cpp" line="5528"/>
         <source>Andere Daten-Datei wählen</source>
         <translation>Choose another data file</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5408"/>
+        <location filename="../main_window.cpp" line="5538"/>
         <source>Die Datei ließ sich nicht öffnen.</source>
         <translation>The file could not be opened.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4772"/>
+        <location filename="../main_window.cpp" line="4903"/>
         <source>DIESER DATENSATZ ÜBERSCHREIBT</source>
         <translation>THIS RECORD OVERWRITES</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4772"/>
+        <location filename="../main_window.cpp" line="4903"/>
         <source>DEN VORHERGEHENDEN !</source>
         <translation>THE PREVIOUS ONE !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4909"/>
+        <location filename="../main_window.cpp" line="5040"/>
         <location filename="../main_window_korrektur.cpp" line="66"/>
         <location filename="../main_window_a18.cpp" line="206"/>
-        <location filename="../main_window_rhythm.cpp" line="418"/>
+        <location filename="../main_window_rhythm.cpp" line="422"/>
         <location filename="../main_window_avh.cpp" line="119"/>
         <source>WEITER</source>
         <translation>CONTINUE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5444"/>
+        <location filename="../main_window.cpp" line="5574"/>
         <source>EINGABE- und ANZEIGE-BOX | RADIX NR.%1</source>
         <translation>ENTRY and DISPLAY BOX | RADIX NO.%1</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5487"/>
+        <location filename="../main_window.cpp" line="5617"/>
         <source>Wollen Sie auch die korrespondierenden AAF-Datensätze</source>
         <translation>Do you also want to delete the corresponding AAF records</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5488"/>
+        <location filename="../main_window.cpp" line="5618"/>
         <source>der Datei %1 LÖSCHEN ?</source>
         <translation>of the file %1 ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5489"/>
+        <location filename="../main_window.cpp" line="5619"/>
         <source>Dies ist in der Regel zweckmäßig !</source>
         <translation>This is usually advisable !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5490"/>
+        <location filename="../main_window.cpp" line="5620"/>
         <source>JA = LÖSCHEN</source>
         <translation>YES = DELETE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5490"/>
+        <location filename="../main_window.cpp" line="5620"/>
         <source>AAF-Datensätze BEIBEHALTEN</source>
         <translation>KEEP the AAF records</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5511"/>
+        <location filename="../main_window.cpp" line="5641"/>
         <source>%1 Datensätze LÖSCHEN ?</source>
         <translation>DELETE %1 records ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5542"/>
+        <location filename="../main_window.cpp" line="5672"/>
         <source>WEITER in der DATEI</source>
         <translation>CONTINUE in the FILE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5542"/>
-        <location filename="../main_window_arabic.cpp" line="239"/>
+        <location filename="../main_window.cpp" line="5672"/>
+        <location filename="../main_window_arabic.cpp" line="240"/>
         <source>LÖSCHEN ?</source>
         <translation>DELETING ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5543"/>
+        <location filename="../main_window.cpp" line="5673"/>
         <source>LÖSCHEN Beenden</source>
         <translation>STOP deleting</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5543"/>
+        <location filename="../main_window.cpp" line="5673"/>
         <source>Weiter LÖSCHEN</source>
         <translation>Continue DELETING</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5585"/>
+        <location filename="../main_window.cpp" line="5715"/>
         <source>%1 von %2 Datensätzen bleiben.</source>
         <translation>%1 of %2 records remain.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5606"/>
+        <location filename="../main_window.cpp" line="5736"/>
         <source>In welchem Daten-FORMAT EINGEBEN ?</source>
         <translation>In which data FORMAT to ENTER ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5607"/>
+        <location filename="../main_window.cpp" line="5737"/>
         <source>HORCOM - Format</source>
         <translation>HORCOM format</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5607"/>
+        <location filename="../main_window.cpp" line="5737"/>
         <source>AAF-Format</source>
         <translation>AAF format</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5644"/>
+        <location filename="../main_window.cpp" line="5774"/>
         <source>WEITEREN Datensatz NEU EINGEBEN ?</source>
         <translation>ENTER ANOTHER new record ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5789"/>
+        <location filename="../main_window.cpp" line="5919"/>
         <source>Aus Datei wählen …</source>
         <translation>Choose from file …</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="7094"/>
+        <location filename="../main_window.cpp" line="7258"/>
         <source>&lt;b&gt;horcom&lt;/b&gt;&lt;br&gt;Die C++ Neufassung von HORCOM,&lt;br&gt;geschrieben von Robert Rettig, 1989 bis 2010.&lt;br&gt;&lt;br&gt;Im Andenken an Robert Rettig, der all dies zuerst gebaut hat.&lt;br&gt;&lt;br&gt;In C++ neu geschrieben und betreut von Dominik Schwimmbeck.&lt;br&gt;GPL-3.0-or-later</source>
         <translation>&lt;b&gt;horcom&lt;/b&gt;&lt;br&gt;The C++ rewrite of HORCOM,&lt;br&gt;written by Robert Rettig, 1989 to 2010.&lt;br&gt;&lt;br&gt;In memory of Robert Rettig, who built all of this first.&lt;br&gt;&lt;br&gt;Rewritten in C++ and maintained by Dominik Schwimmbeck.&lt;br&gt;GPL-3.0-or-later</translation>
     </message>
     <message>
-        <location filename="../main_window_rhythm.cpp" line="602"/>
+        <location filename="../main_window_rhythm.cpp" line="619"/>
         <source>Kein Septar gefunden</source>
         <translation>No septar found</translation>
     </message>
@@ -8217,44 +8234,44 @@ Alternatively pick a KOMMEN7P folder directly below.</translation>
         <translation>Body</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1452"/>
+        <location filename="../main_window.cpp" line="1484"/>
         <source>Die Sprache gilt ab dem nächsten Start.
 The language applies from the next start.</source>
         <translation>Die Sprache gilt ab dem nächsten Start.
 The language applies from the next start.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6596"/>
+        <location filename="../main_window.cpp" line="6760"/>
         <source>Sonntag</source>
         <translation>Sunday</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6596"/>
+        <location filename="../main_window.cpp" line="6760"/>
         <source>Montag</source>
         <translation>Monday</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6597"/>
+        <location filename="../main_window.cpp" line="6761"/>
         <source>Dienstag</source>
         <translation>Tuesday</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6597"/>
+        <location filename="../main_window.cpp" line="6761"/>
         <source>Mittwoch</source>
         <translation>Wednesday</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6598"/>
+        <location filename="../main_window.cpp" line="6762"/>
         <source>Donnerstag</source>
         <translation>Thursday</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6598"/>
+        <location filename="../main_window.cpp" line="6762"/>
         <source>Freitag</source>
         <translation>Friday</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6599"/>
+        <location filename="../main_window.cpp" line="6763"/>
         <source>Samstag</source>
         <translation>Saturday</translation>
     </message>
@@ -8301,10 +8318,10 @@ The language applies from the next start.</translation>
         <translation>NO ( fetch from PLACE FILES ? )</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2740"/>
-        <location filename="../main_window.cpp" line="3897"/>
-        <location filename="../main_window.cpp" line="5757"/>
-        <location filename="../main_window.cpp" line="6854"/>
+        <location filename="../main_window.cpp" line="2786"/>
+        <location filename="../main_window.cpp" line="4012"/>
+        <location filename="../main_window.cpp" line="5887"/>
+        <location filename="../main_window.cpp" line="7018"/>
         <location filename="../main_window_auswertung.cpp" line="168"/>
         <location filename="../main_window_auswertung.cpp" line="844"/>
         <location filename="../main_window_korrektur.cpp" line="213"/>
@@ -8327,14 +8344,14 @@ The language applies from the next start.</translation>
         <location filename="../main_window_statist_list.cpp" line="566"/>
         <location filename="../main_window_dynamo.cpp" line="388"/>
         <location filename="../main_window_dynamo.cpp" line="395"/>
-        <location filename="../main_window_rhythm.cpp" line="723"/>
-        <location filename="../main_window_coord.cpp" line="625"/>
-        <location filename="../main_window_coord.cpp" line="649"/>
-        <location filename="../main_window_arabic.cpp" line="162"/>
-        <location filename="../main_window_arabic.cpp" line="239"/>
-        <location filename="../main_window_avh.cpp" line="775"/>
-        <location filename="../main_window_avh.cpp" line="875"/>
-        <location filename="../main_window_avh.cpp" line="1120"/>
+        <location filename="../main_window_rhythm.cpp" line="740"/>
+        <location filename="../main_window_coord.cpp" line="628"/>
+        <location filename="../main_window_coord.cpp" line="652"/>
+        <location filename="../main_window_arabic.cpp" line="163"/>
+        <location filename="../main_window_arabic.cpp" line="240"/>
+        <location filename="../main_window_avh.cpp" line="777"/>
+        <location filename="../main_window_avh.cpp" line="877"/>
+        <location filename="../main_window_avh.cpp" line="1122"/>
         <location filename="../main_window_print.cpp" line="277"/>
         <source>JA</source>
         <translation>YES</translation>
@@ -8506,12 +8523,12 @@ The language applies from the next start.</translation>
         <location filename="../main_window_wander.cpp" line="769"/>
         <location filename="../main_window_wander.cpp" line="959"/>
         <location filename="../main_window_statist_cond.cpp" line="488"/>
-        <location filename="../main_window_rhythm.cpp" line="255"/>
-        <location filename="../main_window_rhythm.cpp" line="568"/>
-        <location filename="../main_window_rhythm.cpp" line="662"/>
-        <location filename="../main_window_coord.cpp" line="586"/>
+        <location filename="../main_window_rhythm.cpp" line="259"/>
+        <location filename="../main_window_rhythm.cpp" line="585"/>
+        <location filename="../main_window_rhythm.cpp" line="679"/>
+        <location filename="../main_window_coord.cpp" line="589"/>
         <location filename="../main_window_avh.cpp" line="492"/>
-        <location filename="../main_window_avh.cpp" line="638"/>
+        <location filename="../main_window_avh.cpp" line="640"/>
         <location filename="../main_window_multi.cpp" line="274"/>
         <source>ZAHLEN-Eingabe !</source>
         <translation>NUMBER entry !</translation>
@@ -8592,296 +8609,296 @@ The language applies from the next start.</translation>
         <translation>CHART for the PREVIOUS year ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4494"/>
+        <location filename="../main_window.cpp" line="4622"/>
         <source>Die Datei zonnamen.int fehlt im Datenordner.</source>
         <translation>The file zonnamen.int is missing from the data folder.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5805"/>
+        <location filename="../main_window.cpp" line="5935"/>
         <source>HORCOM Datensätze (*.DAT *.dat *.AAF *.aaf)</source>
         <translation>HORCOM records (*.DAT *.dat *.AAF *.aaf)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5416"/>
-        <location filename="../main_window.cpp" line="5480"/>
-        <location filename="../main_window.cpp" line="5812"/>
+        <location filename="../main_window.cpp" line="5546"/>
+        <location filename="../main_window.cpp" line="5610"/>
+        <location filename="../main_window.cpp" line="5942"/>
         <source>Keine Datensätze gefunden.</source>
         <translation>No records found.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6446"/>
+        <location filename="../main_window.cpp" line="6610"/>
         <source>Die Sammlung ließ sich nicht lesen, nichts geschrieben.</source>
         <translation>The collection could not be read, nothing was written.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6483"/>
+        <location filename="../main_window.cpp" line="6647"/>
         <source>DATENSATZ GLEICHEN NAMENS in der DATEI ÜBERSCHREIBEN ?</source>
         <translation>OVERWRITE the SAME NAMED RECORD in the file ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6484"/>
+        <location filename="../main_window.cpp" line="6648"/>
         <source>ÜBERSCHREIBEN</source>
         <translation>OVERWRITE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6484"/>
+        <location filename="../main_window.cpp" line="6648"/>
         <source>Datensatz ZUSÄTZLICH SPEICHERN</source>
         <translation>SAVE the record IN ADDITION</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6497"/>
-        <location filename="../main_window.cpp" line="6518"/>
-        <location filename="../main_window.cpp" line="6530"/>
+        <location filename="../main_window.cpp" line="6661"/>
+        <location filename="../main_window.cpp" line="6682"/>
+        <location filename="../main_window.cpp" line="6694"/>
         <source>Speichern fehlgeschlagen.</source>
         <translation>Saving failed.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6578"/>
-        <location filename="../main_window_coord.cpp" line="156"/>
+        <location filename="../main_window.cpp" line="6742"/>
+        <location filename="../main_window_coord.cpp" line="157"/>
         <source>Topozentrisch</source>
         <translation>Topocentric</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6578"/>
-        <location filename="../main_window_coord.cpp" line="156"/>
+        <location filename="../main_window.cpp" line="6742"/>
+        <location filename="../main_window_coord.cpp" line="157"/>
         <source>Geozentrisch</source>
         <translation>Geocentric</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6216"/>
-        <location filename="../main_window.cpp" line="6581"/>
+        <location filename="../main_window.cpp" line="6366"/>
+        <location filename="../main_window.cpp" line="6745"/>
         <location filename="../main_window_a18.cpp" line="1277"/>
         <source>Name:</source>
         <translation>Name:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6582"/>
+        <location filename="../main_window.cpp" line="6746"/>
         <location filename="../main_window_auswertung.cpp" line="207"/>
         <source>Ort:</source>
         <translation>Place:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4774"/>
+        <location filename="../main_window.cpp" line="4905"/>
         <location filename="../main_window_convert.cpp" line="174"/>
         <location filename="../main_window_wander.cpp" line="628"/>
         <location filename="../main_window_wander.cpp" line="734"/>
         <location filename="../main_window_wander.cpp" line="820"/>
         <location filename="../main_window_wander.cpp" line="1146"/>
-        <location filename="../main_window_coord.cpp" line="609"/>
-        <location filename="../main_window_avh.cpp" line="707"/>
+        <location filename="../main_window_coord.cpp" line="612"/>
+        <location filename="../main_window_avh.cpp" line="709"/>
         <source>Weiter</source>
         <translation>Continue</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4774"/>
+        <location filename="../main_window.cpp" line="4905"/>
         <location filename="../main_window_wander.cpp" line="628"/>
         <location filename="../main_window_wander.cpp" line="734"/>
         <location filename="../main_window_wander.cpp" line="970"/>
         <location filename="../main_window_wander.cpp" line="1146"/>
         <location filename="../main_window_statist_list.cpp" line="558"/>
-        <location filename="../main_window_coord.cpp" line="609"/>
+        <location filename="../main_window_coord.cpp" line="612"/>
         <source>Irrtum ( = UNDO = Zurück )</source>
         <translation>Mistake ( = UNDO = Back )</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5632"/>
+        <location filename="../main_window.cpp" line="5762"/>
         <source>Kein Datensatz eingegeben !</source>
         <translation>No record entered !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5645"/>
+        <location filename="../main_window.cpp" line="5775"/>
         <location filename="../main_window_auswertung.cpp" line="931"/>
         <location filename="../main_window_statist.cpp" line="145"/>
         <source>Zurück zum HAUPT - MENÜ</source>
         <translation>Back to the MAIN MENU</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5645"/>
+        <location filename="../main_window.cpp" line="5775"/>
         <source>WEITERE NEU - EINGABE</source>
         <translation>ANOTHER NEW ENTRY</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5661"/>
+        <location filename="../main_window.cpp" line="5791"/>
         <source>NEU-EINGABE von DATENSÄTZEN  :   |  RADIX NR.%1</source>
         <translation>NEW ENTRY of RECORDS  :   |  RADIX NO.%1</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5674"/>
+        <location filename="../main_window.cpp" line="5804"/>
         <source>DATUM FEHLT !</source>
         <translation>DATE MISSING !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5679"/>
+        <location filename="../main_window.cpp" line="5809"/>
         <source>Ungültige geogr. Länge !</source>
         <translation>Invalid geographic longitude !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5694"/>
+        <location filename="../main_window.cpp" line="5824"/>
         <source>Datensatz ABSPEICHERN ?</source>
         <translation>SAVE the record ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5694"/>
+        <location filename="../main_window.cpp" line="5824"/>
         <source>Oder Weiter EDITIEREN ?</source>
         <translation>Or continue EDITING ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5695"/>
+        <location filename="../main_window.cpp" line="5825"/>
         <source>ABSPEICHERN</source>
         <translation>SAVE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5695"/>
+        <location filename="../main_window.cpp" line="5825"/>
         <source>Weiter EDITIEREN</source>
         <translation>Continue EDITING</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5695"/>
+        <location filename="../main_window.cpp" line="5825"/>
         <source>NUR als Datensatz ÜBERNEHMEN</source>
         <translation>ONLY TAKE OVER as a record</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2917"/>
-        <location filename="../main_window.cpp" line="5708"/>
-        <location filename="../main_window.cpp" line="6412"/>
+        <location filename="../main_window.cpp" line="2963"/>
+        <location filename="../main_window.cpp" line="5838"/>
+        <location filename="../main_window.cpp" line="6576"/>
         <location filename="../main_window_statist.cpp" line="172"/>
         <source>HORCOM Daten-Dateien (*.DAT *.dat)</source>
         <translation>HORCOM data files (*.DAT *.dat)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1066"/>
+        <location filename="../main_window.cpp" line="1096"/>
         <source>DRUCKER-OPTION EIN / AUS</source>
         <translation>PRINTER OPTION ON / OFF</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1068"/>
+        <location filename="../main_window.cpp" line="1098"/>
         <source>LETZTES BILD ZEIGEN / bzw.SPEICHERN…</source>
         <translation>SHOW / or SAVE the LAST PICTURE…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1093"/>
+        <location filename="../main_window.cpp" line="1123"/>
         <location filename="../main_window_help.cpp" line="66"/>
         <source>STATISTIK G/H…</source>
         <translation>STATISTICS G/H…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1236"/>
+        <location filename="../main_window.cpp" line="1261"/>
         <source>TERRAR…</source>
         <translation>TERRAR…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1237"/>
+        <location filename="../main_window.cpp" line="1262"/>
         <source>TERRAR - DATEN - TABELLE…</source>
         <translation>TERRAR - DATA - TABLE…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1133"/>
+        <location filename="../main_window.cpp" line="1158"/>
         <source>COMPOSIT…</source>
         <translation>COMPOSITE…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1151"/>
+        <location filename="../main_window.cpp" line="1176"/>
         <source>DOPPEL-KREIS / 90-GRAD-KREIS…</source>
         <translation>DOUBLE WHEEL / 90 DEGREE DIAL…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2406"/>
+        <location filename="../main_window.cpp" line="2450"/>
         <source>DIREKT:</source>
         <translation>DIRECT:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2406"/>
+        <location filename="../main_window.cpp" line="2450"/>
         <source>QUADRAT:</source>
         <translation>SQUARE:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2406"/>
+        <location filename="../main_window.cpp" line="2450"/>
         <source>HALBQU:</source>
         <translation>SEMISQ:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2407"/>
+        <location filename="../main_window.cpp" line="2451"/>
         <source>HALBSUM.</source>
         <translation>MIDPTS.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2641"/>
+        <location filename="../main_window.cpp" line="2687"/>
         <source>Name: </source>
         <translation>Name: </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2649"/>
+        <location filename="../main_window.cpp" line="2695"/>
         <source>Zeit(UT):</source>
         <translation>Time(UT):</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2649"/>
+        <location filename="../main_window.cpp" line="2695"/>
         <source>   Länge:</source>
         <translation>   Long.:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2651"/>
+        <location filename="../main_window.cpp" line="2697"/>
         <source>  Breite:</source>
         <translation>  Lat.:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2659"/>
+        <location filename="../main_window.cpp" line="2705"/>
         <source>HALBSUMMEN-GRAPHIK</source>
         <translation>MIDPOINT GRAPHIC</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2702"/>
+        <location filename="../main_window.cpp" line="2748"/>
         <location filename="../main_window_print.cpp" line="172"/>
         <source>  |  WEITER mit LEERTASTE</source>
         <translation>  |  ON with SPACE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2738"/>
+        <location filename="../main_window.cpp" line="2784"/>
         <source>SORTIEREN nach KRITERIUM :</source>
         <translation>SORT by CRITERION :</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2739"/>
+        <location filename="../main_window.cpp" line="2785"/>
         <source>8*Länge auf 360° REDUZIERT?</source>
         <translation>8*longitude REDUCED to 360°?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2739"/>
+        <location filename="../main_window.cpp" line="2785"/>
         <source>MACHT &apos;PLANETENBILDER&apos; ERKENNBAR !</source>
         <translation>REVEALS the &apos;PLANETARY PICTURES&apos; !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2986"/>
+        <location filename="../main_window.cpp" line="3032"/>
         <source>ZWISCHEN - HÄUSER HINZUNEHMEN ?</source>
         <translation>ADD the INTERMEDIATE HOUSES ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3003"/>
+        <location filename="../main_window.cpp" line="3049"/>
         <source>Grad-Liste |</source>
         <translation>Degree list |</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3009"/>
+        <location filename="../main_window.cpp" line="3055"/>
         <source>Gesamt -</source>
         <translation>Overall -</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3010"/>
+        <location filename="../main_window.cpp" line="3056"/>
         <source>Verteilung :</source>
         <translation>distribution :</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3017"/>
+        <location filename="../main_window.cpp" line="3063"/>
         <source>GRAD-LISTE G/H</source>
         <translation>DEGREE LIST G/H</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3049"/>
+        <location filename="../main_window.cpp" line="3095"/>
         <source>Nach Länge SORTIEREN ?</source>
         <translation>SORT by LONGITUDE ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3049"/>
+        <location filename="../main_window.cpp" line="3095"/>
         <source>und VERTEILUNG DARSTELLEN ?</source>
         <translation>and SHOW the DISTRIBUTION ?</translation>
     </message>
@@ -9013,122 +9030,122 @@ The language applies from the next start.</translation>
         <translation>TAKE OVER the TIME VALUE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4458"/>
+        <location filename="../main_window.cpp" line="4585"/>
         <source>SÄTZE: </source>
         <translation>RECORDS: </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4471"/>
+        <location filename="../main_window.cpp" line="4598"/>
         <source>COMBIN-UT:</source>
         <translation>COMBINE UT:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4559"/>
+        <location filename="../main_window.cpp" line="4687"/>
         <source>KEIN Datensatz!  ERST EINGEBEN !</source>
         <translation>NO record!  ENTER ONE FIRST !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4773"/>
+        <location filename="../main_window.cpp" line="4904"/>
         <source>NR. %1 :  %2</source>
         <translation>NO. %1 :  %2</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4734"/>
-        <location filename="../main_window.cpp" line="4923"/>
+        <location filename="../main_window.cpp" line="4865"/>
+        <location filename="../main_window.cpp" line="5054"/>
         <source>EINGABE- und ANZEIGE-BOX | %1 NR.%2</source>
         <translation>ENTRY and DISPLAY BOX | %1 NO.%2</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="396"/>
+        <location filename="../main_window.cpp" line="426"/>
         <source>Bitte HORCOM neu starten.</source>
         <translation>Please restart HORCOM.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="911"/>
-        <location filename="../main_window_coord.cpp" line="467"/>
+        <location filename="../main_window.cpp" line="941"/>
+        <location filename="../main_window_coord.cpp" line="470"/>
         <source>Entf.%</source>
         <translation>Dist.%</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="912"/>
-        <location filename="../main_window_coord.cpp" line="467"/>
+        <location filename="../main_window.cpp" line="942"/>
+        <location filename="../main_window_coord.cpp" line="470"/>
         <source>Entf.AE</source>
         <translation>Dist.AU</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="944"/>
+        <location filename="../main_window.cpp" line="974"/>
         <source>Aspekte / Halbsummen</source>
         <translation>Aspects / midpoints</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1025"/>
+        <location filename="../main_window.cpp" line="1055"/>
         <source>AAF-DATENSATZ BEARBEITEN…</source>
         <translation>EDIT AAF RECORD…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1072"/>
+        <location filename="../main_window.cpp" line="1102"/>
         <source>HOROSKOP SPEICHERN</source>
         <translation>SAVE HOROSCOPE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1074"/>
+        <location filename="../main_window.cpp" line="1104"/>
         <source>HOROSKOP als PNG SPEICHERN…</source>
         <translation>SAVE HOROSCOPE as PNG…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1107"/>
+        <location filename="../main_window.cpp" line="1137"/>
         <source>INGRESSE PLANETEN-MC-AC…</source>
         <translation>INGRESSES PLANETS-MC-AC…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1385"/>
+        <location filename="../main_window.cpp" line="1417"/>
         <source>ASPEKTE / HALBSUMMEN EIN / AUS</source>
         <translation>ASPECTS / MIDPOINTS ON / OFF</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1388"/>
+        <location filename="../main_window.cpp" line="1420"/>
         <source>SCHRIFTGRÖßE</source>
         <translation>TEXT SIZE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="1463"/>
+        <location filename="../main_window.cpp" line="1495"/>
         <source>ALLES ZURÜCKSETZEN…</source>
         <translation>RESET EVERYTHING…</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2243"/>
-        <location filename="../main_window.cpp" line="2249"/>
+        <location filename="../main_window.cpp" line="2287"/>
+        <location filename="../main_window.cpp" line="2293"/>
         <source>wahr</source>
         <translation>true</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="2245"/>
-        <location filename="../main_window.cpp" line="2249"/>
+        <location filename="../main_window.cpp" line="2289"/>
+        <location filename="../main_window.cpp" line="2293"/>
         <source>mittel</source>
         <translation>mean</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3474"/>
+        <location filename="../main_window.cpp" line="3582"/>
         <source>Gesamt</source>
         <translation>Total</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4998"/>
+        <location filename="../main_window.cpp" line="5128"/>
         <source>RÜCKSETZEN ?</source>
         <translation>RESET ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4999"/>
+        <location filename="../main_window.cpp" line="5129"/>
         <source>DATEN und GESPEICHERTE BILDER dieser Sitzung LÖSCHEN ?</source>
         <translation>DELETE the DATA and STORED PICTURES of this session ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5169"/>
+        <location filename="../main_window.cpp" line="5298"/>
         <source>FIXPUNKT %1 BEIBEHALTEN</source>
         <translation>KEEP the FIXED POINT %1</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5170"/>
+        <location filename="../main_window.cpp" line="5299"/>
         <source>FIXPUNKT %1 LÖSCHEN</source>
         <translation>DELETE the FIXED POINT %1</translation>
     </message>
@@ -9137,174 +9154,174 @@ The language applies from the next start.</translation>
         <translation type="vanished">Aspect orbs : Given by HORCOM</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5292"/>
+        <location filename="../main_window.cpp" line="5421"/>
         <source>Ohne Asp.-Linien</source>
         <translation>Without aspect lines</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5293"/>
+        <location filename="../main_window.cpp" line="5422"/>
         <source>Aspekte 1....%1</source>
         <translation>Aspects 1....%1</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5295"/>
+        <location filename="../main_window.cpp" line="5424"/>
         <source>Kompakt-Auswertung</source>
         <translation>Compact evaluation</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5298"/>
+        <location filename="../main_window.cpp" line="5427"/>
         <source>Symbole : Klein</source>
         <translation>Symbols : Small</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5298"/>
+        <location filename="../main_window.cpp" line="5427"/>
         <source>Symbole : Normal</source>
         <translation>Symbols : Normal</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5299"/>
+        <location filename="../main_window.cpp" line="5428"/>
         <source>Mit Grad-Anzeige</source>
         <translation>With degree display</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5299"/>
+        <location filename="../main_window.cpp" line="5428"/>
         <source>Ohne Grad-Anzeige</source>
         <translation>Without degree display</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5301"/>
+        <location filename="../main_window.cpp" line="5430"/>
         <source>Aszendent</source>
         <translation>Ascendant</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5301"/>
+        <location filename="../main_window.cpp" line="5430"/>
         <source>0 Widder</source>
         <translation>0 Aries</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5302"/>
+        <location filename="../main_window.cpp" line="5431"/>
         <source>0 Waage</source>
         <translation>0 Libra</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5302"/>
+        <location filename="../main_window.cpp" line="5431"/>
         <source>Eigene Wahl</source>
         <translation>Own choice</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5303"/>
+        <location filename="../main_window.cpp" line="5432"/>
         <source>Beginn Horoskop : %1</source>
         <translation>Chart begins : %1</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5305"/>
+        <location filename="../main_window.cpp" line="5435"/>
         <source>Zuordng.ZE-PL: Alt</source>
         <translation>Sign rulers: Old</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5307"/>
+        <location filename="../main_window.cpp" line="5437"/>
         <source>Zuordng.ZE-PL: Neu</source>
         <translation>Sign rulers: New</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5310"/>
+        <location filename="../main_window.cpp" line="5440"/>
         <source>COMPOS. Mittl. STZ</source>
         <translation>COMPOS. mean ST</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5311"/>
+        <location filename="../main_window.cpp" line="5441"/>
         <source>COMPOS. n. R.HAND</source>
         <translation>COMPOS. R. HAND</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5311"/>
+        <location filename="../main_window.cpp" line="5441"/>
         <source>COMPOSIT Schemat.</source>
         <translation>COMPOSITE schem.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5314"/>
+        <location filename="../main_window.cpp" line="5444"/>
         <source>Schraffur</source>
         <translation>Hatched</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5316"/>
+        <location filename="../main_window.cpp" line="5446"/>
         <source>Pur</source>
         <translation>Solid</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5321"/>
+        <location filename="../main_window.cpp" line="5451"/>
         <source>Farbe : %1</source>
         <translation>Colour : %1</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5333"/>
+        <location filename="../main_window.cpp" line="5463"/>
         <source>Drucker-Option EIN</source>
         <translation>Printer option ON</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5333"/>
+        <location filename="../main_window.cpp" line="5463"/>
         <source>Drucker-Option AUS</source>
         <translation>Printer option OFF</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5334"/>
+        <location filename="../main_window.cpp" line="5464"/>
         <source>Hardcopy : DIN A5</source>
         <translation>Hardcopy : DIN A5</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5334"/>
+        <location filename="../main_window.cpp" line="5464"/>
         <source>Hardcopy : DIN A4</source>
         <translation>Hardcopy : DIN A4</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5339"/>
+        <location filename="../main_window.cpp" line="5469"/>
         <source>Ansicht :</source>
         <translation>View :</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5740"/>
-        <location filename="../main_window.cpp" line="5747"/>
+        <location filename="../main_window.cpp" line="5870"/>
+        <location filename="../main_window.cpp" line="5877"/>
         <source>EINGABE-MODUS in EDITIERFELDERN ?</source>
         <translation>INPUT MODE in EDIT FIELDS ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5741"/>
-        <location filename="../main_window.cpp" line="5756"/>
+        <location filename="../main_window.cpp" line="5871"/>
+        <location filename="../main_window.cpp" line="5886"/>
         <source>DRUCKER-OPTION beim Programmstart EINSCHALTEN ?</source>
         <translation>SWITCH ON the PRINTER OPTION at program start ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5742"/>
+        <location filename="../main_window.cpp" line="5872"/>
         <source>FORMAT für HORCOM - HARDCOPY</source>
         <translation>FORMAT of the HORCOM HARDCOPY</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5748"/>
+        <location filename="../main_window.cpp" line="5878"/>
         <source>MIT TABSTOP oder MAUS</source>
         <translation>WITH TAB STOP or MOUSE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5748"/>
+        <location filename="../main_window.cpp" line="5878"/>
         <source>AUTOMATISCH WEITERSCHALTEN</source>
         <translation>AUTOMATIC ADVANCE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5763"/>
+        <location filename="../main_window.cpp" line="5893"/>
         <source>FORMAT für HORCOM - HARDCOPY ?</source>
         <translation>FORMAT of the HORCOM HARDCOPY ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5764"/>
+        <location filename="../main_window.cpp" line="5894"/>
         <source>HALB-SEITE</source>
         <translation>HALF PAGE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5764"/>
+        <location filename="../main_window.cpp" line="5894"/>
         <source>GANZ-SEITE</source>
         <translation>FULL PAGE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6153"/>
+        <location filename="../main_window.cpp" line="6303"/>
         <source>  JULIANISCH</source>
         <translation>  JULIAN</translation>
     </message>
@@ -9317,182 +9334,182 @@ The language applies from the next start.</translation>
         <translation type="vanished"> ORBS by HORCOM count !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6168"/>
+        <location filename="../main_window.cpp" line="6318"/>
         <source>   ORBIS - Faktor = %1</source>
         <translation>   ORB factor = %1</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6169"/>
+        <location filename="../main_window.cpp" line="6319"/>
         <source>  8  </source>
         <translation>  8  </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6169"/>
+        <location filename="../main_window.cpp" line="6319"/>
         <source> 12 </source>
         <translation> 12 </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6171"/>
+        <location filename="../main_window.cpp" line="6321"/>
         <source> 16 </source>
         <translation> 16 </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6174"/>
+        <location filename="../main_window.cpp" line="6324"/>
         <source>MAXIMALER Teiler ?</source>
         <translation>MAXIMUM divisor ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6209"/>
+        <location filename="../main_window.cpp" line="6359"/>
         <source>Tei-</source>
         <translation>Divi-</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6209"/>
+        <location filename="../main_window.cpp" line="6359"/>
         <source>ler</source>
         <translation>sor</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6209"/>
+        <location filename="../main_window.cpp" line="6359"/>
         <source>Win-</source>
         <translation>An-</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6210"/>
+        <location filename="../main_window.cpp" line="6360"/>
         <source>kel</source>
         <translation>gle</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6210"/>
+        <location filename="../main_window.cpp" line="6360"/>
         <source>Or-</source>
         <translation>Or-</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6210"/>
+        <location filename="../main_window.cpp" line="6360"/>
         <source>bis</source>
         <translation>b</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6211"/>
+        <location filename="../main_window.cpp" line="6361"/>
         <source>Orbis-</source>
         <translation>Orb</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6212"/>
+        <location filename="../main_window.cpp" line="6362"/>
         <source>Faktor = </source>
         <translation>factor = </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6213"/>
+        <location filename="../main_window.cpp" line="6363"/>
         <source>Diagramm :</source>
         <translation>Diagram :</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6213"/>
+        <location filename="../main_window.cpp" line="6363"/>
         <source>Unten:auf volle</source>
         <translation>Below:rounded</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6214"/>
+        <location filename="../main_window.cpp" line="6364"/>
         <source>Grade gerundet</source>
         <translation>to full degrees</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6214"/>
+        <location filename="../main_window.cpp" line="6364"/>
         <source>Darüber Teiler</source>
         <translation>Above: divisor</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6215"/>
+        <location filename="../main_window.cpp" line="6365"/>
         <source>Oberhalb Diago.</source>
         <translation>Above diagonal:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6215"/>
+        <location filename="../main_window.cpp" line="6365"/>
         <source>Istwerte</source>
         <translation>actual values</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6217"/>
+        <location filename="../main_window.cpp" line="6367"/>
         <source>Planeten-</source>
         <translation>Planet</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6218"/>
+        <location filename="../main_window.cpp" line="6368"/>
         <source>Gewichtung:</source>
         <translation>weighting:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6219"/>
+        <location filename="../main_window.cpp" line="6369"/>
         <source>Zusatz-Planeten:</source>
         <translation>Extra planets:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6333"/>
+        <location filename="../main_window.cpp" line="6492"/>
         <source>WAHRE Ortszeit wird in MITTLERE Ortszeit umgerechnet !</source>
         <translation>TRUE local time is converted into MEAN local time !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6337"/>
+        <location filename="../main_window.cpp" line="6496"/>
         <source>ORTSZEIT</source>
         <translation>LOCAL TIME</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6338"/>
+        <location filename="../main_window.cpp" line="6497"/>
         <source>Soll wirklich WAHRE Ortszeit ( = LTT ) eingegeben werden? </source>
         <translation>Is TRUE local time ( = LTT ) really meant? </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6339"/>
+        <location filename="../main_window.cpp" line="6498"/>
         <source>Oder soll es sich um MITTLERE Ortszeit ( = LMT ) handeln ?</source>
         <translation>Or is it MEAN local time ( = LMT ) ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6340"/>
+        <location filename="../main_window.cpp" line="6499"/>
         <source>Meist war zu diesem Datum bereits MITTLERE Ortszeit üblich !</source>
         <translation>At this date MEAN local time was mostly in use already !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6341"/>
+        <location filename="../main_window.cpp" line="6500"/>
         <source> WAHRE Ortszeit = LTT = WOZ</source>
         <translation> TRUE local time = LTT</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6341"/>
+        <location filename="../main_window.cpp" line="6500"/>
         <source> MITTLERE Ortszeit = LMT = MOZ</source>
         <translation> MEAN local time = LMT</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6402"/>
+        <location filename="../main_window.cpp" line="6564"/>
         <source>AKTUELLEN Datensatz EINTRAGEN</source>
         <translation>ENTER the CURRENT record</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6403"/>
+        <location filename="../main_window.cpp" line="6565"/>
         <source>In welche Daten-Datei soll der Datensatz eingetragen werden?</source>
         <translation>Into which data file should the record be entered?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6404"/>
+        <location filename="../main_window.cpp" line="6566"/>
         <source>In %1</source>
         <translation>Into %1</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6472"/>
+        <location filename="../main_window.cpp" line="6636"/>
         <source>DATENSATZ GLEICHEN NAMENS bereits VORHANDEN !</source>
         <translation>A RECORD of the SAME NAME EXISTS already !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6472"/>
+        <location filename="../main_window.cpp" line="6636"/>
         <source>VERÄNDERUNGEN im AAF-FILE vornehmen !</source>
         <translation>Make CHANGES in the AAF FILE !</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6538"/>
+        <location filename="../main_window.cpp" line="6702"/>
         <source>DATEI %1 : %2 BYTE = %3 SÄTZE</source>
         <translation>FILE %1 : %2 BYTES = %3 RECORDS</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6583"/>
+        <location filename="../main_window.cpp" line="6747"/>
         <location filename="../main_window_a18.cpp" line="1229"/>
         <location filename="../main_window_pair.cpp" line="327"/>
         <location filename="../main_window_multi.cpp" line="369"/>
@@ -9500,7 +9517,7 @@ The language applies from the next start.</translation>
         <translation>Long.:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6584"/>
+        <location filename="../main_window.cpp" line="6748"/>
         <location filename="../main_window_a18.cpp" line="1240"/>
         <location filename="../main_window_pair.cpp" line="340"/>
         <location filename="../main_window_multi.cpp" line="381"/>
@@ -9508,197 +9525,197 @@ The language applies from the next start.</translation>
         <translation>Houses</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6585"/>
+        <location filename="../main_window.cpp" line="6749"/>
         <source>Spiegelung:</source>
         <translation>Mirror:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6587"/>
+        <location filename="../main_window.cpp" line="6751"/>
         <source>Kard-Fix-Ver</source>
         <translation>Card-Fix-Mut</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6588"/>
+        <location filename="../main_window.cpp" line="6752"/>
         <source>Elemente</source>
         <translation>Elements</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6592"/>
+        <location filename="../main_window.cpp" line="6756"/>
         <location filename="../main_window_korrektur.cpp" line="497"/>
         <source>STZ</source>
         <translation>ST</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6616"/>
+        <location filename="../main_window.cpp" line="6780"/>
         <location filename="../main_window_a18.cpp" line="1289"/>
         <location filename="../main_window_pair.cpp" line="371"/>
         <source>Lä:</source>
         <translation>Lon:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6617"/>
+        <location filename="../main_window.cpp" line="6781"/>
         <location filename="../main_window_pair.cpp" line="372"/>
         <source>Br:</source>
         <translation>Lat:</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6655"/>
-        <location filename="../main_window.cpp" line="6697"/>
+        <location filename="../main_window.cpp" line="6819"/>
+        <location filename="../main_window.cpp" line="6861"/>
         <source>Hor 1</source>
         <translation>Chart 1</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6827"/>
+        <location filename="../main_window.cpp" line="6991"/>
         <source>ALLES ZURÜCKSETZEN</source>
         <translation>RESET EVERYTHING</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6828"/>
+        <location filename="../main_window.cpp" line="6992"/>
         <source>HORCOM auf den ZUSTAND des ERSTEN STARTS zurücksetzen ?</source>
         <translation>RESET HORCOM to the STATE of its FIRST START ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6829"/>
+        <location filename="../main_window.cpp" line="6993"/>
         <source>Schrift, Farben, Fenster und die VORGABEN nach Robert Rettig kehren zurück,</source>
         <translation>Text size, colours, windows and the DEFAULTS of Robert Rettig return,</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6830"/>
+        <location filename="../main_window.cpp" line="6994"/>
         <source>die Daten dieser Sitzung gehen verloren.</source>
         <translation>the data of this session are lost.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6831"/>
+        <location filename="../main_window.cpp" line="6995"/>
         <source>Datensätze, Orte und eigene Dateien bleiben erhalten.</source>
         <translation>Records, places and own files are kept.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6832"/>
+        <location filename="../main_window.cpp" line="6996"/>
         <source>ZURÜCKSETZEN und NEU STARTEN</source>
         <translation>RESET and RESTART</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6837"/>
+        <location filename="../main_window.cpp" line="7001"/>
         <source>Die Vorgaben ließen sich nicht zurücksetzen.</source>
         <translation>The defaults could not be reset.</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6853"/>
+        <location filename="../main_window.cpp" line="7017"/>
         <source>ABBRUCH?</source>
         <translation>CANCEL?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6853"/>
+        <location filename="../main_window.cpp" line="7017"/>
         <source>PROGRAMM   HORCOM   BEENDEN ?</source>
         <translation>END the PROGRAM   HORCOM ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6880"/>
+        <location filename="../main_window.cpp" line="7044"/>
         <source> Hintergrund-FARBE bzw. MUSTER der DIALOGE ( ohne Edit-Felder ) DEFINIEREN </source>
         <translation> DEFINE the background COLOUR of the DIALOGS ( without edit fields ) </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6883"/>
+        <location filename="../main_window.cpp" line="7047"/>
         <source> Hintergrund-FARBE für den &apos;PASSIVEN&apos; HORCOM - BILDSCHIRM WÄHLEN ! </source>
         <translation> CHOOSE the background COLOUR of the &apos;PASSIVE&apos; HORCOM SCREEN ! </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6906"/>
+        <location filename="../main_window.cpp" line="7070"/>
         <source> Nur HOROSKOP Ansehen | Weiter mit LEERTASTE | BEENDEN mit &apos;EXIT&apos; </source>
         <translation> Chart view only | Continue with SPACE | QUIT with &apos;EXIT&apos; </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6975"/>
+        <location filename="../main_window.cpp" line="7139"/>
         <source>Horoskop als SVG</source>
         <translation>Chart as SVG</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6975"/>
+        <location filename="../main_window.cpp" line="7139"/>
         <source>SVG (*.svg)</source>
         <translation>SVG (*.svg)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6996"/>
+        <location filename="../main_window.cpp" line="7160"/>
         <source>Horoskop als PNG</source>
         <translation>Chart as PNG</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="7042"/>
+        <location filename="../main_window.cpp" line="7206"/>
         <source>AUSGABE als DRUCKER-GRAPHIK ?</source>
         <translation>OUTPUT as PRINTER GRAPHIC ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="7043"/>
+        <location filename="../main_window.cpp" line="7207"/>
         <location filename="../main_window_print.cpp" line="216"/>
         <source>DRUCKER-GRAPHIK  DIN A5 ?</source>
         <translation>PRINTER GRAPHIC  DIN A5 ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="7043"/>
+        <location filename="../main_window.cpp" line="7207"/>
         <location filename="../main_window_print.cpp" line="221"/>
         <source>DRUCKER-GRAPHIK  DIN A4 ?</source>
         <translation>PRINTER GRAPHIC  DIN A4 ?</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="7072"/>
+        <location filename="../main_window.cpp" line="7236"/>
         <source>Horoskop als PDF</source>
         <translation>Chart as PDF</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="7072"/>
+        <location filename="../main_window.cpp" line="7236"/>
         <source>PDF (*.pdf)</source>
         <translation>PDF (*.pdf)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="7077"/>
+        <location filename="../main_window.cpp" line="7241"/>
         <source>Die PDF-Datei ließ sich nicht schreiben.</source>
         <translation>The PDF file could not be written.</translation>
     </message>
     <message>
         <location filename="../main_window_a18.cpp" line="88"/>
-        <location filename="../main_window_ingress.cpp" line="67"/>
+        <location filename="../main_window_ingress.cpp" line="68"/>
         <source>MERKUR</source>
         <translation>MERCURY</translation>
     </message>
     <message>
         <location filename="../main_window_a18.cpp" line="89"/>
-        <location filename="../main_window_ingress.cpp" line="68"/>
+        <location filename="../main_window_ingress.cpp" line="69"/>
         <source>VENUS</source>
         <translation>VENUS</translation>
     </message>
     <message>
         <location filename="../main_window_a18.cpp" line="90"/>
-        <location filename="../main_window_ingress.cpp" line="69"/>
+        <location filename="../main_window_ingress.cpp" line="70"/>
         <source>MARS</source>
         <translation>MARS</translation>
     </message>
     <message>
         <location filename="../main_window_a18.cpp" line="91"/>
-        <location filename="../main_window_ingress.cpp" line="70"/>
+        <location filename="../main_window_ingress.cpp" line="71"/>
         <source>JUPITER</source>
         <translation>JUPITER</translation>
     </message>
     <message>
         <location filename="../main_window_a18.cpp" line="92"/>
-        <location filename="../main_window_ingress.cpp" line="71"/>
+        <location filename="../main_window_ingress.cpp" line="72"/>
         <source>SATURN</source>
         <translation>SATURN</translation>
     </message>
     <message>
         <location filename="../main_window_a18.cpp" line="93"/>
-        <location filename="../main_window_ingress.cpp" line="72"/>
+        <location filename="../main_window_ingress.cpp" line="73"/>
         <source>URANUS</source>
         <translation>URANUS</translation>
     </message>
     <message>
         <location filename="../main_window_a18.cpp" line="94"/>
-        <location filename="../main_window_ingress.cpp" line="73"/>
+        <location filename="../main_window_ingress.cpp" line="74"/>
         <source>NEPTUN</source>
         <translation>NEPTUNE</translation>
     </message>
     <message>
         <location filename="../main_window_a18.cpp" line="95"/>
-        <location filename="../main_window_ingress.cpp" line="74"/>
+        <location filename="../main_window_ingress.cpp" line="75"/>
         <source>PLUTO</source>
         <translation>PLUTO</translation>
     </message>
@@ -9714,7 +9731,7 @@ The language applies from the next start.</translation>
     </message>
     <message>
         <location filename="../main_window_a18.cpp" line="98"/>
-        <location filename="../main_window_ingress.cpp" line="75"/>
+        <location filename="../main_window_ingress.cpp" line="76"/>
         <source>CHIRON</source>
         <translation>CHIRON</translation>
     </message>
@@ -9785,7 +9802,7 @@ The language applies from the next start.</translation>
     </message>
     <message>
         <location filename="../main_window_a18.cpp" line="112"/>
-        <location filename="../main_window_ingress.cpp" line="76"/>
+        <location filename="../main_window_ingress.cpp" line="77"/>
         <source>QUAOAR</source>
         <translation>QUAOAR</translation>
     </message>
@@ -9811,13 +9828,13 @@ The language applies from the next start.</translation>
     </message>
     <message>
         <location filename="../main_window_a18.cpp" line="117"/>
-        <location filename="../main_window_ingress.cpp" line="77"/>
+        <location filename="../main_window_ingress.cpp" line="78"/>
         <source>XENA</source>
         <translation>XENA</translation>
     </message>
     <message>
         <location filename="../main_window_a18.cpp" line="236"/>
-        <location filename="../main_window_rhythm.cpp" line="472"/>
+        <location filename="../main_window_rhythm.cpp" line="476"/>
         <source>LEBENSJAHR/MONAT</source>
         <translation>YEAR/MONTH OF LIFE</translation>
     </message>
@@ -9828,7 +9845,7 @@ The language applies from the next start.</translation>
     </message>
     <message>
         <location filename="../main_window_a18.cpp" line="240"/>
-        <location filename="../main_window_rhythm.cpp" line="471"/>
+        <location filename="../main_window_rhythm.cpp" line="475"/>
         <source>FORMAT der AUSGABE ?</source>
         <translation>OUTPUT FORMAT ?</translation>
     </message>
@@ -10050,13 +10067,13 @@ The language applies from the next start.</translation>
     </message>
     <message>
         <location filename="../main_window_a18.cpp" line="1623"/>
-        <location filename="../main_window_rhythm.cpp" line="871"/>
+        <location filename="../main_window_rhythm.cpp" line="890"/>
         <source>Name : %1 | %2 </source>
         <translation>Name : %1 | %2 </translation>
     </message>
     <message>
         <location filename="../main_window_a18.cpp" line="1624"/>
-        <location filename="../main_window_rhythm.cpp" line="872"/>
+        <location filename="../main_window_rhythm.cpp" line="891"/>
         <source>| Ort: %1</source>
         <translation>| Place: %1</translation>
     </message>
@@ -10081,7 +10098,7 @@ The language applies from the next start.</translation>
         <translation>PREVIOUS interval</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3905"/>
+        <location filename="../main_window.cpp" line="4020"/>
         <location filename="../main_window_a18.cpp" line="277"/>
         <location filename="../main_window_a18.cpp" line="278"/>
         <source>GRUND-ASPEKT WÄHLEN!</source>
@@ -10134,8 +10151,8 @@ The language applies from the next start.</translation>
     </message>
     <message>
         <location filename="../main_window_a18.cpp" line="333"/>
-        <location filename="../main_window_rhythm.cpp" line="245"/>
-        <location filename="../main_window_avh.cpp" line="623"/>
+        <location filename="../main_window_rhythm.cpp" line="249"/>
+        <location filename="../main_window_avh.cpp" line="625"/>
         <source>SONSTIGE</source>
         <translation>OTHER</translation>
     </message>
@@ -10206,9 +10223,9 @@ The language applies from the next start.</translation>
         <translation>ASCENDANT</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5301"/>
+        <location filename="../main_window.cpp" line="5430"/>
         <location filename="../main_window_a18.cpp" line="551"/>
-        <location filename="../main_window_ingress.cpp" line="65"/>
+        <location filename="../main_window_ingress.cpp" line="66"/>
         <location filename="../main_window_avh.cpp" line="480"/>
         <source>MC</source>
         <translation>MC</translation>
@@ -10230,7 +10247,7 @@ The language applies from the next start.</translation>
         <location filename="../main_window_a18.cpp" line="731"/>
         <location filename="../main_window_convert.cpp" line="100"/>
         <location filename="../main_window_convert.cpp" line="255"/>
-        <location filename="../main_window_rhythm.cpp" line="378"/>
+        <location filename="../main_window_rhythm.cpp" line="382"/>
         <source>GREENWICH-ZEIT</source>
         <translation>GREENWICH TIME</translation>
     </message>
@@ -10414,7 +10431,7 @@ The language applies from the next start.</translation>
         <translation>HOROSCOPE GRAPHIC</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="3602"/>
+        <location filename="../main_window.cpp" line="3717"/>
         <location filename="../main_window_a18.cpp" line="672"/>
         <location filename="../main_window_a18.cpp" line="853"/>
         <location filename="../main_window_a18.cpp" line="1721"/>
@@ -10422,13 +10439,13 @@ The language applies from the next start.</translation>
         <translation>LINEAR GRAPHIC</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="4251"/>
+        <location filename="../main_window.cpp" line="4380"/>
         <location filename="../main_window_a18.cpp" line="731"/>
         <location filename="../main_window_convert.cpp" line="100"/>
         <location filename="../main_window_convert.cpp" line="117"/>
         <location filename="../main_window_convert.cpp" line="183"/>
         <location filename="../main_window_convert.cpp" line="255"/>
-        <location filename="../main_window_rhythm.cpp" line="377"/>
+        <location filename="../main_window_rhythm.cpp" line="381"/>
         <source>DATUM-ZEIT-EINGABE</source>
         <translation>DATE-TIME ENTRY</translation>
     </message>
@@ -10538,7 +10555,7 @@ The language applies from the next start.</translation>
         <translation> PRIMARY direction </translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5739"/>
+        <location filename="../main_window.cpp" line="5869"/>
         <location filename="../main_window_a18.cpp" line="1306"/>
         <location filename="../main_window_avh.cpp" line="377"/>
         <source>GEWÜNSCHTES THEMA ANKLICKEN ! </source>
@@ -10985,90 +11002,90 @@ The language applies from the next start.</translation>
         <translation>Date / time ( UT )      : </translation>
     </message>
     <message>
-        <location filename="../main_window_help.cpp" line="139"/>
+        <location filename="../main_window_help.cpp" line="142"/>
         <source>HILFE-Datei fehlt !</source>
         <translation>HELP file missing !</translation>
     </message>
     <message>
-        <location filename="../main_window_help.cpp" line="145"/>
+        <location filename="../main_window_help.cpp" line="148"/>
         <source>Erste Hilfe und Einführung</source>
         <translation>First aid and introduction</translation>
     </message>
     <message>
-        <location filename="../main_window_help.cpp" line="155"/>
+        <location filename="../main_window_help.cpp" line="158"/>
         <source>&amp;Zurück zum HAUPT - MENÜ</source>
         <translation>&amp;Back to the MAIN MENU</translation>
     </message>
     <message>
-        <location filename="../main_window_help.cpp" line="158"/>
+        <location filename="../main_window_help.cpp" line="161"/>
         <source>KURZ-ANLEITUNG lesen</source>
         <translation>Read the SHORT MANUAL</translation>
     </message>
     <message>
-        <location filename="../main_window_help.cpp" line="185"/>
+        <location filename="../main_window_help.cpp" line="188"/>
         <source> ANMERKUNGEN zu HORCOM </source>
         <translation> NOTES on HORCOM </translation>
     </message>
     <message>
-        <location filename="../main_window_help.cpp" line="186"/>
+        <location filename="../main_window_help.cpp" line="189"/>
         <source>ÄNDERUNGEN seit 1996</source>
         <translation>CHANGES since 1996</translation>
     </message>
     <message>
-        <location filename="../main_window_help.cpp" line="186"/>
+        <location filename="../main_window_help.cpp" line="189"/>
         <source>KURZ-ANLEITUNG</source>
         <translation>SHORT MANUAL</translation>
     </message>
     <message>
-        <location filename="../main_window_help.cpp" line="242"/>
+        <location filename="../main_window_help.cpp" line="245"/>
         <source>%1 oder RADIX zeigen ?</source>
         <translation>Show %1 or RADIX ?</translation>
     </message>
     <message>
-        <location filename="../main_window_help.cpp" line="252"/>
+        <location filename="../main_window_help.cpp" line="255"/>
         <source> Nur zwischendurch das %1 anzeigen : %2 |   ZURÜCK mit &apos;ESC&apos; !</source>
         <translation> Only showing the %1 in between : %2 |   BACK with &apos;ESC&apos; !</translation>
     </message>
     <message>
-        <location filename="../main_window_help.cpp" line="288"/>
+        <location filename="../main_window_help.cpp" line="291"/>
         <source>RECHNER ( CALCULATOR ) FEHLT !</source>
         <translation>CALCULATOR MISSING !</translation>
     </message>
     <message>
-        <location filename="../main_window_help.cpp" line="296"/>
+        <location filename="../main_window_help.cpp" line="299"/>
         <source>Heliozentrisch &apos;EIN&apos; !</source>
         <translation>Heliocentric &apos;ON&apos; !</translation>
     </message>
     <message>
-        <location filename="../main_window_help.cpp" line="296"/>
+        <location filename="../main_window_help.cpp" line="299"/>
         <source>Heliozentrisch &apos;AUS&apos; !</source>
         <translation>Heliocentric &apos;OFF&apos; !</translation>
     </message>
     <message>
-        <location filename="../main_window_help.cpp" line="311"/>
+        <location filename="../main_window_help.cpp" line="314"/>
         <source>AUSGABE als BILD SPEICHERN</source>
         <translation>SAVE OUTPUT as PICTURE</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="6996"/>
-        <location filename="../main_window_help.cpp" line="312"/>
+        <location filename="../main_window.cpp" line="7160"/>
+        <location filename="../main_window_help.cpp" line="315"/>
         <source>PNG-Bild (*.png)</source>
         <translation>PNG picture (*.png)</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="7001"/>
-        <location filename="../main_window_help.cpp" line="317"/>
+        <location filename="../main_window.cpp" line="7165"/>
+        <location filename="../main_window_help.cpp" line="320"/>
         <location filename="../main_window_print.cpp" line="511"/>
         <source>Das Bild ließ sich nicht speichern.</source>
         <translation>The picture could not be saved.</translation>
     </message>
     <message>
-        <location filename="../main_window_help.cpp" line="381"/>
+        <location filename="../main_window_help.cpp" line="384"/>
         <source>DRUCKER-OPTION EIN !</source>
         <translation>PRINTER OPTION ON !</translation>
     </message>
     <message>
-        <location filename="../main_window_help.cpp" line="381"/>
+        <location filename="../main_window_help.cpp" line="384"/>
         <source>DRUCKER-OPTION AUS !</source>
         <translation>PRINTER OPTION OFF !</translation>
     </message>
@@ -11263,37 +11280,37 @@ The language applies from the next start.</translation>
         <translation>END the program</translation>
     </message>
     <message>
-        <location filename="../main_window_ingress.cpp" line="66"/>
+        <location filename="../main_window_ingress.cpp" line="67"/>
         <source>AC</source>
         <translation>AC</translation>
     </message>
     <message>
-        <location filename="../main_window_ingress.cpp" line="109"/>
+        <location filename="../main_window_ingress.cpp" line="110"/>
         <source>OBJEKT für INGRESSE WÄHLEN !</source>
         <translation>CHOOSE the OBJECT for the INGRESSES !</translation>
     </message>
     <message>
-        <location filename="../main_window_ingress.cpp" line="131"/>
+        <location filename="../main_window_ingress.cpp" line="132"/>
         <source> Wegen PARALLAXE bitte Ereignis-Ort eingeben !</source>
         <translation> Because of the PARALLAX please enter the event place !</translation>
     </message>
     <message>
-        <location filename="../main_window_ingress.cpp" line="145"/>
+        <location filename="../main_window_ingress.cpp" line="146"/>
         <source>KALENDERJAHR ( JJJJ ) EINGEBEN !</source>
         <translation>ENTER the CALENDAR YEAR ( YYYY ) !</translation>
     </message>
     <message>
-        <location filename="../main_window_ingress.cpp" line="154"/>
+        <location filename="../main_window_ingress.cpp" line="155"/>
         <source>SUCH-DATUM ( MONAT ) EINGEBEN !</source>
         <translation>ENTER the SEARCH DATE ( MONTH ) !</translation>
     </message>
     <message>
-        <location filename="../main_window_ingress.cpp" line="162"/>
+        <location filename="../main_window_ingress.cpp" line="163"/>
         <source>EINGABE</source>
         <translation>ENTRY</translation>
     </message>
     <message>
-        <location filename="../main_window_ingress.cpp" line="180"/>
+        <location filename="../main_window_ingress.cpp" line="181"/>
         <source>INGRESSE PLANETEN-MC-AC</source>
         <translation>INGRESSES PLANETS-MC-AC</translation>
     </message>
@@ -11302,61 +11319,61 @@ The language applies from the next start.</translation>
         <translation type="vanished">INGRESSES SUN-MOON-MC-AC</translation>
     </message>
     <message>
-        <location filename="../main_window_ingress.cpp" line="200"/>
+        <location filename="../main_window_ingress.cpp" line="201"/>
         <source>Weiter mit Leertaste  |  Zurück mit &apos;R&apos; |  Ende mit &apos;ESC&apos;</source>
         <translation>On with Space  |  Back with &apos;R&apos; |  End with &apos;ESC&apos;</translation>
     </message>
     <message>
         <location filename="../main_window_a18.cpp" line="644"/>
-        <location filename="../main_window_ingress.cpp" line="237"/>
+        <location filename="../main_window_ingress.cpp" line="238"/>
         <source> Ereignis-Ort : %1 | Länge : %2 | Breite : %3</source>
         <translation> Event place : %1 | Longitude : %2 | Latitude : %3</translation>
     </message>
     <message>
-        <location filename="../main_window_ingress.cpp" line="244"/>
+        <location filename="../main_window_ingress.cpp" line="245"/>
         <source> Ingresse der SONNE im Kalenderjahr %1</source>
         <translation> Ingresses of the SUN in the calendar year %1</translation>
     </message>
     <message>
-        <location filename="../main_window_ingress.cpp" line="246"/>
+        <location filename="../main_window_ingress.cpp" line="247"/>
         <source> Ingresse des MONDES bis ca. dem Datum : %1</source>
         <translation> Ingresses of the MOON up to about the date : %1</translation>
     </message>
     <message>
-        <location filename="../main_window_ingress.cpp" line="248"/>
+        <location filename="../main_window_ingress.cpp" line="249"/>
         <source> Ingresse von %1 bis ca. dem Datum : %2</source>
         <translation> Ingresses of %1 up to about the date : %2</translation>
     </message>
     <message>
         <location filename="../main_window_auswertung.cpp" line="985"/>
-        <location filename="../main_window_ingress.cpp" line="251"/>
+        <location filename="../main_window_ingress.cpp" line="252"/>
         <source> Ephemeride : </source>
         <translation> Ephemeris : </translation>
     </message>
     <message>
-        <location filename="../main_window_ingress.cpp" line="256"/>
+        <location filename="../main_window_ingress.cpp" line="257"/>
         <source>UT = GMT</source>
         <translation>UT = GMT</translation>
     </message>
     <message>
         <location filename="../main_window_statist_cond.cpp" line="584"/>
-        <location filename="../main_window_ingress.cpp" line="256"/>
-        <location filename="../main_window_ingress.cpp" line="283"/>
+        <location filename="../main_window_ingress.cpp" line="257"/>
+        <location filename="../main_window_ingress.cpp" line="287"/>
         <source>Länge </source>
         <translation>Longitude </translation>
     </message>
     <message>
-        <location filename="../main_window_ingress.cpp" line="274"/>
+        <location filename="../main_window_ingress.cpp" line="278"/>
         <source> Ingresse des MC ab dem Datum : %1</source>
         <translation> Ingresses of the MC from the date : %1</translation>
     </message>
     <message>
-        <location filename="../main_window_ingress.cpp" line="274"/>
+        <location filename="../main_window_ingress.cpp" line="278"/>
         <source> Ingresse des AC ab dem Datum : %1</source>
         <translation> Ingresses of the AC from the date : %1</translation>
     </message>
     <message>
-        <location filename="../main_window_ingress.cpp" line="281"/>
+        <location filename="../main_window_ingress.cpp" line="285"/>
         <source>  Datum     UT = GMT </source>
         <translation>  Date      UT = GMT </translation>
     </message>
@@ -11556,7 +11573,7 @@ The language applies from the next start.</translation>
     </message>
     <message>
         <location filename="../main_window_a18.cpp" line="1240"/>
-        <location filename="../main_window_coord.cpp" line="427"/>
+        <location filename="../main_window_coord.cpp" line="430"/>
         <location filename="../main_window_pair.cpp" line="340"/>
         <source>Häuserspitzen</source>
         <translation>House cusps</translation>
@@ -11602,7 +11619,7 @@ The language applies from the next start.</translation>
         <translation>FROM the NEW MC</translation>
     </message>
     <message>
-        <location filename="../main_window.cpp" line="5909"/>
+        <location filename="../main_window.cpp" line="6042"/>
         <location filename="../main_window_multi.cpp" line="139"/>
         <source>NEU BERECHNEN ?</source>
         <translation>RECALCULATE ?</translation>
@@ -12226,66 +12243,76 @@ The language applies from the next start.</translation>
 <context>
     <name>horcom::TransitListDialog</name>
     <message>
-        <location filename="../transit_list_dialog.cpp" line="191"/>
+        <location filename="../transit_list_dialog.cpp" line="192"/>
         <source>Winkel</source>
         <translation>Angle</translation>
     </message>
     <message>
-        <location filename="../transit_list_dialog.cpp" line="191"/>
+        <location filename="../transit_list_dialog.cpp" line="192"/>
         <source>Datum</source>
         <translation>Date</translation>
     </message>
     <message>
-        <location filename="../transit_list_dialog.cpp" line="191"/>
+        <location filename="../transit_list_dialog.cpp" line="192"/>
         <source>Zeit (UT)</source>
         <translation>Time (UT)</translation>
     </message>
     <message>
-        <location filename="../transit_list_dialog.cpp" line="191"/>
+        <location filename="../transit_list_dialog.cpp" line="192"/>
         <source>Laufend</source>
         <translation>Running</translation>
     </message>
     <message>
-        <location filename="../transit_list_dialog.cpp" line="193"/>
+        <location filename="../transit_list_dialog.cpp" line="194"/>
         <source>Positionen</source>
         <translation>Positions</translation>
     </message>
     <message>
-        <location filename="../transit_list_dialog.cpp" line="203"/>
+        <location filename="../transit_list_dialog.cpp" line="206"/>
         <source>LISTE SORTIEREN…</source>
         <translation>SORT LIST…</translation>
     </message>
     <message>
-        <location filename="../transit_list_dialog.cpp" line="258"/>
         <source>%1 Auslösungen</source>
-        <translation>%1 triggers</translation>
+        <translation type="vanished">%1 triggers</translation>
     </message>
     <message>
+        <location filename="../a18_rows.hpp" line="170"/>
         <source>LISTE SORTIEREN ?</source>
-        <translation type="vanished">SORT the LIST ?</translation>
+        <translation>SORT the LIST ?</translation>
     </message>
     <message>
+        <location filename="../a18_rows.hpp" line="171"/>
         <source>ZEITLICH SORTIEREN</source>
-        <translation type="vanished">SORT BY TIME</translation>
+        <translation>SORT BY TIME</translation>
     </message>
     <message>
+        <location filename="../a18_rows.hpp" line="172"/>
         <source>Nach ASPEKTEN SORTIEREN</source>
-        <translation type="vanished">SORT by ASPECTS</translation>
+        <translation>SORT by ASPECTS</translation>
     </message>
     <message>
+        <location filename="../a18_rows.hpp" line="167"/>
         <source>REIHENFOLGE BELASSEN</source>
-        <translation type="vanished">KEEP the ORDER</translation>
+        <translation>KEEP the ORDER</translation>
     </message>
     <message>
+        <location filename="../a18_rows.hpp" line="137"/>
+        <source>%1 Auslösungen  |  Spaltenkopf anklicken = nach dieser Spalte sortieren</source>
+        <translation>%1 triggers  |  click a column head = sort by that column</translation>
+    </message>
+    <message>
+        <location filename="../a18_rows.hpp" line="175"/>
         <source>LISTE ZEITLICH SORTIEREN ?</source>
-        <translation type="vanished">SORT the LIST BY TIME ?</translation>
+        <translation>SORT the LIST BY TIME ?</translation>
     </message>
     <message>
+        <location filename="../a18_rows.hpp" line="176"/>
         <source>SORTIEREN</source>
-        <translation type="vanished">SORT</translation>
+        <translation>SORT</translation>
     </message>
     <message>
-        <location filename="../transit_list_dialog.cpp" line="191"/>
+        <location filename="../transit_list_dialog.cpp" line="192"/>
         <source>Radix</source>
         <translation>Radix</translation>
     </message>

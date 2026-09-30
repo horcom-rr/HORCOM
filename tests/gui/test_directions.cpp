@@ -3,10 +3,12 @@
 // Copyright (c) 2026 Dominik Schwimmbeck
 
 #include <QAbstractButton>
+#include <QHeaderView>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QListWidget>
 #include <QMessageBox>
+#include <QTableWidget>
 #include <cmath>
 
 #include "dialog_driver.hpp"
@@ -253,6 +255,18 @@ TEST_CASE("SEKUNDÄR HOROSKOP-GRAPHIK draws the progressed ring of a20_horg and 
   const double jd2 = julian_day({13, 10, 2022, 3.0, 0.0});
   const double expected = radix.jd_ut + (jd2 - radix.jd_ut) / tja + 1.0;
   CHECK(std::abs(MainWindowProbe::arc_prog_jd(*w) - expected) < 1.0e-8);
+  // another record ends the ring of the chart before like his next menu
+  // entry, the tester saw it stay over every chart he opened after
+  AafRecord other = birth();
+  other.surname = "ANDERER";
+  other.day = 20;
+  MainWindowProbe::apply(*w, other);
+  CHECK_FALSE(MainWindowProbe::arc_on(*w));
+  bool ring = false;
+  for (const Primitive& p : MainWindowProbe::wheel(*w).items) {
+    ring = ring || (p.kind == Primitive::Kind::kText && p.text.rfind("SECDIR.", 0) == 0);
+  }
+  CHECK_FALSE(ring);
 }
 
 TEST_CASE("SYMB. DIREKTION MUNDAN asks no factor box like a18eing_plw under mars!") {
@@ -455,4 +469,49 @@ TEST_CASE("the LINEAR-GRAPHIK of the SEKUNDÄR-DIREKTION walks his linear boxes"
   // the birthday of the year of life beneath
   CHECK(texts.contains("13.10.2017"));
   CHECK(next_texts.contains("45"));
+}
+
+TEST_CASE("the direction table sets dates and aspects bold and sorts by a clicked head") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, birth());
+  bool bold = true;
+  QStringList directed;
+  QStringList ages;
+  DialogDriver drive;
+  drive.then(DialogDriver::click("DATUM"))
+      .then(DialogDriver::click("90° => TEILER"))
+      .then(DialogDriver::click("1JAHR/GRAD"))
+      .then(DialogDriver::click("ALLE"))
+      .then(DialogDriver::fill({"0"}, "OK"))
+      .then(DialogDriver::fill({"60"}, "OK"))
+      .then(DialogDriver::click("SORTIEREN"))
+      .then([&](QDialog* d) {
+        auto* list = qobject_cast<DirectionListDialog*>(d);
+        auto* t = d->findChild<QTableWidget*>();
+        REQUIRE(list != nullptr);
+        REQUIRE(t != nullptr);
+        for (int r = 0; r < t->rowCount(); ++r) {
+          bold = bold && t->item(r, 0)->font().bold() && t->item(r, 2)->font().bold() && !t->item(r, 1)->font().bold();
+        }
+        emit t->horizontalHeader()->sectionClicked(1);
+        for (int r = 0; r < t->rowCount(); ++r) {
+          directed << t->item(r, 1)->text();
+          ages << t->item(r, 0)->text();
+        }
+        d->reject();
+      });
+  MainWindowProbe::symbolic_direction(*w, false);
+  CHECK(drive.pending() == 0);
+  CHECK(bold);
+  REQUIRE(directed.size() > 2);
+  // one directed factor stands in one block after the click
+  QStringList seen;
+  for (int r = 0; r < directed.size(); ++r) {
+    if (r > 0 && directed[r] != directed[r - 1]) {
+      CHECK_FALSE(seen.contains(directed[r]));
+    }
+    if (!seen.contains(directed[r])) {
+      seen << directed[r];
+    }
+  }
 }

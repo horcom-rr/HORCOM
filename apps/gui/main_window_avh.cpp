@@ -499,19 +499,21 @@ void MainWindow::vorgaben_horoskop() {
         break;
       }
       case kRulers: {
-        // his NEU and ALT, and as a third set the tester's NEU with Quaoar
-        // for Taurus and Chiron for Virgo, a rewrite addition
-        static constexpr RulerSet kSets[3] = {RulerSet::kModern, RulerSet::kClassic, RulerSet::kExtended};
-        const int now = rulers_ == RulerSet::kClassic ? 1 : (rulers_ == RulerSet::kExtended ? 2 : 0);
+        // his NEU and ALT. The NEU is the tester's, Quaoar rules Taurus and
+        // Chiron Virgo beside his Pluto, Uranus and Neptune, Venus and
+        // Mercury stand in where a chart carries no Quaoar or Chiron. His
+        // NEU with Venus and Mercury is gone as a button of its own
+        static constexpr RulerSet kSets[2] = {RulerSet::kExtended, RulerSet::kClassic};
+        const int now = rulers_ == RulerSet::kClassic ? 1 : 0;
         const int b = ChoiceDialog::ask_step(this, tr("AUSWAHL"),
                                              {tr("ZUORDNUNG ZEICHEN-HERRSCHER ?"), QString(),
-                                              tr("NEU : SC-PL   AQ-UR   PS-NE"), tr("ALT : SC-MA   AQ-SA   PS-JU"),
-                                              tr("NEU mit QU, CH : TA-QU   VI-CH   SC-PL   AQ-UR   PS-NE")},
-                                             {tr("NEU"), tr("ALT"), tr("NEU mit QU, CH"), x}, now);
-        step = step_of(b, 3);
-        // his alt! lived for the session, the port keeps the choice so the
-        // third set need not be chosen anew every start
-        if (b >= 0 && b <= 2) {
+                                              tr("NEU : TA-QU   VI-CH   SC-PL   AQ-UR   PS-NE"),
+                                              tr("ALT : TA-VE   VI-ME   SC-MA   AQ-SA   PS-JU")},
+                                             {tr("NEU"), tr("ALT"), x}, now);
+        step = step_of(b, 2);
+        // his alt! lived for the session, the port keeps the choice so it
+        // need not be made anew every start
+        if (b >= 0 && b <= 1) {
           set_rulers(kSets[b]);
         }
         break;

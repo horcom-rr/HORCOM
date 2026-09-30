@@ -24,6 +24,7 @@
 #include "horcom/chart/signs.hpp"
 #include "horcom/core/constants.hpp"
 #include "auto_advance.hpp"
+#include "cell_weight.hpp"
 
 namespace horcom {
 
@@ -423,6 +424,8 @@ std::optional<std::vector<int>> ask_objects(QWidget* parent, const std::vector<i
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable);
     item->setCheckState(Qt::Unchecked);
   }
+  // the planets to choose stand bold like those of EIN OBJEKT AUSWÄHLEN
+  bold_all(list);
   v->addWidget(list, 1);
   auto* ok = new QPushButton(RobertInput::tr("&OK"), &d);
   ok->setDefault(true);
@@ -473,6 +476,9 @@ std::optional<int> ask_object(QWidget* parent, const std::vector<std::pair<int, 
       item->setFlags(Qt::NoItemFlags);
     }
   }
+  // the planets to choose stand bold, the tester found the plain rows hard
+  // to read, the yellow of the chosen row stays
+  bold_all(list);
   v->addWidget(list, 1);
   auto* ok = new QPushButton(RobertInput::tr("&OK"), &d);
   ok->setDefault(true);

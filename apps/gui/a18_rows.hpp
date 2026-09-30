@@ -32,8 +32,12 @@ namespace horcom::a18 {
 inline const QColor kTableRed{0xE8, 0x00, 0x00};
 /// The red of a marked planet on the inverted black ground.
 inline const QColor kInvertedRed{0xFF, 0x40, 0x40};
-/// The green of his harmonic aspects.
+/// The green of his harmonic aspects, RGB(0,160,0) of a181tx, it stays
+/// on the night sky.
 inline const QColor kTableGreen{0x00, 0xA0, 0x00};
+/// The dark green of the harmonic aspects on paper. His green read pale
+/// beside the red on the white table and the tester asked for dark green.
+inline const QColor kPaperGreen{0x00, 0x80, 0x00};
 
 /// @param slot a body slot
 /// @return the two letter tag of the body, SO for the Sun
@@ -89,8 +93,49 @@ inline void colour_aspect(QTableWidgetItem* item, double angle_deg, int plinv) {
   if (w5 % 90 == 0) {
     item->setForeground(kTableRed);
   } else if (w5 == 60 || w5 == 120) {
-    item->setForeground(kTableGreen);
+    item->setForeground(theme::dark_now() ? kTableGreen : kPaperGreen);
   }
+}
+
+/// Orders two factors of a column the way a click on its head sorts them,
+/// the bodies in the order of his slot table, the cusps and midpoints
+/// behind them by their tags.
+///
+/// @param slot_a the body of the first row, zero for a cusp or a midpoint
+/// @param text_a the tag of the first row
+/// @param slot_b the body of the second row
+/// @param text_b the tag of the second row
+/// @return negative when the first row goes first, zero for the same factor
+[[nodiscard]] inline int compare_factor(int slot_a, const QString& text_a, int slot_b, const QString& text_b) {
+  const bool body_a = slot_a > 0;
+  const bool body_b = slot_b > 0;
+  if (body_a != body_b) {
+    return body_a ? -1 : 1;
+  }
+  if (body_a && slot_a != slot_b) {
+    return slot_a < slot_b ? -1 : 1;
+  }
+  return body_a ? 0 : QString::compare(text_a, text_b);
+}
+
+/// Orders two aspects of a column, the folded angle rounded like his w5.
+///
+/// @param a the angle of the first row in degrees
+/// @param b the angle of the second row in degrees
+/// @return negative when the first row goes first, zero for one aspect
+[[nodiscard]] inline int compare_angle(double a, double b) {
+  const long ra = std::lround(a);
+  const long rb = std::lround(b);
+  return ra == rb ? 0 : (ra < rb ? -1 : 1);
+}
+
+/// The note under the result tables that the column heads sort.
+///
+/// @param count the number of listed moments
+/// @return the count line with the hint
+[[nodiscard]] inline QString count_line(std::size_t count) {
+  return QCoreApplication::translate("horcom::TransitListDialog", "%1 Auslösungen  |  Spaltenkopf anklicken = nach dieser Spalte sortieren")
+      .arg(count);
 }
 
 /// The table face of VORGABEN DIREKTIONEN, KLEIN or GROß symbols. His

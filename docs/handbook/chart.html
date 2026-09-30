@@ -95,8 +95,10 @@ precession driven age point over a chosen reference epoch.
 
 <h2>The converters</h2>
 <p>
-Each converter keeps its own menu entry like his menu. Under EPHEMERIS,
-ET from UT and UT from ET (et_ut, ut_et) take a date and clock and show
+Each converter keeps its own menu entry like his menu, all of them
+together under MISCELLANEOUS since the tester's eighth batch moved the
+three time entries of his EPHEMERIS menu there, F1 still opens their
+commentary 3. ET from UT and UT from ET (et_ut, ut_et) take a date and clock and show
 both time scales with ET minus UT split into days, hours, minutes and
 seconds, whole minutes before 948 and after 2050, with his remark on
 extrapolated or approximated values. DATE from JD (dat_jd) reads a
@@ -105,7 +107,7 @@ obliquity of that moment, the calendar date and the clock, shows the
 current record's date under the input box and asks again on Continue. The
 tester's Auréas count, days since 1900 January 0.5, rides along and
 names its start, 31.12.1899 12h.
-Under MISCELLANEOUS, RA-DE from EL-EB and EL-EB from RA-DE (arde_eleb,
+RA-DE from EL-EB and EL-EB from RA-DE (arde_eleb,
 eleb_arde) take a date and a position in degree minute second or
 decimal and convert with the true obliquity of that day, the right
 ascension also as a clock. LT from UT and UT from LT (lt_ut, ut_lt) take
@@ -399,9 +401,13 @@ slot is filled, the fifth click outputs at once. The mean lands on the
 panel as a chart whose place name is <code>COMBIN-ORT</code>, the value
 his data files carry for the mean place, the slots keep their own records.
 The centre reads COMBINE, two records stand as 1: and 2: with their
-moments as the tester wished, more than two as RECORDS: 1,3,5 with the
-names stacked above the bottom edge, and the COMBINE UT line gives the
-mean moment. The COMBINE entry of the HOROSCOPES menu then names the
+whole names, his LEFT$(na$,20), and their moments as the tester wished,
+more than two as RECORDS: 1,3,5 with the names stacked above the bottom
+edge, and the COMBINE UT line gives the mean moment. The banner names
+the surname and the first given name of both, the record a combine
+leaves as radix keeps his na$(0,2) of ten letters of each whole name.
+The port had named each partner by the surname alone, two of one family
+read alike. The COMBINE entry of the HOROSCOPES menu then names the
 first two records and SHOW THE STORED PAIR brings all of them back,
 his DOUBLE DATA row merged into the entry as the tester wished.
 </p>
@@ -530,7 +536,8 @@ life below twelve periods, a tester answering the box with the seven
 years per house of the Döbereiner school never reached a septar. The
 port casts every septar in months, the Schwingungshoroskop n that
 governs the years (n - 1) times the period to n times the period, and
-the period box names the unit, SEVEN the septar and TEN the decar.
+the period box names the unit per house and SEVEN the septar, the
+tester found the decar beside the months confusing and it left the line.
 His information box adds the solar return the septar is and its
 calendar year. The SPECIAL POINT box of the rhythm school follows without its
 date definition and names the septar being cast, the point rides the
@@ -738,7 +745,11 @@ years at the foot. NEXT and PREVIOUS move the window by four
 years. Pinned in <code>test_transit_search.cpp</code> and
 <code>test_auswertung.cpp</code>. The DEGREE DATE LIST walks
 every half ecliptic degree onto the date the rhythm crosses it, phase
-by phase in walk order, the published group destiny degrees of W.
+by phase in walk order, each phase from its first date to its last.
+His a170 wrote the degrees of a phase in zodiac order, under RIGHT the
+dates of every phase ran backwards and the phase over 0 Aries broke in
+two, the list then opened on the end of the first phase and closed on
+the start of the last. The degrees and the dates stand bold, the published group destiny degrees of W.
 Döbereiner ride along with their planet pairs drawn as his two
 symbols in a thin box like a174g, the tags on the tooltip, the cardinal
 degrees wear their sign symbol boxed in red and every other degree its

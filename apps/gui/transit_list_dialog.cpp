@@ -16,6 +16,7 @@
 #include <QVBoxLayout>
 
 #include "a18_rows.hpp"
+#include "cell_weight.hpp"
 #include "horcom/chart/signs.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
@@ -199,6 +200,11 @@ void TransitListDialog::build(bool mundane) {
   table_->setEditTriggers(QAbstractItemView::NoEditTriggers);
   table_->setSelectionBehavior(QAbstractItemView::SelectRows);
   table_->setSelectionMode(QAbstractItemView::SingleSelection);
+  table_->horizontalHeader()->setSectionsClickable(true);
+  connect(table_->horizontalHeader(), &QHeaderView::sectionClicked, this, &TransitListDialog::sort_by_column);
+  // the table takes the focus with a click only, a first focus would mark
+  // its first cell before anything was chosen
+  table_->setFocusPolicy(Qt::ClickFocus);
   count_ = new QLabel(this);
   auto* sort = new QPushButton(tr("LISTE SORTIEREN…"), this);
   auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
@@ -218,7 +224,15 @@ void TransitListDialog::build(bool mundane) {
     }
   });
   connect(table_, &QTableWidget::cellDoubleClicked, this, [this](int row, int) { accept_row(row); });
-  connect(buttons, &QDialogButtonBox::accepted, this, [this]() { accept_row(table_->currentRow()); });
+  // OK shows the sky of the chosen row, without a chosen row it closes
+  connect(buttons, &QDialogButtonBox::accepted, this, [this]() {
+    const QList<QTableWidgetItem*> chosen = table_->selectedItems();
+    if (chosen.isEmpty()) {
+      accept();
+      return;
+    }
+    accept_row(chosen.front()->row());
+  });
   connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
   fill();
   resize(mundane ? 700 : 620, 580);
@@ -235,6 +249,8 @@ void TransitListDialog::fill() {
     moment_texts(r.jd_ut, r.hours, r.minutes, display_.settings.calendar, date, time);
     auto* date_item = new QTableWidgetItem(date);
     date_item->setData(Qt::UserRole, static_cast<qulonglong>(i));
+    // the dates and the aspects bold, the tester reads the list by them
+    bold_cell(date_item);
     table_->setItem(row, kColDate, date_item);
     auto* time_item = new QTableWidgetItem(r.station ? QString("STATION") : time);
     if (r.station) {
@@ -247,6 +263,7 @@ void TransitListDialog::fill() {
     table_->setItem(row, kColFirst, first);
     auto* angle = new QTableWidgetItem(QString::asprintf("%3.0f", r.angle_deg));
     a18::colour_aspect(angle, r.angle_deg, display_.plinv);
+    bold_cell(angle);
     table_->setItem(row, kColAngle, angle);
     auto* second = new QTableWidgetItem(r.second_text);
     a18::dress_factor(second, r.second, mundane_, display_.plinv, display_.marked);
@@ -255,11 +272,27 @@ void TransitListDialog::fill() {
       table_->setItem(row, kColPositions, new QTableWidgetItem(r.positions));
     }
   }
-  count_->setText(tr("%1 Auslösungen").arg(rows_.size()));
+  count_->setText(a18::count_line(rows_.size()));
   table_->resizeColumnsToContents();
-  if (table_->rowCount() > 0) {
-    table_->selectRow(0);
-  }
+  // no row stands chosen before a click, the preselected first row showed
+  // as a black band on paper and the tester took it for a fault
+}
+
+// a click on a column head orders the list by that column, the moments of
+// one value in time. The tester asked for the filters of his Excel sheets
+// to see the list by the running body
+void TransitListDialog::sort_by_column(int column) {
+  std::stable_sort(rows_.begin(), rows_.end(), [column](const Row& a, const Row& b) {
+    int c = 0;
+    switch (column) {
+      case kColFirst: c = a18::compare_factor(a.first, {}, b.first, {}); break;
+      case kColAngle: c = a18::compare_angle(a.angle_deg, b.angle_deg); break;
+      case kColSecond: c = a18::compare_factor(a.second, a.second_text, b.second, b.second_text); break;
+      default: break;
+    }
+    return c != 0 ? c < 0 : a.jd_ut < b.jd_ut;
+  });
+  fill();
 }
 
 // ported from the sort question of dirend

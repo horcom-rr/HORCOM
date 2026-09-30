@@ -20,6 +20,7 @@
 #include <limits>
 #include <optional>
 
+#include "cell_weight.hpp"
 #include "choice_dialog.hpp"
 #include "horcom/chart/bodies.hpp"
 #include "horcom/chart/corrections.hpp"
@@ -385,6 +386,8 @@ void MainWindow::fill_coordinate_table(QTableWidget* table, const Chart& chart, 
                                      zodiac_text(pts.aphelion, ZodiacForm::kGz8));
     set(row, col.apsides, aps);
   }
+  // the numbers of his sheet read better bold, the tester's eighth batch
+  bold_all(table);
   table->resizeColumnsToContents();
   table->resizeRowsToContents();
 }
@@ -515,7 +518,7 @@ void MainWindow::coordinate_table(bool extras) {
     }
     QString html = theme::heading_span(sol.toHtmlEscaped()) + first.toHtmlEscaped();
     for (int i = 1; i < lines.size(); ++i) {
-      html += "<br>" + lines[i].toHtmlEscaped();
+      html += "<br>" + hsa0_marked(lines[i]);
     }
     // his horgt$ + "e " + pe$ + "-Koordinaten " + gena2$, ZUSATZ without it
     QString title = horgt_text() + tr("e Planeten-Koordinaten ");

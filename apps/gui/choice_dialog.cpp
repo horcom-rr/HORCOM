@@ -97,14 +97,4 @@ int ChoiceDialog::ask_with_disabled(QWidget* parent, const QString& title, const
   return d.run(disabled);
 }
 
-int ChoiceDialog::ask_current(QWidget* parent, const QString& title, const QStringList& info,
-                              const QStringList& buttons, int current) {
-  ChoiceDialog d(title, info, buttons, current, parent);
-  const QList<QPushButton*> rows = d.findChildren<QPushButton*>(Qt::FindDirectChildrenOnly);
-  if (current >= 0 && current < rows.size()) {
-    rows[current]->setObjectName(kCurrentName);
-  }
-  return d.run({});
-}
-
 }  // namespace horcom

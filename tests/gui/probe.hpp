@@ -187,6 +187,7 @@ struct MainWindowProbe {
   static void recall_double(MainWindow& w, int kind) { w.recall_double(kind); }
   static void reset_views(MainWindow& w) { w.reset_views(); }
   static void combin_chart(MainWindow& w) { w.combin_chart(); }
+  static QString combin_na(const MainWindow& w) { return w.combin_na_; }
   static void statistics_hub(MainWindow& w) { w.statistics_hub(); }
   static QString count_line(const MainWindow& w, const std::array<int, 4>& n, bool quarter) {
     return w.midpoint_count_line(n, quarter);
