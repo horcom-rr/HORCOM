@@ -10,7 +10,7 @@
 
 <header class="sky">
   <h1>Installation</h1>
-  <p class="sub">Getting HORCOM onto Windows and Linux, ready built or from source</p>
+  <p class="sub">Getting HORCOM onto Windows and Linux</p>
 </header>
 
 <main>
@@ -18,8 +18,7 @@
 <p><a href="index.html">&larr; back to the handbook</a></p>
 
 <p>
-Every push to the main branch builds and tests the program on Windows and
-Linux and publishes a release on the
+Every new version of HORCOM appears on the
 <a href="https://github.com/horcom-rr/HORCOM/releases/latest">GitHub releases page</a>.
 Versions stay 0.x until the 1.0 release. Each release
 carries three downloads.
@@ -45,9 +44,9 @@ download, compare the output of <code>Get-FileHash horcom-windows-x64.zip</code>
 in PowerShell with the line in <code>SHA256SUMS.txt</code>.
 </p>
 <p>
-The program writes into its own <code>data</code> folder like the original
-did, your KONSTA settings, the SPEZIAL data files and your own place files
-live there. Unpacked to a folder you cannot write to, such as
+The program keeps your work in its own <code>data</code> folder, your
+defaults in the file <code>konsta.int</code>, and the file dialogs for
+your chart collections and place files open there. Unpacked to a folder you cannot write to, such as
 <code>Program Files</code>, it works in <code>%LOCALAPPDATA%\horcom\data</code>
 instead. To update, unpack the new release over the old folder, your own
 files are kept. To uninstall, delete the folder.
@@ -88,7 +87,7 @@ own files are not stored inside it.
 <table>
 <tr><th>What</th><th>Where</th></tr>
 <tr><td>settings of the VIEW menu, language, colours</td><td><code>~/.config/horcom/horcom.conf</code></td></tr>
-<tr><td>KONSTA settings, SPEZIAL data files, own place files, commentary texts</td><td><code>~/.local/share/horcom/data</code></td></tr>
+<tr><td>your defaults, chart collections, own place files, commentary texts</td><td><code>~/.local/share/horcom/data</code></td></tr>
 </table>
 <p>
 The shipped data inside the image is read only. On the first start the
@@ -109,6 +108,10 @@ permanently on Linux, the usual convention there.
 </p>
 
 <h2>Building from source</h2>
+<p class="note">
+This and the following section are for developers. To use HORCOM, the
+downloads above are all you need.
+</p>
 <p>
 The library, the <code>horcom</code> command line tool and the tests need a
 C++20 compiler and CMake 3.25 or newer. The desktop shell
@@ -170,7 +173,7 @@ distribution it should run on, its C library sets the floor, the release
 image is built on Ubuntu 22.04 with Qt 6.8.3.
 </p>
 
-<h2>Same numbers everywhere</h2>
+<h2 id="same-numbers">Same numbers everywhere</h2>
 <p>
 Robert's advice to keep the computation order of the original binds the
 port, so the Linux build switches off the fused multiply add contraction

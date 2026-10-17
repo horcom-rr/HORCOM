@@ -11,20 +11,60 @@
 <header class="sky">
   <img src="logo.svg" alt="the HORCOM logo" width="72" height="72" style="image-rendering:pixelated; border-radius:6px;">
   <h1 style="margin-top:0.8rem">horcom</h1>
-  <p class="sub">The handbook of the C++ rewrite of HORCOM by Robert Rettig</p>
+  <p class="sub">The handbook of HORCOM, the astrology program by Robert Rettig</p>
 </header>
 
 <main>
 
-<h2>What this handbook is</h2>
+<h2>Welcome</h2>
 <p>
-HORCOM is the astrology program Robert Rettig wrote and refined from about 1989
-until 2010, first for the Atari, then in GFA&nbsp;BASIC for Windows. He computed his
-own ephemerides when none existed, credited every source down to the library
-shelf mark, and wished for the program to live on in C++. This handbook grows
-alongside that rewrite. Every page describes one module of the new program,
-explains the original mechanics it preserves, and lets Robert speak in his own
-words wherever his comments still tell the story best.
+HORCOM is a complete astrology program for Windows and Linux. It casts
+birth charts in seven house systems, optionally with topocentric positions,
+follows transits and directions, computes solar, lunar and planetary
+returns, compares two people in double wheels, composites and combines,
+walks the seven year phases of the Munich rhythm theory and searches
+whole chart collections statistically. Robert Rettig wrote and refined it
+from about 1989 until 2010. He computed his own ephemerides for Chiron,
+Quaoar, Eris and other bodies when none existed, wrote the commentary
+texts that come with the program, and wished for HORCOM to live on.
+</p>
+
+<h2>Start here</h2>
+<div class="grid">
+  <div class="card element-earth">
+    <h3><a href="install.html">Installation</a></h3>
+    <p>Download and start HORCOM on Windows or Linux, update it, and find where your settings and chart collections are kept.</p>
+  </div>
+  <div class="card element-fire">
+    <h3><a href="tutorial.html">Tutorial</a></h3>
+    <p>From the first chart to reading it, the chart settings, transits, returns, directions, the Munich rhythm theory, partner charts and printing.</p>
+  </div>
+  <div class="card element-water">
+    <h3>Robert's commentaries</h3>
+    <p>Inside the program, ABOUT HORCOM and F1 open Robert Rettig's own explanations of every menu, from the introduction to directions and the Munich rhythm theory.</p>
+  </div>
+</div>
+
+<h2>What you can do</h2>
+<ul>
+  <li><a href="tutorial.html#first-chart">Cast a birth chart</a> and <a href="tutorial.html#reading">read it</a> with coordinates, house cusps, aspects and midpoints beside the wheel.</li>
+  <li><a href="tutorial.html#settings">Set orbs, rulers, house system and aspect colours</a> to your way of working.</li>
+  <li><a href="tutorial.html#records">Keep chart collections</a> and <a href="tutorial.html#new-records">enter births with historical time zones</a>.</li>
+  <li>Follow <a href="tutorial.html#transits">transits</a>, <a href="tutorial.html#returns">returns</a> and <a href="tutorial.html#directions">progressions and directions</a> as tables, chart rings and linear graphs.</li>
+  <li>Work with the <a href="tutorial.html#munich">Munich rhythm theory</a> and its Septars.</li>
+  <li>Compare <a href="tutorial.html#pairs">two people</a> in a double wheel, the 90 degree dial, a composite or a combine.</li>
+  <li><a href="tutorial.html#special">Rectify a birth time</a>, cast harmonics and multiple directions.</li>
+  <li>Look up <a href="tutorial.html#tables">fixed stars, Arabic parts, ingresses and eclipses</a>, and search collections with the <a href="tutorial.html#statistics">statistics</a>.</li>
+  <li><a href="tutorial.html#output">Print on A5 or A4</a> or export PDF, SVG and PNG.</li>
+</ul>
+
+<h2>Technical reference</h2>
+<p>
+The pages below are for developers and for anyone curious how HORCOM
+calculates. Each describes one module of the C++ rewrite, explains the
+original mechanics it preserves, and lets Robert speak in his own words
+wherever his comments still tell the story best. You do not need them
+to use the program.
 </p>
 
 <blockquote class="rr">// IT IS BY NO MEANS RECOMMENDED, HOWEVER, TO REFORMULATE ROUTINES USED IN THE CALCULATION CHAIN YOURSELF. THE DEVIL IS ALMOST ALWAYS IN THE DETAIL !
@@ -32,16 +72,7 @@ words wherever his comments still tell the story best.
 <footer>Robert Rettig, in the preamble of his ephemeris source delivery, 2000. This advice is the standing policy of the whole port.</footer>
 </blockquote>
 
-<h2>Using the program</h2>
-<p>
-<a href="install.html">Installation</a> covers the ready builds for Windows
-and Linux and building from source.
-The <a href="tutorial.html">tutorial</a> walks through the shell from the
-first chart to transits, comparisons, the 90 degree dial, statistics
-and printing. The module pages below describe the machinery behind it.
-</p>
-
-<h2>Modules</h2>
+<h3>Modules</h3>
 <div class="grid">
   <div class="card element-earth">
     <h3><a href="core.html">core</a></h3>
@@ -82,18 +113,15 @@ and printing. The module pages below describe the machinery behind it.
     <h3>app</h3>
     <p>The Qt shell in the celestial theme of this handbook. The menu bar
     keeps the five columns of his main menu, grouped for daily work,
-    and every program of the
-    original stands behind them, from the record world to returns,
-    directions and the statistics. German natively, English by
-    translation, the <a href="tutorial.html">tutorial</a> walks through
-    it all.</p>
+    and every program of the original stands behind them. German
+    natively, English by translation.</p>
     <p class="status done">THEMED &middot; Qt 6 Widgets</p>
   </div>
 </div>
 
-<h2>Conventions of the port</h2>
+<h3>Conventions of the port</h3>
 
-<h3>Robert's comments travel with the code</h3>
+<h4>Robert's comments travel with the code</h4>
 <p>
 Wherever one of his comments still applies to the converted routine it is
 carried over verbatim, in his German wording, marked with the prefix
@@ -102,7 +130,7 @@ it was ported from. Code comments stay self contained, they never point at
 files outside the repository.
 </p>
 
-<h3>Same numbers first</h3>
+<h4>Same numbers first</h4>
 <p>
 Every ported routine first reproduces the original's output and lands together
 with its tests, transcription pins plus independent values from the literature
@@ -111,7 +139,7 @@ be restructured. Where the original and the rewrite disagree, the original is
 presumed right.
 </p>
 
-<h3>The two integer worlds of GFA BASIC</h3>
+<h4>The two integer worlds of GFA BASIC</h4>
 <p>
 GFA&nbsp;BASIC has <code>INT</code>, which rounds down, and <code>FIX</code>,
 which truncates toward zero. The original uses both deliberately. The angle
@@ -122,7 +150,7 @@ maps them to <code>std::floor</code> and <code>std::trunc</code> and its tests
 pin both behaviours.
 </p>
 
-<h3>Guards stay where he put them</h3>
+<h4>Guards stay where he put them</h4>
 <p>
 The epsilon <code>kk&nbsp;=&nbsp;1e-10</code> appears in the original exactly where a
 division or an arctangent argument could hit zero. The port adds it in exactly
@@ -130,13 +158,13 @@ those places and nowhere else, because the branch behaviour of the aspect
 logic depends on it.
 </p>
 
-<h2>Verification</h2>
+<h3>Verification</h3>
 <p>
 The test suite currently holds 131 test cases with 1622 assertions, all green,
 built with MSVC at warning level 4 and with GCC and Clang on Linux, warnings
 as errors on all three, and on Linux once more under the address and
 undefined behaviour sanitizers. The three compilers produce byte identical
-coordinate tables and wheels, see <a href="install.html">Installation</a>. The anchors are
+coordinate tables and wheels, see <a href="install.html#same-numbers">Installation</a>. The anchors are
 Jean Meeus's worked examples, the binary data files themselves and cross
 checks between independent engines, the Chapront theory against the
 integrated Pluto file among them. The golden reference now exists,
