@@ -81,6 +81,7 @@ struct MainWindowProbe {
   static void helio(MainWindow& w, bool on) { w.helio_->setChecked(on); }
   static void true_node(MainWindow& w, bool on) { w.true_node_->setChecked(on); }
   static void solar(MainWindow& w) { w.solar_chart(); }
+  static void paper_choice(MainWindow& w) { w.paper_choice(); }
   static void planetar(MainWindow& w) { w.planetar_chart(); }
   static QString banner_record(const MainWindow& w) { return w.banner_->record(); }
   static ClassicSheetText sheet(const MainWindow& w) { return w.classic_sheet_text(); }

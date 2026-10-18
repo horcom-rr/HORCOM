@@ -11,6 +11,7 @@
 #include <QLineEdit>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QRadioButton>
 #include <QScrollArea>
 #include <QSettings>
@@ -625,4 +626,36 @@ TEST_CASE("wart holds the chart only where a question follows and shows that it 
     QApplication::processEvents(QEventLoop::AllEvents, 100);
   }
   w->hide();
+}
+
+TEST_CASE("HOROSKOP-HINTERGRUND turns the paper white and back to the dress") {
+  auto w = MainWindowProbe::make();
+  QSettings().remove(theme::kPaperKey);
+  {
+    test::DialogDriver drive;
+    drive.then(test::DialogDriver::click("WEIß"));
+    MainWindowProbe::paper_choice(*w);
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  CHECK(theme::paper_override() == QColor(Qt::white));
+  CHECK(QSettings().value(theme::kPaperKey).toString() == "#ffffff");
+  // the box frames the paper in force, PAPIER brings the dress back
+  QString framed;
+  {
+    test::DialogDriver drive;
+    drive.then([&framed](QDialog* d) {
+      for (const QPushButton* b : d->findChildren<QPushButton*>()) {
+        if (b->isDefault()) {
+          framed = b->text();
+        }
+      }
+      test::DialogDriver::click("PAPIER")(d);
+    });
+    MainWindowProbe::paper_choice(*w);
+    CHECK(drive.pending() == 0);
+  }
+  CHECK(framed == "WEIß");
+  CHECK_FALSE(theme::paper_override().isValid());
+  CHECK_FALSE(QSettings().contains(theme::kPaperKey));
 }

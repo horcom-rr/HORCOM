@@ -234,6 +234,9 @@ class MainWindow : public QMainWindow {
   ///
   /// @return true when a colour was chosen and put over the dress
   bool background_colors();
+  /// HOROSKOP-HINTERGRUND, the paper under every chart and sheet, white,
+  /// the warm paper of the dress or a light colour of the viewer's choice.
+  void paper_choice();
   /// His a2113_1, the next free RADIX slot or, all five filled, the
   /// number that gives way after his question.
   ///

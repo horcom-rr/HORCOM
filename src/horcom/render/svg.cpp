@@ -69,11 +69,13 @@ std::string sector_path(const Primitive& p) {
 
 }  // namespace
 
-std::string to_svg(const DisplayList& dl, const GlyphImageResolver& sprites) {
+std::string to_svg(const DisplayList& dl, const GlyphImageResolver& sprites, Rgb paper) {
+  // the paper of the sheet and every cutout that wears it
+  const auto hex = [paper](Rgb c) { return horcom::hex(c == kPaperColor ? paper : c); };
   std::ostringstream s;
   s << "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 " << num(dl.width) << ' ' << num(dl.height)
     << "\" font-family=\"'Segoe UI Symbol', 'Noto Sans Symbols', sans-serif\">\n";
-  s << "<rect width=\"" << num(dl.width) << "\" height=\"" << num(dl.height) << "\" fill=\"" << hex(kPaperColor)
+  s << "<rect width=\"" << num(dl.width) << "\" height=\"" << num(dl.height) << "\" fill=\"" << hex(paper)
     << "\"/>\n";
   for (const Primitive& p : dl.items) {
     switch (p.kind) {

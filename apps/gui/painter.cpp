@@ -20,7 +20,20 @@
 namespace horcom {
 
 QColor to_qcolor(Rgb c, int alpha) {
+  // the paper of HOROSKOP-HINTERGRUND on the sheet and under every cutout
+  if (c == kPaperColor) {
+    QColor paper = theme::paper_override();
+    if (paper.isValid()) {
+      paper.setAlpha(alpha);
+      return paper;
+    }
+  }
   return QColor((c >> 16) & 0xFF, (c >> 8) & 0xFF, c & 0xFF, alpha);
+}
+
+Rgb paper_rgb() {
+  const QColor paper = theme::paper_override();
+  return paper.isValid() ? to_rgb(paper) : kPaperColor;
 }
 
 namespace {

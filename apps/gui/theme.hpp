@@ -739,6 +739,29 @@ inline void set_own_colors(const QColor& dialog, const QColor& desk) {
   apply(QSettings().value(kTextScaleKey, kTextScaleNormal).toInt(), qApp->property("horcomDark").toBool());
 }
 
+/// the settings key of the chart paper chosen under HOROSKOP-HINTERGRUND,
+/// absent while the warm paper of the dress stands
+inline constexpr const char* kPaperKey = "view/paperColor";
+
+/// Puts a chart paper of the viewer's choice under every sheet, an
+/// invalid colour brings the warm paper of the dress back.
+///
+/// @param paper the colour of the sheet
+inline void set_paper(const QColor& paper) {
+  if (qApp != nullptr) {
+    qApp->setProperty("horcomPaper", paper.isValid() ? QVariant(paper) : QVariant());
+  }
+}
+
+/// The chart paper the viewer chose.
+///
+/// @return the colour of HOROSKOP-HINTERGRUND, invalid while the warm
+///         paper of the dress stands
+inline QColor paper_override() {
+  const QVariant own = qApp != nullptr ? qApp->property("horcomPaper") : QVariant();
+  return own.isValid() ? own.value<QColor>() : QColor();
+}
+
 /// @return the active theme as the painting widgets need it per frame
 inline bool dark_now() {
   return qApp->property("horcomDark").toBool();

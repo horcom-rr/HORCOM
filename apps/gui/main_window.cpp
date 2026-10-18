@@ -415,6 +415,8 @@ MainWindow::MainWindow(VsopTables vsop, Ephemerides eph, std::filesystem::path d
   if (QSettings().value(theme::kOwnColorsKey, false).toBool() && qApp != nullptr) {
     theme::set_own_colors(theme::dialog_color(konsta_.col_dial), theme::passive_color(konsta_.col_backg));
   }
+  // the paper of HOROSKOP-HINTERGRUND once chosen, the warm paper otherwise
+  theme::set_paper(QColor(QSettings().value(theme::kPaperKey).toString()));
   build_ui();
   recompute();
   // ALLES ZURÜCKSETZEN starts a fresh program and closes this one, an
@@ -1466,6 +1468,10 @@ void MainWindow::build_ui() {
       (own ? own_action : (theme::dark_theme() ? dark_action : light_action))->setChecked(true);
     }
   });
+  // the paper of the chart beside the dresses, the tester wanted it
+  // white or of his choosing
+  colors->addSeparator();
+  colors->addAction(tr("HOROSKOP-HINTERGRUND…"), this, &MainWindow::paper_choice);
   view->addSeparator();
   view->addAction(tr("PLANETEN-AUSWAHL…"), this, &MainWindow::planet_selection);
   view->addSeparator();
@@ -7115,6 +7121,46 @@ bool MainWindow::background_colors() {
   return true;
 }
 
+// The paper his screens drew on was white, the dress lays a warm paper
+// under the chart. The tester wanted to choose it, white among the
+// choices, a dark colour would swallow the black ink of the sheet
+void MainWindow::paper_choice() {
+  const QColor now = theme::paper_override();
+  const QColor white(Qt::white);
+  const int current = !now.isValid() ? 1 : (now == white ? 0 : 2);
+  const int b = ChoiceDialog::ask(this, tr("HOROSKOP-HINTERGRUND"), {tr("FARBE des HOROSKOP-BLATTES ?")},
+                                  {tr("WEIß"), tr("PAPIER ( Standard )"), tr("EIGENE FARBE …"), tr("EXIT")}, current);
+  QColor chosen;
+  switch (b) {
+    case 0:
+      chosen = white;
+      break;
+    case 1:
+      break;
+    case 2: {
+      chosen = QColorDialog::getColor(now.isValid() ? now : to_qcolor(kPaperColor), this, tr("FARBE des HOROSKOP-BLATTES"));
+      if (!chosen.isValid()) {
+        return;
+      }
+      if (theme::ink_on(chosen) != QColor(Qt::black)) {
+        QMessageBox::information(this, "HORCOM",
+                                 tr("Bitte eine HELLE Farbe wählen, die Schrift des Horoskops bleibt schwarz !"));
+        return;
+      }
+      break;
+    }
+    default:
+      return;
+  }
+  if (chosen.isValid()) {
+    QSettings().setValue(theme::kPaperKey, chosen.name());
+  } else {
+    QSettings().remove(theme::kPaperKey);
+  }
+  theme::set_paper(chosen);
+  wheel_->update();
+}
+
 // ported from CASE 107 of ausw_datei, the chart of the marked record in
 // its own window, Space or Enter lead back to the list, F6 turns helio
 void MainWindow::preview_record(const AafRecord& r) {
@@ -7197,7 +7243,7 @@ void MainWindow::export_svg() {
 }
 
 bool MainWindow::export_svg_to(const QString& path) {
-  const std::string svg = to_svg(classic_export_list(), svg_sprite_resolver());
+  const std::string svg = to_svg(classic_export_list(), svg_sprite_resolver(), paper_rgb());
   QFile f(path);
   if (!f.open(QIODevice::WriteOnly)) {
     return false;

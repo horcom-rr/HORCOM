@@ -9,6 +9,7 @@
 
 #include "doctest.h"
 #include "painter.hpp"
+#include "theme.hpp"
 
 using namespace horcom;
 
@@ -120,4 +121,29 @@ TEST_CASE("the frame of the true node is one even hairline on whole device pixel
     // no grey half pixels around the line
     CHECK(extent(img, [](QRgb c) { return qGray(c) > 20 && qGray(c) < 235; }).isEmpty());
   }
+}
+
+TEST_CASE("HOROSKOP-HINTERGRUND lays its paper under the sheet and every cutout") {
+  CHECK(to_qcolor(kPaperColor) == QColor(0xFC, 0xFA, 0xF4));
+  CHECK(paper_rgb() == kPaperColor);
+  theme::set_paper(QColor(Qt::white));
+  CHECK(to_qcolor(kPaperColor) == QColor(Qt::white));
+  CHECK(to_qcolor(kPaperColor, 128).alpha() == 128);
+  CHECK(paper_rgb() == 0xFFFFFFU);
+  // the ink and every other colour keep their own value
+  CHECK(to_qcolor(kInkColor) == QColor(Qt::black));
+  CHECK(to_qcolor(0xFF0000) == QColor(Qt::red));
+  // the painted sheet wears it from edge to edge
+  DisplayList dl;
+  dl.items.push_back({Primitive::Kind::kDot, 320.0, 240.0, 0, 0, 20.0, 0, 0, 0, 0, kPaperColor});
+  QImage image(64, 48, QImage::Format_RGB32);
+  image.fill(Qt::black);
+  {
+    QPainter p(&image);
+    paint_fitted(p, dl, QRectF(0, 0, image.width(), image.height()));
+  }
+  CHECK(QColor(image.pixel(1, 1)) == QColor(Qt::white));
+  CHECK(QColor(image.pixel(32, 24)) == QColor(Qt::white));
+  theme::set_paper(QColor());
+  CHECK(to_qcolor(kPaperColor) == QColor(0xFC, 0xFA, 0xF4));
 }

@@ -23,7 +23,10 @@ using GlyphImageResolver = std::function<std::string(const std::string&, Rgb)>;
 /// @param dl      the wheel primitives on the virtual canvas
 /// @param sprites optional resolver embedding his symbol sprites, the
 ///                default keeps the font glyphs
+/// @param paper   the colour of the sheet, it replaces kPaperColor on the
+///                ground and on every cutout
 /// @return the SVG text, viewBox 0 0 640 480 like the original screen
-[[nodiscard]] std::string to_svg(const DisplayList& dl, const GlyphImageResolver& sprites = {});
+[[nodiscard]] std::string to_svg(const DisplayList& dl, const GlyphImageResolver& sprites = {},
+                                 Rgb paper = kPaperColor);
 
 }  // namespace horcom

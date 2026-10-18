@@ -21,6 +21,8 @@ namespace horcom {
 /// @param c     the colour as 0xRRGGBB
 /// @param alpha the opacity, 255 opaque
 /// @return the Qt colour
+/// @note kPaperColor turns into the paper of HOROSKOP-HINTERGRUND once one
+///       is chosen, the sheet and its cutouts change together
 [[nodiscard]] QColor to_qcolor(Rgb c, int alpha = 255);
 
 /// A Qt colour for the display list, the opacity dropped.
@@ -30,6 +32,12 @@ namespace horcom {
 [[nodiscard]] inline Rgb to_rgb(const QColor& c) {
   return static_cast<Rgb>((c.red() << 16) | (c.green() << 8) | c.blue());
 }
+
+/// The chart paper in force as a display list colour.
+///
+/// @return the colour of HOROSKOP-HINTERGRUND or the warm paper of the
+///         dress
+[[nodiscard]] Rgb paper_rgb();
 
 /// Paints a display list onto an already transformed painter, the one
 /// code path behind the screen widget, the printer and the PDF export

@@ -672,6 +672,17 @@ TEST_CASE("the degree beside a glyph never reads 30") {
   CHECK(twenty_nine);
 }
 
+TEST_CASE("the SVG paper follows the colour the viewer chose") {
+  const Chart c = sample_chart();
+  const DisplayList dl = build_wheel(c, {}, scan_aspects(c, {}, {}));
+  const std::string warm = to_svg(dl);
+  CHECK(warm.find("fill=\"#FCFAF4\"") != std::string::npos);
+  // white paper on the ground and under every glyph cutout
+  const std::string white = to_svg(dl, {}, 0xFFFFFF);
+  CHECK(white.find("#FCFAF4") == std::string::npos);
+  CHECK(white.find("<rect width=\"640.00\" height=\"480.00\" fill=\"#FFFFFF\"/>") != std::string::npos);
+}
+
 TEST_CASE("the Rhythmenlehre phase flips the rulers and arcs its house") {
   const Chart c = sample_chart();
   REQUIRE(c.ok);
