@@ -718,6 +718,39 @@ TEST_CASE("a table dock may stand beside the DATEN panel left of the wheel") {
   w->hide();
 }
 
+TEST_CASE("every table dock may stack on the DATEN panel") {
+  // the least height of the window with the dock below the panel, a drop
+  // only lands where the column still fits the window
+  const auto stacked = [](const char* title) {
+    auto w = MainWindowProbe::make();
+    w->resize(1920, 1000);
+    w->show();
+    QApplication::processEvents();
+    QDockWidget* panel = nullptr;
+    QDockWidget* dock = nullptr;
+    for (QDockWidget* d : w->findChildren<QDockWidget*>()) {
+      if (d->windowTitle() == "DATEN") {
+        panel = d;
+      } else if (d->windowTitle() == QString::fromUtf8(title)) {
+        dock = d;
+      }
+    }
+    REQUIRE(panel != nullptr);
+    REQUIRE(dock != nullptr);
+    w->splitDockWidget(panel, dock, Qt::Vertical);
+    QApplication::processEvents();
+    CHECK(w->dockWidgetArea(dock) == Qt::LeftDockWidgetArea);
+    const int least = w->minimumSizeHint().height();
+    w->hide();
+    return least;
+  };
+  // the tester stacked the coordinates there, the fixed six rows of the
+  // cusps asked for more height than his screen had
+  const int coordinates = stacked("Planeten-Koordinaten");
+  CHECK(stacked("Häuser-Spitzen") <= coordinates);
+  CHECK(stacked("Aspekte / Halbsummen") <= coordinates);
+}
+
 TEST_CASE("HOROSKOP-HINTERGRUND turns the paper white and back to the dress") {
   auto w = MainWindowProbe::make();
   QSettings().remove(theme::kPaperKey);

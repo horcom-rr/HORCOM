@@ -2446,13 +2446,15 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects, bo
       cusps_->setItem(i - 1, house > kCuspRows ? 1 : 0, cell);
     }
   }
-  // the six rows keep the dock short, the room goes to the aspects below
+  // the six rows bound the dock, the room goes to the aspects below. It may
+  // shrink like the other docks, a fixed height kept it from stacking on
+  // the DATEN panel
   cusps_->resizeRowsToContents();
   int cusp_height = 2 * cusps_->frameWidth();
   for (int r = 0; r < kCuspRows; ++r) {
     cusp_height += cusps_->rowHeight(r);
   }
-  cusps_->setFixedHeight(cusp_height);
+  cusps_->setMaximumHeight(cusp_height);
   //RR die MONDPHASE ... ist die ekliptikale Längendifferenz MOND-SONNE
   // with his percent figure, full moon one hundred, new moon zero
   QString phase_text;
