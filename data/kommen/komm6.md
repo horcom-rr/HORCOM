@@ -6,6 +6,8 @@ DÖBEREINER-AUSLÖSUNG :Ermittelt die Zeitpunkte der rhythmischen Auslösungen n
 
 Sie könen zwischen einer GRAPHIK-, einer TABELLEN-Ausgabe mit PLANETEN und und einer GRAD-DATUM-TABELLE wählen.
 
+*Anmerkung der Neufassung, das SEPTAR beschreibt die ERLÄUTERUNG 5 im Abschnitt SOLAR , SEPTAR. Ein Klick auf den ersten Spaltenkopf der AUSLÖSUNGS-TABELLE ordnet die ganze Liste zeitlich.*
+
 Abkürzungen:
 
 - LJ = Lebensjahr

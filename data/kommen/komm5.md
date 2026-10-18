@@ -26,6 +26,8 @@ SEPTARE werden SCHULGEMÄß für den Geburtsort erstellt.Sie können aber auch m
 
 Nachdem Sie einen SEPTAR-Zeitpunkt berechnet haben,können Sie mit dem Programm MÜNCHNER RHYTHMENLEHRE die Auslösungen studieren.
 
+*Anmerkung der Neufassung, in dieser Version steht SEPTAR unter AUSWERTUNG bei der MÜNCHNER RHYTHMENLEHRE, deren Auslösungen die ERLÄUTERUNG 6 beschreibt. Ein SEPTAR gilt nur bis zur Nr. 12, den zwölf Häusern des Rhythmus, für ein höheres Alter wählt man einen größeren Schlüssel ( SONSTIGE ).*
+
 ## LUNAR
 
 Ermittelt entsprechend den Zeitpunkt für ein Lunar-Horoskop (Mond hat die gleiche ekl.Länge wie bei der Geburt.Siehe auch Erl.3 PARALLAXE ) Dazu wird zur Eingabe eines Datums für den interessierenden Zeitraum aufgefordert.Es wird dann meist das unmittelbar vorangehende Lunar,innerhalb der nächsten ca. 28 Tage ermittelt.Wenn nicht,ein entsprechend vorgeschobenes Datum wählen.
@@ -81,6 +83,8 @@ Nach meiner Kenntnis werden Personare als Teilaspekte der Persönlichkeit interp
 Z.B. für den Mars "MARS-PERS" usw.
 
 ## TAGES-HOROSKOP ,abgekürzt  TAG-HOR
+
+*Anmerkung der Neufassung, in dieser Version stehen TAGES-HOROSKOP und PROGRESSIONS-HOROSKOP unter AUSWERTUNG vor den Direktionen.*
 
 Berechnet für beliebiges Datum und Ort ein Horoskop mit der WAHREN Orts-Sonnenzeit des Radix ( Der Abstand AR MC- AR SO ist der gleiche wie im Radix).
 

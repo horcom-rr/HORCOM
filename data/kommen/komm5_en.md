@@ -26,6 +26,8 @@ SEPTARS are, by the textbook, created for the birthplace. But you can also exper
 
 After you have calculated a SEPTAR moment, you can study the triggerings with the MÜNCHNER RHYTHMENLEHRE program.
 
+*Note of this edition, in this version SEPTAR stands under EVALUATION with the MUNICH RHYTHM THEORY, whose triggerings COMMENTARY 6 describes. A Septar runs up to No. 12 only, the twelve houses of the rhythm, a higher age takes a larger key ( OTHER ).*
+
 ## LUNAR
 
 Determines correspondingly the moment for a Lunar horoscope (the Moon has the same ecliptic longitude as at birth. See also Note 3 PARALLAXE). For this you are prompted to enter a date for the period of interest. Then usually the Lunar immediately preceding it, within the next roughly 28 days, is determined. If not, choose a date pushed forward accordingly.
@@ -81,6 +83,8 @@ To my knowledge, Personars are interpreted as partial aspects of the personality
 For example for Mars "MARS-PERS" and so on.
 
 ## DAILY HOROSCOPE, abbreviated TAG-HOR
+
+*Note of this edition, in this version DAY HOROSCOPE and PROGRESSED HOROSCOPE stand under EVALUATION ahead of the directions.*
 
 Calculates, for any date and place, a horoscope with the TRUE local solar time of the radix (the distance AR MC minus AR SO is the same as in the radix).
 

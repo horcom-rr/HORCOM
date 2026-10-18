@@ -6,6 +6,8 @@ DÖBEREINER TRIGGERING: Determines the moments of the rhythmic triggerings after
 
 You can choose between a GRAPHIC output, a TABLE output with PLANETS, and a DEGREE-DATE TABLE.
 
+*Note of this edition, COMMENTARY 5 describes the SEPTAR in the section SOLAR, SEPTAR. A click on the first column head of the TRIGGER TABLE orders the whole list in time.*
+
 Abbreviations:
 
 - LJ = year of life
