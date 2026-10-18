@@ -307,14 +307,27 @@ TEST_CASE("the coordinate dock lists the tester's rows with both lunar forms") {
   CHECK(t->item(10, 0)->text() == true_node->text());
   CHECK(t->item(11, 0)->text() == mean_node->text());
   CHECK(t->item(10, 0)->text() != t->item(11, 0)->text());
-  // the distance in percent of the mean beside the AU
-  const QStringList cols{t->horizontalHeaderItem(5)->text(), t->horizontalHeaderItem(6)->text()};
-  CHECK(cols == QStringList{"Entf.%", "Entf.AE"});
-  CHECK(t->item(0, 5)->text().endsWith('%'));
-  CHECK(t->item(0, 6)->text().toDouble() == doctest::Approx(1.0).epsilon(0.02));
+  // the motion right after the longitude as the tester reads a planet, the
+  // R of a retrograde body, the arc minutes per day and the sign of their
+  // change, then latitude and declination, the distance in percent of the
+  // mean beside the AU
+  QStringList cols;
+  for (int c = 0; c < t->columnCount(); ++c) {
+    cols << t->horizontalHeaderItem(c)->text();
+  }
+  CHECK(cols.mid(0, 8) == QStringList{"Länge", "R", "Vel.'", "A", "Breite", "Deklin.", "Entf.%", "Entf.AE"});
+  CHECK(t->item(0, 6)->text().endsWith('%'));
+  CHECK(t->item(0, 7)->text().toDouble() == doctest::Approx(1.0).epsilon(0.02));
+  // the R stands where the velocity is negative and nowhere else, a slow
+  // retrograde body may print -0.0
+  for (int r = 0; r < t->rowCount(); ++r) {
+    if (t->item(r, 2) != nullptr && t->item(r, 1) != nullptr) {
+      CHECK((t->item(r, 1)->text() == "R") == t->item(r, 2)->text().startsWith('-'));
+    }
+  }
   // the A column carries a sign for the Sun and the Moon now, the mean
   // forms and the Glückspunkt stay blank like a motion that never changes
-  const int a = 4;
+  const int a = 3;
   for (const char* body : {"SO", "MO", "DR wahr", "CH"}) {
     const int row = heads.indexOf(body);
     REQUIRE(t->item(row, a) != nullptr);
@@ -361,13 +374,15 @@ TEST_CASE("the mundane frame lists the one projected form of each lunar point") 
   QTableWidget* t = MainWindowProbe::bodies(*w);
   const std::unique_ptr<QTableWidgetItem> projected(zodiac_item(MainWindowProbe::chart(*w).b[body::kNodeAsc].el));
   CHECK(t->item(dr, 0)->text() == projected->text());
-  // the true node carries its sign, a mean node row stays blank
-  REQUIRE(t->item(dr, 4) != nullptr);
+  // the true node carries its sign in the A column, a mean node row stays
+  // blank
+  constexpr int a = 3;
+  REQUIRE(t->item(dr, a) != nullptr);
   MainWindowProbe::true_node(*w, false);
   heads = rows();
   REQUIRE(heads.contains("DR mittel"));
   CHECK_FALSE(heads.contains("DR wahr"));
-  CHECK(MainWindowProbe::bodies(*w)->item(heads.indexOf("DR mittel"), 4) == nullptr);
+  CHECK(MainWindowProbe::bodies(*w)->item(heads.indexOf("DR mittel"), a) == nullptr);
   MainWindowProbe::set_mundane_frame(*w, false);
 }
 
@@ -625,6 +640,32 @@ TEST_CASE("wart holds the chart only where a question follows and shows that it 
   while (rest.elapsed() < 2600) {
     QApplication::processEvents(QEventLoop::AllEvents, 100);
   }
+  w->hide();
+}
+
+TEST_CASE("a table dock may stand beside the DATEN panel left of the wheel") {
+  auto w = MainWindowProbe::make();
+  // the tester could only stack the tables above the panel
+  CHECK(w->dockOptions().testFlag(QMainWindow::AllowNestedDocks));
+  QDockWidget* panel = nullptr;
+  QDockWidget* table = nullptr;
+  for (QDockWidget* d : w->findChildren<QDockWidget*>()) {
+    if (d->windowTitle() == "DATEN") {
+      panel = d;
+    } else if (d->windowTitle() == "Planeten-Koordinaten") {
+      table = d;
+    }
+  }
+  REQUIRE(panel != nullptr);
+  REQUIRE(table != nullptr);
+  w->splitDockWidget(panel, table, Qt::Horizontal);
+  w->resize(1600, 900);
+  w->show();
+  QApplication::processEvents();
+  CHECK(w->dockWidgetArea(table) == Qt::LeftDockWidgetArea);
+  // side by side, the table right of the panel and both as tall
+  CHECK(table->x() >= panel->x() + panel->width() - 1);
+  CHECK(table->y() == panel->y());
   w->hide();
 }
 

@@ -463,9 +463,19 @@ TEST_CASE("the KOMPAKT-AUSWERTUNG lists the midpoints and bes2 names the chart")
   CHECK(with.contains("DIREKT:"));
   CHECK(with.contains("HALBQU:"));
   CHECK(with.contains(QRegularExpression("[A-Z]{2}=[A-Z]{2}-[A-Z]{2}")));
+  // the dock has its own switch in ANSICHT, the tester missed the list
+  // once HALBSUMMENLISTE HINZUNEHMEN had said NEIN
   k.voll = false;
   MainWindowProbe::apply(*w, evening_birth());
-  CHECK_FALSE(MainWindowProbe::summary(*w).contains("HALBSUM."));
+  CHECK(MainWindowProbe::summary(*w) == with);
+  // the mundane frame keeps his horm& = 1 and says why the list is missing
+  MainWindowProbe::set_mundane_frame(*w, true);
+  MainWindowProbe::apply(*w, evening_birth());
+  const QString mundane = MainWindowProbe::summary(*w);
+  CHECK(mundane.contains("HALBSUM."));
+  CHECK(mundane.contains("EKLIPTIK"));
+  CHECK_FALSE(mundane.contains("DIREKT:"));
+  MainWindowProbe::set_mundane_frame(*w, false);
   // his sol$ stands in the centre of the radix wheel
   bool radix = false;
   for (const Primitive& p : MainWindowProbe::wheel(*w).items) {

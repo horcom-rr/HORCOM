@@ -1056,7 +1056,9 @@ class MainWindow : public QMainWindow {
   /// @param longitudes_only the composite of bes10, longitudes without
   ///        latitude, speed or distance
   void fill_tables(const Chart& chart, const AspectResult& aspects, bool longitudes_only = false);
-  /// @return the HALBSUM. list of the KOMPAKT-AUSWERTUNG, empty without it
+  /// @param chart the shown chart
+  /// @return the HALBSUM. list of the KOMPAKT-AUSWERTUNG for the dock, in
+  ///         the mundane frame the note that it needs the ecliptic
   [[nodiscard]] QString compact_midpoints(const Chart& chart) const;
   [[nodiscard]] ChartInput current_input() const;
   [[nodiscard]] ChartSettings current_settings() const;

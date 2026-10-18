@@ -150,22 +150,24 @@ class ResizeHook final : public QObject {
 // the object name of the HINTERGRUND-FARBEN entry of the FARBEN menu
 constexpr const char* kOwnColorsAction = "ownColorsAction";
 
-// the columns of the coordinate dock, the distance in percent of his mean
-// and in AU side by side, the mean node and apsis points after
-// Landscheidt, the R of a retrograde body last
+// the columns of the coordinate dock, the motion right after the
+// longitude as the tester reads a planet, the R of a retrograde body, the
+// arc minutes per day and the sign of their change, then latitude and
+// declination, the distance in percent of his mean and in AU side by
+// side, the mean node and apsis points after Landscheidt
 enum BodyColumn {
   kBodyLon,
-  kBodyLat,
-  kBodyDec,
+  kBodyRetro,
   kBodyVel,
   kBodyAcc,
+  kBodyLat,
+  kBodyDec,
   kBodyPercent,
   kBodyAu,
   kBodyNode,
   kBodySouth,
   kBodyPerihel,
   kBodyAphel,
-  kBodyRetro,
   kBodyColumns
 };
 
@@ -466,6 +468,10 @@ void MainWindow::build_ui() {
 
   wheel_ = new WheelWidget(this);
   setCentralWidget(wheel_);
+  // a dock also stands beside another dock of its side, the tester wanted
+  // the coordinate and cusp tables left of the wheel next to the panel,
+  // where Qt had only stacked them above it
+  setDockOptions(QMainWindow::AnimatedDocks | QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks);
   // his IF moda& = 1 && MOUSEK = 2, einzel_plan_wahl on the HOROSKOP-GRAPHIK.
   // The button stays with it, no context menu event climbs on to the
   // Erste Hilfe of the main screen
@@ -940,8 +946,8 @@ void MainWindow::build_ui() {
   // and ENTF carries the distance in percent of his mean and in AU side by
   // side, then the mean node and apsis points after Landscheidt
   // his Vel.', the arc minutes per day of his coordinate screen
-  bodies_->setHorizontalHeaderLabels({tr("Länge"), tr("Breite"), tr("Deklin."), "Vel.'", "A", tr("Entf.%"),
-                                      tr("Entf.AE"), tr("Kn.ND"), tr("Kn.SD"), tr("Perihel"), tr("Aphel"), ""});
+  bodies_->setHorizontalHeaderLabels({tr("Länge"), "R", "Vel.'", "A", tr("Breite"), tr("Deklin."), tr("Entf.%"),
+                                      tr("Entf.AE"), tr("Kn.ND"), tr("Kn.SD"), tr("Perihel"), tr("Aphel")});
   bodies_->horizontalHeader()->setStretchLastSection(true);
   bodies_->verticalHeader()->setDefaultSectionSize(18);
   bodies_->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -2457,11 +2463,14 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects, bo
 // ported from halbs1 with halbs11 and halbsa, the KOMPAKT-AUSWERTUNG of
 // his sheet. IF voll! && asp1! = FALSE && horm& = 1 the midpoint list
 // stands beside the aspects, a family heading each, t=u-w per entry,
-// the bodies of the Planeten-Auswahl red like col_halbsel
+// the bodies of the Planeten-Auswahl red like col_halbsel. The dock has
+// its own switch in ANSICHT and lists them whatever voll! says, the
+// tester missed the list once HALBSUMMENLISTE HINZUNEHMEN had said NEIN.
+// The mundane frame keeps his horm& = 1 and says why the list is missing
 QString MainWindow::compact_midpoints(const Chart& chart) const {
   const ChartSettings s = current_settings();
-  if (!konsta_.voll || (mundane_frame_ && !s.heliocentric)) {
-    return {};
+  if (mundane_frame_ && !s.heliocentric) {
+    return "<br>" + theme::heading_span(tr("HALBSUM.")) + "&nbsp; " + tr("nur im BEZUGS-SYSTEM EKLIPTIK");
   }
   const MidpointResult mids = scan_midpoints(chart, s, shown_aspect_settings());
   const std::array<int, body::kSlotCount> marks = shown_emphasis();
