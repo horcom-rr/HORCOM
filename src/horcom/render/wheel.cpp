@@ -8,6 +8,9 @@
 #include <array>
 #include <cmath>
 #include <cstdio>
+#include <limits>
+#include <string>
+#include <vector>
 
 #include "horcom/chart/signs.hpp"
 #include "horcom/core/angle.hpp"
@@ -39,6 +42,10 @@ constexpr double kPhaseArcStep = kPi / 90.0;
 constexpr double kConjDotRing = 85.0;  // the original red conjunction ring
 constexpr double kConjRingRadius = 3.0;
 constexpr double kNumberSize = 9.0;
+// planziff1 hangs the number one glyph height and this gap below the
+// centre of its glyph, a square or a frame pushes it a little further
+constexpr double kNumberGap = 1.0;
+constexpr double kBoxedNumberGap = 2.5;
 constexpr double kAxisTextSize = 12.0;
 // the transit ring of a20, glyphs from plein1 and markers from plmk
 constexpr double kTransitGlyphRing = 212.0;
@@ -151,6 +158,11 @@ Rgb retro_color(int outer_color) {
   }
 }
 
+// the radial step of plentz, a crowded glyph moves this far out or 1.8
+// times as far in
+constexpr double kPlentzAmp = 8.0;
+constexpr double kPlentzInward = 1.8;
+
 // the original plentz chain, radial stagger and angular push apart of
 // crowded glyphs. Operates on the display longitudes wl and offsets dc.
 void declump(const std::vector<int>& slots, const std::array<double, body::kSlotCount>& pl, std::array<double, body::kSlotCount>& wl, std::array<double, body::kSlotCount>& dc, double shrink) {
@@ -158,7 +170,7 @@ void declump(const std::vector<int>& slots, const std::array<double, body::kSlot
   std::sort(order.begin(), order.end(), [&](int a, int b) {
     return wl[static_cast<std::size_t>(a)] < wl[static_cast<std::size_t>(b)];
   });
-  const double amp = 8.0;
+  const double amp = kPlentzAmp;
   //RR plentz1
   const double dd1 = kPi / 18.0;
   double kf = 1.0;
@@ -168,11 +180,11 @@ void declump(const std::vector<int>& slots, const std::array<double, body::kSlot
       kf = -kf;
       dc[static_cast<std::size_t>(k)] = amp * kf;
       if (dc[static_cast<std::size_t>(k)] < 0.0) {
-        dc[static_cast<std::size_t>(k)] = -amp * 1.8;
+        dc[static_cast<std::size_t>(k)] = -amp * kPlentzInward;
       }
       dc[static_cast<std::size_t>(l)] = -amp * kf;
       if (dc[static_cast<std::size_t>(l)] < 0.0) {
-        dc[static_cast<std::size_t>(l)] = -amp * 1.8;
+        dc[static_cast<std::size_t>(l)] = -amp * kPlentzInward;
       }
       //RR IF klsy! dc&(kj&) = 0.7 * dc&(kj&)
       dc[static_cast<std::size_t>(k)] *= shrink;
@@ -221,20 +233,163 @@ void declump(const std::vector<int>& slots, const std::array<double, body::kSlot
   }
 }
 
+// the box a text or a sprite covers on the canvas
+struct Box {
+  double l, t, r, b;
+};
+
+// a centred text of the fixed pitch face
+Box text_box_at(double x, double y, double size, std::size_t chars) {
+  const double half = 0.5 * kMonoAdvance * size * static_cast<double>(chars);
+  return Box{x - half, y - 0.5 * size, x + half, y + 0.5 * size};
+}
+
+// The stretch of a ring the number and the R of a glyph keep to, radii
+// from the wheel centre on the canvas. The position marks and the sign
+// band lie outside it.
+struct TextRing {
+  double inner = 0.0;
+  double outer = std::numeric_limits<double>::infinity();
+};
+
+bool within(const Box& b, const TextRing& ring) {
+  const double nearest = std::hypot(std::clamp(kCx, b.l, b.r) - kCx, std::clamp(kCy, b.t, b.b) - kCy);
+  double farthest = 0.0;
+  for (const double x : {b.l, b.r}) {
+    for (const double y : {b.t, b.b}) {
+      farthest = std::max(farthest, std::hypot(x - kCx, y - kCy));
+    }
+  }
+  return nearest >= ring.inner && farthest <= ring.outer;
+}
+
+// One degree number of a ring, the centre of its glyph, the distance it
+// hangs below the glyph and its text.
+struct RingNumber {
+  Pt glyph;
+  double drop = 0.0;
+  std::string text;
+};
+
+// planziff1 hangs the number below its glyph on screen, in the lower half
+// of the radix ring a number below the outer row of plentz ran over the
+// position marks into the sign band. There the glyphs rise just as far as
+// that number needs, both rows alike and straight up, so the stagger and
+// the spacing stand as plentz set them and every number keeps his place
+// below. The inner row never rises onto the marks of the aspect circle,
+// on a small wheel a number then finds its place by place_numbers. The
+// upper half keeps his radii
+double glyph_lift(double w, double km, double glyph_ring, double outer_step, double drop, double glyph_size,
+                  const TextRing& ring) {
+  constexpr double kStep = 0.25;
+  constexpr double kHighest = 24.0;
+  // the widest number, two digits
+  constexpr std::size_t kDigits = 2;
+  const double half = 0.5 * kSpriteBox * glyph_size;
+  const double r = km * (glyph_ring + outer_step);
+  const Pt g{kCx + r * std::cos(-w), kCy + r * std::sin(-w)};
+  const double ri = km * (glyph_ring - kPlentzInward * outer_step);
+  const Pt gi{kCx + ri * std::cos(-w), kCy + ri * std::sin(-w)};
+  for (double lift = 0.0; lift < kHighest; lift += kStep) {
+    if (!within(Box{gi.x - half, gi.y - lift - half, gi.x + half, gi.y - lift + half}, ring)) {
+      return std::max(0.0, lift - kStep);
+    }
+    if (within(text_box_at(g.x, g.y - lift + drop, kNumberSize, kDigits), ring)) {
+      return lift;
+    }
+  }
+  return kHighest;
+}
+
+// planziff1 hangs the number below its glyph on screen. In the lower half
+// of the radix ring it ran over the position marks into the sign band and
+// at the top of an outer ring over the marks of that ring, the tester
+// wanted every number clear of the zodiac. Such a number stands as far
+// above its glyph, or beside it, on the first side where it meets no
+// glyph and no number of a crowded stretch. The numbers that hang below
+// like his take their place first. A number without a free side keeps to
+// its ring all the same
+std::vector<Pt> place_numbers(const std::vector<RingNumber>& numbers, double glyph_size, const TextRing& ring) {
+  constexpr double kClear = 0.5;
+  const auto hit = [](const Box& a, const Box& b) {
+    return a.l < b.r - kClear && b.l < a.r - kClear && a.t < b.b - kClear && b.t < a.b - kClear;
+  };
+  // two numbers side by side keep half a digit apart, else 4 and 16 read 416
+  const double gap = 0.5 * kMonoAdvance * kNumberSize;
+  const double glyph_half = 0.5 * kSpriteBox * glyph_size;
+  std::vector<Box> taken;
+  std::vector<Box> texts;
+  for (const RingNumber& n : numbers) {
+    taken.push_back({n.glyph.x - glyph_half, n.glyph.y - glyph_half, n.glyph.x + glyph_half, n.glyph.y + glyph_half});
+  }
+  const auto candidates = [glyph_half](const RingNumber& n) {
+    const double side = glyph_half + 0.5 * kMonoAdvance * kNumberSize * static_cast<double>(n.text.size()) + 1.0;
+    return std::array<Pt, 4>{Pt{n.glyph.x, n.glyph.y + n.drop}, Pt{n.glyph.x, n.glyph.y - n.drop},
+                             Pt{n.glyph.x + side, n.glyph.y}, Pt{n.glyph.x - side, n.glyph.y}};
+  };
+  const auto free_at = [&](const Pt& at, std::size_t chars) {
+    const Box b = text_box_at(at.x, at.y, kNumberSize, chars);
+    const Box wide{b.l - gap, b.t, b.r + gap, b.b};
+    return within(b, ring) && std::none_of(taken.begin(), taken.end(), [&](const Box& t) { return hit(b, t); }) &&
+           std::none_of(texts.begin(), texts.end(), [&](const Box& t) { return hit(wide, t); });
+  };
+  std::vector<Pt> out(numbers.size());
+  std::vector<bool> done(numbers.size(), false);
+  const auto take = [&](std::size_t i, const Pt& at) {
+    out[i] = at;
+    done[i] = true;
+    texts.push_back(text_box_at(at.x, at.y, kNumberSize, numbers[i].text.size()));
+  };
+  for (std::size_t i = 0; i < numbers.size(); ++i) {
+    const Pt below = candidates(numbers[i])[0];
+    if (free_at(below, numbers[i].text.size())) {
+      take(i, below);
+    }
+  }
+  for (std::size_t i = 0; i < numbers.size(); ++i) {
+    if (done[i]) {
+      continue;
+    }
+    const std::array<Pt, 4> c = candidates(numbers[i]);
+    const auto open_side = std::find_if(c.begin() + 1, c.end(), [&](const Pt& at) { return free_at(at, numbers[i].text.size()); });
+    if (open_side != c.end()) {
+      take(i, *open_side);
+      continue;
+    }
+    // no free side, the place inside the ring that covers least
+    const auto covered = [&](const Pt& at) {
+      const Box b = text_box_at(at.x, at.y, kNumberSize, numbers[i].text.size());
+      double area = 0.0;
+      for (const std::vector<Box>* boxes : {&taken, &texts}) {
+        for (const Box& t : *boxes) {
+          area += std::max(0.0, std::min(b.r, t.r) - std::max(b.l, t.l)) * std::max(0.0, std::min(b.b, t.b) - std::max(b.t, t.t));
+        }
+      }
+      return area;
+    };
+    const Pt* best = nullptr;
+    double least = std::numeric_limits<double>::infinity();
+    for (const Pt& at : c) {
+      if (within(text_box_at(at.x, at.y, kNumberSize, numbers[i].text.size()), ring) && covered(at) < least) {
+        least = covered(at);
+        best = &at;
+      }
+    }
+    take(i, best != nullptr ? *best : c[0]);
+  }
+  return out;
+}
+
 // planziff1 stands the R of a retrograde body at the upper right of its
 // glyph, in a crowded stretch of the ring it met the number or the glyph
-// of a neighbour. Such an R turns with its paper patch to the upper left
-// of its own glyph when that side is free, the glyphs and the numbers
-// stay where plentz set them
-void keep_retro_marks_clear(DisplayList& dl, std::size_t first) {
-  struct Box {
-    double l, t, r, b;
-  };
-  // a centred text of the fixed pitch face, a sprite of its size
-  const auto text_box = [](const Primitive& p) {
-    const double half = 0.5 * kMonoAdvance * p.size * static_cast<double>(p.text.size());
-    return Box{p.x1 - half, p.y1 - 0.5 * p.size, p.x1 + half, p.y1 + 0.5 * p.size};
-  };
+// of a neighbour, beside the marks it reached into the zodiac. Such an R
+// turns to the upper left of its own glyph, then to the lower right or
+// left, the first corner that is free. Without one it keeps to its ring
+// all the same. The glyphs and the numbers stay where plentz and
+// place_numbers set them. Only the marks from first_mark on move, every
+// text and glyph of the list stands in their way
+void keep_retro_marks_clear(DisplayList& dl, std::size_t first_mark, const TextRing& ring) {
+  const auto text_box = [](const Primitive& p) { return text_box_at(p.x1, p.y1, p.size, p.text.size()); };
   const auto glyph_box = [](const Primitive& p) {
     const double half = 0.5 * kSpriteBox * p.size;
     return Box{p.x1 - half, p.y1 - half, p.x1 + half, p.y1 + half};
@@ -246,7 +401,7 @@ void keep_retro_marks_clear(DisplayList& dl, std::size_t first) {
   std::vector<std::size_t> marks;
   std::vector<std::size_t> numbers;
   std::vector<std::size_t> glyphs;
-  for (std::size_t i = first; i < dl.items.size(); ++i) {
+  for (std::size_t i = 0; i < dl.items.size(); ++i) {
     const Primitive& p = dl.items[i];
     if (p.kind == Primitive::Kind::kGlyph) {
       glyphs.push_back(i);
@@ -255,6 +410,9 @@ void keep_retro_marks_clear(DisplayList& dl, std::size_t first) {
     }
   }
   for (const std::size_t m : marks) {
+    if (m < first_mark) {
+      continue;
+    }
     Primitive& r = dl.items[m];
     // its own glyph is the nearest one
     std::size_t own = glyphs.empty() ? m : glyphs.front();
@@ -265,6 +423,9 @@ void keep_retro_marks_clear(DisplayList& dl, std::size_t first) {
       }
     }
     const auto blocked = [&](const Box& b) {
+      if (!within(b, ring)) {
+        return true;
+      }
       for (const std::size_t n : numbers) {
         if (hit(b, text_box(dl.items[n]))) {
           return true;
@@ -285,20 +446,20 @@ void keep_retro_marks_clear(DisplayList& dl, std::size_t first) {
     if (glyphs.empty() || !blocked(text_box(r))) {
       continue;
     }
-    const double dx = 2.0 * (dl.items[own].x1 - r.x1);
-    Primitive left = r;
-    left.x1 += dx;
-    if (blocked(text_box(left))) {
-      continue;
+    // the corners of its glyph, his upper right first
+    const double gx = dl.items[own].x1;
+    const double gy = dl.items[own].y1;
+    const std::array<Pt, 4> corners{Pt{r.x1, r.y1}, Pt{2.0 * gx - r.x1, r.y1}, Pt{r.x1, 2.0 * gy - r.y1},
+                                    Pt{2.0 * gx - r.x1, 2.0 * gy - r.y1}};
+    const auto box_at = [&r](const Pt& at) { return text_box_at(at.x, at.y, r.size, r.text.size()); };
+    auto pick = std::find_if(corners.begin() + 1, corners.end(), [&](const Pt& at) { return !blocked(box_at(at)); });
+    if (pick == corners.end() && !within(box_at(corners[0]), ring)) {
+      pick = std::find_if(corners.begin() + 1, corners.end(), [&](const Pt& at) { return within(box_at(at), ring); });
     }
-    // the paper patch under the R moves along
-    for (std::size_t i = first; i < dl.items.size(); ++i) {
-      Primitive& patch = dl.items[i];
-      if (patch.kind == Primitive::Kind::kDot && patch.color == kPaperColor && patch.x1 == r.x1 && patch.y1 == r.y1) {
-        patch.x1 += dx;
-      }
+    if (pick != corners.end()) {
+      r.x1 = pick->x;
+      r.y1 = pick->y;
     }
-    r.x1 += dx;
   }
 }
 
@@ -529,6 +690,23 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
   }
   declump(slots, pl, wl, dc, opt.small_symbols ? kSmallStagger : 1.0);
   const double gs = opt.small_symbols ? kSpriteSize * kSmallSymbolScale : kSpriteSize;
+  // the numbers and the R stay between the position marks of r 150 and
+  // those of the aspect circle
+  const TextRing text_ring{km * (kAspectRing + kMarkOutset), km * (kTickRing - kMarkInset)};
+  std::array<double, body::kSlotCount> lift{};
+  if (opt.degree_numbers) {
+    // the boxed glyph pushes its number furthest
+    const double drop = gs + kBoxedNumberGap;
+    const double outer_step = kPlentzAmp * (opt.small_symbols ? kSmallStagger : 1.0);
+    for (const int slot : slots) {
+      const auto si = static_cast<std::size_t>(slot);
+      lift[si] = glyph_lift(wl[si], km, kGlyphRing, outer_step, drop, gs, text_ring);
+    }
+  }
+  const auto glyph_at = [&](std::size_t si) {
+    const Pt g = at(wl[si], kGlyphRing + dc[si]);
+    return Pt{g.x, g.y - lift[si]};
+  };
 
   // ticks and glyphs like plein1 and plein11. The paper cutouts of all
   // glyphs land first, then every symbol, so crowded neighbours never
@@ -580,26 +758,16 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
       ik.width = kThinLine;
       add(ik);
     }
-    // the paper cutouts, his putbm sprites erased the lines beneath
-    // with their white background. The inverted patch pushes its
-    // number and R marker a little further out.
-    const Pt g = at(wl[si], kGlyphRing + dc[si]);
-    const bool inv = boxed_slot(slot);
+    // the paper cutout, his putbm sprites erased the lines beneath with
+    // their white background. His numbers and R went on in the
+    // TRANSPARENT mode of his text, the white disc the port once laid
+    // under them cut the sign band
+    const Pt g = glyph_at(si);
     add({Primitive::Kind::kDot, g.x, g.y, 0, 0, gs * 0.60, 0, 0, 0, 0, kPaperColor});
-    if (opt.retro_marks && chart.b[si].tb < 0.0 && retro_slot(slot)) {
-      add({Primitive::Kind::kDot, g.x + gs * (inv ? 1.05 : 0.85), g.y - gs * 0.3,
-           0, 0, kNumberSize * 0.6, 0, 0, 0, 0, kPaperColor});
-    }
-    if (opt.degree_numbers) {
-      // planziff hangs the number below the glyph on screen, one glyph
-      // height under its centre, never into the radial stack
-      add({Primitive::Kind::kDot, g.x, g.y + gs + (inv ? 2.5 : 1.0), 0, 0,
-           kNumberSize * 0.75, 0, 0, 0, 0, kPaperColor});
-    }
   }
   for (int slot : slots) {
     const auto si = static_cast<std::size_t>(slot);
-    const Pt g = at(wl[si], kGlyphRing + dc[si]);
+    const Pt g = glyph_at(si);
     // nodes and the birth ruler sit inverted on a dark patch, the
     // putbm SRCINVERT stamping of rulers and nodes
     const bool inverted = inverted_slot(slot);
@@ -628,34 +796,44 @@ static void build_base(DisplayList& dl, const Chart& chart, const ChartSettings&
   }
   // numbers and retrograde marks last, they stay readable over any
   // crowded neighbour glyph
+  if (opt.degree_numbers) {
+    std::vector<RingNumber> numbers;
+    for (int slot : slots) {
+      const auto si = static_cast<std::size_t>(slot);
+      //RR CINT, planziff1 rounds the degree in sign to the nearest
+      const double q = norm_deg(pl[si] * kRadToDeg);
+      // one glyph height from its centre, a square or a frame pushes the
+      // number a little further off
+      numbers.push_back({glyph_at(si), gs + (boxed_slot(slot) ? kBoxedNumberGap : kNumberGap),
+                         std::to_string(degree_in_sign(q))});
+    }
+    const std::vector<Pt> placed = place_numbers(numbers, gs, text_ring);
+    for (std::size_t i = 0; i < numbers.size(); ++i) {
+      Primitive num;
+      num.kind = Primitive::Kind::kText;
+      num.size = kNumberSize;
+      num.text = numbers[i].text;
+      num.x1 = placed[i].x;
+      num.y1 = placed[i].y;
+      add(num);
+    }
+  }
   for (int slot : slots) {
     const auto si = static_cast<std::size_t>(slot);
-    const Pt g = at(wl[si], kGlyphRing + dc[si]);
-    const bool inv = boxed_slot(slot);
     // the R of his retrograde marker beside the glyph, pziff 1 only
     if (opt.retro_marks && chart.b[si].tb < 0.0 && retro_slot(slot)) {
+      const Pt g = glyph_at(si);
       Primitive r;
       r.kind = Primitive::Kind::kText;
-      r.x1 = g.x + gs * (inv ? 1.05 : 0.85);
+      r.x1 = g.x + gs * (boxed_slot(slot) ? 1.05 : 0.85);
       r.y1 = g.y - gs * 0.3;
       r.size = kNumberSize;
       r.color = retro_color(opt.outer_color);
       r.text = "R";
       add(r);
     }
-    if (opt.degree_numbers) {
-      Primitive num;
-      num.kind = Primitive::Kind::kText;
-      num.x1 = g.x;
-      num.y1 = g.y + gs + (inv ? 2.5 : 1.0);
-      num.size = kNumberSize;
-      //RR CINT, planziff1 rounds the degree in sign to the nearest
-      const double q = norm_deg(pl[si] * kRadToDeg);
-      num.text = std::to_string(degree_in_sign(q));
-      add(num);
-    }
   }
-  keep_retro_marks_clear(dl, 0);
+  keep_retro_marks_clear(dl, 0, text_ring);
 
   //RR apog!, DEFLINE 1,1 from the Black Moon through the centre
   if (opt.apogee_axis && opt.aspect_lines && chart.b[body::kApogee].present && chart.b[body::kApogee].valid) {
@@ -803,7 +981,8 @@ DisplayList build_wheel(const Chart& chart, const ChartSettings& s, const Aspect
 
 // the outer ring shared by the a20 transit and the a12 comparison, a
 // tick marker like plmk and the glyph outside like plein1
-static void draw_outer_bodies(DisplayList& dl, const Chart& chart, double fza, double km, double mark_ring, double glyph_ring, const WheelOptions& opt) {
+static void draw_outer_bodies(DisplayList& dl, const Chart& chart, double fza, double km, double mark_ring, double glyph_ring,
+                              double text_limit, const WheelOptions& opt) {
   auto add = [&](Primitive p) { dl.items.push_back(std::move(p)); };
   const auto at = [km](double w, double r) {
     return Pt{kCx + km * r * std::cos(-w), kCy + km * r * std::sin(-w)};
@@ -838,15 +1017,11 @@ static void draw_outer_bodies(DisplayList& dl, const Chart& chart, double fza, d
     add(mk);
     const Pt g = at(wl[si], glyph_ring + dc[si]);
     add({Primitive::Kind::kDot, g.x, g.y, 0, 0, gs * 0.60, 0, 0, 0, 0, kPaperColor});
-    if (opt.retro_marks && chart.b[si].tb < 0.0 && retro_slot(slot)) {
-      add({Primitive::Kind::kDot, g.x + gs * 0.85, g.y - gs * 0.3, 0, 0,
-           kNumberSize * 0.6, 0, 0, 0, 0, kPaperColor});
-    }
-    if (opt.degree_numbers) {
-      add({Primitive::Kind::kDot, g.x, g.y + gs + 1.0, 0, 0, kNumberSize * 0.75, 0, 0, 0, 0,
-           kPaperColor});
-    }
   }
+  // the numbers and the R stay outside the marks of this ring like the
+  // radix ring keeps them inside its own, and inside whatever bounds it
+  const TextRing text_ring{km * (mark_ring + kMarkOutset), km * text_limit};
+  const std::size_t first_mark = dl.items.size();
   for (int slot : slots) {
     const auto si = static_cast<std::size_t>(slot);
     const Pt g = at(wl[si], glyph_ring + dc[si]);
@@ -868,10 +1043,29 @@ static void draw_outer_bodies(DisplayList& dl, const Chart& chart, double fza, d
     }
     add(p);
   }
+  if (opt.degree_numbers) {
+    std::vector<RingNumber> numbers;
+    for (int slot : slots) {
+      const auto si = static_cast<std::size_t>(slot);
+      //RR CINT, planziff1 rounds the degree in sign to the nearest
+      const double q = norm_deg(pl[si] * kRadToDeg);
+      numbers.push_back({at(wl[si], glyph_ring + dc[si]), gs + kNumberGap, std::to_string(degree_in_sign(q))});
+    }
+    const std::vector<Pt> placed = place_numbers(numbers, gs, text_ring);
+    for (std::size_t i = 0; i < numbers.size(); ++i) {
+      Primitive num;
+      num.kind = Primitive::Kind::kText;
+      num.size = kNumberSize;
+      num.text = numbers[i].text;
+      num.x1 = placed[i].x;
+      num.y1 = placed[i].y;
+      add(num);
+    }
+  }
   for (int slot : slots) {
     const auto si = static_cast<std::size_t>(slot);
-    const Pt g = at(wl[si], glyph_ring + dc[si]);
     if (opt.retro_marks && chart.b[si].tb < 0.0 && retro_slot(slot)) {
+      const Pt g = at(wl[si], glyph_ring + dc[si]);
       Primitive r;
       r.kind = Primitive::Kind::kText;
       r.x1 = g.x + gs * 0.85;
@@ -881,19 +1075,8 @@ static void draw_outer_bodies(DisplayList& dl, const Chart& chart, double fza, d
       r.text = "R";
       add(r);
     }
-    if (opt.degree_numbers) {
-      Primitive num;
-      num.kind = Primitive::Kind::kText;
-      num.x1 = g.x;
-      num.y1 = g.y + gs + 1.0;
-      num.size = kNumberSize;
-      //RR CINT, planziff1 rounds the degree in sign to the nearest
-      const double q = norm_deg(pl[si] * kRadToDeg);
-      num.text = std::to_string(degree_in_sign(q));
-      add(num);
-    }
   }
-  keep_retro_marks_clear(dl, 0);
+  keep_retro_marks_clear(dl, first_mark, text_ring);
 }
 
 DisplayList build_transit_wheel(const Chart& radix, const Chart& transit, const ChartSettings& s, const AspectResult& radix_aspects, const WheelOptions& opt) {
@@ -901,7 +1084,8 @@ DisplayList build_transit_wheel(const Chart& radix, const Chart& transit, const 
   build_base(dl, radix, s, radix_aspects, opt, kTransitWheelScale);
   // the radix rules the rotation, the running sky turns with it
   const double fza = wheel_origin(radix, opt);
-  draw_outer_bodies(dl, transit, fza, kTransitWheelScale, kSignOuter, kTransitGlyphRing, opt);
+  draw_outer_bodies(dl, transit, fza, kTransitWheelScale, kSignOuter, kTransitGlyphRing,
+                    std::numeric_limits<double>::infinity(), opt);
   return dl;
 }
 
@@ -982,7 +1166,8 @@ DisplayList build_double_wheel(const Chart& inner, const Chart& outer, const Cha
       }
     }
   }
-  draw_outer_bodies(dl, outer, fza, km, kCompareMarkRing, kCompareGlyphRing, opt);
+  // the circle of the outer cusps bounds the partner's ring
+  draw_outer_bodies(dl, outer, fza, km, kCompareMarkRing, kCompareGlyphRing, kOuterCuspOuter, opt);
   return dl;
 }
 

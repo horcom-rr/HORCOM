@@ -72,9 +72,12 @@ TEST_CASE("the transit wheel rides the running sky outside the signs") {
         outer_sun = true;
         CHECK(r < kTransitWheelScale * 225.0);
       } else {
-        // the radix sun stays on the inner glyph ring, declump aside
-        CHECK(r > kTransitWheelScale * (kGlyphRingRadius - 20.0));
-        CHECK(r < kTransitWheelScale * (kGlyphRingRadius + 12.0));
+        // the radix sun stays on the inner glyph ring between the marks of
+        // the aspect circle, r 90 plus 5, and those of r 150 less 3,
+        // declump and the lift of the lower half aside
+        const double half = 0.5 * kSpriteBox * kSpriteSize;
+        CHECK(r - half > kTransitWheelScale * 95.0 - 1e-9);
+        CHECK(r + half < kTransitWheelScale * 147.0);
       }
     }
     if (p.kind == Primitive::Kind::kText && p.text == "TRANSIT=>13.09.2026") {
@@ -670,6 +673,90 @@ TEST_CASE("the degree beside a glyph never reads 30") {
   }
   CHECK_FALSE(thirty);
   CHECK(twenty_nine);
+}
+
+TEST_CASE("the degrees and the R stay clear of the marks and the sign band") {
+  // the radix ring keeps its small texts inside the marks of r 150, which
+  // start 3 units in, and outside those of the aspect circle at r 90,
+  // which end 5 units out
+  constexpr double kRadixLimit = 150.0 - 3.0;
+  constexpr double kAspectLimit = 90.0 + 5.0;
+  const auto reach = [](const Primitive& p) {
+    const double half_w = 0.5 * kMonoAdvance * p.size * static_cast<double>(p.text.size());
+    const double half_h = 0.5 * p.size;
+    double farthest = 0.0;
+    for (const double x : {p.x1 - half_w, p.x1 + half_w}) {
+      for (const double y : {p.y1 - half_h, p.y1 + half_h}) {
+        farthest = std::max(farthest, std::hypot(x - kWheelCenterX, y - kWheelCenterY));
+      }
+    }
+    return farthest;
+  };
+  const auto nearest = [](const Primitive& p) {
+    const double half_w = 0.5 * kMonoAdvance * p.size * static_cast<double>(p.text.size());
+    return std::hypot(std::clamp(kWheelCenterX, p.x1 - half_w, p.x1 + half_w) - kWheelCenterX,
+                      std::clamp(kWheelCenterY, p.y1 - 0.5 * p.size, p.y1 + 0.5 * p.size) - kWheelCenterY);
+  };
+  int checked = 0;
+  int below_ring = 0;
+  for (int month = 1; month <= 12; ++month) {
+    ChartInput in;
+    in.date_ut = {7, month, 1957 + month, static_cast<double>(2 * month), 0.0};
+    in.lon_deg_east = 11.3244;
+    in.lat_deg = 48.1742;
+    Chart c = compute_chart(in, {}, vsop(), eph());
+    REQUIRE(c.ok);
+    const DisplayList dl = build_wheel(c, {}, scan_aspects(c, {}, {}));
+    for (const Primitive& p : dl.items) {
+      // the white discs under the numbers and the R are gone, his texts
+      // went on in the TRANSPARENT mode
+      if (p.kind == Primitive::Kind::kDot && p.color == kPaperColor) {
+        CHECK(p.r1 == doctest::Approx(kSpriteSize * 0.60));
+      }
+      // the degree numbers and the R of the planet ring, the cusp numbers
+      // stand outside the sign band
+      if (p.kind != Primitive::Kind::kText || p.size != doctest::Approx(9.0) ||
+          std::hypot(p.x1 - kWheelCenterX, p.y1 - kWheelCenterY) > kWheelScale * 170.0) {
+        continue;
+      }
+      ++checked;
+      CHECK(reach(p) <= kWheelScale * kRadixLimit + 1e-9);
+      CHECK(nearest(p) >= kWheelScale * kAspectLimit - 1e-9);
+      below_ring += p.y1 > kWheelCenterY + kWheelScale * 120.0 ? 1 : 0;
+    }
+  }
+  CHECK(checked > 100);
+  // the lower half still carries numbers, they moved above their glyphs
+  CHECK(below_ring > 0);
+  // the running ring of a transit keeps its texts beyond its marks over
+  // the sign band, r 182 plus 5
+  constexpr double kTransitLimit = 182.0 + 5.0;
+  const Chart radix = sample_chart();
+  const AspectResult a = scan_aspects(radix, {}, {});
+  int outer = 0;
+  for (int month = 1; month <= 12; ++month) {
+    ChartInput in;
+    in.date_ut = {20, month, 2026, 12, 0.0};
+    const Chart transit = compute_chart(in, {}, vsop(), eph());
+    REQUIRE(transit.ok);
+    for (const Primitive& p : build_transit_wheel(radix, transit, {}, a, {}).items) {
+      if (p.kind != Primitive::Kind::kText || p.size != doctest::Approx(9.0)) {
+        continue;
+      }
+      const double at = std::hypot(p.x1 - kWheelCenterX, p.y1 - kWheelCenterY);
+      if (at < kTransitWheelScale * 170.0) {
+        CHECK(reach(p) <= kTransitWheelScale * kRadixLimit + 1e-9);
+        continue;
+      }
+      ++outer;
+      const double half_w = 0.5 * kMonoAdvance * p.size * static_cast<double>(p.text.size());
+      const double nx = std::clamp(kWheelCenterX, p.x1 - half_w, p.x1 + half_w) - kWheelCenterX;
+      const double ny = std::clamp(kWheelCenterY, p.y1 - 0.5 * p.size, p.y1 + 0.5 * p.size) - kWheelCenterY;
+      INFO(p.text << " at " << p.x1 << ", " << p.y1 << " in month " << month);
+      CHECK(std::hypot(nx, ny) >= kTransitWheelScale * kTransitLimit - 1e-9);
+    }
+  }
+  CHECK(outer > 100);
 }
 
 TEST_CASE("the SVG paper follows the colour the viewer chose") {
