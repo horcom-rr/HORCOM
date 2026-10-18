@@ -977,9 +977,12 @@ void MainWindow::rhythm_table(const RhythmRun& run) {
       }
       rhythm_table_row(table, run, t, cal);
     }
-    table->resizeColumnsToContents();
   };
   fill();
+  // measured once, the other order holds the same rows. A spanned PHASE row
+  // measures against the columns it covers, a second measure of the filled
+  // table shifted every column on the first click
+  table->resizeColumnsToContents();
   table->horizontalHeader()->setSectionsClickable(true);
   connect(table->horizontalHeader(), &QHeaderView::sectionClicked, &dialog, [&](int column) {
     if (column != 0) {

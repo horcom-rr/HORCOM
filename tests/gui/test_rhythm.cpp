@@ -747,11 +747,22 @@ TEST_CASE("a click on the date head orders the whole AUSLÖSUNGS-TABELLE in time
       .then([&](QDialog* d) {
         auto* t = d->findChild<QTableWidget*>();
         REQUIRE(t != nullptr);
+        const auto widths = [t]() {
+          std::vector<int> out;
+          for (int c = 0; c < t->columnCount(); ++c) {
+            out.push_back(t->columnWidth(c));
+          }
+          return out;
+        };
         theirs = table_column(d, 0);
+        const std::vector<int> before = widths();
         emit t->horizontalHeader()->sectionClicked(0);
         in_time = table_column(d, 0);
+        // the same rows in another order, the columns keep their widths
+        CHECK(widths() == before);
         emit t->horizontalHeader()->sectionClicked(0);
         back = table_column(d, 0);
+        CHECK(widths() == before);
         for (const QLabel* l : d->findChildren<QLabel*>()) {
           if (l->text().contains("zeitlich")) {
             hint = l->text();
