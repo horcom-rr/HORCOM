@@ -740,6 +740,10 @@ class MainWindow : public QMainWindow {
     bool solar = false;
     /// the COMBIN of the step, a step back to the radix drops its rows
     CombinMemory combin;
+    /// the radix memory of a birth typed without a SATZ row, carried with
+    /// the step and left out of the comparison
+    std::optional<ChartInput> loose_radix;
+    std::optional<ChartInput> derived_input;
 
     bool operator==(const PanelState& o) const {
       return given == o.given && surname == o.surname && place == o.place && date == o.date &&
@@ -1575,6 +1579,14 @@ class MainWindow : public QMainWindow {
   QScrollArea* aspects_scroll_ = nullptr;
   std::optional<Chart> last_chart_;
   std::optional<AspectResult> last_aspects_;
+  // the radix a derived chart came from when it was typed into the panel
+  // without a SATZ row, the panel shows the derived moment afterwards
+  std::optional<ChartInput> loose_radix_;
+  // the moment the last derived chart put on the panel, while the panel
+  // still shows it the radix stays in loose_radix_
+  std::optional<ChartInput> derived_input_;
+  // a derived moment is landing on the panel, it is no radix
+  bool deriving_ = false;
 };
 
 }  // namespace horcom

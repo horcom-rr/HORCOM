@@ -1720,6 +1720,8 @@ MainWindow::PanelState MainWindow::panel_state() const {
   s.slot = active_is_solar_ ? active_solar_ : active_slot_;
   s.combin = {combin_name1_, combin_moment1_, combin_name2_, combin_moment2_, combin_note_,
               combin_list_,  combin_na_,      combin_origin_};
+  s.loose_radix = loose_radix_;
+  s.derived_input = derived_input_;
   return s;
 }
 
@@ -1823,6 +1825,8 @@ void MainWindow::restore_state(const PanelState& s) {
   combin_list_ = s.combin.list;
   combin_na_ = s.combin.na;
   combin_origin_ = s.combin.origin;
+  loose_radix_ = s.loose_radix;
+  derived_input_ = s.derived_input;
   current_state_ = s;
   current_state_.slot = active_is_solar_ ? active_solar_ : active_slot_;
   current_state_.solar = active_is_solar_;
@@ -1947,6 +1951,19 @@ void MainWindow::recompute() {
     current_state_ = panel_state();
   } else {
     in = current_input();
+    // the panel holds a radix, without a SATZ row its moment lives only
+    // here once a derived chart takes the panel. A moment typed over the
+    // derived one is the radix of a panel without a SATZ row again, like
+    // the panel always was. A step of Zurück or Vor brings its own memory
+    const auto shows_derived = [this, &in]() {
+      return derived_input_ && in.date_ut.day == derived_input_->date_ut.day &&
+             in.date_ut.month == derived_input_->date_ut.month && in.date_ut.year == derived_input_->date_ut.year &&
+             in.date_ut.hour == derived_input_->date_ut.hour && in.date_ut.minute == derived_input_->date_ut.minute &&
+             in.lon_deg_east == derived_input_->lon_deg_east && in.lat_deg == derived_input_->lat_deg;
+    };
+    if (!deriving_ && !restoring_ && !(active_is_solar_ && shows_derived())) {
+      loose_radix_ = in;
+    }
   }
   const ChartSettings s = current_settings();
   Chart chart = chart_or_polar_fallback(in, s);
@@ -2536,7 +2553,13 @@ void MainWindow::apply_moment(double jd_ut, const QString& label, bool solar_slo
   set_panel_day(d.day, d.month, d.year);
   time_->setTime(QTime(seconds / 3600, (seconds / 60) % 60, seconds % 60));
   if (refresh_sommer_effect_) refresh_sommer_effect_();
+  // the derived moment is no radix, the one it came from stays known
+  deriving_ = solar_slot;
   recompute();
+  deriving_ = false;
+  if (solar_slot) {
+    derived_input_ = current_input();
+  }
   banner_->set_record(label);
   // the ^ items of his menu write the result back into a SOLAR slot
   if (solar_slot) {
@@ -4976,6 +4999,12 @@ void MainWindow::store_solar(const QString& label) {
   solar_labels_[static_cast<std::size_t>(idx)] = label;
   active_is_solar_ = true;
   active_solar_ = idx;
+  // the step of the derived chart belongs to its SOLAR row, the recompute
+  // before had taken it for the radix and a Zurück onto it wrote the
+  // derived moment into the RADIX row
+  if (state_init_) {
+    current_state_ = panel_state();
+  }
   update_slot_actions();
   update_solar_actions();
 }
@@ -6289,7 +6318,14 @@ void MainWindow::apply_record(const AafRecord& r, bool claim_slot) {
   // the sheet names the place of the panel, the fields take the new
   // record before the wheel is drawn
   sync_record_fields();
+  // a record taken on the SOLAR level is a derived chart, the radix of the
+  // panel stays where it was
+  deriving_ = !claim_slot && active_is_solar_;
   recompute();
+  if (deriving_) {
+    derived_input_ = current_input();
+    deriving_ = false;
+  }
   refresh_record_label();
 }
 

@@ -762,3 +762,149 @@ TEST_CASE("TAGES-HOROSKOP switches the heliocentric mode off like CLR hrg!") {
   CHECK(jd < day0 + 1.0);
   CHECK(MainWindowProbe::banner_record(*w) == "TAG-HOR");
 }
+
+TEST_CASE("SOLAR and LUNAR over a radix typed into the panel count from the birth both ways") {
+  // the tester typed the birth into DATEN, the first SOLAR then became the
+  // base of the next one and VORHERIGES JAHR counted -1
+  const auto typed = []() {
+    auto w = MainWindowProbe::make();
+    MainWindowProbe::date(*w)->setText("10.05.1970");
+    emit MainWindowProbe::date(*w)->editingFinished();
+    MainWindowProbe::time(*w)->setTime(QTime(7, 0));
+    return w;
+  };
+  {
+    auto w = typed();
+    QStringList seen;
+    {
+      DialogDriver drive;
+      drive.then([&w, &seen](QDialog* d) {
+        QTimer::singleShot(0, d, [d, &w, &seen]() {
+          d->findChild<QSpinBox*>()->setValue(2026);
+          for (const char* step : {"Vorheriges Jahr", "Vorheriges Jahr", "Vorheriges Jahr", "Nächstes Jahr", "Nächstes Jahr"}) {
+            click_button(d, step);
+            seen << MainWindowProbe::banner_record(*w);
+          }
+          click_button(d, "OK");
+        });
+      });
+      MainWindowProbe::solar(*w);
+      CHECK(drive.unexpected() == 0);
+    }
+    CHECK(seen == QStringList{"55.SOLAR", "54.SOLAR", "53.SOLAR", "54.SOLAR", "55.SOLAR"});
+    // the typed birth stays the radix of every return
+    CHECK(MainWindowProbe::radix_input(*w).date_ut.year == 1970);
+    // a birth typed over the solar is the radix again, like the panel was
+    MainWindowProbe::date(*w)->setText("01.07.1980");
+    emit MainWindowProbe::date(*w)->editingFinished();
+    CHECK(MainWindowProbe::radix_input(*w).date_ut.year == 1980);
+    QString next;
+    DialogDriver again;
+    again.then([&w, &next](QDialog* d) {
+      QTimer::singleShot(0, d, [d, &w, &next]() {
+        d->findChild<QSpinBox*>()->setValue(2025);
+        click_button(d, "Nächstes Jahr");
+        next = MainWindowProbe::banner_record(*w);
+        click_button(d, "OK");
+      });
+    });
+    MainWindowProbe::solar(*w);
+    CHECK(next == "46.SOLAR");
+  }
+  {
+    auto w = typed();
+    QStringList seen;
+    DialogDriver drive;
+    drive.then([&w, &seen](QDialog* d) {
+      for (const char* step : {"Vorheriges Lunar", "Vorheriges Lunar", "Nächstes Lunar", "Nächstes Lunar"}) {
+        click_button(d, step);
+        seen << MainWindowProbe::banner_record(*w);
+      }
+      click_button(d, "OK");
+    });
+    MainWindowProbe::lunar(*w);
+    CHECK(drive.unexpected() == 0);
+    REQUIRE(seen.size() == 4);
+    const int first = seen[0].section('.', 0, 0).toInt();
+    CHECK(first > 600);
+    CHECK(seen == QStringList{QString("%1.LUNAR").arg(first), QString("%1.LUNAR").arg(first - 1),
+                              QString("%1.LUNAR").arg(first), QString("%1.LUNAR").arg(first + 1)});
+  }
+  {
+    // a second PLANETAR counts from the typed birth like the first
+    auto w = typed();
+    QStringList seen;
+    for (int run = 0; run < 2; ++run) {
+      DialogDriver drive;
+      drive
+          .then([](QDialog* d) {
+            const QList<QComboBox*> combos = d->findChildren<QComboBox*>();
+            REQUIRE(combos.size() >= 2);
+            combos[0]->setCurrentIndex(combos[0]->findText("MARSAR"));
+            click_button(d, "OK");
+          })
+          .then(DialogDriver::fill({"", "1", "1", "2000"}, "OK"))
+          .then([](QDialog* d) { click_button(d, "LÄUFIG"); })
+          .then([](QDialog* d) { click_button(d, "ZEIT-WERT ÜBERNEHMEN"); });
+      MainWindowProbe::planetar(*w);
+      CHECK(drive.pending() == 0);
+      CHECK(drive.unexpected() == 0);
+      seen << MainWindowProbe::banner_record(*w);
+    }
+    CHECK(seen == QStringList{"15.MARSAR", "15.MARSAR"});
+  }
+}
+
+TEST_CASE("a step back onto a SOLAR keeps the radix of the SATZ row and of a typed birth") {
+  // one SOLAR dialog that sets the year and takes it
+  const auto solar_of = [](MainWindow& w, int year) {
+    DialogDriver drive;
+    drive.then([year](QDialog* d) {
+      QTimer::singleShot(0, d, [d, year]() {
+        d->findChild<QSpinBox*>()->setValue(year);
+        click_button(d, "OK");
+      });
+    });
+    MainWindowProbe::solar(w);
+    CHECK(drive.unexpected() == 0);
+    MainWindowProbe::flush_history(w);
+  };
+  {
+    // the RADIX row, the first SOLAR step was taken for the radix and a
+    // step back onto it wrote the solar moment into the row
+    auto w = MainWindowProbe::make();
+    MainWindowProbe::apply(*w, morning_birth());
+    solar_of(*w, 2026);
+    solar_of(*w, 2025);
+    MainWindowProbe::history_back(*w);
+    CHECK(MainWindowProbe::active_solar(*w) == 0);
+    REQUIRE(MainWindowProbe::slot(*w, 0).has_value());
+    CHECK(MainWindowProbe::slot(*w, 0)->year == 1970);
+    CHECK(MainWindowProbe::radix_input(*w).date_ut.year == 1970);
+  }
+  {
+    // a birth typed without a SATZ row stays the radix over the steps
+    auto w = MainWindowProbe::make();
+    MainWindowProbe::date(*w)->setText("10.05.1970");
+    emit MainWindowProbe::date(*w)->editingFinished();
+    MainWindowProbe::time(*w)->setTime(QTime(7, 0));
+    MainWindowProbe::flush_history(*w);
+    solar_of(*w, 2026);
+    solar_of(*w, 2025);
+    solar_of(*w, 2024);
+    MainWindowProbe::history_back(*w);
+    CHECK(MainWindowProbe::radix_input(*w).date_ut.year == 1970);
+    QString next;
+    DialogDriver drive;
+    drive.then([&w, &next](QDialog* d) {
+      QTimer::singleShot(0, d, [d, &w, &next]() {
+        d->findChild<QSpinBox*>()->setValue(2025);
+        click_button(d, "Vorheriges Jahr");
+        next = MainWindowProbe::banner_record(*w);
+        click_button(d, "OK");
+      });
+    });
+    MainWindowProbe::solar(*w);
+    CHECK(next == "54.SOLAR");
+  }
+}

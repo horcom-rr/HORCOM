@@ -234,10 +234,17 @@ void MainWindow::set_panel_place(const EventPlace& p) {
 
 // the derived charts build on the radix. A derived chart on the panel
 // holds the birth data in record_, a SOLAR row taken back from the menu
-// derives from the RADIX row of its number like sol$(2,ze) from ze
+// derives from the RADIX row of its number like sol$(2,ze) from ze. A
+// radix typed into the panel without a SATZ row stays in loose_radix_,
+// the panel had become the base of the next return and a VORHERIGES
+// SOLAR counted -1 from the solar on screen
 ChartInput MainWindow::radix_input() const {
   if (active_is_solar_ && active_solar_ >= 0 && slots_[static_cast<std::size_t>(active_solar_)]) {
     return record_input(*slots_[static_cast<std::size_t>(active_solar_)]);
+  }
+  // a SOLAR row taken back puts its own record here, the radix stays
+  if (active_is_solar_ && loose_radix_) {
+    return *loose_radix_;
   }
   const bool use_record = record_.day > 0 || record_.jd > 0.0;
   return use_record ? record_input(record_) : current_input();
