@@ -5334,8 +5334,10 @@ void MainWindow::vorgaben_ephemeride() {
         break;
       }
       case kFixpunkt: {
-        // his fixp_def, a defined point is kept by default, else EXIT
-        // stands ready. The grey rows are his blank and his note
+        // his fixp_def, a defined point is kept by default. Without one
+        // his EXIT stood ready, the tester wanted the setting in force
+        // framed, KEINEN FIXPUNKT DEFINIEREN. The grey rows are his blank
+        // and his note
         const bool defined = fixpunkt_ >= 0.0;
         const QString gz0 = defined ? zodiac_text(fixpunkt_, ZodiacForm::kGz0) : QString();
         const QStringList rows =
@@ -5344,7 +5346,7 @@ void MainWindow::vorgaben_ephemeride() {
                     : QStringList{tr("KEIN FIXPUNKT  DEFINIERT !"), tr("FIXPUNKT als EKLIPTIK-GRAD NEU DEFINIEREN"), " ",
                                   tr("KEINEN FIXPUNKT DEFINIEREN !"), tr("EXIT")};
         const int es = ChoiceDialog::ask_step(this, tr("FIXPUNKT als 'PLANET' DEFINIEREN ?"), {}, rows,
-                                              defined ? 0 : 4, defined ? std::vector<int>{3} : std::vector<int>{0, 2});
+                                              defined ? 0 : 3, defined ? std::vector<int>{3} : std::vector<int>{0, 2});
         next = next_of(es, 4);
         if (es == 1) {
           // his input_grmise_zod(ekl$ + eg$ + " !")

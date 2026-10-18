@@ -6,6 +6,7 @@
 #include <QKeyEvent>
 #include <QListWidget>
 #include <QLabel>
+#include <QPushButton>
 #include <QTableWidget>
 #include <QTimer>
 #include <algorithm>
@@ -891,6 +892,20 @@ TEST_CASE("VORGABEN EPHEMERIDE runs his ave as a chain") {
   CHECK(MainWindowProbe::konsta(*w).appa_name == "Wahr");
   QStringList kept_rows;
   QStringList topics;
+  QString fresh_default;
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("FIXPUNKT als 'PLANET'")).then([&fresh_default](QDialog* d) {
+      for (const QPushButton* b : d->findChildren<QPushButton*>()) {
+        if (b->isDefault()) {
+          fresh_default = b->text();
+        }
+      }
+      d->reject();
+    });
+    MainWindowProbe::vorgaben_ephemeride(*w);
+    CHECK(drive.pending() == 0);
+  }
   {
     DialogDriver drive;
     drive
@@ -910,6 +925,9 @@ TEST_CASE("VORGABEN EPHEMERIDE runs his ave as a chain") {
   }
   // the tables show both distances, the question of his last topic is gone
   CHECK_FALSE(topics.join("|").contains("ENTFERNUNGSWERTE"));
+  // without a point the box frames KEINEN FIXPUNKT DEFINIEREN, the setting
+  // in force, where his EXIT stood ready
+  CHECK(fresh_default == "KEINEN FIXPUNKT DEFINIEREN !");
   CHECK(MainWindowProbe::fixpunkt(*w) * kRadToDeg == doctest::Approx(132.5));
   {
     DialogDriver drive;

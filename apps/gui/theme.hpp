@@ -611,6 +611,14 @@ QPushButton:hover {
 QPushButton:pressed {
   background: @btnHover@;
 }
+/* The answer the return key and the space bar take, the setting in force
+   in every VORGABEN box, wears the heavy frame of his BS_DEFPUSHBUTTON.
+   The tester could not see which answer stood ready, the frame follows
+   the focus like his SetFocus on the default */
+QPushButton:default {
+  border: 2px solid @ink@;
+  padding: 4px 15px;
+}
 /* The number row of his ZIFFERN-EINGABE, narrow keys like his 30 unit
    buttons, the padding of the wide buttons would swallow the digits */
 QPushButton#digitButton {

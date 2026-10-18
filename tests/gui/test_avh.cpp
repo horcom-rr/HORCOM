@@ -16,12 +16,14 @@
 #include <QSettings>
 #include <QTimer>
 
+#include "choice_dialog.hpp"
 #include "dialog_driver.hpp"
 #include "doctest.h"
 #include "horcom/chart/bodies.hpp"
 #include "horcom/core/constants.hpp"
 #include "horcom/data/statist_eval.hpp"
 #include "probe.hpp"
+#include "theme.hpp"
 
 using namespace horcom;
 using horcom::test::DialogDriver;
@@ -1271,4 +1273,38 @@ TEST_CASE("the pair charts name both partners of one family apart") {
   // the COMBIN taken over as RADIX keeps his na$, ten letters of each
   // whole name
   CHECK(MainWindowProbe::combin_na(*w) == "FAMILIE AN-FAMILIE BE");
+}
+
+TEST_CASE("the answer in force stands framed and the space bar takes it") {
+  // his BS_DEFPUSHBUTTON with SetFocus on it, the tester could not see
+  // which answer stood ready to go on with the space bar
+  CHECK(QString::fromLatin1(theme::kStyleSheetTemplate).contains("QPushButton:default"));
+  int chosen = -1;
+  QString framed;
+  DialogDriver drive;
+  drive.then([&chosen, &framed](QDialog* d) {
+    // the box puts the focus on the default like his SetFocus
+    auto* focus = qobject_cast<QPushButton*>(d->focusWidget());
+    if (focus == nullptr) {
+      d->reject();
+      return;
+    }
+    CHECK(focus->isDefault());
+    framed = focus->text();
+    QKeyEvent press(QEvent::KeyPress, Qt::Key_Space, Qt::NoModifier, QStringLiteral(" "));
+    QKeyEvent release(QEvent::KeyRelease, Qt::Key_Space, Qt::NoModifier, QStringLiteral(" "));
+    QApplication::sendEvent(focus, &press);
+    QApplication::sendEvent(focus, &release);
+    if (auto* box = qobject_cast<ChoiceDialog*>(d)) {
+      chosen = box->choice();
+    }
+  });
+  const int answer = ChoiceDialog::ask(nullptr, "HORCOM", {QStringLiteral("BEZUGS-SYSTEM ?")},
+                                       {QStringLiteral("EKLIPTIK"), QStringLiteral("ÄQUATORIAL = MUNDAN"),
+                                        QStringLiteral("EXIT")},
+                                       1);
+  CHECK(drive.pending() == 0);
+  CHECK(framed == "ÄQUATORIAL = MUNDAN");
+  CHECK(chosen == 1);
+  CHECK(answer == 1);
 }

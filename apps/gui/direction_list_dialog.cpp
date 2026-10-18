@@ -124,6 +124,10 @@ void DirectionListDialog::build() {
   table_->setFocusPolicy(Qt::ClickFocus);
   count_ = new QLabel(this);
   auto* sort = new QPushButton(tr("LISTE SORTIEREN…"), this);
+  // the frame of the answer in force stays on OK, the sort button takes
+  // the focus by the tab key only
+  sort->setAutoDefault(false);
+  sort->setFocusPolicy(Qt::TabFocus);
   auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, this);
   auto* bottom = new QHBoxLayout();
   bottom->addWidget(count_, 1);
