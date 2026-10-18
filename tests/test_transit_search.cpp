@@ -143,6 +143,18 @@ TEST_CASE("the transit sweep finds the sun over radix venus") {
         d = kTwoPi - d;
       }
       CHECK(d * kRadToDeg * 3600.0 < 1.0);
+      // the degrees the table lists, the running body on its aspect point
+      // and the radix point it meets
+      CHECK(e.running_lon == doctest::Approx(target));
+      CHECK(e.target_lon == doctest::Approx(radix.b[static_cast<std::size_t>(e.radix)].el));
+    } else {
+      // a stationary touch lies near its target
+      const double target = norm_rad(e.target_lon + e.multiple * 30.0 * kDegToRad);
+      double d = std::abs(norm_rad(e.running_lon) - target);
+      if (d > kPi) {
+        d = kTwoPi - d;
+      }
+      CHECK(d < 2.0 * kDegToRad);
     }
     if (e.transiting == body::kSun && e.radix == body::kVenus && e.multiple == 0) {
       sun_venus = true;

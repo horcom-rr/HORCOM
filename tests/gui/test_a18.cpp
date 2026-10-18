@@ -12,6 +12,9 @@
 #include "a18_rows.hpp"
 #include "dialog_driver.hpp"
 #include "doctest.h"
+#include "horcom/chart/signs.hpp"
+#include "horcom/core/angle.hpp"
+#include "horcom/core/constants.hpp"
 #include "probe.hpp"
 #include "transit_list_dialog.hpp"
 #include "wheel_widget.hpp"
@@ -113,13 +116,25 @@ TEST_CASE("TRANSIT-LISTE walks his a18eing boxes and lists the sun over radix ve
   CHECK(drive.unexpected() == 0);
   REQUIRE(!rows.isEmpty());
   bool sun_venus = false;
+  // radix Venus in degree, sign tag and minute
+  const int minutes = static_cast<int>(
+      std::lround(norm_deg(MainWindowProbe::chart(*w).b[body::kVenus].el * kRadToDeg) * kArcminPerDeg));
+  const int in_sign = minutes % static_cast<int>(kDegPerSign * kArcminPerDeg);
+  const QString venus = QString::asprintf("%2d%s%02d", in_sign / 60,
+                                          kSignTag[minutes / static_cast<int>(kDegPerSign * kArcminPerDeg)], in_sign % 60);
   for (const QString& row : rows) {
     const QStringList f = row.split('|');
-    REQUIRE(f.size() == 5);
+    // date, clock, the running body and its degree, the aspect, the radix
+    // point and its degree
+    REQUIRE(f.size() == 7);
     // no moon without MOND BERÜCKSICHTIGEN
     CHECK(!f[2].startsWith("MO"));
-    if (f[2] == "SO" && f[3].trimmed() == "0" && f[4] == "VE") {
+    if (f[2] == "SO" && f[4].trimmed() == "0" && f[5] == "VE") {
       sun_venus = f[0].endsWith(".11.1992");
+      // the radix point carries the degree of radix Venus and the sun of
+      // the conjunction stands on it
+      CHECK(f[6] == venus);
+      CHECK(f[3] == f[6]);
     }
   }
   CHECK(sun_venus);
@@ -186,12 +201,14 @@ TEST_CASE("MUNDAN-ASPEKTE lists the new moon of March 2023") {
   bool new_moon = false;
   for (const QString& row : rows) {
     const QStringList f = row.split('|');
-    REQUIRE(f.size() == 6);
-    if (f[0] == "21.03.2023" && f[2] == "SO" && f[4] == "MO") {
+    // P1 with its degree, the aspect, P2 with its degree
+    REQUIRE(f.size() == 7);
+    if (f[0] == "21.03.2023" && f[2] == "SO" && f[5] == "MO") {
       new_moon = true;
       // the sun leads the pair, so the clock shows minutes
       CHECK(f[1].contains(':'));
-      CHECK(f[5].contains("AR"));
+      CHECK(f[3].contains("AR"));
+      CHECK(f[6].contains("AR"));
     }
   }
   CHECK(new_moon);
@@ -353,6 +370,7 @@ TEST_CASE("the TRANSITE table opens without a chosen row, dates and aspects bold
   QColor trine;
   QStringList running;
   QStringList dates;
+  QStringList heads;
   QString count;
   DialogDriver drive;
   drive.then(DialogDriver::click("30° => TEILER"))
@@ -367,11 +385,17 @@ TEST_CASE("the TRANSITE table opens without a chosen row, dates and aspects bold
     // his list had no preselected line, the black band of the first row
     // read as a fault
     chosen = static_cast<int>(t->selectedItems().size());
+    for (int c = 0; c < t->columnCount(); ++c) {
+      heads << t->horizontalHeaderItem(c)->text();
+    }
     for (int r = 0; r < t->rowCount(); ++r) {
-      bold = bold && t->item(r, 0)->font().bold() && t->item(r, 3)->font().bold();
+      // the dates, the aspects and the degrees of both factors bold
+      for (const int c : {0, 3, 4, 6}) {
+        bold = bold && t->item(r, c)->font().bold();
+      }
       plain_bodies = plain_bodies && !t->item(r, 2)->font().bold();
-      if (t->item(r, 3)->text().trimmed() == "120") {
-        trine = t->item(r, 3)->foreground().color();
+      if (t->item(r, 4)->text().trimmed() == "120") {
+        trine = t->item(r, 4)->foreground().color();
       }
     }
     for (const QLabel* l : d->findChildren<QLabel*>()) {
@@ -391,6 +415,8 @@ TEST_CASE("the TRANSITE table opens without a chosen row, dates and aspects bold
   CHECK(drive.pending() == 0);
   CHECK(drive.unexpected() == 0);
   CHECK(chosen == 0);
+  // each degree right behind its factor, the tester's ninth batch
+  CHECK(heads == QStringList{"Datum", "Zeit (UT)", "Laufend", "Grad lfd.", "Winkel", "Radix", "Grad Radix"});
   CHECK(bold);
   CHECK(plain_bodies);
   // the harmonic aspects in dark green on paper, the tester's wish

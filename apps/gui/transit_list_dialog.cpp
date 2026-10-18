@@ -25,13 +25,17 @@ namespace horcom {
 
 namespace {
 
-// the fixed columns of both tables, the mundane one adds its positions
+// the columns of both tables, each body with its degree right after it as
+// the tester asked, the running one first, the radix point or the second
+// running body behind the aspect
 constexpr int kColDate = 0;
 constexpr int kColTime = 1;
 constexpr int kColFirst = 2;
-constexpr int kColAngle = 3;
-constexpr int kColSecond = 4;
-constexpr int kColPositions = 5;
+constexpr int kColFirstLon = 3;
+constexpr int kColAngle = 4;
+constexpr int kColSecond = 5;
+constexpr int kColSecondLon = 6;
+constexpr int kColumns = 7;
 
 // the radix point of a transit, a body, a midpoint, a cusp or a cardinal point
 QString target_tag(const TransitEvent& e) {
@@ -143,6 +147,8 @@ TransitListDialog::TransitListDialog(std::vector<TransitEvent> events, A18Displa
     r.second = e.cusp > 0 || e.radix2 > 0 ? 0 : e.radix;
     r.second_text = target_tag(e);
     r.angle_deg = e.angle_deg > 180.0 ? kDegPerCircle - e.angle_deg : e.angle_deg;
+    r.first_lon = e.running_lon;
+    r.second_lon = e.target_lon;
     r.retrograde = e.retrograde;
     r.station = e.station_touch;
     // tras, the running class decides and the point needs any class
@@ -167,7 +173,8 @@ TransitListDialog::TransitListDialog(std::vector<MundaneAspect> aspects, A18Disp
     r.second = m.second;
     r.second_text = a18::slot_tag(m.second);
     r.angle_deg = m.angle_deg;
-    r.positions = degree_sign_minute(m.first_lon) + "  " + degree_sign_minute(m.second_lon);
+    r.first_lon = m.first_lon;
+    r.second_lon = m.second_lon;
     // mund1 hands a181 no speed, so the second body counts as stationary
     const TimeClass u = point_class(m.first, display_.settings);
     const TimeClass t = running_class(m.second, display_.settings, 0.0);
@@ -188,12 +195,13 @@ void TransitListDialog::build(bool mundane) {
     l->setTextInteractionFlags(Qt::TextSelectableByMouse);
     v->addWidget(l);
   }
-  table_ = new QTableWidget(0, mundane ? 6 : 5, this);
-  QStringList heads{tr("Datum"), tr("Zeit (UT)"), tr("Laufend"), tr("Winkel"), mundane ? tr("Laufend") : tr("Radix")};
-  if (mundane) {
-    heads << tr("Positionen");
-  }
-  table_->setHorizontalHeaderLabels(heads);
+  table_ = new QTableWidget(0, kColumns, this);
+  // his a181tx named both running bodies of a mundane row alike, the
+  // tester asked for P1 and P2 and each degree beside its body
+  table_->setHorizontalHeaderLabels(mundane ? QStringList{tr("Datum"), tr("Zeit (UT)"), tr("P1 laufend"), tr("Grad P1"),
+                                                          tr("Winkel"), tr("P2 laufend"), tr("Grad P2")}
+                                            : QStringList{tr("Datum"), tr("Zeit (UT)"), tr("Laufend"), tr("Grad lfd."),
+                                                          tr("Winkel"), tr("Radix"), tr("Grad Radix")});
   table_->horizontalHeader()->setStretchLastSection(true);
   table_->verticalHeader()->setVisible(false);
   a18::style_table(table_, display_.small_symbols);
@@ -239,7 +247,7 @@ void TransitListDialog::build(bool mundane) {
   });
   connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
   fill();
-  resize(mundane ? 700 : 620, 580);
+  resize(760, 580);
 }
 
 void TransitListDialog::fill() {
@@ -265,6 +273,10 @@ void TransitListDialog::fill() {
     auto* first = new QTableWidgetItem(a18::slot_tag(r.first) + (r.retrograde ? " R" : ""));
     a18::dress_factor(first, r.first, true, display_.plinv, display_.marked);
     table_->setItem(row, kColFirst, first);
+    // the degrees bold, the tester reads the positions by them
+    auto* first_lon = new QTableWidgetItem(degree_sign_minute(r.first_lon));
+    bold_cell(first_lon);
+    table_->setItem(row, kColFirstLon, first_lon);
     auto* angle = new QTableWidgetItem(QString::asprintf("%3.0f", r.angle_deg));
     a18::colour_aspect(angle, r.angle_deg, display_.plinv);
     bold_cell(angle);
@@ -272,9 +284,9 @@ void TransitListDialog::fill() {
     auto* second = new QTableWidgetItem(r.second_text);
     a18::dress_factor(second, r.second, mundane_, display_.plinv, display_.marked);
     table_->setItem(row, kColSecond, second);
-    if (mundane_) {
-      table_->setItem(row, kColPositions, new QTableWidgetItem(r.positions));
-    }
+    auto* second_lon = new QTableWidgetItem(degree_sign_minute(r.second_lon));
+    bold_cell(second_lon);
+    table_->setItem(row, kColSecondLon, second_lon);
   }
   count_->setText(a18::count_line(rows_.size()));
   table_->resizeColumnsToContents();
@@ -290,8 +302,10 @@ void TransitListDialog::sort_by_column(int column) {
     int c = 0;
     switch (column) {
       case kColFirst: c = a18::compare_factor(a.first, {}, b.first, {}); break;
+      case kColFirstLon: c = a.first_lon < b.first_lon ? -1 : (b.first_lon < a.first_lon ? 1 : 0); break;
       case kColAngle: c = a18::compare_angle(a.angle_deg, b.angle_deg); break;
       case kColSecond: c = a18::compare_factor(a.second, a.second_text, b.second, b.second_text); break;
+      case kColSecondLon: c = a.second_lon < b.second_lon ? -1 : (b.second_lon < a.second_lon ? 1 : 0); break;
       default: break;
     }
     return c != 0 ? c < 0 : a.jd_ut < b.jd_ut;

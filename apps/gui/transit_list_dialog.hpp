@@ -92,7 +92,8 @@ class TransitListDialog : public QDialog {
     int first = 0;
     int second = 0;
     QString second_text;
-    QString positions;
+    double first_lon = 0.0;
+    double second_lon = 0.0;
     double angle_deg = 0.0;
     bool retrograde = false;
     bool station = false;

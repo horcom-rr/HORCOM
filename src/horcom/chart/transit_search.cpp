@@ -866,8 +866,13 @@ std::vector<TransitEvent> scan_transits(const Chart& radix, const TransitScan& s
           e.multiple = k;
           e.angle_deg = k * scan.base_angle_deg;
           e.speed = tb_mid;
+          // the crossing stands on the aspect point, a touch in the middle
+          // of the interval between its two ends
+          e.target_lon = target.lon;
+          e.running_lon = wv;
           if (touch) {
             e.jd_ut = jd + step / 2.0;
+            e.running_lon = norm_rad(ca + fold_rad(cb - ca) / 2.0);
             e.station_touch = true;
             e.retrograde = b.b[ti].tb < 0.0;
             out.push_back(e);

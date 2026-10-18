@@ -177,6 +177,10 @@ struct TransitEvent {
   double angle_deg = 0.0;   // k times the base angle
   bool retrograde = false;  // the running body moved backward
   double speed = 0.0;       // its daily motion in the interval, radians
+  double running_lon = 0.0; // the running body at the moment, radians
+  double target_lon = 0.0;  // the radix point it meets, radians, both in
+                            // the frame of the scan, the arc directions
+                            // scan the radix shifted by the arc
   /// a stationary touch near the target, flagged like the original's
   /// slow motion guard, the moment is the middle of its interval
   bool station_touch = false;
