@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <string>
 
+#include "cell_weight.hpp"
 #include "horcom/data/record_order.hpp"
 
 namespace horcom {
@@ -236,6 +237,8 @@ void PlaceDialog::refresh() {
     table_->insertRow(row);
     auto* item = new QTableWidgetItem(name);
     item->setData(Qt::UserRole, static_cast<qulonglong>(i));
+    // the place names bold, the tester looks for them first
+    bold_cell(item);
     table_->setItem(row, 0, item);
     table_->setItem(row, 1, new QTableWidgetItem(QString::asprintf("%9.4f", r.lon)));
     table_->setItem(row, 2, new QTableWidgetItem(QString::asprintf("%8.4f", r.lat)));

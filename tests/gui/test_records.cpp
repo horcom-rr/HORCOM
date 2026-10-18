@@ -827,3 +827,23 @@ TEST_CASE("kon_dsp keeps the self defined orbs and the outer colour") {
   CHECK(saved->hard == 3);
   std::filesystem::remove(file);
 }
+
+TEST_CASE("the chooser rows stand bold from the name to the date") {
+  // the tester reads his files by name and date, the rest stays plain and
+  // the cut falls into the blanks behind the date
+  const AafRecord r = person("ERSTER", 1);
+  const QString line = " " + record_list_line(r);
+  CHECK(line.left(kRecordBoldChars).trimmed().startsWith("ERSTER"));
+  CHECK(line.left(kRecordBoldChars).trimmed().endsWith(QString::number(r.year)));
+  CHECK(line.mid(kRecordBoldChars - 1, 2).trimmed().isEmpty());
+  AafRecord old = r;
+  old.year = -43;
+  const QString bc = " " + record_list_line(old);
+  CHECK(bc.left(kRecordBoldChars).trimmed().endsWith("vC"));
+  CHECK(bc.mid(kRecordBoldChars - 1, 2).trimmed().isEmpty());
+  // the list paints its rows through a delegate of its own
+  RecordListDialog list({r}, {0}, "TEST.DAT", 5, RecordListDialog::Mode::kFetch);
+  auto* rows = list.findChild<QListWidget*>();
+  REQUIRE(rows != nullptr);
+  CHECK(rows->itemDelegate()->parent() == rows);
+}

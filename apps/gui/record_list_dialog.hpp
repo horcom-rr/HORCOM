@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "horcom/data/aaf.hpp"
+#include "horcom/data/chart_file.hpp"
 
 class QKeyEvent;
 class QLabel;
@@ -85,5 +86,14 @@ class RecordListDialog : public QDialog {
 /// @param r the record
 /// @return the monospace row
 [[nodiscard]] QString record_list_line(const AafRecord& r);
+
+/// The date of a chooser row with the vC of a year before Christ and the
+/// first blank behind it.
+inline constexpr int kRecordDateChars = 15;
+
+/// The leading characters of a chooser row that stand bold, the blank
+/// before the row, the name, its blank and the date. The tester reads his
+/// files by name and date.
+inline constexpr int kRecordBoldChars = 1 + kDatNameLength + 1 + kRecordDateChars;
 
 }  // namespace horcom

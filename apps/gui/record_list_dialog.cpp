@@ -4,6 +4,8 @@
 
 #include "record_list_dialog.hpp"
 
+#include <QApplication>
+#include <QFontMetrics>
 #include <QHBoxLayout>
 #include <QItemSelectionModel>
 #include <QKeyEvent>
@@ -12,7 +14,9 @@
 #include <QListWidget>
 #include <QMessageBox>
 #include <QPrinter>
+#include <QPainter>
 #include <QPushButton>
+#include <QStyledItemDelegate>
 #include <QVBoxLayout>
 #include <algorithm>
 #include <cmath>
@@ -29,6 +33,36 @@ namespace {
 
 // the search buttons of ausw_datei only appeared on long lists
 constexpr int kSearchThreshold = 58;
+
+// The name and the date of a row bold, the rest plain. The face keeps one
+// pitch in both weights, so the row paints twice, plain right of the date
+// and bold over the name and the date, each pass clipped to its side, and
+// every column stays in line. The cut falls into the blanks behind the
+// date
+class NameDateDelegate final : public QStyledItemDelegate {
+ public:
+  using QStyledItemDelegate::QStyledItemDelegate;
+
+  void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
+    QStyleOptionViewItem opt(option);
+    initStyleOption(&opt, index);
+    const QWidget* w = opt.widget;
+    const QStyle* style = w != nullptr ? w->style() : QApplication::style();
+    const QRect text = style->subElementRect(QStyle::SE_ItemViewItemText, &opt, w);
+    const int margin = style->pixelMetric(QStyle::PM_FocusFrameHMargin, nullptr, w) + 1;
+    const int cut = text.left() + margin + QFontMetrics(opt.font).horizontalAdvance(opt.text.left(kRecordBoldChars));
+    painter->save();
+    painter->setClipRect(QRect(cut, opt.rect.top(), std::max(0, opt.rect.right() - cut + 1), opt.rect.height()));
+    style->drawControl(QStyle::CE_ItemViewItem, &opt, painter, w);
+    painter->restore();
+    QStyleOptionViewItem bold(opt);
+    bold.font.setBold(true);
+    painter->save();
+    painter->setClipRect(QRect(opt.rect.left(), opt.rect.top(), std::max(0, cut - opt.rect.left()), opt.rect.height()));
+    style->drawControl(QStyle::CE_ItemViewItem, &bold, painter, w);
+    painter->restore();
+  }
+};
 
 // one coordinate like grmise(gd,1), degrees in three, tenth minutes in
 // five columns
@@ -84,6 +118,7 @@ RecordListDialog::RecordListDialog(const std::vector<AafRecord>& records, const 
   list_ = new QListWidget(this);
   list_->setSelectionMode(mode_ == Mode::kSingle ? QAbstractItemView::SingleSelection
                                                  : QAbstractItemView::MultiSelection);
+  list_->setItemDelegate(new NameDateDelegate(list_));
   for (const std::size_t i : order) {
     auto* item = new QListWidgetItem(" " + record_list_line(records[i]), list_);
     item->setData(Qt::UserRole, static_cast<qulonglong>(i));

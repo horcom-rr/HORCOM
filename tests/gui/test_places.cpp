@@ -89,13 +89,16 @@ TEST_CASE("ORTS-DATEIEN HOLEN hands back the chosen place") {
   const auto file = s.dir / "places" / "TEST.INT";
   REQUIRE(write_place_file(file, three_places()));
   std::optional<PlaceRecord> got;
+  bool bold_names = true;
   {
     DialogDriver drive;
     drive.then(open_file(file))
         .then(DialogDriver::click("HOLEN"))
-        .then([](QDialog* d) {
+        .then([&bold_names](QDialog* d) {
           auto* table = d->findChild<QTableWidget*>();
           for (int r = 0; r < table->rowCount(); ++r) {
+            // the place names bold, the coordinates plain
+            bold_names = bold_names && table->item(r, 0)->font().bold() && !table->item(r, 1)->font().bold();
             if (table->item(r, 0)->text() == "Zielstadt / D") {
               table->selectRow(r);
             }
@@ -112,6 +115,7 @@ TEST_CASE("ORTS-DATEIEN HOLEN hands back the chosen place") {
   REQUIRE(got.has_value());
   CHECK(got->name == "Zielstadt / D");
   CHECK(got->lon == doctest::Approx(9.2));
+  CHECK(bold_names);
 }
 
 TEST_CASE("ORTS-DATEIEN LÖSCHEN keeps a reserve and asks WEITER") {
