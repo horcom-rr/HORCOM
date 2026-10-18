@@ -675,6 +675,13 @@ class MainWindow : public QMainWindow {
   void rhythm_graph(const RhythmRun& run);
   /// The AUSLÖSUNGS-TABELLE.
   void rhythm_table(const RhythmRun& run);
+  /// One trigger of the AUSLÖSUNGS-TABELLE at the end of the table.
+  ///
+  /// @param table the table
+  /// @param run   the walk with its clock and its form of the moment
+  /// @param t     the trigger
+  /// @param cal   the calendar of the dates
+  void rhythm_table_row(QTableWidget* table, const RhythmRun& run, const RhythmTrigger& t, Calendar cal) const;
   /// The GRAD-DATUM-LISTE.
   void rhythm_degree_list(const RhythmRun& run);
   /// The phase screen of the graph.

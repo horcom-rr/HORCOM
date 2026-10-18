@@ -2,6 +2,7 @@
 // horcom, the C++ rewrite of HORCOM by Robert Rettig (1989 to 2010)
 // Copyright (c) 2026 Dominik Schwimmbeck
 
+#include <QHeaderView>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QRegularExpression>
@@ -693,4 +694,90 @@ TEST_CASE("the GRAD-DATUM-LISTE runs each phase from its first date to its last,
     CHECK(phases.front().front() < birth + tja);
     CHECK(phases.back().back() > birth + 83.0 * tja);
   }
+}
+
+TEST_CASE("SEPTAR ends with the twelfth like the twelve houses of the rhythm") {
+  // the tester's ninth batch, no thirteenth Septar, a longer life takes a
+  // larger key through SONSTIGE
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::houses(*w, 1);
+  MainWindowProbe::apply(*w, morning_birth());
+  Konsta& k = MainWindowProbe::konsta(*w);
+  k.fixpunkt_rh.clear();
+  k.lpktg = false;
+  QStringList notes;
+  DialogDriver drive;
+  drive.then(DialogDriver::click("JA"))  // EREIGNIS-Ort = GEBURTS-Ort ?
+      .then(DialogDriver::click("SIEBEN"))
+      .then([&notes](QDialog* d) {
+        for (const QLabel* l : d->findChildren<QLabel*>()) {
+          notes << l->text();
+        }
+        DialogDriver::fill({"84"}, "OK")(d);
+      })
+      // the box stands again until the year fits
+      .then(DialogDriver::fill({"83"}, "OK"))
+      .then(DialogDriver::click("KEIN SONDERPUNKT"))
+      .then([](QDialog* d) { d->accept(); });
+  MainWindowProbe::septar(*w);
+  INFO(drive.titles().join(" | ").toStdString());
+  CHECK(drive.pending() == 0);
+  CHECK(drive.unexpected() == 0);
+  CHECK(notes.contains("SEPTARE gelten nur von 1 bis 12 !"));
+  CHECK(notes.join(" ").contains("LEBENSJAHR 0 bis 83"));
+  CHECK(MainWindowProbe::banner_record(*w) == "12.SEPTAR");
+}
+
+TEST_CASE("a click on the date head orders the whole AUSLÖSUNGS-TABELLE in time") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::houses(*w, 1);
+  MainWindowProbe::apply(*w, morning_birth());
+  QStringList theirs;
+  QStringList in_time;
+  QStringList back;
+  QString hint;
+  DialogDriver drive;
+  drive.then(DialogDriver::click("AUSLÖSUNGS"))
+      .then(DialogDriver::click("RECHTS"))
+      .then(DialogDriver::click("DATUM"))
+      .then(DialogDriver::click("EINS"))
+      .then(DialogDriver::click("JAHR"))
+      .then(DialogDriver::click("SIEBEN"))
+      .then(DialogDriver::click("KEIN SONDERPUNKT"))
+      .then([&](QDialog* d) {
+        auto* t = d->findChild<QTableWidget*>();
+        REQUIRE(t != nullptr);
+        theirs = table_column(d, 0);
+        emit t->horizontalHeader()->sectionClicked(0);
+        in_time = table_column(d, 0);
+        emit t->horizontalHeader()->sectionClicked(0);
+        back = table_column(d, 0);
+        for (const QLabel* l : d->findChildren<QLabel*>()) {
+          if (l->text().contains("zeitlich")) {
+            hint = l->text();
+          }
+        }
+        d->reject();
+      });
+  MainWindowProbe::rhythm(*w);
+  INFO(drive.titles().join(" | ").toStdString());
+  CHECK(drive.pending() == 0);
+  CHECK(drive.unexpected() == 0);
+  CHECK(hint.contains("Datum"));
+  const auto dates = [](const QStringList& rows) {
+    std::vector<double> out;
+    for (const QString& r : rows) {
+      const QStringList f = r.trimmed().split('.');
+      if (f.size() == 3 && !r.startsWith("PHASE")) {
+        out.push_back(julian_day({f[0].toInt(), f[1].toInt(), f[2].toInt(), 0, 0.0}));
+      }
+    }
+    return out;
+  };
+  const std::vector<double> sorted = dates(in_time);
+  REQUIRE(sorted.size() > 12);
+  CHECK(std::is_sorted(sorted.begin(), sorted.end()));
+  CHECK(dates(theirs).size() == sorted.size());
+  // the second click gives his order of the phases back
+  CHECK(back == theirs);
 }

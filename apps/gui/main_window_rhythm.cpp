@@ -18,6 +18,7 @@
 #include <functional>
 #include <limits>
 #include <map>
+#include <numeric>
 #include <set>
 #include <vector>
 
@@ -61,8 +62,8 @@ constexpr int kList = 3;
 constexpr double kRhythmNameX = 222.0;
 // his SONSTIGE period, no bound in the inputbox, the port keeps it sane
 constexpr double kMaxPeriod = 120.0;
-// the oldest year of life the Septar box takes
-constexpr double kMaxLifeYears = 150.0;
+// the twelve Septars of a key, one per house of the rhythm
+constexpr int kSeptarCount = 12;
 
 QString slot_tag(int slot) {
   // plnm names slot zero SP in the Rhythmenlehre
@@ -578,12 +579,19 @@ void MainWindow::septar_chart() {
   // fa& = 1 with zeitm$ "MONAT"
   const double fa = 1.0;
   const QString zeitm = tr("MONAT");
+  // his box took any year and FIX(a / vp + 1) went on past the twelfth
+  // Septar. Döbereiner's rhythm counts twelve houses, the tester asked to
+  // end there and to take a larger key through SONSTIGE for a longer life
+  const int last_age = std::max(0, static_cast<int>(std::ceil(kSeptarCount * vp * fa)) - 1);
   // the tester's wish, the box opens with today's age
   const ChartInput base_in = radix_input();
-  const int today_age = std::max(0, QDate::currentDate().year() - base_in.date_ut.year);
+  const int today_age = std::clamp(QDate::currentDate().year() - base_in.date_ut.year, 0, last_age);
   // a$ = @inputbox$(160,eaz$,"INTERESSIERENDES LEBENSJAHR ?  GANZE ZAHL","")
   const auto age = ask_number(this, tr("ZAHLEN-Eingabe !"), tr("INTERESSIERENDES LEBENSJAHR ?  GANZE ZAHL"), 0.0,
-                              kMaxLifeYears, today_age, 0);
+                              last_age, today_age, 0,
+                              {tr("SEPTARE gelten nur von 1 bis 12 !"),
+                               tr("LEBENSJAHR 0 bis %1, für ein höheres Alter einen größeren SCHLÜSSEL wählen ( SONSTIGE )")
+                                   .arg(last_age)});
   if (!age) {
     return;
   }
@@ -950,43 +958,81 @@ void MainWindow::rhythm_table(const RhythmRun& run) {
                                      {run.dated ? tr("Datum") : tr("LJ  MO"), tr("PL"), tr("ART")},
                                      run.opt.phase_years < 0.0);
   const Calendar cal = current_settings().calendar;
-  int last_phase = 0;
-  for (const RhythmTrigger& t : rows) {
-    if (t.phase != last_phase) {
-      last_phase = t.phase;
-      phase_row(table, tr("PHASE %1 = HS %2").arg(t.phase + run.opt.begin_house - 1).arg(t.house));
+  // his order runs phase by phase, the direct triggers of a house before
+  // the triggers the aspects to its ruler set off where their bodies stand
+  // in their own houses. The tester wanted the whole list in time too, a
+  // click on the date column orders it so and a second click gives his
+  // order back
+  std::vector<std::size_t> order(rows.size());
+  std::iota(order.begin(), order.end(), std::size_t{0});
+  bool in_time = false;
+  const auto fill = [&]() {
+    table->setRowCount(0);
+    int last_phase = 0;
+    for (const std::size_t i : order) {
+      const RhythmTrigger& t = rows[i];
+      if (t.phase != last_phase) {
+        last_phase = t.phase;
+        phase_row(table, tr("PHASE %1 = HS %2").arg(t.phase + run.opt.begin_house - 1).arg(t.house));
+      }
+      rhythm_table_row(table, run, t, cal);
     }
-    const int row = table->rowCount();
-    table->insertRow(row);
-    QString when;
-    if (run.dated) {
-      // the whole year, his datum$ kept two digits
-      when = datum_full_text(calendar_date(rhythm_jd(run.clock, t.value), cal));
-    } else {
-      // a175, bb$ three places and aa$ one decimal
-      const RhythmAge g = rhythm_age(t.value, run.clock.sn, false);
-      when = QString("%1 %2").arg(QString(g.negative ? "-" : "") + QString::number(g.years), 3).arg(g.months, 4, 'f', 1);
+    table->resizeColumnsToContents();
+  };
+  fill();
+  table->horizontalHeader()->setSectionsClickable(true);
+  connect(table->horizontalHeader(), &QHeaderView::sectionClicked, &dialog, [&](int column) {
+    if (column != 0) {
+      return;
     }
-    // the dates bold like the GRAD-DATUM-LISTE
-    auto* when_item = new QTableWidgetItem(when);
-    bold_cell(when_item);
-    table->setItem(row, 0, when_item);
-    // a175 stamps the sprite of the planet, it stands before the tag
-    auto* planet = new QTableWidgetItem(slot_tag(t.slot));
-    set_body_sprite(planet, t.slot, theme::ink_now());
-    table->setItem(row, 1, planet);
-    QString art;
-    if (t.kind == RhythmKind::kAspect) {
-      // asps&(al1&) and the planet of the trigger, his r&
-      art = QString::fromUtf8(aspect_glyph(t.family)) + " " + slot_tag(t.source);
-    } else {
-      art = kind_text(t.kind);
+    in_time = !in_time;
+    std::iota(order.begin(), order.end(), std::size_t{0});
+    if (in_time) {
+      std::stable_sort(order.begin(), order.end(), [&](std::size_t a, std::size_t b) {
+        return rhythm_jd(run.clock, rows[a].value) < rhythm_jd(run.clock, rows[b].value);
+      });
     }
-    table->setItem(row, 2, new QTableWidgetItem(art));
+    fill();
+  });
+  if (auto* v = qobject_cast<QVBoxLayout*>(dialog.layout())) {
+    v->addWidget(new QLabel(run.dated ? tr("Spaltenkopf Datum anklicken = zeitlich sortieren, nochmals = Reihenfolge der Phasen")
+                                      : tr("Spaltenkopf LJ MO anklicken = zeitlich sortieren, nochmals = Reihenfolge der Phasen"),
+                            &dialog));
   }
-  table->resizeColumnsToContents();
   dialog.resize(520, 640);
   dialog.exec();
+}
+
+// one trigger of the AUSLÖSUNGS-TABELLE, a175 with its date or age, the
+// planet and the kind
+void MainWindow::rhythm_table_row(QTableWidget* table, const RhythmRun& run, const RhythmTrigger& t, Calendar cal) const {
+  const int row = table->rowCount();
+  table->insertRow(row);
+  QString when;
+  if (run.dated) {
+    // the whole year, his datum$ kept two digits
+    when = datum_full_text(calendar_date(rhythm_jd(run.clock, t.value), cal));
+  } else {
+    // a175, bb$ three places and aa$ one decimal
+    const RhythmAge g = rhythm_age(t.value, run.clock.sn, false);
+    when = QString("%1 %2").arg(QString(g.negative ? "-" : "") + QString::number(g.years), 3).arg(g.months, 4, 'f', 1);
+  }
+  // the dates bold like the GRAD-DATUM-LISTE
+  auto* when_item = new QTableWidgetItem(when);
+  bold_cell(when_item);
+  table->setItem(row, 0, when_item);
+  // a175 stamps the sprite of the planet, it stands before the tag
+  auto* planet = new QTableWidgetItem(slot_tag(t.slot));
+  set_body_sprite(planet, t.slot, theme::ink_now());
+  table->setItem(row, 1, planet);
+  QString art;
+  if (t.kind == RhythmKind::kAspect) {
+    // asps&(al1&) and the planet of the trigger, his r&
+    art = QString::fromUtf8(aspect_glyph(t.family)) + " " + slot_tag(t.source);
+  } else {
+    art = kind_text(t.kind);
+  }
+  table->setItem(row, 2, new QTableWidgetItem(art));
 }
 
 // ported from a17_3 and a174 with dbr& 3
