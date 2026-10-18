@@ -4,6 +4,7 @@
 
 #include "main_window.hpp"
 
+#include <QAbstractSpinBox>
 #include <QAction>
 #include <QActionGroup>
 #include <QApplication>
@@ -145,6 +146,24 @@ class ResizeHook final : public QObject {
 
  private:
   std::function<void()> on_resize_;
+};
+
+// leaves Undo and Redo of a panel field to the window, its Zurück and Vor.
+// The field took Ctrl+Z for its own text and wrote the old date as a new
+// step, a spin box swallowed the key, and every typed edit already stands
+// in the history
+class PanelHistoryKeys final : public QObject {
+ public:
+  using QObject::QObject;
+
+ protected:
+  bool eventFilter(QObject*, QEvent* e) override {
+    if (e->type() == QEvent::ShortcutOverride) {
+      const auto* k = static_cast<QKeyEvent*>(e);
+      return k->matches(QKeySequence::Undo) || k->matches(QKeySequence::Redo);
+    }
+    return false;
+  }
 };
 
 // the object name of the HINTERGRUND-FARBEN entry of the FARBEN menu
@@ -1599,6 +1618,24 @@ void MainWindow::build_ui() {
   });
   connect(tdate_, &QDateEdit::dateChanged, this, &MainWindow::recompute);
   connect(ttime_, &QTimeEdit::timeChanged, this, &MainWindow::recompute);
+  // a click on a switch is a step of its own. The settle window joins the
+  // keys of a typed field and the steps of a spin box, it had joined quick
+  // clicks too and one Zurück took back several switches. The press settles
+  // what came before, the click the switch itself. A switch the program
+  // sets keeps to the step of the action that set it
+  for (QAbstractButton* b : std::initializer_list<QAbstractButton*>{
+           parallax_, extras_, node_show_, node_wahr, node_mittel, apogee_show_, apogee_wahr, apogee_mittel, helio_,
+           sommerzeit_, double_dst_, local_time_, julian_, transit_on_}) {
+    connect(b, &QAbstractButton::pressed, this, &MainWindow::flush_history);
+    connect(b, &QAbstractButton::clicked, this, &MainWindow::flush_history);
+  }
+  connect(houses_, &QComboBox::activated, this, &MainWindow::flush_history);
+  auto* history_keys = new PanelHistoryKeys(this);
+  for (QWidget* field : form_host->findChildren<QWidget*>()) {
+    if (qobject_cast<QLineEdit*>(field) != nullptr || qobject_cast<QAbstractSpinBox*>(field) != nullptr) {
+      field->installEventFilter(history_keys);
+    }
+  }
   resize(1280, 760);
 }
 
@@ -1750,6 +1787,9 @@ MainWindow::PanelState MainWindow::panel_state() const {
   s.loose_radix = loose_radix_;
   s.derived_input = derived_input_;
   s.banner = banner_->record();
+  s.included = included_;
+  s.emphasis = emphasis_;
+  s.ruler_red = ruler_red_;
   return s;
 }
 
@@ -1799,20 +1839,12 @@ void MainWindow::restore_state(const PanelState& s) {
     parallax_->setChecked(s.parallax);
     extras_->setChecked(s.extras);
     hamburg_->setChecked(s.hamburg);
-    // the shortcut checkboxes carry their group slots via the toggled
-    // connect, restore blocks that signal so re-sync the group slots
-    // by hand, the dialog picks stay in included_ between panel steps
-    for (int slot : {body::kChiron, body::kQuaoar, body::kXena}) {
-      included_[static_cast<std::size_t>(slot)] = s.extras;
-    }
-    for (int slot : {body::kCupido, body::kHades, body::kZeus, body::kKronos, body::kApollon,
-                     body::kAdmetos, body::kVulkanus, body::kPoseidon}) {
-      included_[static_cast<std::size_t>(slot)] = s.hamburg;
-    }
     apogee_show_->setChecked(s.apogee);
-    // the toggled connect is blocked here so mirror the AG group slot by
-    // hand, the dialog picks stay in included_ between panel steps
-    included_[body::kApogee] = s.apogee;
+    // the step holds the body slots the shortcut boxes and the
+    // Planeten-Auswahl set, the toggled connects of the boxes are blocked
+    included_ = s.included;
+    emphasis_ = s.emphasis;
+    ruler_red_ = s.ruler_red;
     // the Sommerzeit hint reads zone_ and sommerzeit_, both blocked above,
     // so pull the label through its refresh entry point by hand
     if (refresh_sommer_effect_) refresh_sommer_effect_();
@@ -1902,6 +1934,13 @@ void MainWindow::refresh_current_step() {
 void MainWindow::flush_history() {
   history_timer_->stop();
   if (!pending_) {
+    return;
+  }
+  // a switch ticked and unticked again left a step that changed nothing,
+  // Zurück onto it seemed to do nothing
+  if (*pending_ == current_state_) {
+    pending_.reset();
+    update_history_actions();
     return;
   }
   back_.push_back(*pending_);

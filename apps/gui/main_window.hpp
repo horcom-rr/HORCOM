@@ -771,6 +771,11 @@ class MainWindow : public QMainWindow {
     /// the record line of the banner, 54.SOLAR or KORRIGIERT, a step back
     /// had kept the line of the last chart
     QString banner;
+    /// the bodies of the Planeten-Auswahl with their show and red marks,
+    /// a choice there was no step and Zurück took back the one before
+    std::array<bool, body::kSlotCount> included{};
+    std::array<int, body::kSlotCount> emphasis{};
+    bool ruler_red = false;
 
     bool operator==(const PanelState& o) const {
       return given == o.given && surname == o.surname && place == o.place && date == o.date &&
@@ -781,7 +786,8 @@ class MainWindow : public QMainWindow {
              true_apogee == o.true_apogee && helio == o.helio && transit_on == o.transit_on &&
              tdate == o.tdate && ttime == o.ttime && record.surname == o.record.surname &&
              record.given == o.record.given && record.place == o.record.place &&
-             record.comment == o.record.comment && combin == o.combin;
+             record.comment == o.record.comment && combin == o.combin && included == o.included &&
+             emphasis == o.emphasis && ruler_red == o.ruler_red;
     }
   };
 

@@ -531,6 +531,132 @@ TEST_CASE("Zurück and Vor bring the Wahrer and Mittlerer radios back with the n
   w->hide();
 }
 
+TEST_CASE("each click on a switch is a step of its own, however quick") {
+  auto w = MainWindowProbe::make();
+  w->show();
+  MainWindowProbe::apply(*w, person("TESTFALL", 1990));
+  settle_step();
+  const auto box = [&w](const char* text) -> QCheckBox* {
+    for (QCheckBox* b : w->findChildren<QCheckBox*>()) {
+      if (b->text().startsWith(QString::fromUtf8(text))) {
+        return b;
+      }
+    }
+    return nullptr;
+  };
+  QCheckBox* parallax = box("Parallaxe");
+  QCheckBox* apogee = box("Schwarzer");
+  QCheckBox* extras = box("Zusatz");
+  REQUIRE(parallax != nullptr);
+  REQUIRE(apogee != nullptr);
+  REQUIRE(extras != nullptr);
+  const bool p0 = parallax->isChecked();
+  const bool a0 = apogee->isChecked();
+  const bool e0 = extras->isChecked();
+  // well inside the settle window of a typed field
+  const auto quick = []() {
+    QElapsedTimer t;
+    t.start();
+    while (t.elapsed() < 200) {
+      QApplication::processEvents(QEventLoop::AllEvents, 50);
+    }
+  };
+  const std::size_t before = MainWindowProbe::history_steps(*w);
+  parallax->click();
+  quick();
+  apogee->click();
+  quick();
+  extras->click();
+  CHECK(MainWindowProbe::history_steps(*w) == before + 3);
+  // each Zurück takes back the last switch alone
+  QToolButton* back = history_button(*w, "Zur");
+  back->click();
+  CHECK(extras->isChecked() == e0);
+  CHECK(apogee->isChecked() != a0);
+  CHECK(parallax->isChecked() != p0);
+  back->click();
+  CHECK(apogee->isChecked() == a0);
+  CHECK(parallax->isChecked() != p0);
+  back->click();
+  CHECK(parallax->isChecked() == p0);
+  history_button(*w, "Vor")->click();
+  CHECK(parallax->isChecked() != p0);
+  CHECK(apogee->isChecked() == a0);
+  w->hide();
+}
+
+TEST_CASE("a body taken in through the Planeten-Auswahl is a step of Zurück and Vor") {
+  using horcom::test::DialogDriver;
+  auto w = MainWindowProbe::make();
+  w->show();
+  MainWindowProbe::apply(*w, person("TESTFALL", 1990));
+  settle_step();
+  REQUIRE_FALSE(MainWindowProbe::chart(*w).b[body::kCeres].present);
+  // ticks Zeigen of Ceres and takes the choice
+  {
+    DialogDriver drive;
+    drive.then([](QDialog* d) {
+      auto* table = d->findChild<QTableWidget*>();
+      REQUIRE(table != nullptr);
+      for (int row = 0; row < table->rowCount(); ++row) {
+        const QTableWidgetItem* name = table->item(row, 0);
+        if (name != nullptr && name->data(Qt::UserRole).toInt() == body::kCeres) {
+          table->cellWidget(row, 1)->findChild<QCheckBox*>()->click();
+        }
+      }
+      d->accept();
+    });
+    w->open_planet_selection();
+    CHECK(drive.unexpected() == 0);
+  }
+  REQUIRE(MainWindowProbe::chart(*w).b[body::kCeres].present);
+  settle_step();
+  // the step back leaves Ceres out again, the step forward brings it back
+  history_button(*w, "Zur")->click();
+  CHECK_FALSE(MainWindowProbe::chart(*w).b[body::kCeres].present);
+  history_button(*w, "Vor")->click();
+  CHECK(MainWindowProbe::chart(*w).b[body::kCeres].present);
+  w->hide();
+}
+
+TEST_CASE("Ctrl+Z and Ctrl+Y in a panel field reach Zurück and Vor") {
+  auto w = MainWindowProbe::make();
+  // a field that claims the key in its ShortcutOverride keeps it from the
+  // window, the date field undid its own text as a new step and the clock
+  // swallowed the key
+  const auto claims = [](QWidget* field, QKeySequence::StandardKey key) {
+    const QKeyCombination combo = QKeySequence(key)[0];
+    QKeyEvent over(QEvent::ShortcutOverride, combo.key(), combo.keyboardModifiers());
+    over.ignore();
+    QApplication::sendEvent(field, &over);
+    return over.isAccepted();
+  };
+  for (QWidget* field : std::initializer_list<QWidget*>{MainWindowProbe::date(*w), MainWindowProbe::time(*w),
+                                                        MainWindowProbe::zone(*w)}) {
+    INFO(field->metaObject()->className());
+    CHECK_FALSE(claims(field, QKeySequence::Undo));
+    CHECK_FALSE(claims(field, QKeySequence::Redo));
+    // the other keys of a field stay its own
+    CHECK(claims(field, QKeySequence::SelectAll));
+  }
+}
+
+TEST_CASE("an edit taken back within its settle window leaves no step behind") {
+  auto w = MainWindowProbe::make();
+  w->show();
+  MainWindowProbe::apply(*w, person("TESTFALL", 1990));
+  settle_step();
+  const std::size_t before = MainWindowProbe::history_steps(*w);
+  // a spin step up and down again, the chart ends where it was
+  QTimeEdit* time = MainWindowProbe::time(*w);
+  const QTime was = time->time();
+  time->setTime(was.addSecs(60));
+  time->setTime(was);
+  settle_step();
+  CHECK(MainWindowProbe::history_steps(*w) == before);
+  w->hide();
+}
+
 TEST_CASE("Zurück across a slot switch brings the slot back and never overwrites the other one") {
   auto w = MainWindowProbe::make();
   w->show();
