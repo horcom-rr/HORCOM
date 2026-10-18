@@ -137,6 +137,11 @@ class MainWindow : public QMainWindow {
   /// warning so a scripted shot does not stall on a modal
   void promote_result_to_radix_scripted(int slot = -1);
 
+  /// Opens the program without a record like his start with ze = 0.
+  /// Nothing is drawn, the panel waits for a date and the entries that
+  /// need a chart stand grey until a record is fetched, entered or typed.
+  void start_idle();
+
  protected:
   void closeEvent(QCloseEvent* event) override;
   bool eventFilter(QObject* watched, QEvent* event) override;
@@ -237,6 +242,15 @@ class MainWindow : public QMainWindow {
   /// HOROSKOP-HINTERGRUND, the paper under every chart and sheet, white,
   /// the warm paper of the dress or a light colour of the viewer's choice.
   void paper_choice();
+  /// The empty screen of the start without a record, no wheel, no tables
+  /// and no record in the banner.
+  void show_idle();
+  /// Ends the empty start once a whole date stands on the panel, typed,
+  /// fetched or reckoned, the history starts with the first chart.
+  void leave_idle();
+  /// Greys the entries that need a chart while the start stands empty
+  /// and gives each its own state back afterwards.
+  void update_idle_actions();
   /// His a2113_1, the next free RADIX slot or, all five filled, the
   /// number that gives way after his question.
   ///
@@ -1148,11 +1162,11 @@ class MainWindow : public QMainWindow {
   void leave_views(std::initializer_list<const QAction*> keep);
   /// AUFRÄUMEN / RÜCKSETZEN, his areg with areg11 and a1. After his
   /// RÜCKSETZEN ? box the slots, the stored pairs and pictures, the special
-  /// views and the history empty and the panel returns to the chart of the
-  /// first start.
+  /// views and the history empty and the screen stands empty like at the
+  /// start of the program.
   void clear_slots();
-  /// The panel of the first start without a person, the moment and place
-  /// the constructor shows, the derived chart memories dropped.
+  /// The panel of the first start without a person, the place the
+  /// constructor shows, the derived chart memories dropped.
   void reset_panel();
   /// Takes and remembers the sign rulers of ZUORDNUNG ZEICHENHERRSCHER.
   ///
@@ -1591,6 +1605,10 @@ class MainWindow : public QMainWindow {
   QScrollArea* aspects_scroll_ = nullptr;
   std::optional<Chart> last_chart_;
   std::optional<AspectResult> last_aspects_;
+  // his ze = 0, the program opened without a record and draws nothing
+  bool idle_ = false;
+  // the entries that need a chart, grey while idle_ holds
+  std::vector<QAction*> chart_actions_;
   // the radix a derived chart came from when it was typed into the panel
   // without a SATZ row, the panel shows the derived moment afterwards
   std::optional<ChartInput> loose_radix_;

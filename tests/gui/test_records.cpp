@@ -171,17 +171,20 @@ TEST_CASE("AUFRÄUMEN clears the chart on screen and every pair view like areg11
     CHECK(drive.pending() == 0);
     CHECK(drive.unexpected() == 0);
   }
-  // his areg11 cleared the record on screen too, the panel shows the chart
-  // of the first start without a person and the double wheel is gone
+  // his areg11 cleared the record on screen too and a1 left the screen
+  // empty like at the start, the panel keeps the place of the first start
+  // and waits for a date, the double wheel is gone
   CHECK(MainWindowProbe::record(*w).surname.empty());
   CHECK(MainWindowProbe::sheet(*w).name.empty());
-  const CalendarDate d = MainWindowProbe::day(*w);
-  CHECK(d.day == 13);
-  CHECK(d.month == 10);
-  CHECK(d.year == 1992);
+  CHECK_FALSE(MainWindowProbe::day_valid(*w));
   CHECK(MainWindowProbe::lon(*w) == doctest::Approx(11.3244));
   CHECK_FALSE(MainWindowProbe::full_sheet(*w));
-  CHECK(MainWindowProbe::banner_record(*w).trimmed().startsWith("13.10.1992"));
+  CHECK(MainWindowProbe::wheel(*w).items.empty());
+  CHECK(MainWindowProbe::banner_record(*w).trimmed().isEmpty());
+  // a birth typed afterwards is the radix, no start record stands behind it
+  MainWindowProbe::date(*w)->setText("10.05.1970");
+  emit MainWindowProbe::date(*w)->editingFinished();
+  CHECK(MainWindowProbe::radix_input(*w).date_ut.year == 1970);
   for (int i = 0; i < 5; ++i) {
     CHECK_FALSE(MainWindowProbe::slot(*w, i).has_value());
   }

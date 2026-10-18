@@ -89,8 +89,12 @@ QString MainWindow::et_ut_note(int year) {
   return {};
 }
 
-// the moment his boxes open with, the clock of the active chart in UT
+// the moment his boxes open with, the clock of the active chart in UT,
+// today on the empty start
 CalendarDate MainWindow::convert_start() const {
+  if (idle_) {
+    return today_date();
+  }
   return last_chart_ ? calendar_date(last_chart_->jd_ut, current_settings().calendar) : panel_day();
 }
 

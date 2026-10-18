@@ -474,7 +474,10 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* e) {
       if (modal == nullptr && !main_wart) {
         return QMainWindow::eventFilter(watched, e);
       }
-      chart_between(modal != nullptr ? item : wart_item_);
+      // the empty start has no chart to show between
+      if (!idle_) {
+        chart_between(modal != nullptr ? item : wart_item_);
+      }
       return true;
     case Qt::Key_F3:
       start_calculator();
@@ -505,8 +508,9 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* e) {
       if (!main_screen) {
         return QMainWindow::eventFilter(watched, e);
       }
-      // the main window is his chart screen too, a chart on it is kept
-      if (last_chart_ && !(double_active_ && double_buffer_.size() >= 2)) {
+      // the main window is his chart screen too, a chart on it is kept,
+      // the empty start keeps none
+      if (last_chart_ && !idle_ && !(double_active_ && double_buffer_.size() >= 2)) {
         double_capture(this);
       } else {
         double_offer();

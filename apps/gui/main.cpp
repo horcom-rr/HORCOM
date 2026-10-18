@@ -630,6 +630,11 @@ int main(int argc, char** argv) {
       window.resize(wh[0].toInt(), wh[1].toInt());
     }
   }
+  // a plain start opens without a chart like his start with ze = 0, the
+  // capture hooks keep the chart they draw on
+  if (chart_arg < 0 && shot < 0) {
+    window.start_idle();
+  }
   // a shot flag without a target path opens the preset view normally,
   // so a doppelkreis or composit lands on screen for a live look
   const bool will_shoot = shot >= 0 && shot + 1 < args.size() && !args[shot + 1].startsWith("--");

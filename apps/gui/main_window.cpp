@@ -551,6 +551,8 @@ void MainWindow::build_ui() {
   // text field, TT.MM.JJJJ, years BC with the vC of his chooser list
   date_ = new QLineEdit(QString::asprintf("%02d.%02d.%04d", kStartDay, kStartMonth, kStartYear), form_host);
   date_->setMaxLength(14);
+  // the empty start waits for a date, the field names its form
+  date_->setPlaceholderText(tr("TT.MM.JJJJ"));
   time_ = new QTimeEdit(QTime(kStartHour, 0), form_host);
   time_->setDisplayFormat("HH:mm:ss");
   // arrow keys and the mouse wheel step the fields, the tiny stepper
@@ -1022,6 +1024,13 @@ void MainWindow::build_ui() {
   QMenu* horo = menuBar()->addMenu(tr("H&OROSKOPE"));
   QMenu* ausw = menuBar()->addMenu(tr("&AUSWERTUNG"));
   QMenu* divers = menuBar()->addMenu(tr("D&IVERSES"));
+  // the entries that need a chart, his MENU 14 TO 38 and 41 TO 101 under
+  // ze = 0 stood grey while no record was on screen. The settings, the
+  // texts, the files, the converters and the way out stay open
+  const auto needs_chart = [this](QAction* a) {
+    chart_actions_.push_back(a);
+    return a;
+  };
   // his commentary texts, every menu keeps its ERLÄUTERUNG entry opening
   // the matching text
   const auto erlaeuterung = [this](const QString& stem) {
@@ -1058,9 +1067,9 @@ void MainWindow::build_ui() {
   //RR NEU-EINGABE von DATENSÄTZEN
   file->addAction(tr("NEU-EINGABE von DATENSÄTZEN…"), QKeySequence::New, this, &MainWindow::new_records_entry);
   //RR AKTUELLEN Datensatz EINTRAGEN ?
-  file->addAction(tr("AKTUELLEN Datensatz EINTRAGEN…"), QKeySequence::Save, this, &MainWindow::save_record);
+  needs_chart(file->addAction(tr("AKTUELLEN Datensatz EINTRAGEN…"), QKeySequence::Save, this, &MainWindow::save_record));
   // the AAF box of the record, so the caption names the format it edits
-  file->addAction(tr("AAF-DATENSATZ BEARBEITEN…"), QKeySequence(Qt::CTRL | Qt::Key_D), this, &MainWindow::edit_record);
+  needs_chart(file->addAction(tr("AAF-DATENSATZ BEARBEITEN…"), QKeySequence(Qt::CTRL | Qt::Key_D), this, &MainWindow::edit_record));
   file->addSeparator();
   //RR ORTS-DATEIEN : HOLEN - EINTRAGEN - LÖSCHEN
   file->addAction(tr("ORTS-DATEIEN / ORT SUCHEN…"), QKeySequence(Qt::CTRL | Qt::Key_L), this, &MainWindow::open_place);
@@ -1103,15 +1112,16 @@ void MainWindow::build_ui() {
   //RR DRUCKER-OPTION EIN / AUS
   file->addAction(tr("DRUCKER-OPTION EIN / AUS"), this, &MainWindow::printer_option_entry);
   //RR LETZTES BILD ZEIGEN / bzw.SPEICHERN
-  file->addAction(tr("LETZTES BILD ZEIGEN / bzw.SPEICHERN…"), this, &MainWindow::last_picture);
+  needs_chart(file->addAction(tr("LETZTES BILD ZEIGEN / bzw.SPEICHERN…"), this, &MainWindow::last_picture));
   file->addSeparator();
   // the exports of the port beside his picture store in one entry, DRUCKEN
   // runs his DRUCKER-GRAPHIK of druck_graph_ein
   QMenu* save_menu = file->addMenu(tr("HOROSKOP SPEICHERN"));
+  needs_chart(save_menu->menuAction());
   save_menu->addAction(tr("HOROSKOP als SVG SPEICHERN…"), this, &MainWindow::export_svg);
   save_menu->addAction(tr("HOROSKOP als PNG SPEICHERN…"), this, &MainWindow::export_png);
   save_menu->addAction(tr("HOROSKOP als PDF SPEICHERN…"), this, &MainWindow::export_pdf);
-  file->addAction(tr("DRUCKEN…"), QKeySequence::Print, this, &MainWindow::print_chart);
+  needs_chart(file->addAction(tr("DRUCKEN…"), QKeySequence::Print, this, &MainWindow::print_chart));
   file->addSeparator();
   file->addAction(tr("ERLÄUTERUNG 2…"), this, [erlaeuterung]() { erlaeuterung("komm2"); });
   // EPHEMERIDE in the order of his menu tree
@@ -1121,8 +1131,8 @@ void MainWindow::build_ui() {
   //RR PLANETEN-KOORDINATEN, ZUSATZ-PLANETEN-KOORDINATEN
   // his a91 and a10 screens, the permanent coordinate dock toggles from
   // ANSICHT
-  ephem->addAction(tr("PLANETEN-KOORDINATEN"), this, [this]() { coordinate_table(false); });
-  ephem->addAction(tr("ZUSATZ-PLANETEN-KOORDINATEN"), this, [this]() { coordinate_table(true); });
+  needs_chart(ephem->addAction(tr("PLANETEN-KOORDINATEN"), this, [this]() { coordinate_table(false); }));
+  needs_chart(ephem->addAction(tr("ZUSATZ-PLANETEN-KOORDINATEN"), this, [this]() { coordinate_table(true); }));
   //RR HELIOZENTRISCHE VERSION EIN/AUS
   ephem->addAction(tr("HELIOZENTRISCHE VERSION EIN/AUS"), this, &MainWindow::toggle_helio);
   ephem->addSeparator();
@@ -1135,14 +1145,14 @@ void MainWindow::build_ui() {
   ephem->addAction(tr("ERLÄUTERUNG STATISTIK…"), this, [erlaeuterung]() { erlaeuterung("kommstat"); });
   ephem->addSeparator();
   //RR GRAD-LISTE
-  ephem->addAction(tr("GRAD-LISTE G/H…"), this, &MainWindow::degree_list);
+  needs_chart(ephem->addAction(tr("GRAD-LISTE G/H…"), this, &MainWindow::degree_list));
   //RR FIX-STERN-POSITIONEN
-  ephem->addAction(tr("FIX-STERN-POSITIONEN…"), this, &MainWindow::fixed_star_table);
+  needs_chart(ephem->addAction(tr("FIX-STERN-POSITIONEN…"), this, &MainWindow::fixed_star_table));
   //RR ARABISCHE TEILE ( SENS.PUNKTE )
-  ephem->addAction(tr("ARABISCHE TEILE ( SENS.PUNKTE )…"), this, &MainWindow::arabic_table);
+  needs_chart(ephem->addAction(tr("ARABISCHE TEILE ( SENS.PUNKTE )…"), this, &MainWindow::arabic_table));
   //RR INGRESSE SONNE-MOND-MC-AC
   // every planet has its ingress table now, the caption says so
-  ephem->addAction(tr("INGRESSE PLANETEN-MC-AC…"), this, &MainWindow::ingress_table);
+  needs_chart(ephem->addAction(tr("INGRESSE PLANETEN-MC-AC…"), this, &MainWindow::ingress_table));
   ephem->addSeparator();
   ephem->addAction(tr("ERLÄUTERUNG 3…"), this, [erlaeuterung]() { erlaeuterung("komm3"); });
   // HOROSKOPE head, the toggles follow below in his order
@@ -1151,16 +1161,17 @@ void MainWindow::build_ui() {
   horo->addSeparator();
   //RR HOROSKOP - GRAPHIK
   // back to the plain radix wheel
-  horo->addAction(tr("HOROSKOP - GRAPHIK"), this, &MainWindow::horoskop_graphik);
+  needs_chart(horo->addAction(tr("HOROSKOP - GRAPHIK"), this, &MainWindow::horoskop_graphik));
   //RR ASPEKTARIUM G/H
-  horo->addAction(tr("ASPEKTARIUM G/H…"), this, &MainWindow::open_aspektarium);
+  needs_chart(horo->addAction(tr("ASPEKTARIUM G/H…"), this, &MainWindow::open_aspektarium));
   //RR HALBSUMMEN-GRAPHIK G/H
-  horo->addAction(tr("HALBSUMMEN-GRAPHIK G/H…"), this, &MainWindow::midpoint_tree);
+  needs_chart(horo->addAction(tr("HALBSUMMEN-GRAPHIK G/H…"), this, &MainWindow::midpoint_tree));
   horo->addSeparator();
   // the pair charts under the new row the tester named, its entries like
   // the sub rows of his list, each also holds the pair of his DOPPEL-DATEN
   // row that the EIN-AUSG. menu carried before the tester merged the two
   QMenu* pairs = horo->addMenu(tr("HOROSKOP-KOMBINATION / VERGLEICH"));
+  needs_chart(pairs->menuAction());
   //RR COMPOSIT ^
   // his a13 with the MODUS box and the two SATZ clicks
   double_actions_[kDoubleComposit] = pairs->addAction(tr("COMPOSIT…"), this, [this]() { pair_chart(kDoubleComposit); });
@@ -1248,19 +1259,19 @@ void MainWindow::build_ui() {
   ausw->addSeparator();
   //RR SOLAR-SEPTAR-LUNAR-PLANETARE-PERSONARE
   // each LISTE rides beside its parent
-  solar_action_ = ausw->addAction(tr("SOLAR…"), this, &MainWindow::solar_chart);
-  solar_list_action_ = ausw->addAction(tr("SOLAR-LISTE…"), this, [this]() { return_list(false); });
-  lunar_action_ = ausw->addAction(tr("LUNAR…"), this, &MainWindow::lunar_chart);
-  lunar_list_action_ = ausw->addAction(tr("LUNAR-LISTE…"), this, [this]() { return_list(true); });
-  ausw->addAction(tr("PLANETAR…"), this, &MainWindow::planetar_chart);
-  ausw->addAction(tr("PERSONAR…"), this, &MainWindow::personar_chart);
+  solar_action_ = needs_chart(ausw->addAction(tr("SOLAR…"), this, &MainWindow::solar_chart));
+  solar_list_action_ = needs_chart(ausw->addAction(tr("SOLAR-LISTE…"), this, [this]() { return_list(false); }));
+  lunar_action_ = needs_chart(ausw->addAction(tr("LUNAR…"), this, &MainWindow::lunar_chart));
+  lunar_list_action_ = needs_chart(ausw->addAction(tr("LUNAR-LISTE…"), this, [this]() { return_list(true); }));
+  needs_chart(ausw->addAction(tr("PLANETAR…"), this, &MainWindow::planetar_chart));
+  needs_chart(ausw->addAction(tr("PERSONAR…"), this, &MainWindow::personar_chart));
   ausw->addSeparator();
   //RR MÜNCHNER RHYTHMENLEHRE
   // the septars and the degree date list belong to the same school, the
   // two ERLÄUTERUNG texts close the block
-  ausw->addAction(tr("MÜNCHNER RHYTHMENLEHRE…"), this, &MainWindow::rhythm);
-  septar_action_ = ausw->addAction(tr("SEPTAR…"), this, &MainWindow::septar_chart);
-  ausw->addAction(tr("GRAD-DATUM-LISTE…"), this, &MainWindow::degree_date_list);
+  needs_chart(ausw->addAction(tr("MÜNCHNER RHYTHMENLEHRE…"), this, &MainWindow::rhythm));
+  septar_action_ = needs_chart(ausw->addAction(tr("SEPTAR…"), this, &MainWindow::septar_chart));
+  needs_chart(ausw->addAction(tr("GRAD-DATUM-LISTE…"), this, &MainWindow::degree_date_list));
   ausw->addAction(tr("ERLÄUTERUNG 5…"), this, [erlaeuterung]() { erlaeuterung("komm5"); });
   ausw->addAction(tr("ERLÄUTERUNG 6…"), this, [erlaeuterung]() { erlaeuterung("komm6"); });
   // his a16 menu under hrg!, TERRAR in place of SOLAR, the lunars and the
@@ -1269,7 +1280,7 @@ void MainWindow::build_ui() {
     solar_action_->setText(helio ? tr("TERRAR…") : tr("SOLAR…"));
     solar_list_action_->setText(helio ? tr("TERRAR - DATEN - TABELLE…") : tr("SOLAR-LISTE…"));
     for (QAction* a : {lunar_action_, lunar_list_action_, septar_action_}) {
-      a->setEnabled(!helio);
+      a->setEnabled(!helio && !idle_);
     }
   };
   connect(helio_, &QCheckBox::toggled, this, helio_menu);
@@ -1280,23 +1291,23 @@ void MainWindow::build_ui() {
   // plus the direction group in the order of his menu, SEKUNDÄR-DIREKTION,
   // SONNE (MOND)-BOGEN-DIREKTION, PRIMÄR-DIREKTION ( E.C.KÜHR ), SYMB.
   // DIREKTION ÄQUATORIAL and EKLIPT.
-  ausw->addAction(tr("TAGES-HOROSKOP…"), this, &MainWindow::day_chart);
-  ausw->addAction(tr("PROGRESSIONS-HOROSKOP…"), this, &MainWindow::progression_chart);
-  ausw->addAction(tr("SEKUNDÄR-DIREKTION…"), this, &MainWindow::secondary_direction);
-  ausw->addAction(tr("SONNE (MOND)-BOGEN-DIREKTION…"), this, &MainWindow::arc_direction);
-  ausw->addAction(tr("PRIMÄR-DIREKTION ( E.C.KÜHR )…"), this, &MainWindow::primary_direction);
-  ausw->addAction(tr("SYMB. DIREKTION: ÄQUATORIAL…"), this, [this]() { symbolic_direction(true); });
-  ausw->addAction(tr("SYMB. DIREKTION: EKLIPT. G/H…"), this, [this]() { symbolic_direction(false); });
+  needs_chart(ausw->addAction(tr("TAGES-HOROSKOP…"), this, &MainWindow::day_chart));
+  needs_chart(ausw->addAction(tr("PROGRESSIONS-HOROSKOP…"), this, &MainWindow::progression_chart));
+  needs_chart(ausw->addAction(tr("SEKUNDÄR-DIREKTION…"), this, &MainWindow::secondary_direction));
+  needs_chart(ausw->addAction(tr("SONNE (MOND)-BOGEN-DIREKTION…"), this, &MainWindow::arc_direction));
+  needs_chart(ausw->addAction(tr("PRIMÄR-DIREKTION ( E.C.KÜHR )…"), this, &MainWindow::primary_direction));
+  needs_chart(ausw->addAction(tr("SYMB. DIREKTION: ÄQUATORIAL…"), this, [this]() { symbolic_direction(true); }));
+  needs_chart(ausw->addAction(tr("SYMB. DIREKTION: EKLIPT. G/H…"), this, [this]() { symbolic_direction(false); }));
   ausw->addAction(tr("ERLÄUTERUNG 7…"), this, [erlaeuterung]() { erlaeuterung("komm7"); });
   ausw->addSeparator();
   //RR SEKUNDÄR-DIREKTION / DYNAMOGRAMM
   // the entry keeps the short label, SEKUNDÄR-DIREKTION has its own row
-  ausw->addAction(tr("DYNAMOGRAMM…"), this, &MainWindow::dynamogram_view);
+  needs_chart(ausw->addAction(tr("DYNAMOGRAMM…"), this, &MainWindow::dynamogram_view));
   ausw->addSeparator();
   //RR MULTIPLE DIREKTIONEN / HARMONICS G/H
   // one entry with his MODUS box, among the evaluations since the tester
   // gathered them in AUSWERTUNG
-  ausw->addAction(tr("MULTIPLE DIREKTIONEN / HARMONICS G/H…"), this, &MainWindow::multi_session);
+  needs_chart(ausw->addAction(tr("MULTIPLE DIREKTIONEN / HARMONICS G/H…"), this, &MainWindow::multi_session));
   // the two sheets as view states, the session sets them, HOROSKOP -
   // GRAPHIK clears them
   harmonic_action_ = new QAction(this);
@@ -1318,33 +1329,33 @@ void MainWindow::build_ui() {
     }
   });
   ausw->addSeparator();
-  ausw->addAction(tr("LINEAR-GRAPHIK…"), this, &MainWindow::linear_graph);
+  needs_chart(ausw->addAction(tr("LINEAR-GRAPHIK…"), this, &MainWindow::linear_graph));
   //RR TRANSITE
   // with the Ausgabe-Modus box of a18asw
-  ausw->addAction(tr("TRANSITE…"), this, &MainWindow::transite);
+  needs_chart(ausw->addAction(tr("TRANSITE…"), this, &MainWindow::transite));
   // MUNDAN-ASPEKTE, the running bodies among themselves of mund. It sits
   // as the last entry of AUSWERTUNG like the last row of his menu, the
   // horm 2 frame lives in VORGABEN HOROSKOP ÄNDERN like his BEZUGS-SYSTEM
-  ausw->addAction(tr("MUNDAN-ASPEKTE…"), this, &MainWindow::mundane_aspects);
+  needs_chart(ausw->addAction(tr("MUNDAN-ASPEKTE…"), this, &MainWindow::mundane_aspects));
   // DIVERSES in the order of his menu tree, the walks together, the
   // conversions with the angle converter, the great year apart and the
   // way out last
   //RR HÄUSER-SYSTEM
   divers->addAction(tr("HÄUSER-SYSTEM…"), this, &MainWindow::choose_house_system);
   //RR HÄUSER-TABELLE
-  divers->addAction(tr("HÄUSER-TABELLE…"), this, &MainWindow::house_table);
+  needs_chart(divers->addAction(tr("HÄUSER-TABELLE…"), this, &MainWindow::house_table));
   divers->addAction(tr("ERLÄUTERUNG 8…"), this, [erlaeuterung]() { erlaeuterung("komm8"); });
   divers->addSeparator();
   //RR KORREKTUR
-  korrektur_action_ = divers->addAction(tr("KORREKTUR…"), this, &MainWindow::correction);
+  korrektur_action_ = needs_chart(divers->addAction(tr("KORREKTUR…"), this, &MainWindow::correction));
   //RR ZEIT-WANDERN G/H
   // his men3 sets scrout! once the walk is done, LETZTES BILD refuses
-  time_wander_action_ = divers->addAction(tr("ZEIT-WANDERN G/H…"), this, [this]() {
+  time_wander_action_ = needs_chart(divers->addAction(tr("ZEIT-WANDERN G/H…"), this, [this]() {
     time_wander();
     scrout_ = true;
-  });
+  }));
   //RR ORT-WANDERN
-  divers->addAction(tr("ORT-WANDERN…"), this, &MainWindow::place_wander);
+  needs_chart(divers->addAction(tr("ORT-WANDERN…"), this, &MainWindow::place_wander));
   divers->addSeparator();
   //RR Solange UHR SICHTBAR wird HOROSKOP ALLE 15 SEK NACHGEZEICHNET !
   //RR UHR G/H
@@ -1376,13 +1387,13 @@ void MainWindow::build_ui() {
   divers->addAction(tr("WINKEL-UMRECHNUNG…"), this, [this]() { angle_converter(this); });
   divers->addSeparator();
   //RR AUFGANG.........
-  divers->addAction(tr("AUFGANG / UNTERGANG…"), this, &MainWindow::rise_set);
+  needs_chart(divers->addAction(tr("AUFGANG / UNTERGANG…"), this, &MainWindow::rise_set));
   //RR FINSTERNISSE....
   divers->addAction(tr("FINSTERNISSE…"), this, &MainWindow::eclipse_table);
   divers->addSeparator();
   //RR GROßES ( = PLATONISCHES ) JAHR
   // grey on the SOLAR level like his MENU 98
-  great_year_action_ = divers->addAction(tr("GROßES ( = PLATONISCHES ) JAHR…"), this, &MainWindow::great_year);
+  great_year_action_ = needs_chart(divers->addAction(tr("GROßES ( = PLATONISCHES ) JAHR…"), this, &MainWindow::great_year));
   divers->addSeparator();
   divers->addAction(tr("ERLÄUTERUNG 9…"), this, [erlaeuterung]() { erlaeuterung("komm9"); });
   //RR ÄNDERUNGEN / HINWEISE / KURZANL.
@@ -1407,7 +1418,7 @@ void MainWindow::build_ui() {
   view->addSeparator();
   // the element and quality table of the chart, a rewrite addition kept
   // out of his EPHEMERIDE menu
-  view->addAction(tr("HISTOGRAMME…"), this, &MainWindow::histogram_view);
+  needs_chart(view->addAction(tr("HISTOGRAMME…"), this, &MainWindow::histogram_view));
   // the permanent result docks beside the wheel, rewrite additions that
   // stay open while his menu entries open his own table screens. The
   // original had no entry for the cusps, his houses never left the sheet
@@ -1944,7 +1955,15 @@ Chart MainWindow::chart_or_polar_fallback(const ChartInput& in, const ChartSetti
 }
 
 void MainWindow::recompute() {
-  track_history();
+  // his ze = 0, nothing stands on screen until the panel holds a whole
+  // date, typed, fetched or reckoned, and the empty start is no step
+  if (idle_ && !panel_day_valid()) {
+    show_idle();
+    return;
+  }
+  if (!idle_) {
+    track_history();
+  }
   // his zeuhr, the taken over clock record is the chart while its slot
   // leads and shows the moment itself
   const bool clock = uhr_slot_ >= 0 && active_slot_ == uhr_slot_ && !active_is_solar_ && uhr_place_set_;
@@ -1989,6 +2008,10 @@ void MainWindow::recompute() {
     //RR Geog. Breite zu groß !
     banner_->set_record(tr("Geog. Breite zu groß für dieses Häusersystem"));
     return;
+  }
+  // the first chart that stands ends the empty start
+  if (idle_) {
+    leave_idle();
   }
   // the user defined fixed point rides on slot zero like fixpunkt_def,
   // a Septar carries the Sonderpunkt of the Rhythmenlehre there instead
@@ -5054,7 +5077,7 @@ void MainWindow::update_solar_actions() {
   //RR IF od = 2, MENU 82, 83 and 98 MF_GRAYED
   for (QAction* a : {great_year_action_, korrektur_action_, time_wander_action_}) {
     if (a != nullptr) {
-      a->setEnabled(!active_is_solar_);
+      a->setEnabled(!active_is_solar_ && !idle_);
     }
   }
 }
@@ -5222,6 +5245,8 @@ void MainWindow::clear_slots() {
   current_state_ = panel_state();
   state_init_ = true;
   update_history_actions();
+  // his a1 after areg11, the screen stands empty like at the start
+  start_idle();
 }
 
 void MainWindow::set_rulers(RulerSet set) {
@@ -5250,6 +5275,69 @@ void MainWindow::reset_panel() {
   }
   recompute();
   refresh_record_label();
+}
+
+void MainWindow::start_idle() {
+  idle_ = true;
+  // no record stands, a date typed afterwards is the radix of the panel.
+  // AUFRÄUMEN left the start record here and a typed birth was ignored by
+  // every derived chart
+  record_ = AafRecord{};
+  loose_radix_.reset();
+  derived_input_.reset();
+  // his EINGABE fields of a new record, the date empty and the clock at
+  // midnight, the place of the panel stands ready
+  {
+    const QSignalBlocker b1(date_);
+    const QSignalBlocker b2(time_);
+    date_->clear();
+    time_->setTime(QTime(0, 0));
+  }
+  // no step of Zurück leads into the empty start
+  history_timer_->stop();
+  pending_.reset();
+  back_.clear();
+  forward_.clear();
+  state_init_ = false;
+  update_history_actions();
+  update_idle_actions();
+  show_idle();
+}
+
+void MainWindow::show_idle() {
+  wheel_->set_display_list(DisplayList{});
+  bodies_->setRowCount(0);
+  cusps_->clearContents();
+  aspects_label_->clear();
+  banner_->set_record(QString());
+  banner_->set_info(QString());
+  // einzel_plan_wahl answers on a chart only
+  plain_view_ = false;
+}
+
+void MainWindow::leave_idle() {
+  idle_ = false;
+  // the history starts with the first chart, the empty start is no step
+  history_timer_->stop();
+  pending_.reset();
+  back_.clear();
+  forward_.clear();
+  current_state_ = panel_state();
+  state_init_ = true;
+  update_history_actions();
+  update_idle_actions();
+}
+
+void MainWindow::update_idle_actions() {
+  for (QAction* a : chart_actions_) {
+    a->setEnabled(!idle_);
+  }
+  // the entries with a state of their own, the SOLAR level and the
+  // heliocentric menu, take it back
+  update_solar_actions();
+  if (helio_menu_) {
+    helio_menu_(helio_->isChecked());
+  }
 }
 
 // ported from ave with plgen11, plgenkl and fixp_def. One question per
@@ -5403,7 +5491,7 @@ void MainWindow::vorgaben_overview() {
   outer->setContentsMargins(18, 16, 18, 16);
   // his IF grossj! && jdgross > 0 && zal_grossj& <> 0, the yellow box on
   // top of the main screen with the grossj1 lines of the active record
-  if (great_year_on_ && konsta_.jdgross > 0.0 && konsta_.zal_grossj != 0 && last_chart_) {
+  if (great_year_on_ && konsta_.jdgross > 0.0 && konsta_.zal_grossj != 0 && last_chart_ && !idle_) {
     bool outside = false;
     QStringList lines = great_year_lines(outside);
     lines << tr(" Datensatz : %1 ").arg(record_label_.trimmed());

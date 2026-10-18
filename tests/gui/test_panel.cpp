@@ -643,6 +643,55 @@ TEST_CASE("wart holds the chart only where a question follows and shows that it 
   w->hide();
 }
 
+TEST_CASE("the empty start draws nothing and greys the chart entries until a date stands") {
+  auto w = MainWindowProbe::make();
+  w->start_idle();
+  const auto action = [&w](const char* text) -> QAction* {
+    for (QAction* a : w->findChildren<QAction*>()) {
+      if (a->text() == QString::fromUtf8(text)) {
+        return a;
+      }
+    }
+    return nullptr;
+  };
+  // his start with ze = 0, no wheel, no table, no record in the banner
+  CHECK(MainWindowProbe::wheel(*w).items.empty());
+  CHECK(MainWindowProbe::bodies(*w)->rowCount() == 0);
+  CHECK(MainWindowProbe::banner_record(*w).isEmpty());
+  CHECK_FALSE(MainWindowProbe::day_valid(*w));
+  for (const char* grey : {"TRANSITE…", "HOROSKOP - GRAPHIK", "PLANETEN-KOORDINATEN", "SOLAR…", "LUNAR…",
+                           "SEPTAR…", "KORREKTUR…", "GROßES ( = PLATONISCHES ) JAHR…", "DRUCKEN…", "HISTOGRAMME…"}) {
+    INFO(grey);
+    REQUIRE(action(grey) != nullptr);
+    CHECK_FALSE(action(grey)->isEnabled());
+  }
+  for (const char* open : {"DATEN-DATEI EIN-AUSGABE…", "NEU-EINGABE von DATENSÄTZEN…", "VORGABEN HOROSKOP ÄNDERN…",
+                           "STATISTIK G/H…", "UHR G/H…", "DATUM aus JD…", "ERLÄUTERUNG 5…", "DESKTOP ( QUIT HORCOM )"}) {
+    INFO(open);
+    REQUIRE(action(open) != nullptr);
+    CHECK(action(open)->isEnabled());
+  }
+  // a switch of the panel leaves the screen empty
+  MainWindowProbe::houses(*w, 2);
+  CHECK(MainWindowProbe::wheel(*w).items.empty());
+  // a whole date brings the chart and the entries back
+  MainWindowProbe::date(*w)->setText("10.05.1970");
+  emit MainWindowProbe::date(*w)->editingFinished();
+  CHECK_FALSE(MainWindowProbe::wheel(*w).items.empty());
+  CHECK(MainWindowProbe::bodies(*w)->rowCount() > 10);
+  CHECK(action("TRANSITE…")->isEnabled());
+  CHECK(action("SOLAR…")->isEnabled());
+  CHECK(action("KORREKTUR…")->isEnabled());
+  // no step of Zurück leads back into the empty start
+  CHECK(MainWindowProbe::history_steps(*w) == 0);
+  // a fetched record ends it the same way
+  w->start_idle();
+  REQUIRE(MainWindowProbe::wheel(*w).items.empty());
+  MainWindowProbe::apply(*w, sample(10, 5, 1970, 7, 0, "00hE00:00"));
+  CHECK_FALSE(MainWindowProbe::wheel(*w).items.empty());
+  CHECK(action("HOROSKOP - GRAPHIK")->isEnabled());
+}
+
 TEST_CASE("a table dock may stand beside the DATEN panel left of the wheel") {
   auto w = MainWindowProbe::make();
   // the tester could only stack the tables above the panel
