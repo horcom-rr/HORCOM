@@ -692,6 +692,41 @@ TEST_CASE("the empty start draws nothing and greys the chart entries until a dat
   CHECK(action("HOROSKOP - GRAPHIK")->isEnabled());
 }
 
+TEST_CASE("a birth typed key by key on the empty start waits for its whole year") {
+  auto w = MainWindowProbe::make();
+  w->start_idle();
+  QLineEdit* date = MainWindowProbe::date(*w);
+  // a pause after each part longer than the settle window of the field
+  const auto type_and_pause = [date](const QString& keys) {
+    for (const QChar ch : keys) {
+      QKeyEvent key(QEvent::KeyPress, 0, Qt::NoModifier, QString(ch));
+      QApplication::sendEvent(date, &key);
+    }
+    QElapsedTimer t;
+    t.start();
+    while (t.elapsed() < 700) {
+      QApplication::processEvents(QEventLoop::AllEvents, 50);
+    }
+  };
+  // 10.05.1 and 10.05.19 are real dates of the years 1 and 19
+  for (const char* part : {"10.05.1", "9", "7"}) {
+    type_and_pause(QString::fromUtf8(part));
+    INFO(date->text().toStdString());
+    CHECK(MainWindowProbe::wheel(*w).items.empty());
+  }
+  type_and_pause("0");
+  CHECK_FALSE(MainWindowProbe::wheel(*w).items.empty());
+  const double y1900 = julian_day({1, 1, 1900, 0.0, 0.0});
+  CHECK(MainWindowProbe::chart(*w).jd_ut > y1900);
+  // the first chart is the start of the history, no half typed year before it
+  settle_step();
+  CHECK(MainWindowProbe::history_steps(*w) == 0);
+  // Enter takes a short year on purpose
+  date->setText("10.05.197");
+  emit date->editingFinished();
+  CHECK(MainWindowProbe::chart(*w).jd_ut < julian_day({1, 1, 1000, 0.0, 0.0}));
+}
+
 TEST_CASE("a table dock may stand beside the DATEN panel left of the wheel") {
   auto w = MainWindowProbe::make();
   // the tester could only stack the tables above the panel

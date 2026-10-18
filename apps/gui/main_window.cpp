@@ -190,6 +190,8 @@ constexpr int kClockStripMs = 1000;
 
 // a burst of edits settles into one history step after this pause
 constexpr int kHistorySettleMs = 800;
+// the year of the panel date as set_panel_day writes it after Christ
+constexpr qsizetype kYearDigits = 4;
 // the panel history keeps this many steps
 constexpr std::size_t kHistoryDepth = 200;
 
@@ -1568,7 +1570,7 @@ void MainWindow::build_ui() {
   date_timer_->setSingleShot(true);
   date_timer_->setInterval(500);
   connect(date_timer_, &QTimer::timeout, this, [this]() {
-    if (panel_day_valid()) {
+    if (panel_day_written()) {
       recompute();
     }
   });
@@ -1747,6 +1749,7 @@ MainWindow::PanelState MainWindow::panel_state() const {
               combin_list_,  combin_na_,      combin_origin_};
   s.loose_radix = loose_radix_;
   s.derived_input = derived_input_;
+  s.banner = banner_->record();
   return s;
 }
 
@@ -1858,8 +1861,14 @@ void MainWindow::restore_state(const PanelState& s) {
   state_init_ = true;
   recompute();
   refresh_record_label();
-  if (active_is_solar_) {
-    banner_->set_record(solar_labels_[static_cast<std::size_t>(active_solar_)]);
+  // the line of the step, its SOLAR row takes the label back with the
+  // moment Zurück writes into it. The running UHR writes its own time
+  const bool clock = uhr_slot_ >= 0 && active_slot_ == uhr_slot_ && !active_is_solar_;
+  if (!s.banner.isEmpty() && !clock) {
+    banner_->set_record(s.banner);
+    if (active_is_solar_) {
+      solar_labels_[static_cast<std::size_t>(active_solar_)] = s.banner;
+    }
   }
   update_slot_actions();
   update_solar_actions();
@@ -1882,6 +1891,12 @@ void MainWindow::track_history() {
   current_state_ = now;
   state_init_ = true;
   update_history_actions();
+}
+
+void MainWindow::refresh_current_step() {
+  if (state_init_ && !restoring_) {
+    current_state_ = panel_state();
+  }
 }
 
 void MainWindow::flush_history() {
@@ -1963,26 +1978,11 @@ void MainWindow::recompute() {
     show_idle();
     return;
   }
-  if (!idle_) {
-    track_history();
-  }
   // his zeuhr, the taken over clock record is the chart while its slot
   // leads and shows the moment itself
   const bool clock = uhr_slot_ >= 0 && active_slot_ == uhr_slot_ && !active_is_solar_ && uhr_place_set_;
   ChartInput in;
-  if (clock) {
-    in = clock_input();
-    // the record ticks along with the moment, and like his
-    // mainkont_dat_zeit under acmcl the panel date and time follow it.
-    // A tick is no step of the history
-    const AafRecord r = clock_record(in.date_ut);
-    slots_[static_cast<std::size_t>(uhr_slot_)] = r;
-    const QSignalBlocker b1(date_);
-    const QSignalBlocker b2(time_);
-    set_panel_day(r.day, r.month, r.year);
-    time_->setTime(QTime(r.hour, r.minute, r.second));
-    current_state_ = panel_state();
-  } else {
+  if (!clock) {
     in = current_input();
     // the panel holds a radix, without a SATZ row its moment lives only
     // here once a derived chart takes the panel. A moment typed over the
@@ -1997,6 +1997,25 @@ void MainWindow::recompute() {
     if (!deriving_ && !restoring_ && !(active_is_solar_ && shows_derived())) {
       loose_radix_ = in;
     }
+  }
+  // the step takes the radix memory of the moment it shows, read after the
+  // capture. Read before it, every step carried the birth of the step
+  // before and a SOLAR after a step back counted from that one
+  if (!idle_) {
+    track_history();
+  }
+  if (clock) {
+    in = clock_input();
+    // the record ticks along with the moment, and like his
+    // mainkont_dat_zeit under acmcl the panel date and time follow it.
+    // A tick is no step of the history
+    const AafRecord r = clock_record(in.date_ut);
+    slots_[static_cast<std::size_t>(uhr_slot_)] = r;
+    const QSignalBlocker b1(date_);
+    const QSignalBlocker b2(time_);
+    set_panel_day(r.day, r.month, r.year);
+    time_->setTime(QTime(r.hour, r.minute, r.second));
+    current_state_ = panel_state();
   }
   const ChartSettings s = current_settings();
   Chart chart = chart_or_polar_fallback(in, s);
@@ -2606,6 +2625,8 @@ void MainWindow::apply_moment(double jd_ut, const QString& label, bool solar_slo
   // the ^ items of his menu write the result back into a SOLAR slot
   if (solar_slot) {
     store_solar(label);
+  } else {
+    refresh_current_step();
   }
 }
 
@@ -5044,9 +5065,7 @@ void MainWindow::store_solar(const QString& label) {
   // the step of the derived chart belongs to its SOLAR row, the recompute
   // before had taken it for the radix and a Zurück onto it wrote the
   // derived moment into the RADIX row
-  if (state_init_) {
-    current_state_ = panel_state();
-  }
+  refresh_current_step();
   update_slot_actions();
   update_solar_actions();
 }
@@ -5326,6 +5345,9 @@ void MainWindow::leave_idle() {
   pending_.reset();
   back_.clear();
   forward_.clear();
+  // the typed birth names its date in the banner like a fetched record, the
+  // empty start had left the line blank until a step back filled it
+  refresh_record_label();
   current_state_ = panel_state();
   state_init_ = true;
   update_history_actions();
@@ -6436,6 +6458,7 @@ void MainWindow::apply_record(const AafRecord& r, bool claim_slot) {
     deriving_ = false;
   }
   refresh_record_label();
+  refresh_current_step();
 }
 
 void MainWindow::sync_record_fields() {
@@ -6600,6 +6623,16 @@ bool MainWindow::panel_day_valid() const {
   }
   const CalendarDate back = calendar_date(julian_day(d, panel_calendar_), panel_calendar_);
   return back.day == d.day && back.month == d.month && back.year == d.year;
+}
+
+// 10.05.1 and 10.05.19 are real dates on the way to 10.05.1970, drawn at a
+// pause each became a chart and a step of Zurück
+bool MainWindow::panel_day_written() const {
+  if (!panel_day_valid()) {
+    return false;
+  }
+  const QString raw = date_->text().trimmed();
+  return raw.contains('v', Qt::CaseInsensitive) || raw.section('.', 2).trimmed().size() >= kYearDigits;
 }
 
 void MainWindow::set_panel_day(int day, int month, int astro_year) {

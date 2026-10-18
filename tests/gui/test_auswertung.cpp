@@ -908,3 +908,97 @@ TEST_CASE("a step back onto a SOLAR keeps the radix of the SATZ row and of a typ
     CHECK(next == "54.SOLAR");
   }
 }
+
+TEST_CASE("Zurück and Vor walk the SOLAR steps of a typed birth with their numbers") {
+  // the empty start of the program, a birth typed into DATEN
+  auto w = MainWindowProbe::make();
+  w->start_idle();
+  MainWindowProbe::date(*w)->setText("10.05.1970");
+  emit MainWindowProbe::date(*w)->editingFinished();
+  MainWindowProbe::time(*w)->setTime(QTime(7, 0));
+  MainWindowProbe::flush_history(*w);
+  const QString radix_banner = MainWindowProbe::banner_record(*w);
+  QStringList seen;
+  {
+    DialogDriver drive;
+    drive.then([&w, &seen](QDialog* d) {
+      QTimer::singleShot(0, d, [d, &w, &seen]() {
+        d->findChild<QSpinBox*>()->setValue(2026);
+        // every year a settled step of its own
+        for (const char* step : {"Vorheriges Jahr", "Vorheriges Jahr", "Vorheriges Jahr"}) {
+          click_button(d, step);
+          MainWindowProbe::flush_history(*w);
+          seen << MainWindowProbe::banner_record(*w);
+        }
+        click_button(d, "OK");
+      });
+    });
+    MainWindowProbe::solar(*w);
+    CHECK(drive.unexpected() == 0);
+  }
+  REQUIRE(seen == QStringList{"55.SOLAR", "54.SOLAR", "53.SOLAR"});
+  MainWindowProbe::flush_history(*w);
+  const QString last = MainWindowProbe::banner_record(*w);
+  CHECK(last == "53.SOLAR");
+  // each step back names the solar it shows
+  MainWindowProbe::history_back(*w);
+  CHECK(MainWindowProbe::banner_record(*w).toStdString() == "54.SOLAR");
+  MainWindowProbe::history_back(*w);
+  CHECK(MainWindowProbe::banner_record(*w).toStdString() == "55.SOLAR");
+  MainWindowProbe::history_back(*w);
+  CHECK(MainWindowProbe::active_solar(*w) == -1);
+  CHECK(MainWindowProbe::banner_record(*w).toStdString() == radix_banner.toStdString());
+  CHECK(MainWindowProbe::date(*w)->text() == "10.05.1970");
+  // and forward again
+  MainWindowProbe::history_forward(*w);
+  CHECK(MainWindowProbe::banner_record(*w).toStdString() == "55.SOLAR");
+  MainWindowProbe::history_forward(*w);
+  CHECK(MainWindowProbe::banner_record(*w).toStdString() == "54.SOLAR");
+  CHECK(MainWindowProbe::radix_input(*w).date_ut.year == 1970);
+  // the next year from the step counts on from it
+  QString next;
+  DialogDriver drive;
+  drive.then([&w, &next](QDialog* d) {
+    QTimer::singleShot(0, d, [d, &w, &next]() {
+      d->findChild<QSpinBox*>()->setValue(2025);
+      click_button(d, "Vorheriges Jahr");
+      next = MainWindowProbe::banner_record(*w);
+      click_button(d, "OK");
+    });
+  });
+  MainWindowProbe::solar(*w);
+  CHECK(next == "54.SOLAR");
+}
+
+TEST_CASE("a step back onto an earlier typed birth makes it the radix of the next SOLAR") {
+  auto w = MainWindowProbe::make();
+  w->start_idle();
+  const auto type = [&w](const char* date) {
+    MainWindowProbe::date(*w)->setText(date);
+    emit MainWindowProbe::date(*w)->editingFinished();
+    MainWindowProbe::flush_history(*w);
+  };
+  type("10.05.1970");
+  type("01.07.1980");
+  type("20.03.1990");
+  MainWindowProbe::history_back(*w);
+  REQUIRE(MainWindowProbe::date(*w)->text() == "01.07.1980");
+  const auto year_before = [&w]() {
+    QString label;
+    DialogDriver drive;
+    drive.then([&w, &label](QDialog* d) {
+      QTimer::singleShot(0, d, [d, &w, &label]() {
+        d->findChild<QSpinBox*>()->setValue(2026);
+        click_button(d, "Vorheriges Jahr");
+        click_button(d, "Vorheriges Jahr");
+        label = MainWindowProbe::banner_record(*w);
+        click_button(d, "OK");
+      });
+    });
+    MainWindowProbe::solar(*w);
+    return label;
+  };
+  // the birth of the step, not the one typed after it
+  CHECK(year_before().toStdString() == "44.SOLAR");
+  CHECK(MainWindowProbe::radix_input(*w).date_ut.year == 1980);
+}

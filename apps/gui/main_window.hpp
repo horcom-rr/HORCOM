@@ -768,6 +768,9 @@ class MainWindow : public QMainWindow {
     /// the step and left out of the comparison
     std::optional<ChartInput> loose_radix;
     std::optional<ChartInput> derived_input;
+    /// the record line of the banner, 54.SOLAR or KORRIGIERT, a step back
+    /// had kept the line of the last chart
+    QString banner;
 
     bool operator==(const PanelState& o) const {
       return given == o.given && surname == o.surname && place == o.place && date == o.date &&
@@ -787,6 +790,11 @@ class MainWindow : public QMainWindow {
   [[nodiscard]] PanelState panel_state() const;
   void restore_state(const PanelState& s);
   void track_history();
+  /// Takes into the step on screen what its chart set after the recompute.
+  /// @note The banner line and the memory of a derived moment are set after
+  /// the recompute that recorded the step, a step back had shown the line
+  /// and the radix of the chart before.
+  void refresh_current_step();
   void flush_history();
   /// Writes the panel into the active slot, a settled step is the live
   /// data of the slot like his eingabe wrote into the SATZ arrays.
@@ -1271,6 +1279,10 @@ class MainWindow : public QMainWindow {
   [[nodiscard]] CalendarDate panel_day() const;
   /// @return true when the field holds a date of the panel calendar
   [[nodiscard]] bool panel_day_valid() const;
+  /// @return true when the field holds a date with its year written out,
+  ///         four digits or a year before Christ
+  /// @note The typing pause draws only such a date, Enter takes any.
+  [[nodiscard]] bool panel_day_written() const;
   /// Writes the date field, years before Christ with his vC.
   void set_panel_day(int day, int month, int astro_year);
   /// @return the panel moment as a Gregorian QDate for date widgets
