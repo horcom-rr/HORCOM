@@ -71,15 +71,18 @@ bool measurable() {
   return true;
 }
 
-// the views that fit themselves after they open, the table zoom waits
-// for the resizes to settle
-constexpr int kSettleMs = 300;
+// the views that fit themselves after they open. The table zoom fits a
+// moment after the resizes settled and the scroll bars follow one event
+// later, a busy runner delays both past any fixed wait, so the check
+// waits for the fitted state up to a deadline
+constexpr int kSettleTimeoutMs = 10000;
 
-void settle() {
+template <typename Done>
+void settle(Done done) {
   QElapsedTimer t;
   t.start();
-  while (t.elapsed() < kSettleMs) {
-    QApplication::processEvents(QEventLoop::AllEvents, kSettleMs);
+  while (!done() && t.elapsed() < kSettleTimeoutMs) {
+    QApplication::processEvents();
   }
 }
 
@@ -157,9 +160,13 @@ TEST_CASE("layout: the coordinate screen grows its text with the window like his
       auto* table = d->findChild<QTableWidget*>();
       if (table != nullptr) {
         base_px = QFontInfo(QApplication::font(table)).pixelSize();
-        settle();
-        grown_px = QFontInfo(table->font()).pixelSize();
-        scrolls = table->verticalScrollBar()->isVisible() || table->horizontalScrollBar()->isVisible();
+        const auto text_px = [table]() { return QFontInfo(table->font()).pixelSize(); };
+        const auto scrolling = [table]() {
+          return table->verticalScrollBar()->isVisible() || table->horizontalScrollBar()->isVisible();
+        };
+        settle([&]() { return text_px() > base_px && !scrolling(); });
+        grown_px = text_px();
+        scrolls = scrolling();
         issues += check_view(d, "coord_zoomed");
       }
       d->reject();
