@@ -36,6 +36,32 @@ inline constexpr std::array<double, body::kPluto + 1> kMinGeoAu = {0.0,  0.98, 0
 inline constexpr std::array<double, body::kPluto + 1> kMaxGeoAu = {0.0,  1.02,  0.0,   1.47,  1.74, 2.67,
                                                                     6.46, 11.08, 21.12, 31.34, 50.3};
 
+/// The mean distances in AU of the real extra bodies for the Entf.% column.
+///
+/// His ko_ta knew means for SO to PL only. These are half the sum of the
+/// perihelion and the aphelion of the orbit his own ephemeris files hold
+/// around J2000, for Xena of the last orbit its file reaches. The same
+/// rule gives 39.49 for Pluto against his 39.44 of MEYERS.
+///
+/// @param slot the body slot
+/// @return the mean distance, zero for a body without one
+[[nodiscard]] constexpr double extra_mean_au(int slot) {
+  switch (slot) {
+    case body::kChiron: return 13.662;
+    case body::kCeres: return 2.767;
+    case body::kPallas: return 2.777;
+    case body::kJuno: return 2.668;
+    case body::kVesta: return 2.361;
+    case body::kQuaoar: return 43.332;
+    case body::kHalley: return 17.864;
+    case body::kPholus: return 20.317;
+    case body::kDamokles: return 11.836;
+    case body::kNessus: return 24.540;
+    case body::kXena: return 67.838;
+    default: return 0.0;
+  }
+}
+
 /// The share of an extreme within which a distance counts as near it.
 inline constexpr double kNearExtremeShare = 0.05;
 

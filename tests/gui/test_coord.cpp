@@ -92,6 +92,9 @@ TEST_CASE("PLANETEN-KOORDINATEN draws his ko_ta rows with both nodes") {
   QString ag_true_mark;
   QString gl_tag;
   QString gl_lon;
+  QStringList form_heads;
+  QString mean_retro;
+  QString sun_retro;
   QColor mean_node_back;
   QColor true_node_back;
   QColor mean_ag_back;
@@ -115,26 +118,31 @@ TEST_CASE("PLANETEN-KOORDINATEN draws his ko_ta rows with both nodes") {
           true_a = cell(t, 11, 4);
           sun_a = cell(t, 0, 4);
           // his textrc of Mittel and Wahr in the Breite column of the nodes
-          mean_mark = cell(t, 10, 2);
+          mean_mark = cell(t, 10, 5);
           true_lon = cell(t, 11, 1);
-          true_mark = cell(t, 11, 2);
-          true_ra = cell(t, 11, 7);
-          sun_ra = cell(t, 0, 7);
-          sun_percent = cell(t, 0, 5);
-          sun_au = cell(t, 0, 6);
-          sun_apsides = cell(t, 0, 11);
-          mars_node = cell(t, 4, 9);
+          true_mark = cell(t, 11, 5);
+          true_ra = cell(t, 11, 6);
+          sun_ra = cell(t, 0, 6);
+          sun_percent = cell(t, 0, 8);
+          sun_au = cell(t, 0, 9);
+          sun_apsides = cell(t, 0, 12);
+          mars_node = cell(t, 4, 10);
           // the Black Moon moved up from ZUSATZ, its box in the Rekt. column
           ag_mean_lon = cell(t, 12, 1);
           ag_true_lon = cell(t, 13, 1);
-          ag_mean_mark = cell(t, 12, 7);
-          ag_true_mark = cell(t, 13, 7);
+          ag_mean_mark = cell(t, 12, 6);
+          ag_true_mark = cell(t, 13, 6);
           gl_tag = cell(t, 14, 0);
           gl_lon = cell(t, 14, 1);
-          mean_node_back = t->item(10, 2)->background().color();
-          true_node_back = t->item(11, 2)->background().color();
-          mean_ag_back = t->item(12, 7)->background().color();
-          true_ag_back = t->item(13, 7)->background().color();
+          for (int r = 10; r <= 13; ++r) {
+            form_heads << cell(t, r, 0);
+          }
+          mean_retro = cell(t, 10, 2);
+          sun_retro = cell(t, 0, 2);
+          mean_node_back = t->item(10, 5)->background().color();
+          true_node_back = t->item(11, 5)->background().color();
+          mean_ag_back = t->item(12, 6)->background().color();
+          true_ag_back = t->item(13, 6)->background().color();
           press_later(d, Qt::Key_Space);
         })
         .then([&question](QDialog* d) {
@@ -155,8 +163,15 @@ TEST_CASE("PLANETEN-KOORDINATEN draws his ko_ta rows with both nodes") {
   }
   // the distance in percent and in AU side by side, the tester's wish in
   // place of the ENTFERNUNGSWERTE question
-  CHECK(heads == QStringList{"Pl", "Ekl. Länge", "Breite", "Vel.'", "A", "Entf.%", "Entf.AE", "Rekt.°", "Dekl.°",
-                             "Knot.ND", "Knot.SD", "Apsiden", "Pl"});
+  // the order of the Koordinaten-Tafel, the tester's tenth batch, the
+  // motion right after the longitude
+  CHECK(heads == QStringList{"Pl", "Ekl. Länge", "R", "Vel.'", "A", "Breite", "Rekt.°", "Dekl.°", "Entf.%",
+                             "Entf.AE", "Knot.ND", "Knot.SD", "Apsiden", "Pl"});
+  // the forms name themselves beside the tag like in the Tafel
+  CHECK(form_heads == QStringList{"DR mittel", "DR wahr", "AG mittel", "AG wahr"});
+  // the mean node always runs back, the Sun never
+  CHECK(mean_retro == "R");
+  CHECK(sun_retro.isEmpty());
   // SO to PL, the node and the Black Moon twice, Mittel and Wahr, and the
   // Glückspunkt last
   CHECK(rows == 15);
@@ -208,6 +223,9 @@ TEST_CASE("ZUSATZ-PLANETEN-KOORDINATEN lists every extra body with its name") {
   QStringList longitudes;
   QString cupido_lat;
   QString chiron_ra;
+  QStringList heads;
+  QStringList percents;
+  QStringList distances;
   int table_height = 0;
   int rows_height = 0;
   {
@@ -216,13 +234,18 @@ TEST_CASE("ZUSATZ-PLANETEN-KOORDINATEN lists every extra body with its name") {
       const auto* t = d->findChild<QTableWidget*>();
       REQUIRE(t != nullptr);
       rows = t->rowCount();
+      for (int c = 0; c < t->columnCount(); ++c) {
+        heads << t->horizontalHeaderItem(c)->text();
+      }
       for (int r = 0; r < rows; ++r) {
-        names << cell(t, r, 8);
+        names << cell(t, r, 10);
         longitudes << cell(t, r, 1);
+        percents << cell(t, r, 8).trimmed();
+        distances << cell(t, r, 9).trimmed();
         rows_height += t->rowHeight(r);
       }
       chiron_ra = cell(t, 0, 6);
-      cupido_lat = cell(t, 12, 2);
+      cupido_lat = cell(t, 12, 5);
       table_height = t->viewport()->height();
       d->reject();
     });
@@ -232,6 +255,8 @@ TEST_CASE("ZUSATZ-PLANETEN-KOORDINATEN lists every extra body with its name") {
   // the tester's order, the real bodies first, the invented ones last,
   // the Black Moon and the Glückspunkt stand on the first sheet
   CHECK(rows == 20);
+  CHECK(heads == QStringList{"Pl", "Ekl. Länge", "R", "Vel.'", "A", "Breite", "Rekt.°", "Dekl.°", "Entf.%",
+                             "Entf.AE", " Name          Abkrz.", "Pl"});
   CHECK(names.value(0) == "Chiron            CH");
   CHECK(names.value(1) == "Quaoar            QU");
   CHECK(names.value(2) == "Xena              XE");
@@ -248,6 +273,23 @@ TEST_CASE("ZUSATZ-PLANETEN-KOORDINATEN lists every extra body with its name") {
   CHECK_FALSE(chiron_ra.isEmpty());
   // the Hamburg points carry no latitude
   CHECK(cupido_lat.isEmpty());
+  // the real bodies CH to HL tell their distance in percent of the mean of
+  // their ephemeris file as well, the tester's tenth batch, the invented
+  // points have no distance
+  for (int r = 0; r <= 10; ++r) {
+    CAPTURE(names.value(r).toStdString());
+    REQUIRE(percents.value(r).endsWith('%'));
+    const double au = distances.value(r).toDouble();
+    const double pct = percents.value(r).chopped(1).toDouble();
+    CHECK(au > 0.0);
+    CHECK(pct > 0.0);
+  }
+  // Chiron at 13.662 AU on the average
+  CHECK(percents.value(0).chopped(1).toDouble() ==
+        doctest::Approx(100.0 * distances.value(0).toDouble() / 13.662).epsilon(0.02));
+  for (int r = 11; r < rows; ++r) {
+    CHECK(percents.value(r).isEmpty());
+  }
   // every row stands in the window, none hides below its edge
   CHECK(table_height >= rows_height);
 }

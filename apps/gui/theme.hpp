@@ -24,6 +24,10 @@ namespace horcom::theme {
 /// the green of his main menu panel, RGB($C0,$DC,$C0)
 inline constexpr const char* kPanelGreen = "#C0DCC0";
 
+/// the R of a retrograde body in the coordinate dock and sheets, a red
+/// that reads in both dresses
+inline constexpr QRgb kRetroInk = 0xE85D4E;
+
 /// the settings key of the theme choice, true is the night theme
 /// the settings group of every choice of the ANSICHT menu but the
 /// language, ALLES ZURÜCKSETZEN clears it whole

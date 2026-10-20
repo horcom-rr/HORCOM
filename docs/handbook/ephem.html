@@ -191,18 +191,25 @@ his yellow box, the date and clock with the years of life of a derived
 chart, the sidereal time of 0h, ARMC, JD and T counted from 1900 at the
 UT moment, the place and the Moon phase, then the title names the frame
 and the ephemeris mode. The table carries his columns Pl, Ecl. Long.,
-Latitude, Vel.', A, the distance, R.A.°, Decl.°, Node N, Node S,
-Apsides and Pl. His CHANGE EPHEMERIS DEFAULTS asked whether the
-distance reads in percent of his mean values or in AU, the tester
-wanted both at once, so the first screen carries Dist.% and Dist.AU
-side by side and the question is gone. Mercury to Saturn stand red on
+Vel.', A, Latitude, R.A.°, Decl.°, the distance, Node N, Node S,
+Apsides and Pl, set in the order of the coordinate panel, the motion
+right after the longitude with an R column for a retrograde body
+between them. His CHANGE EPHEMERIS
+DEFAULTS asked whether the distance reads in percent of his mean values
+or in AU, the tester wanted both at once, so both screens carry Dist.%
+and Dist.AU side by side and the question is gone. His means know the
+Sun and the planets, the extra screen measures the real bodies Chiron
+to Halley against half the sum of perihelion and aphelion of the orbit
+their own ephemeris file holds around J2000, extra_mean_au in
+src/horcom/chart/distances.hpp. Mercury to Saturn stand red on
 cyan within five percent of their nearest or farthest distance. The A
 column carries the sign of the change of the daily motion, for the Sun
 and the Moon too, whose change his chain never computed, and stays
 blank for the Mean rows whose motion never changes. The
-node stands twice, the mean node marked Mean with his fixed daily
-motion and the true node marked True in whole minutes with its motion
-from vel_om_pd, whatever the node setting says. His Mittel and Wahr
+node stands twice, the mean node with his fixed daily motion and the
+true node in whole minutes with its motion from vel_om_pd, whatever the
+node setting says, and the head cell names the form like the panel, DR
+mean and DR true. His Mittel and Wahr
 labels of textrc stood plain in a thin frame, the rewrite had put both
 in yellow and the tester could not tell which one rides the wheel, now
 only the form the chart works with wears the yellow box as its cue. The Black Moon follows

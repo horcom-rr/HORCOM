@@ -39,28 +39,31 @@ namespace horcom {
 
 namespace {
 
-// the columns of ko_ta. The first sheet carries the distance in percent
-// of his mean and in AU side by side, the tester wanted both at once in
-// place of the ENTFERNUNGSWERTE question, then the node and apsides
-// columns. ZUSATZ keeps one distance and the Name column, minus one marks
-// a column the sheet lacks
+// the columns of ko_ta in the order of the Koordinaten-Tafel, the tester
+// asked both sheets to read like it. The motion stands right after the
+// longitude, the R of a retrograde body, Vel.' and A, then latitude,
+// right ascension and declination, the distance in percent of the mean
+// and in AU side by side in place of his ENTFERNUNGSWERTE question, then
+// the node and apsides columns. ZUSATZ ends with its Name column, minus
+// one marks a column the sheet lacks
 struct SheetColumns {
   int lon;
-  int lat;
+  int retro;
   int vel;
   int a;
-  int percent;
-  int au;
+  int lat;
   int ra;
   int dec;
+  int percent;
+  int au;
   int node;
   int south;
   int apsides;
   int name;
   int count;
 };
-constexpr SheetColumns kMainSheet{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, -1, 13};
-constexpr SheetColumns kExtraSheet{1, 2, 3, 4, -1, 5, 6, 7, -1, -1, -1, 8, 10};
+constexpr SheetColumns kMainSheet{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, -1, 14};
+constexpr SheetColumns kExtraSheet{1, 2, 3, 4, 5, 6, 7, 8, 9, -1, -1, -1, 10, 12};
 
 // the ZUSATZ sheet in the tester's order, the real bodies first with CH,
 // QU and XE ahead of the asteroids and the planetoids, then the comet,
@@ -248,7 +251,13 @@ void MainWindow::fill_coordinate_table(QTableWidget* table, const Chart& chart, 
     }
     const int row = table->rowCount();
     table->insertRow(row);
-    auto* head = new QTableWidgetItem(tag(r.slot));
+    // the two forms of the node and the Black Moon name themselves beside
+    // the tag like the rows of the Koordinaten-Tafel
+    QString caption = tag(r.slot);
+    if (lunar) {
+      caption += " " + (r.truth ? tr("wahr") : tr("mittel"));
+    }
+    auto* head = new QTableWidgetItem(caption);
     const QImage img = glyph_sprite(QString::fromUtf8(body_glyph(r.slot)), to_rgb(theme::ink_now()));
     if (!img.isNull()) {
       head->setIcon(QIcon(QPixmap::fromImage(img)));
@@ -307,6 +316,13 @@ void MainWindow::fill_coordinate_table(QTableWidget* table, const Chart& chart, 
     } else if (!hypothetical(r.slot)) {
       text(row, col.lat, field(eb * kRadToDeg, 3, 2));
     }
+    // the R the tester reads right after the longitude
+    if (tb < 0.0) {
+      auto* retro = new QTableWidgetItem(QStringLiteral("R"));
+      retro->setTextAlignment(Qt::AlignCenter);
+      retro->setForeground(QColor(theme::kRetroInk));
+      set(row, col.retro, retro);
+    }
     // his z = up * 60 * tb, the formats by size
     const double z = tb * kRadToDeg * kArcminPerDeg;
     if (std::abs(z) > 100.0) {
@@ -323,29 +339,37 @@ void MainWindow::fill_coordinate_table(QTableWidget* table, const Chart& chart, 
       text(row, col.a, ttb > 0.0 ? QStringLiteral("+") : QStringLiteral("-"));
     }
     // Entf., percent of his mean distances and astronomical units side by
-    // side, the means of MEYERS Lexikon Weltall know the Sun and the planets
+    // side, the means of MEYERS Lexikon Weltall know the Sun and the planets,
+    // the real extra bodies take the means of their ephemeris files
     QString percent;
     QString au;
     bool extreme = false;
     const auto slot_index = static_cast<std::size_t>(r.slot);
+    const auto in_percent = [](double distance, double mean) {
+      return QString::asprintf("%4ld%%", std::lround(kPercent * distance / mean));
+    };
+    const double extra_mean = extra_mean_au(r.slot);
     if (helio) {
       if (r.slot >= body::kMoon && r.slot <= body::kPluto) {
-        percent = QString::asprintf("%4ld%%", std::lround(kPercent * b.r / kMeanHelioAu[slot_index]));
+        percent = in_percent(b.r, kMeanHelioAu[slot_index]);
+      } else if (extra_mean > 0.0) {
+        percent = in_percent(b.r, extra_mean);
       }
       if (r.slot != body::kNodeDesc) {
         au = field(b.r, 2, 1);
       }
     } else if (r.slot == body::kSun || (r.slot >= body::kMercury && r.slot <= body::kPluto)) {
-      percent = QString::asprintf("%4ld%%", std::lround(kPercent * b.dr / kMeanGeoAu[slot_index]));
+      percent = in_percent(b.dr, kMeanGeoAu[slot_index]);
       au = field(b.dr, 2, 1);
       extreme = near_distance_extreme(r.slot, b.dr);
     } else if (r.slot != body::kMoon && !lunar) {
+      if (extra_mean > 0.0) {
+        percent = in_percent(b.dr, extra_mean);
+      }
       au = field(b.dr, 2, 1);
     }
     text(row, col.au, au);
-    if (col.percent >= 0) {
-      text(row, col.percent, percent);
-    }
+    text(row, col.percent, percent);
     if (extreme) {
       // his deftextcol(3), red on cyan
       for (const int c : {col.percent, col.au}) {
@@ -463,12 +487,12 @@ void MainWindow::coordinate_table(bool extras) {
   head->setTextFormat(Qt::RichText);
   v->addWidget(head);
   auto* table = new QTableWidget(0, extras ? kExtraSheet.count : kMainSheet.count, &view);
-  QStringList columns{tr("Pl"), tr("Ekl. Länge"), tr("Breite"), tr("Vel.'"), tr("A")};
+  QStringList columns{tr("Pl"),     tr("Ekl. Länge"), QStringLiteral("R"), tr("Vel.'"),  tr("A"),
+                      tr("Breite"), tr("Rekt.°"),     tr("Dekl.°"),        tr("Entf.%"), tr("Entf.AE")};
   if (extras) {
-    columns << tr("Entf.") << tr("Rekt.°") << tr("Dekl.°") << tr(" Name          Abkrz.") << tr("Pl");
+    columns << tr(" Name          Abkrz.") << tr("Pl");
   } else {
-    columns << tr("Entf.%") << tr("Entf.AE") << tr("Rekt.°") << tr("Dekl.°") << tr("Knot.ND") << tr("Knot.SD")
-            << tr("Apsiden") << tr("Pl");
+    columns << tr("Knot.ND") << tr("Knot.SD") << tr("Apsiden") << tr("Pl");
   }
   table->setHorizontalHeaderLabels(columns);
   table->verticalHeader()->setVisible(false);

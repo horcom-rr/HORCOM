@@ -2467,7 +2467,7 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects, bo
       }
     }
     auto* retro = new QTableWidgetItem(tb < 0.0 ? "R" : "");
-    retro->setForeground(QColor(0xE8, 0x5D, 0x4E));
+    retro->setForeground(QColor(theme::kRetroInk));
     bodies_->setItem(row, kBodyRetro, retro);
   }
   // the numbers bold like the PLANETEN-KOORDINATEN sheet, the tester read
