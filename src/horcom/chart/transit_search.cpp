@@ -55,6 +55,13 @@ struct StepTable {
   double tbg = 0.0;
 };
 
+// the djd of planth for a body without one of its own
+constexpr double kEarlierWindowDays = 320.0;
+// the probe spacing of the station check before a loop walk. The shortest
+// retrograde run, Mercury's of some twenty days, cannot hide between two
+// probes
+constexpr double kStationProbeDays = 5.0;
+
 StepTable step_table(int slot) {
   switch (slot) {
     case 1: return {1.0, 0.0, 0.0};
@@ -524,6 +531,12 @@ std::array<LongitudeCrossing, 12> sign_ingresses(double jd_start_ut, int slot, c
       }
       break;
     }
+    // his ingre1 knew the Sun and the Moon, which never run back. The
+    // planets of the port name the first entry of a loop over the sign
+    // start, the last one hid it, the tester's tenth batch
+    if (slot != body::kSun && slot != body::kMoon) {
+      hit = loop_first_entry(hit, slot, pz, ctx);
+    }
     out[static_cast<std::size_t>(t - 1)] = hit;
   }
   return out;
@@ -926,7 +939,7 @@ std::vector<LongitudeCrossing> planetar_earlier(const LongitudeCrossing& found, 
   const std::size_t most = short_walk ? 2 : 8;
   // his djd, the interval a further point must turn up in
   const StepTable st = step_table(slot);
-  const double window = st.djd > 0.0 ? st.djd : 320.0;
+  const double window = st.djd > 0.0 ? st.djd : kEarlierWindowDays;
   const double tja = sky_chart(found.jd_ut, ctx).ta.tropical_year_days;
   const double period = body_period_days(slot, tja);
   const double step = std::clamp(period / 2000.0, 0.2, 4.0);
@@ -971,6 +984,57 @@ std::vector<LongitudeCrossing> planetar_earlier(const LongitudeCrossing& found, 
     prev = cur;
   }
   return out;
+}
+
+namespace {
+
+// whether the body ran back within the walk window of planth before a
+// passage. A direct passage without a station before it opens no loop,
+// the walk of the whole window would find nothing. The probes reach one
+// spacing past the window, a run that ends just inside it still meets one
+bool ran_back_before(const LongitudeCrossing& found, int slot, const SearchContext& ctx) {
+  const StepTable st = step_table(slot);
+  const double window = st.djd > 0.0 ? st.djd : kEarlierWindowDays;
+  for (double t = found.jd_ut; t >= found.jd_ut - window - kStationProbeDays; t -= kStationProbeDays) {
+    const BodyLongitude b = body_longitude(t, slot, ctx);
+    if (b.valid && b.tb < 0.0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+}  // namespace
+
+LongitudeCrossing loop_first_entry(const LongitudeCrossing& found, int slot, double target_rad, const SearchContext& ctx) {
+  if (!found.ok || (!found.retrograde && !ran_back_before(found, slot, ctx))) {
+    return found;
+  }
+  LongitudeCrossing entry = found;
+  bool need_entry = found.retrograde;
+  for (;;) {
+    const std::vector<LongitudeCrossing> before = planetar_earlier(entry, slot, target_rad, ctx);
+    std::size_t i = 0;
+    if (need_entry) {
+      // the body left the point backward, its entry lies before
+      if (before.empty() || before.front().retrograde) {
+        return {};
+      }
+      entry = before.front();
+      i = 1;
+      need_entry = false;
+    }
+    // a retrograde passage with a direct one before it belongs to the loop
+    while (i + 1 < before.size() && before[i].retrograde && !before[i + 1].retrograde) {
+      entry = before[i + 1];
+      i += 2;
+    }
+    // planth stops after his count of passages, a loop that took them all
+    // may go on before the last one, the walk goes on from there
+    if (before.empty() || i != before.size()) {
+      return entry;
+    }
+  }
 }
 
 // the counting periods, the mean motions of Meeus Table 31.A for Jupiter

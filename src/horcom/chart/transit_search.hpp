@@ -128,7 +128,9 @@ struct LongitudeCrossing {
 /// The twelve sign entries of a body around a start moment, the ingre1
 /// table. Each target is the sign start plus the epsilon that keeps the
 /// zero longitude guard quiet, searched backward with plant, the sun
-/// corrected into the calendar year of the start.
+/// corrected into the calendar year of the start. A planet that loops
+/// over a sign start names the first entry of the loop, see
+/// loop_first_entry.
 ///
 /// @param jd_start_ut the search anchor
 /// @param slot        body slot, sun and moon like his menu, planets too
@@ -252,6 +254,24 @@ struct TransitScan {
 /// @param ctx        observer and settings
 /// @return the earlier passages, the nearest first
 [[nodiscard]] std::vector<LongitudeCrossing> planetar_earlier(const LongitudeCrossing& found, int slot, double target_rad, const SearchContext& ctx);
+
+/// The first entry of a body into a longitude it loops over.
+///
+/// A body turning retrograde near the point crosses it forward, back and
+/// forward again, and a backward search finds the last passage. The walk
+/// of planetar_earlier steps back over each retrograde passage to the
+/// direct one before it, a direct passage of the circuit before ends the
+/// walk. A retrograde passage leaves the point backward, the entry before
+/// it counts.
+///
+/// @param found      the passage a backward search found
+/// @param slot       the body
+/// @param target_rad the longitude, radians
+/// @param ctx        observer and settings
+/// @return the first direct passage of the loop, found itself when it is
+///         direct and no loop lies before it, ok false when a retrograde
+///         found has no entry before it
+[[nodiscard]] LongitudeCrossing loop_first_entry(const LongitudeCrossing& found, int slot, double target_rad, const SearchContext& ctx);
 
 /// The period a planetar is counted and shown with. His a16_ta made the
 /// periods of Jupiter to Pluto too long, the count takes the sidereal

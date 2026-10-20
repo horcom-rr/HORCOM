@@ -182,6 +182,40 @@ TEST_CASE("the sun ingress table lands every sign in its year") {
   CHECK(aries.day == 20);
 }
 
+TEST_CASE("a planet looping over a sign start names its first entry") {
+  // the tester's tenth batch, Mars enters Virgo on 25.11.2026, runs back
+  // into Leo and enters Virgo again on 14.5.2027, the table showed only
+  // the second entry
+  const SearchContext ctx = context();
+  const auto table = sign_ingresses(julian_day({1, 7, 2027, 0, 0.0}), body::kMars, ctx);
+  const LongitudeCrossing& virgo = table[5];
+  REQUIRE(virgo.ok);
+  CHECK_FALSE(virgo.retrograde);
+  const CalendarDate d = calendar_date(virgo.jd_ut);
+  CHECK(d.year == 2026);
+  CHECK(d.month == 11);
+  CHECK(std::abs(d.day - 25) <= 1);
+  CHECK(residual_arcsec(virgo, body::kMars, kEps + 5 * kPi / 6.0, ctx) < 0.5);
+  // the last passage of the loop, the second entry of the tester
+  const LongitudeCrossing last = find_longitude_backward(julian_day({1, 7, 2027, 0, 0.0}), body::kMars, kEps + 5 * kPi / 6.0, ctx);
+  REQUIRE(last.ok);
+  const CalendarDate second = calendar_date(last.jd_ut);
+  CHECK(second.year == 2027);
+  CHECK(second.month == 5);
+  CHECK(std::abs(second.day - 14) <= 1);
+  // between the exit backward in early 2027 and the second entry the
+  // backward search meets the retrograde passage, it is no entry, the
+  // first one before it counts
+  const auto between = sign_ingresses(julian_day({1, 4, 2027, 0, 0.0}), body::kMars, ctx);
+  REQUIRE(between[5].ok);
+  CHECK(std::abs(between[5].jd_ut - virgo.jd_ut) < 1.0e-3);
+  // Leo, entered once in September 2026, keeps that entry
+  const CalendarDate leo = calendar_date(table[4].jd_ut);
+  CHECK(leo.year == 2026);
+  CHECK(leo.month == 9);
+  CHECK(std::abs(leo.day - 28) <= 1);
+}
+
 TEST_CASE("an extra body outside his ephemeris rides the element fallback") {
   SearchContext ctx = context();
   ctx.settings.enable_standard_extras();

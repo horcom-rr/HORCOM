@@ -712,8 +712,11 @@ TEST_CASE("INGRESSE of XENA page up to the last day of its ephemeris") {
   // the 19th century
   CHECK(title_next.trimmed().right(4).toInt() >= 2200);
   CHECK(std::any_of(years_next.begin(), years_next.end(), [](const QString& y) { return y.toInt() > 2026; }));
-  // the coming entries of his file, TAURUS, GEMINI and CANCER
-  for (const char* year : {"2048", "2148", "2193"}) {
+  // the coming entries of his file, TAURUS, GEMINI and CANCER. Xena runs
+  // back and forth over each sign start for years, the table names the
+  // first entry since the tester's tenth batch, the last ones were 2048,
+  // 2148 and 2193
+  for (const char* year : {"2044", "2144", "2191"}) {
     CHECK(years_next.contains(year));
   }
 }
