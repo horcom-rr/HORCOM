@@ -263,7 +263,15 @@ void MainWindow::chart_between(int item) {
     const Chart c = radix_chart();
     const AspectResult a = scan_aspects(c, s, shown_aspect_settings());
     DisplayList dl = build_wheel(c, s, a, radix_wheel_options(c, s));
-    add_corner_text(dl, sheet_text_for(record_, radix_input(), &c, s, record_.calendar), 8.0, kScreenSheetWidth / 2.0,
+    // the radix of a return cast from a COMBIN is the pair, record_ names
+    // its first partner
+    AafRecord named = record_;
+    if (solar_bases_[static_cast<std::size_t>(active_solar_)] && !combin_name1_.empty()) {
+      named.surname = combin_na_.toStdString();
+      named.given.clear();
+      named.place = "COMBIN-ORT";
+    }
+    add_corner_text(dl, sheet_text_for(named, radix_input(), &c, s, record_.calendar), 8.0, kScreenSheetWidth / 2.0,
                     kScreenSheetWidth - 8.0);
     wheel->set_display_list(std::move(dl));
   } else {

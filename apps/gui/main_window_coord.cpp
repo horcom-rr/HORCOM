@@ -589,7 +589,21 @@ void MainWindow::coordinate_table(bool extras) {
   bool paused = false;
   double djd = 1.0;
   int rf = 1;
+  // the steps stay out of the Zurück list and the radix memory until the
+  // walk ends, like the walks of ZEIT-WANDERN only the net change counts.
+  // Each step had been a step of its own and over a SOLAR of a typed birth
+  // the varied moment became the radix of the next return
+  std::function<void()> release;
+  const auto unhold = [&release]() {
+    if (release) {
+      release();
+      release = nullptr;
+    }
+  };
   const auto step = [&]() {
+    if (!release) {
+      release = hold_history();
+    }
     // his jd = jd + rf& * djd with @dat, @jseckp and @a316061
     jd += rf * djd;
     apply_moment(jd, label, false, true);
@@ -645,6 +659,7 @@ void MainWindow::coordinate_table(bool extras) {
       step();
       return;
     }
+    unhold();
     // his IF ABS(jd - jd0) > 10 restored the moment without the question
     bool keep = false;
     if (std::abs(jd - jd0) <= kKeepDays && jd != jd0) {
@@ -653,13 +668,43 @@ void MainWindow::coordinate_table(bool extras) {
     }
     // his JA set od = 1 before @merk and @merkr(1), the varied moment goes
     // into the RADIX slot of the same SATZ number like the question says,
-    // also while the table showed a SOLAR slot
-    const int satz = active_is_solar_ ? active_solar_ : active_slot_;
+    // also while the table showed a SOLAR slot. A SOLAR row with a radix of
+    // its own shares its number with a RADIX row of another person
+    const bool own_radix = active_is_solar_ && active_solar_ >= 0 &&
+                           solar_bases_[static_cast<std::size_t>(active_solar_)].has_value();
+    const int satz = own_radix ? -1 : (active_is_solar_ ? active_solar_ : active_slot_);
     if (keep && satz >= 0) {
       active_is_solar_ = false;
       set_slot(satz, panel_record(), true, radix_labels_[static_cast<std::size_t>(satz)]);
       update_solar_actions();
-    } else if (!keep) {
+    } else if (keep) {
+      // a panel without a SATZ row, a typed birth, a COMBIN or a return of
+      // them, takes the varied moment as its radix, the chart of the
+      // released hold is the step of the whole walk. A varied return is a
+      // radix of its own and no COMBIN any more
+      const bool combin = !own_radix && !combin_name1_.empty();
+      if (own_radix) {
+        // the varied return keeps the name of what it came from, the pair
+        // of a COMBIN
+        const QString pair = combin_na_;
+        active_is_solar_ = false;
+        active_solar_ = -1;
+        active_slot_ = -1;
+        drop_combin();
+        record_ = panel_record();
+        if (!pair.isEmpty()) {
+          record_.surname = pair.toStdString();
+          record_.given.clear();
+        }
+        update_solar_actions();
+      }
+      recompute();
+      // the record line names the kept moment, a COMBIN keeps its own line
+      if (!combin) {
+        refresh_record_label();
+        refresh_current_step();
+      }
+    } else {
       apply_moment(jd0, label, false, true);
     }
     jd = jd0;
@@ -747,6 +792,7 @@ void MainWindow::coordinate_table(bool extras) {
               std::min(room, std::max({height(), kSheetMinHeight, others + rows_height})));
   view.exec();
   timer.stop();
+  unhold();
   // a closed window ends a running walk like ESC, the moment returns
   if (walking || jd != jd0) {
     apply_moment(jd0, label, false, true);

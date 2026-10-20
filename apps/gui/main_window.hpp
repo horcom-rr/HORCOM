@@ -771,6 +771,11 @@ class MainWindow : public QMainWindow {
     /// the record line of the banner, 54.SOLAR or KORRIGIERT, a step back
     /// had kept the line of the last chart
     QString banner;
+    /// the label of the SOLAR row the step showed, the centre of the wheel
+    /// reads it while the step is drawn, empty at radix level
+    QString solar_label;
+    /// the radix of that SOLAR row when no RADIX row stood behind it
+    std::optional<ChartInput> solar_base;
     /// the bodies of the Planeten-Auswahl with their show and red marks,
     /// a choice there was no step and Zurück took back the one before
     std::array<bool, body::kSlotCount> included{};
@@ -1162,6 +1167,18 @@ class MainWindow : public QMainWindow {
   ///
   /// @param label his sol$ of the result
   void store_solar(const QString& label);
+  /// Drops the rows of a COMBIN, a chart that is no COMBIN takes the panel.
+  void drop_combin();
+  /// Moves the pending step into the Zurück list unless it equals the
+  /// step on screen, the pending step is gone afterwards.
+  ///
+  /// @return true when a step went into the list
+  bool commit_pending();
+  /// Makes the SOLAR row of the active radix lead under a new label before
+  /// its chart is drawn.
+  ///
+  /// @param label his sol$ of the result
+  void claim_solar_row(const QString& label);
   /// Names the SOLAR...-DATEN rows after their results.
   void update_solar_actions();
   // AUFRÄUMEN / RÜCKSETZEN and the plain HOROSKOP - GRAPHIK entry
@@ -1320,6 +1337,10 @@ class MainWindow : public QMainWindow {
   /// the SOLAR...-DATEN slots, snapshots of the derived charts
   std::array<std::optional<AafRecord>, 5> solar_slots_{};
   std::array<QString, 5> solar_labels_{};
+  /// the radix of a SOLAR row that no RADIX row stood behind, a birth
+  /// typed without a SATZ row or a COMBIN. The row shares its number with
+  /// a RADIX row that may hold another person
+  std::array<std::optional<ChartInput>, 5> solar_bases_{};
   std::array<QAction*, 5> solar_actions_{};
   /// which slot family holds the panel, false radix, true solar
   bool active_is_solar_ = false;

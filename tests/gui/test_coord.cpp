@@ -7,6 +7,7 @@
 #include <QListWidget>
 #include <QLabel>
 #include <QPushButton>
+#include <QSpinBox>
 #include <QTableWidget>
 #include <QTimer>
 #include <algorithm>
@@ -1131,4 +1132,97 @@ TEST_CASE("the planets of EIN OBJEKT AUSWÄHLEN stand bold") {
   CHECK(drive.pending() == 0);
   CHECK(rows == 3);
   CHECK(bold);
+}
+
+TEST_CASE("ZEIT VARIIEREN counts as one step and takes the varied moment as the radix of a typed birth") {
+  // the review of the tenth batch, the walk holds the history like the
+  // walks of ZEIT-WANDERN, NEIN leaves no step, JA one, and a birth typed
+  // without a SATZ row took no step and kept its old radix
+  const auto walk = [](MainWindow& w, const char* keep) {
+    DialogDriver drive;
+    drive.then([](QDialog* d) { press_later(d, Qt::Key_Space); })
+        .then(DialogDriver::click("JA"))        // ZEIT VARIIEREN ?
+        .then(DialogDriver::click("TAGE"))      // ZEIT-EINHEIT ?
+        .then(DialogDriver::fill({"1"}, "OK"))  // TAGE als BELIEBIGE ZAHL
+        .then(DialogDriver::click("VOR"))       // RICHTUNG ?
+        .then([](QDialog* d) { d->accept(); })  // the eingalp sheet
+        .then([](QDialog* d) { press_later(d, Qt::Key_Escape); })
+        .then(DialogDriver::click("NEIN = ENDE"))
+        .then(DialogDriver::click(keep))  // VARIIERTE ZEIT in RADIX ÜBERNEHMEN ?
+        .then([](QDialog* d) { d->reject(); });
+    MainWindowProbe::coordinate_table(w, false);
+    INFO(drive.titles().join(" | ").toStdString());
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+    MainWindowProbe::flush_history(w);
+  };
+  auto w = MainWindowProbe::make();
+  w->start_idle();
+  MainWindowProbe::date(*w)->setText("10.05.1970");
+  emit MainWindowProbe::date(*w)->editingFinished();
+  MainWindowProbe::flush_history(*w);
+  const double jd0 = MainWindowProbe::panel_jd(*w);
+  const std::size_t steps0 = MainWindowProbe::history_steps(*w);
+  walk(*w, " NEIN ");
+  CHECK(MainWindowProbe::history_steps(*w) == steps0);
+  CHECK(MainWindowProbe::panel_jd(*w) == doctest::Approx(jd0));
+  walk(*w, "JA");
+  CHECK(MainWindowProbe::history_steps(*w) == steps0 + 1);
+  CHECK(MainWindowProbe::panel_jd(*w) == doctest::Approx(jd0 + 1.0));
+  CHECK(MainWindowProbe::radix_input(*w).date_ut.day == 11);
+  // one Zurück takes the whole walk back
+  MainWindowProbe::history_back(*w);
+  CHECK(MainWindowProbe::panel_jd(*w) == doctest::Approx(jd0));
+}
+
+TEST_CASE("ZEIT VARIIEREN JA over a return of a COMBIN keeps the RADIX row of SATZ1") {
+  // the review of the tenth batch, the varied moment went into the RADIX
+  // row of the SOLAR number, the first partner of the COMBIN gave way
+  auto w = MainWindowProbe::make();
+  AafRecord one = morning_birth();
+  one.surname = "ERSTERFALL";
+  AafRecord two = morning_birth();
+  two.surname = "ZWEITERFALL";
+  two.year = 1980;
+  MainWindowProbe::put_slot(*w, 0, one);
+  MainWindowProbe::put_slot(*w, 1, two);
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("SATZ1")).then(DialogDriver::click("SATZ2")).then(DialogDriver::click("WEITER MACHEN"));
+    MainWindowProbe::combin_chart(*w);
+  }
+  {
+    DialogDriver drive;
+    drive.then([](QDialog* d) {
+      QTimer::singleShot(0, d, [d]() {
+        d->findChild<QSpinBox*>()->setValue(2026);
+        DialogDriver::click("OK")(d);
+      });
+    });
+    MainWindowProbe::solar(*w);
+  }
+  REQUIRE(MainWindowProbe::banner_record(*w).endsWith(".SOLAR"));
+  const double solar_jd = MainWindowProbe::panel_jd(*w);
+  {
+    DialogDriver drive;
+    drive.then([](QDialog* d) { press_later(d, Qt::Key_Space); })
+        .then(DialogDriver::click("JA"))
+        .then(DialogDriver::click("TAGE"))
+        .then(DialogDriver::fill({"1"}, "OK"))
+        .then(DialogDriver::click("VOR"))
+        .then([](QDialog* d) { d->accept(); })
+        .then([](QDialog* d) { press_later(d, Qt::Key_Escape); })
+        .then(DialogDriver::click("NEIN = ENDE"))
+        .then(DialogDriver::click("JA"))
+        .then([](QDialog* d) { d->reject(); });
+    MainWindowProbe::coordinate_table(*w, false);
+    INFO(drive.titles().join(" | ").toStdString());
+    CHECK(drive.pending() == 0);
+  }
+  REQUIRE(MainWindowProbe::slot(*w, 0).has_value());
+  CHECK(MainWindowProbe::slot(*w, 0)->surname == "ERSTERFALL");
+  CHECK(MainWindowProbe::slot(*w, 0)->year == 1970);
+  // the varied return is a radix of its own and keeps the name of the pair
+  CHECK(julian_day(MainWindowProbe::radix_input(*w).date_ut) == doctest::Approx(solar_jd + 1.0).epsilon(1e-9));
+  CHECK(MainWindowProbe::banner_record(*w).startsWith("ERSTERFALL-ZWEITERFAL"));
 }

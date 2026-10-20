@@ -792,3 +792,48 @@ TEST_CASE("a click on the date head orders the whole AUSLÖSUNGS-TABELLE in time
   // the second click gives his order of the phases back
   CHECK(back == theirs);
 }
+
+TEST_CASE("a SEPTAR stepped back to its SOLAR drops the Sonderpunkt and Vor brings it back") {
+  // the review of the tenth batch, Zurück drew a step with the label of the
+  // step it left, a SOLAR after its SEPTAR kept the Sonderpunkt
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::houses(*w, 1);
+  MainWindowProbe::apply(*w, morning_birth());
+  Konsta& k = MainWindowProbe::konsta(*w);
+  k.fixpunkt_rh = "123.5000";
+  k.lpktg = true;
+  {
+    DialogDriver drive;
+    drive.then([](QDialog* d) {
+      QTimer::singleShot(0, d, [d]() {
+        d->findChild<QSpinBox*>()->setValue(1973);
+        DialogDriver::click("OK")(d);
+      });
+    });
+    MainWindowProbe::solar(*w);
+    CHECK(drive.unexpected() == 0);
+  }
+  MainWindowProbe::flush_history(*w);
+  const QString solar = MainWindowProbe::banner_record(*w);
+  REQUIRE(solar.endsWith(".SOLAR"));
+  CHECK_FALSE(MainWindowProbe::chart(*w).b[body::kFixpunkt].present);
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("JA"))  // EREIGNIS-Ort = GEBURTS-Ort ?
+        .then(DialogDriver::click("SIEBEN"))
+        .then(DialogDriver::fill({"30"}, "OK"))
+        .then(DialogDriver::click("BEIBEHALTEN"))
+        .then([](QDialog* d) { d->accept(); });
+    MainWindowProbe::septar(*w);
+    INFO(drive.titles().join(" | ").toStdString());
+    CHECK(drive.pending() == 0);
+  }
+  MainWindowProbe::flush_history(*w);
+  REQUIRE(MainWindowProbe::chart(*w).b[body::kFixpunkt].present);
+  MainWindowProbe::history_back(*w);
+  CHECK(MainWindowProbe::banner_record(*w) == solar);
+  CHECK_FALSE(MainWindowProbe::chart(*w).b[body::kFixpunkt].present);
+  MainWindowProbe::history_forward(*w);
+  REQUIRE(MainWindowProbe::chart(*w).b[body::kFixpunkt].present);
+  CHECK(MainWindowProbe::chart(*w).b[body::kFixpunkt].el * kRadToDeg == doctest::Approx(123.5));
+}

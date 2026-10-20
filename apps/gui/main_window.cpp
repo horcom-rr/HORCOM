@@ -49,6 +49,7 @@
 #include <QScrollBar>
 #include <QStyle>
 #include <QStyledItemDelegate>
+#include <QScopeGuard>
 #include <QScrollArea>
 #include <QSettings>
 #include <QTableWidget>
@@ -1787,6 +1788,10 @@ MainWindow::PanelState MainWindow::panel_state() const {
   s.loose_radix = loose_radix_;
   s.derived_input = derived_input_;
   s.banner = banner_->record();
+  if (active_is_solar_ && active_solar_ >= 0) {
+    s.solar_label = solar_labels_[static_cast<std::size_t>(active_solar_)];
+    s.solar_base = solar_bases_[static_cast<std::size_t>(active_solar_)];
+  }
   s.included = included_;
   s.emphasis = emphasis_;
   s.ruler_red = ruler_red_;
@@ -1874,6 +1879,16 @@ void MainWindow::restore_state(const PanelState& s) {
   active_is_solar_ = s.solar && holds(true, s.slot);
   active_solar_ = active_is_solar_ ? s.slot : -1;
   active_slot_ = !s.solar && holds(false, s.slot) ? s.slot : -1;
+  // the SOLAR row takes its label back before the chart is drawn, the
+  // centre of the wheel names the return of the step
+  if (active_is_solar_) {
+    if (!s.solar_label.isEmpty()) {
+      solar_labels_[static_cast<std::size_t>(active_solar_)] = s.solar_label;
+    }
+    // the row counts from the radix of its step, a later SOLAR of another
+    // radix may have taken the number since
+    solar_bases_[static_cast<std::size_t>(active_solar_)] = s.solar_base;
+  }
   record_ = s.record;
   // the rows of a COMBIN belong to its step, a step back to the radix
   // had left COMBIN in the centre and COMBIN-ORT in the corner
@@ -1893,14 +1908,10 @@ void MainWindow::restore_state(const PanelState& s) {
   state_init_ = true;
   recompute();
   refresh_record_label();
-  // the line of the step, its SOLAR row takes the label back with the
-  // moment Zurück writes into it. The running UHR writes its own time
+  // the line of the step, the running UHR writes its own time
   const bool clock = uhr_slot_ >= 0 && active_slot_ == uhr_slot_ && !active_is_solar_;
   if (!s.banner.isEmpty() && !clock) {
     banner_->set_record(s.banner);
-    if (active_is_solar_) {
-      solar_labels_[static_cast<std::size_t>(active_solar_)] = s.banner;
-    }
   }
   update_slot_actions();
   update_solar_actions();
@@ -1914,6 +1925,13 @@ void MainWindow::track_history() {
   }
   const PanelState now = panel_state();
   if (state_init_ && !(now == current_state_)) {
+    // a moment cast while the step before still settles is a step of its
+    // own, two quick clicks on VORHERIGES JAHR had been one step. The step
+    // before goes into the list without the slot store of flush_history,
+    // the panel already holds the place of the new moment
+    if (pending_ && deriving_) {
+      commit_pending();
+    }
     if (!pending_) {
       pending_ = current_state_;
       forward_.clear();
@@ -1931,25 +1949,30 @@ void MainWindow::refresh_current_step() {
   }
 }
 
+// a switch ticked and unticked again left a step that changed nothing,
+// Zurück onto it seemed to do nothing
+bool MainWindow::commit_pending() {
+  const bool changed = !(*pending_ == current_state_);
+  if (changed) {
+    back_.push_back(*pending_);
+    if (back_.size() > kHistoryDepth) {
+      back_.erase(back_.begin());
+    }
+  }
+  pending_.reset();
+  return changed;
+}
+
 void MainWindow::flush_history() {
   history_timer_->stop();
   if (!pending_) {
     return;
   }
-  // a switch ticked and unticked again left a step that changed nothing,
-  // Zurück onto it seemed to do nothing
-  if (*pending_ == current_state_) {
-    pending_.reset();
-    update_history_actions();
-    return;
-  }
-  back_.push_back(*pending_);
-  pending_.reset();
-  if (back_.size() > kHistoryDepth) {
-    back_.erase(back_.begin());
-  }
+  const bool changed = commit_pending();
   update_history_actions();
-  store_active_slot();
+  if (changed) {
+    store_active_slot();
+  }
 }
 
 void MainWindow::store_active_slot() {
@@ -2026,16 +2049,26 @@ void MainWindow::recompute() {
     // the panel holds a radix, without a SATZ row its moment lives only
     // here once a derived chart takes the panel. A moment typed over the
     // derived one is the radix of a panel without a SATZ row again, like
-    // the panel always was. A step of Zurück or Vor brings its own memory
+    // the panel always was, a place moved under the derived chart is none.
+    // A step of Zurück or Vor brings its own memory
     const auto shows_derived = [this, &in]() {
       return derived_input_ && in.date_ut.day == derived_input_->date_ut.day &&
              in.date_ut.month == derived_input_->date_ut.month && in.date_ut.year == derived_input_->date_ut.year &&
-             in.date_ut.hour == derived_input_->date_ut.hour && in.date_ut.minute == derived_input_->date_ut.minute &&
-             in.lon_deg_east == derived_input_->lon_deg_east && in.lat_deg == derived_input_->lat_deg;
+             in.date_ut.hour == derived_input_->date_ut.hour && in.date_ut.minute == derived_input_->date_ut.minute;
     };
     if (!deriving_ && !restoring_ && !(active_is_solar_ && shows_derived())) {
       loose_radix_ = in;
+      // a birth typed over a derived chart of a row without a RADIX row is
+      // its radix again
+      if (active_is_solar_ && active_solar_ >= 0 && solar_bases_[static_cast<std::size_t>(active_solar_)]) {
+        solar_bases_[static_cast<std::size_t>(active_solar_)] = in;
+      }
     }
+  }
+  // the running clock is the radix of the steps it leads, a step kept the
+  // birth shown before the clock and a SOLAR from it counted from that
+  if (clock && !deriving_ && !restoring_) {
+    loose_radix_ = clock_input();
   }
   // the step takes the radix memory of the moment it shows, read after the
   // capture. Read before it, every step carried the birth of the step
@@ -2653,7 +2686,13 @@ void MainWindow::apply_moment(double jd_ut, const QString& label, bool solar_slo
   set_panel_day(d.day, d.month, d.year);
   time_->setTime(QTime(seconds / 3600, (seconds / 60) % 60, seconds % 60));
   if (refresh_sommer_effect_) refresh_sommer_effect_();
-  // the derived moment is no radix, the one it came from stays known
+  // the derived moment is no radix, the one it came from stays known. Its
+  // row leads before the chart is drawn, bes2 names the return in the
+  // centre of the wheel from sol$(od,ze), and a centre read before showed
+  // the number of the return before
+  if (solar_slot) {
+    claim_solar_row(label);
+  }
   deriving_ = solar_slot;
   recompute();
   deriving_ = false;
@@ -5136,6 +5175,7 @@ int MainWindow::claim_radix_slot(int zmsp) {
   // and the DOPPEL row is numbered like the radix slots
   solar_slots_[static_cast<std::size_t>(zmsp)].reset();
   solar_labels_[static_cast<std::size_t>(zmsp)].clear();
+  solar_bases_[static_cast<std::size_t>(zmsp)].reset();
   if (active_is_solar_ && active_solar_ == zmsp) {
     active_is_solar_ = false;
   }
@@ -5173,19 +5213,31 @@ void MainWindow::update_slot_actions() {
   }
 }
 
-// the SOLAR...-DATEN slots, every derived chart writes itself back like
-// his ^ menu items registered sol$(2,ze). The row is the number ze of
-// the radix it came from, a new result overwrites the old one there
-void MainWindow::store_solar(const QString& label) {
+// the row is the number ze of the radix a derived chart came from, it
+// leads with the label of the result before the chart is drawn
+void MainWindow::claim_solar_row(const QString& label) {
   int idx = active_is_solar_ ? active_solar_ : active_slot_;
   if (idx < 0) {
-    // a panel chart without a RADIX row stands at the first number
+    // a panel chart without a RADIX row stands at the first number, the
+    // row keeps its own radix, the RADIX row of that number may hold
+    // another person. His a16 read the RADIX row ze, after a COMBIN the
+    // row 2 of whoever stood there
     idx = 0;
+    solar_bases_[0] = loose_radix_;
+  } else if (!active_is_solar_) {
+    solar_bases_[static_cast<std::size_t>(idx)].reset();
   }
-  solar_slots_[static_cast<std::size_t>(idx)] = panel_record();
   solar_labels_[static_cast<std::size_t>(idx)] = label;
   active_is_solar_ = true;
   active_solar_ = idx;
+}
+
+// the SOLAR...-DATEN slots, every derived chart writes itself back like
+// his ^ menu items registered sol$(2,ze), a new result overwrites the old
+// one in its row
+void MainWindow::store_solar(const QString& label) {
+  claim_solar_row(label);
+  solar_slots_[static_cast<std::size_t>(active_solar_)] = panel_record();
   // the step of the derived chart belongs to its SOLAR row, the recompute
   // before had taken it for the radix and a Zurück onto it wrote the
   // derived moment into the RADIX row
@@ -5370,6 +5422,7 @@ void MainWindow::clear_slots() {
   update_double_actions();
   solar_slots_.fill(std::nullopt);
   solar_labels_.fill(QString());
+  solar_bases_.fill(std::nullopt);
   radix_labels_.fill(QString());
   active_slot_ = -1;
   active_solar_ = -1;
@@ -6090,6 +6143,16 @@ void MainWindow::new_records_entry() {
   if (slot < 0) {
     return;
   }
+  // the local clock is reckoned on the panel, an entry given up after it
+  // leaves the panel as it was, the abandoned person had stayed there and
+  // the next settled step wrote it into the slot on screen
+  std::optional<PanelState> before_local;
+  bool taken = false;
+  const auto give_back = qScopeGuard([this, &before_local, &taken]() {
+    if (before_local && !taken) {
+      restore_state(*before_local);
+    }
+  });
   // a fresh mask like his et$ cleared by nein!, the clock counts as UT
   // until the zone box says otherwise
   AafRecord seed;
@@ -6121,7 +6184,13 @@ void MainWindow::new_records_entry() {
     }
     if (seed_local) {
       // zuo with ortsz!, the panel asks his WAHRE or MITTLERE questions and
-      // hands back the moment with the longitude as zone
+      // hands back the moment with the longitude as zone. The panel only
+      // reckons here, held out of the history, a settled step had written
+      // the new person into the SOLAR row on screen
+      if (!before_local) {
+        before_local = panel_state();
+      }
+      const auto hold = qScopeGuard(hold_history());
       apply_record(got, false);
       set_local_time(true, true);
       recompute();
@@ -6136,6 +6205,7 @@ void MainWindow::new_records_entry() {
     if (es < 0) {
       return;
     }
+    taken = true;
     set_slot(slot, got, true);
     if (es == 0) {
       // a2dat, FILESELECT SPEZIAL\*.DAT with the last file as default,
@@ -6508,6 +6578,17 @@ void MainWindow::preset_chart(const AafRecord& r, bool parallax, bool true_node)
   apply_record(r);
 }
 
+void MainWindow::drop_combin() {
+  combin_name1_.clear();
+  combin_moment1_.clear();
+  combin_name2_.clear();
+  combin_moment2_.clear();
+  combin_note_.clear();
+  combin_list_.clear();
+  combin_na_.clear();
+  combin_origin_.reset();
+}
+
 void MainWindow::apply_record(const AafRecord& r, bool claim_slot) {
   record_ = r;
   // the progressed ring of SEKUNDÄR and SONNEN-BOGEN, the directed axes of
@@ -6524,14 +6605,7 @@ void MainWindow::apply_record(const AafRecord& r, bool claim_slot) {
   a20_transits_ = false;
   // a change to a radix chart drops the combin memory, its origin lines
   // must not stay on other drawings
-  combin_name1_.clear();
-  combin_moment1_.clear();
-  combin_name2_.clear();
-  combin_moment2_.clear();
-  combin_note_.clear();
-  combin_list_.clear();
-  combin_na_.clear();
-  combin_origin_.reset();
+  drop_combin();
   prog_event_note_.clear();
   prog_radix_note_.clear();
   transit_place_.reset();
@@ -6710,6 +6784,18 @@ void MainWindow::edit_record() {
     if (std::filesystem::exists(dat)) {
       bind_data_file(QString::fromStdWString(dat.wstring()));
     }
+  }
+  // the edit of a SOLAR row stays in that row like his od = 2, the claim of
+  // apply_record wrote it into the RADIX slot the panel had left
+  if (active_is_solar_ && active_solar_ >= 0) {
+    solar_slots_[static_cast<std::size_t>(active_solar_)] = dialog.record();
+    apply_record(dialog.record(), false);
+    // the banner names the row like a click on it, the record line of
+    // apply_record had taken its place
+    banner_->set_record(solar_labels_[static_cast<std::size_t>(active_solar_)]);
+    refresh_current_step();
+    update_solar_actions();
+    return;
   }
   // the COMBIN level holds no RADIX slot, an edited COMBIN takes a slot of
   // its own like ERGEBNIS als RADIX instead of the first one of the pair
@@ -7175,8 +7261,11 @@ ClassicSheetText MainWindow::classic_sheet_text() const {
     t.pair_moment2 = combin_moment2_;
     t.pair_list = combin_list_;
     t.pair_note = combin_note_;
-    // go$(0,2) = "COMBIN-ORT", Lä and Br of the mean place
-    t.place = "COMBIN-ORT";
+    // go$(0,2) = "COMBIN-ORT", Lä and Br of the mean place. A return cast
+    // from the COMBIN keeps the rows of the pair and names its event place
+    if (!active_is_solar_) {
+      t.place = "COMBIN-ORT";
+    }
   } else if (partner_chart_ && ((compare_action_ != nullptr && compare_action_->isChecked()) ||
                                 (dial_action_ != nullptr && dial_action_->isChecked()))) {
     // the double wheel and the 90 degree wheel need the second chart on

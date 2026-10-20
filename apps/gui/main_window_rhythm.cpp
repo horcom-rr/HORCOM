@@ -145,13 +145,14 @@ QString MainWindow::rhythm_chart_label() const {
   if (!rhythm_label_.isEmpty()) {
     return rhythm_label_;
   }
-  // sol$(od,ze) = "COMBIN"
-  if (!combin_name1_.empty()) {
-    return QStringLiteral("COMBIN");
-  }
+  // a return cast from a COMBIN names itself, the COMBIN rows stay
   if (active_is_solar_ && active_solar_ >= 0 && active_solar_ < static_cast<int>(solar_labels_.size()) &&
       !solar_labels_[static_cast<std::size_t>(active_solar_)].isEmpty()) {
     return solar_labels_[static_cast<std::size_t>(active_solar_)];
+  }
+  // sol$(od,ze) = "COMBIN"
+  if (!combin_name1_.empty()) {
+    return QStringLiteral("COMBIN");
   }
   if (!active_is_solar_ && active_slot_ >= 0 && active_slot_ < 5) {
     return radix_label(active_slot_);
@@ -548,6 +549,9 @@ QStringList MainWindow::septar_unit() {
 // a17sonderpkt. The n-th Septar is the solar return of the (n - 1)th
 // birthday, cast for the place of the event
 void MainWindow::septar_chart() {
+  // an edit still settling belongs to the slot of the radix, the panel
+  // leaves it for the derived moment
+  flush_history();
   if (!last_chart_) {
     return;
   }
@@ -629,9 +633,9 @@ void MainWindow::septar_chart() {
   }
   set_panel_place(*place);
   rhythm_label_.clear();
+  // the Septar row leads before its chart is drawn, so the Sonderpunkt
+  // lands on slot zero in the same pass
   apply_moment(hit.jd_ut, label, true);
-  // the Sonderpunkt lands on slot zero once the Septar is the active chart
-  recompute();
   // mes1$ und mes2$, STR$(x,3), and beside them which solar return the
   // Septar is, the tester counts the Schwingungshoroskope that way
   const double from = (sen - 1) * vp * fa;

@@ -59,6 +59,7 @@ struct MainWindowProbe {
   static ClockKind clock(const MainWindow& w) { return w.clock_kind_; }
   static void local_time(MainWindow& w, bool on) { w.set_local_time(on, false); }
   static double lon(const MainWindow& w) { return w.lon_->value(); }
+  static QDoubleSpinBox* lon_box(MainWindow& w) { return w.lon_; }
   static const Chart& chart(const MainWindow& w) { return *w.last_chart_; }
   static void correction(MainWindow& w) { w.correction(); }
   static void prima(MainWindow& w) { w.primary_axes_session(); }
@@ -196,6 +197,10 @@ struct MainWindowProbe {
   static QString slot_text(const MainWindow& w, int i) { return w.slot_actions_[static_cast<std::size_t>(i)]->text(); }
   static QAction* slot_action(MainWindow& w, int i) { return w.slot_actions_[static_cast<std::size_t>(i)]; }
   static void session_click(MainWindow& w, int i) { w.activate_slot({false, i}); }
+  static void take_solar(MainWindow& w, int i) { w.activate_slot({true, i}); }
+  static void chart_between(MainWindow& w, int item) { w.chart_between(item); }
+  static QCheckBox* parallax(MainWindow& w) { return w.parallax_; }
+  static void edit_record(MainWindow& w) { w.edit_record(); }
   static std::optional<AafRecord> solar_slot(const MainWindow& w, int i) { return w.solar_slots_[static_cast<std::size_t>(i)]; }
   static bool dial_on(const MainWindow& w) { return w.dial_action_->isChecked(); }
   static bool multi_on(const MainWindow& w) { return w.multi_action_->isChecked(); }

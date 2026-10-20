@@ -192,8 +192,22 @@ std::optional<MainWindow::EventPlace> MainWindow::ask_event_place(const QStringL
 
 MainWindow::EventPlace MainWindow::birth_place() const {
   const ChartInput in = radix_input();
-  const bool solar_row = active_is_solar_ && active_solar_ >= 0 && slots_[static_cast<std::size_t>(active_solar_)];
-  return {in.lon_deg_east, in.lat_deg, solar_row ? slots_[static_cast<std::size_t>(active_solar_)]->place : record_.place};
+  // go$(0,2), the mean place of a COMBIN and of the returns cast from it
+  if (!combin_name1_.empty()) {
+    return {in.lon_deg_east, in.lat_deg, "COMBIN-ORT"};
+  }
+  if (active_is_solar_ && active_solar_ >= 0) {
+    const auto row = static_cast<std::size_t>(active_solar_);
+    // a row with a radix of its own keeps no place name, its record names
+    // the event place of the return
+    if (solar_bases_[row]) {
+      return {in.lon_deg_east, in.lat_deg, std::string()};
+    }
+    if (slots_[row]) {
+      return {in.lon_deg_east, in.lat_deg, slots_[row]->place};
+    }
+  }
+  return {in.lon_deg_east, in.lat_deg, record_.place};
 }
 
 // the tester asked for the place in the return dialogs, the row shows it
@@ -237,14 +251,35 @@ void MainWindow::set_panel_place(const EventPlace& p) {
 // derives from the RADIX row of its number like sol$(2,ze) from ze. A
 // radix typed into the panel without a SATZ row stays in loose_radix_,
 // the panel had become the base of the next return and a VORHERIGES
-// SOLAR counted -1 from the solar on screen
+// SOLAR counted -1 from the solar on screen. A SOLAR row without a RADIX
+// row behind it keeps that radix itself, the RADIX row of its number may
+// hold another person
 ChartInput MainWindow::radix_input() const {
-  if (active_is_solar_ && active_solar_ >= 0 && slots_[static_cast<std::size_t>(active_solar_)]) {
-    return record_input(*slots_[static_cast<std::size_t>(active_solar_)]);
+  if (active_is_solar_ && active_solar_ >= 0) {
+    const auto row = static_cast<std::size_t>(active_solar_);
+    if (solar_bases_[row]) {
+      return *solar_bases_[row];
+    }
+    if (slots_[row]) {
+      return record_input(*slots_[row]);
+    }
   }
   // a SOLAR row taken back puts its own record here, the radix stays
   if (active_is_solar_ && loose_radix_) {
     return *loose_radix_;
+  }
+  if (!active_is_solar_) {
+    // the running UHR is the radix of its slot
+    if (uhr_slot_ >= 0 && active_slot_ == uhr_slot_ && slots_[static_cast<std::size_t>(uhr_slot_)]) {
+      return record_input(*slots_[static_cast<std::size_t>(uhr_slot_)]);
+    }
+    // the radix last shown, a typed time, a KORRIGIERT moment or a COMBIN,
+    // which record_ never took up. A walk holds the history and leaves it
+    // as the walk began. His a16 read the RADIX row ze, after a COMBIN the
+    // row 2
+    if (loose_radix_) {
+      return *loose_radix_;
+    }
   }
   const bool use_record = record_.day > 0 || record_.jd > 0.0;
   return use_record ? record_input(record_) : current_input();
@@ -259,6 +294,9 @@ Chart MainWindow::radix_chart() const {
 // his ort_wahl, the year buttons are his FOLGENDES and VORHERGEHENDES
 // Jahr and cast the solar at once
 void MainWindow::solar_chart() {
+  // an edit still settling belongs to the slot of the radix, the panel
+  // leaves it for the derived moment
+  flush_history();
   // IF hrg!, sol$ = "TERRAR"
   if (current_settings().heliocentric) {
     terrar_chart();
@@ -347,6 +385,9 @@ void MainWindow::run_solar(int year, const EventPlace& place) {
 // time of the birth at the event place, NÄCHSTER and VORHERGEHENDER TAG
 // step on from the moment found
 void MainWindow::day_chart() {
+  // an edit still settling belongs to the slot of the radix, the panel
+  // leaves it for the derived moment
+  flush_history();
   if (!last_chart_) {
     return;
   }
@@ -396,6 +437,9 @@ void MainWindow::day_chart() {
 // ported from proho with taho_proho_ini, one day of the sky per year of
 // life, the event at its place and the four clock modes of prog_mode
 void MainWindow::progression_chart() {
+  // an edit still settling belongs to the slot of the radix, the panel
+  // leaves it for the derived moment
+  flush_history();
   if (!last_chart_) {
     return;
   }
@@ -455,6 +499,9 @@ void MainWindow::progression_chart() {
 // row, the step keys search on from the one on screen like WEITERES
 // LUNAR SUCHEN
 void MainWindow::lunar_chart() {
+  // an edit still settling belongs to the slot of the radix, the panel
+  // leaves it for the derived moment
+  flush_history();
   // hrg! knows no LUNAR, the moon slot carries the Earth there
   if (!last_chart_ || !last_chart_->b[body::kMoon].valid || current_settings().heliocentric) {
     return;
@@ -575,6 +622,9 @@ void MainWindow::lunar_chart() {
 
 // ported from the PLANETARE case of a16 with plant and planth
 void MainWindow::planetar_chart() {
+  // an edit still settling belongs to the slot of the radix, the panel
+  // leaves it for the derived moment
+  flush_history();
   if (!last_chart_) {
     return;
   }
@@ -769,6 +819,9 @@ void MainWindow::planetar_chart() {
 // ported from the PERSONARE case of a16, the planet first, then the
 // place, the chart until a key and his WEITERES PERSONAR box
 void MainWindow::personar_chart() {
+  // an edit still settling belongs to the slot of the radix, the panel
+  // leaves it for the derived moment
+  flush_history();
   const bool helio = current_settings().heliocentric;
   if (!last_chart_ || (!helio && !last_chart_->b[body::kSun].valid)) {
     return;
@@ -871,6 +924,9 @@ void MainWindow::personar_chart() {
 // starts at the ERSTES KALENDER-Jahr, the lunar list at the BEGINN-DATUM,
 // both run eighty four returns forward
 void MainWindow::return_list(bool lunar) {
+  // an edit still settling belongs to the slot of the radix, the panel
+  // leaves it for the derived moment
+  flush_history();
   if (!last_chart_) {
     return;
   }
@@ -1060,6 +1116,9 @@ void MainWindow::return_list(bool lunar) {
 // returns to its heliocentric radix place, no place question, the year
 // by number
 void MainWindow::terrar_chart() {
+  // an edit still settling belongs to the slot of the radix, the panel
+  // leaves it for the derived moment
+  flush_history();
   if (!last_chart_) {
     return;
   }
