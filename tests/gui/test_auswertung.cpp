@@ -1317,8 +1317,8 @@ TEST_CASE("a place moved under the SOLAR of a typed birth keeps its radix") {
   QString next;
   {
     DialogDriver drive;
-    drive.then([&w, &next](QDialog* d) {
-      QTimer::singleShot(0, d, [d, &w, &next]() {
+    drive.then([](QDialog* d) {
+      QTimer::singleShot(0, d, [d]() {
         d->findChild<QSpinBox*>()->setValue(2026);
         click_button(d, "OK");
       });
