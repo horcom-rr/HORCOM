@@ -5629,12 +5629,20 @@ void MainWindow::vorgaben_overview() {
   // top of the main screen with the grossj1 lines of the active record
   if (great_year_on_ && konsta_.jdgross > 0.0 && konsta_.zal_grossj != 0 && last_chart_ && !idle_) {
     bool outside = false;
-    QStringList lines = great_year_lines(outside);
-    lines << tr(" Datensatz : %1 ").arg(record_label_.trimmed());
-    auto* box = new QLabel(lines.join(QChar(0x0A)), &dialog);
+    QStringList lines = great_year_lines(outside, true);
+    lines << tr(" Datensatz : %1 ").arg(record_label_.trimmed()).toHtmlEscaped();
+    // his lines keep their runs of blanks in the rich box
+    auto* box = new QLabel("<p style='white-space:pre'>" + lines.join("<br>") + "</p>", &dialog);
     box->setObjectName("greatYearBox");
+    box->setTextFormat(Qt::RichText);
     box->setAlignment(Qt::AlignHCenter);
-    box->setStyleSheet("QLabel { background: #ffff00; color: #000000; border: 1px solid #000000; padding: 4px 12px; }");
+    // his box stood yellow. The tester reads its many lines better on white
+    // paper, the date and the age point keep his yellow label box inside
+    // like the GROSSES JAHR message. The night dress keeps its own ground,
+    // its labels are yellow letters
+    const QString ground = theme::dark_now() ? QStringLiteral("transparent") : QStringLiteral("#ffffff");
+    box->setStyleSheet(QString("QLabel { background: %1; color: %2; border: 1px solid %2; padding: 4px 12px; }")
+                           .arg(ground, theme::ink_now().name()));
     outer->addWidget(box, 0, Qt::AlignHCenter);
   }
   auto* row = new QHBoxLayout();

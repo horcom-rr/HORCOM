@@ -314,17 +314,25 @@ TEST_CASE("GROSSES JAHR keeps the CHAUVIN reference and shows the age point like
   CHECK(lines[3].startsWith("Der 'Zeitalter - Punkt' f\u00fcr das Datum  11. 8.1999"));
   CHECK(lines[4].endsWith(QString::asprintf(" =  %8.4f\u00b0", p.point_deg)));
   CHECK(text.contains(theme::heading_span(QString::asprintf("%.4f", p.point_deg) + QChar(0x00B0))));
-  // the yellow box of his main screen repeats the lines with the record
+  // the box of his main screen repeats the lines with the record, on white
+  // since the tester's tenth batch with the date and the age point marked
   QString banner;
-  drive.then([&banner](QDialog* d) {
+  QString style;
+  drive.then([&banner, &style](QDialog* d) {
     if (const auto* box = d->findChild<QLabel*>("greatYearBox")) {
       banner = box->text();
+      style = box->styleSheet();
     }
     d->reject();
   });
   MainWindowProbe::vorgaben_overview(*w);
-  CHECK(banner.startsWith(lines[0]));
-  CHECK(banner.contains(" Datensatz : TESTFALL"));
+  const QStringList box_lines = plain_lines(banner);
+  REQUIRE(box_lines.size() == 6);
+  CHECK(box_lines[0] == lines[0]);
+  CHECK(box_lines[4] == lines[4]);
+  CHECK(box_lines[5].startsWith(" Datensatz : TESTFALL"));
+  CHECK(banner.contains(theme::heading_span("11. 8.1999")));
+  CHECK(style.contains("background: #ffffff"));
 }
 
 TEST_CASE("GROSSES JAHR changes the age start and the reference and can switch the display off") {
