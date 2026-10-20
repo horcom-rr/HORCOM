@@ -4398,6 +4398,9 @@ void MainWindow::eclipse_table() {
   table->setShowGrid(false);
   table->setItemDelegate(new ZodiacDelegate(table));
   table->setFont(theme::mono_font());
+  // a click gives the table its focus, a first focus framed the first cell
+  // before anything was chosen, the keys reach the dialog either way
+  table->setFocusPolicy(Qt::ClickFocus);
   v->addWidget(table, 1);
   // the legend of his screen
   v->addWidget(new QLabel(tr("'ZT'=ZENTRAL | 'EX'=EXZENT | 'TOT'=TOTAL | 'RF'=RINGF | 'N' = NÖRDL 'S' = SÜDL"), &dialog));
@@ -4416,6 +4419,11 @@ void MainWindow::eclipse_table() {
   auto* next = new QPushButton(tr("Weiter mit Leertaste"), &dialog);
   auto* back = new QPushButton(tr("Zurück mit 'R'"), &dialog);
   auto* quit = new QPushButton(tr("Ende mit 'ESC'"), &dialog);
+  // the keys belong to the dialog, a focused button had taken the space
+  // bar for itself, after a click on Zurück every space paged back
+  for (QPushButton* b : {next, back, quit}) {
+    b->setFocusPolicy(Qt::NoFocus);
+  }
   keys->addWidget(next);
   keys->addWidget(back);
   keys->addStretch(1);
@@ -4434,7 +4442,10 @@ void MainWindow::eclipse_table() {
       if (r.text.isEmpty()) {
         return;
       }
+      // the dates, the planets and the kind of each eclipse bold, the tester
+      // reads the list by them, his tenth batch. The longitudes stay plain
       auto* t = new QTableWidgetItem(r.text);
+      bold_cell(t);
       if (r.inverse) {
         // his tinv stamped the hits white on black, the tester asked for
         // light colours instead. An eclipse wears the pale tone of its
@@ -4452,13 +4463,16 @@ void MainWindow::eclipse_table() {
       if (r.lunation && row % 7 == 0) {
         auto* marker = new QTableWidgetItem(tag(light));
         set_body_sprite(marker, light, theme::ink_now());
+        bold_cell(marker);
         table->setItem(row, col + 1, marker);
       }
       if (r.el >= 0.0) {
         table->setItem(row, col + 2, zodiac_item(r.el));
       }
       if (!r.kind.isEmpty()) {
-        table->setItem(row, col + 3, new QTableWidgetItem(" " + r.kind));
+        auto* kind = new QTableWidgetItem(" " + r.kind);
+        bold_cell(kind);
+        table->setItem(row, col + 3, kind);
       }
     };
     for (int i = 0; i < static_cast<int>(kRows); ++i) {

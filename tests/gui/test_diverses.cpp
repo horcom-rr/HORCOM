@@ -122,6 +122,11 @@ TEST_CASE("FINSTERNISSE lists the eclipses at their greatest moment and pages li
   QString back_first;
   QColor eclipse_back;
   QColor eclipse_ink;
+  bool eclipse_bold = false;
+  bool date_bold = false;
+  bool marker_bold = false;
+  bool longitude_bold = true;
+  bool click_focus = false;
   DialogDriver drive;
   drive.then(DialogDriver::click(" NEIN "))                     // ASPEKTE mit GÜLTIGEM DATENSATZ UNTERSUCHEN ?
       .then(DialogDriver::fill({"", "1", "8", "1999"}, "OK")) // SUCH-DATUM EINGEBEN !
@@ -137,8 +142,20 @@ TEST_CASE("FINSTERNISSE lists the eclipses at their greatest moment and pages li
           if (table->item(r, 3) != nullptr && table->item(r, 3)->text().contains("ZT")) {
             eclipse_back = table->item(r, 0)->background().color();
             eclipse_ink = table->item(r, 0)->foreground().color();
+            eclipse_bold = table->item(r, 3)->font().bold();
           }
         }
+        date_bold = table->item(0, 0)->font().bold();
+        // the table takes the focus by a click only, no frame on its first
+        // cell before anything was chosen
+        click_focus = table->focusPolicy() == Qt::ClickFocus;
+        // the buttons leave the space bar to the dialog, a focused Zurück
+        // had paged back with every space
+        for (const QPushButton* b : d->findChildren<QPushButton*>()) {
+          click_focus = click_focus && b->focusPolicy() == Qt::NoFocus;
+        }
+        marker_bold = table->item(0, 1)->font().bold();
+        longitude_bold = table->item(0, 2)->font().bold();
         // his asc& = 32, k1 = k1 + INT(ABS(zf& - zf& / 5))
         QKeyEvent space(QEvent::KeyPress, Qt::Key_Space, Qt::NoModifier, " ");
         QApplication::sendEvent(d, &space);
@@ -173,6 +190,13 @@ TEST_CASE("FINSTERNISSE lists the eclipses at their greatest moment and pages li
   // colour, a solar eclipse wears the pale sun tone with black ink
   CHECK(eclipse_back == QColor(0xFF, 0xF3, 0xA8));
   CHECK(eclipse_ink == QColor(0, 0, 0));
+  // dates, planets and the kind bold, the tester's tenth batch, the
+  // longitudes plain
+  CHECK(eclipse_bold);
+  CHECK(date_bold);
+  CHECK(marker_bold);
+  CHECK_FALSE(longitude_bold);
+  CHECK(click_focus);
   // the partial umbral eclipse of 1999 July 28 peaked at 11:34 UT
   const int fm = static_cast<int>(right.indexOf(QRegularExpression(R"(^28\. 7\.1999    11h  2\dm.*)")));
   REQUIRE(fm >= 0);
