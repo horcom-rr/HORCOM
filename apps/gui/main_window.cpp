@@ -1286,16 +1286,16 @@ void MainWindow::build_ui() {
   lunar_list_action_ = needs_chart(ausw->addAction(tr("LUNAR-LISTE…"), this, [this]() { return_list(true); }));
   needs_chart(ausw->addAction(tr("PLANETAR…"), this, &MainWindow::planetar_chart));
   needs_chart(ausw->addAction(tr("PERSONAR…"), this, &MainWindow::personar_chart));
-  // his text on the returns closes their block, the tester's ninth batch
-  // moved it up from the rhythm block
-  ausw->addAction(tr("ERLÄUTERUNG 5…"), this, [erlaeuterung]() { erlaeuterung("komm5"); });
   ausw->addSeparator();
   //RR MÜNCHNER RHYTHMENLEHRE
-  // the septars and the degree date list belong to the same school, its
-  // ERLÄUTERUNG closes the block
+  // the septars and the degree date list belong to the same school. The
+  // two ERLÄUTERUNG texts close the block, the one on the returns and the
+  // septars and the one on the rhythm, where the tester's tenth batch
+  // took ERLÄUTERUNG 5 back from the end of the returns
   needs_chart(ausw->addAction(tr("MÜNCHNER RHYTHMENLEHRE…"), this, &MainWindow::rhythm));
   septar_action_ = needs_chart(ausw->addAction(tr("SEPTAR…"), this, &MainWindow::septar_chart));
   needs_chart(ausw->addAction(tr("GRAD-DATUM-LISTE…"), this, &MainWindow::degree_date_list));
+  ausw->addAction(tr("ERLÄUTERUNG 5…"), this, [erlaeuterung]() { erlaeuterung("komm5"); });
   ausw->addAction(tr("ERLÄUTERUNG 6…"), this, [erlaeuterung]() { erlaeuterung("komm6"); });
   // his a16 menu under hrg!, TERRAR in place of SOLAR, the lunars and the
   // septar blank
