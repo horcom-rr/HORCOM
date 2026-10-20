@@ -11,6 +11,7 @@
 #include <QTableWidget>
 #include <QTimer>
 #include <filesystem>
+#include <fstream>
 
 #include <QPushButton>
 
@@ -83,6 +84,15 @@ DialogDriver::Step pick_file(const QString& path) {
     // QFileDialog hides accept, the QDialog slot dispatches to it
     static_cast<QDialog*>(fd)->accept();
   };
+}
+
+// every label of a box joined, the lines of a ChoiceDialog
+QString read_labels(QDialog* d) {
+  QString text;
+  for (const QLabel* l : d->findChildren<QLabel*>()) {
+    text += l->text() + "|";
+  }
+  return text;
 }
 
 // reads the message text before closing the box
@@ -713,26 +723,87 @@ TEST_CASE("a fresh AAF entry opens without the before Christ year") {
   CHECK(antique.record().year == -43);
 }
 
-TEST_CASE("DATEIEN VERKETTEN trims like VERKETTEN BEENDEN") {
+TEST_CASE("DATEIEN VERKETTEN joins DAT files one after another into AA_MUDAT and trims like VERKETTEN BEENDEN") {
+  // the tester's tenth batch, the second file had to be an AAF file
   Scratch s("horcom_entry_chain");
   ChartRecord empty = stored("OHNE ORT");
   empty.lon = 0.0;
   empty.lat = 0.0;
-  REQUIRE(write_chart_file(s.dir / "A.DAT", {stored("ERSTER FALL"), empty, stored("ZWEITER FALL")}));
+  REQUIRE(write_chart_file(s.dir / "A.DAT", {stored("ERSTER FALL"), empty}));
+  REQUIRE(write_chart_file(s.dir / "B.DAT", {stored("ZWEITER FALL")}));
+  AafRecord exchange;
+  exchange.surname = "AUSTAUSCH";
+  exchange.given = "FALL";
+  exchange.day = 4;
+  exchange.month = 4;
+  exchange.year = 1961;
+  exchange.hour = 9;
+  exchange.lat_deg = 48;
+  exchange.lon_deg = 11;
+  REQUIRE(write_aaf(s.dir / "C.AAF", {exchange}));
+  // a cut record, the reader refuses the whole file
+  {
+    std::ofstream cut(s.dir / "KAPUTT.DAT", std::ios::binary);
+    cut << std::string(kChartRecordBytes + 5, ' ');
+  }
   auto w = MainWindowProbe::make();
-  QString note;
+  MainWindowProbe::set_data_dir(*w, s.dir);
+  QString first;
+  QString refused;
   {
     DialogDriver drive;
-    drive.then(pick_file(s.path("A.DAT"))).then(pick_file(s.path("KETTE"))).then(read_box(note));
+    drive.then(DialogDriver::click("VERKETTEN EINSCHALTEN"))
+        .then(pick_file(s.path("A.DAT")))
+        .then([&first](QDialog* d) {
+          first = read_labels(d);
+          DialogDriver::click("WEITER")(d);
+        })
+        .then(pick_file(s.path("KAPUTT.DAT")))
+        .then(read_box(refused))
+        .then(pick_file(s.path("C.AAF")))
+        .then(DialogDriver::click("WEITER"))
+        .then(pick_file(s.path("B.DAT")))
+        .then(DialogDriver::click("VERKETTEN  Beenden"));
     MainWindowProbe::chain_files(*w);
     CHECK(drive.pending() == 0);
     CHECK(drive.unexpected() == 0);
   }
-  CHECK(note == "2 Datensätze verkettet.");
-  const auto chain = read_aaf(s.dir / "KETTE.AAF");
+  // both records of A joined at once, the trim waits for the end
+  CHECK(first.contains("256 BYTE = 2 SÄTZE"));
+  // the refused file is named and the chain goes on
+  CHECK(refused.contains("DATEI ???"));
+  CHECK(refused.contains("KAPUTT.DAT"));
+  const std::filesystem::path chain_path = s.dir / "SPEZIAL" / "AA_MUDAT.DAT";
+  const auto chain = read_chart_file(chain_path);
   REQUIRE(chain.has_value());
-  REQUIRE(chain->size() == 2);
-  CHECK((*chain)[1].surname == "ZWEITER");
+  REQUIRE(chain->size() == 3);
+  CHECK((*chain)[0].name.starts_with("ERSTER"));
+  // the AAF record in its DAT form
+  CHECK((*chain)[1].name.starts_with("AUSTAUSCH"));
+  CHECK((*chain)[1].day == 4);
+  CHECK((*chain)[2].name.starts_with("ZWEITER"));
+  // with a chain file his rows LÖSCHEN and UMBENENNEN come alive and his
+  // ze& = 2 frames LÖSCHEN
+  bool delete_framed = false;
+  {
+    DialogDriver drive;
+    drive.then([&delete_framed](QDialog* d) {
+           for (const QPushButton* b : d->findChildren<QPushButton*>()) {
+             if (b->text().contains("LÖSCHEN")) {
+               delete_framed = b->isDefault();
+             }
+           }
+           DialogDriver::click("UMBENENNEN")(d);
+         })
+        .then(DialogDriver::fill({"KETTE"}, "OK"));
+    MainWindowProbe::chain_files(*w);
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  CHECK(delete_framed);
+  CHECK_FALSE(std::filesystem::exists(chain_path));
+  REQUIRE(std::filesystem::exists(s.dir / "SPEZIAL" / "KETTE.DAT"));
+  CHECK(read_chart_file(s.dir / "SPEZIAL" / "KETTE.DAT")->size() == 3);
 }
 
 TEST_CASE("DATUM FEHLT keeps the typed fields and NUR ÜBERNEHMEN writes nothing") {

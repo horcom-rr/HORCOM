@@ -820,18 +820,23 @@ TEST_CASE("the AAF box finds a record of the same name like CASE 168") {
   CHECK(aaf_same_name(aaf, head) == std::optional<std::size_t>(1));
 }
 
-TEST_CASE("the chain keeps dated records with a place like a200dat") {
-  AafRecord r;
-  r.day = 4;
-  r.month = 5;
-  r.lat_deg = 48;
-  CHECK(chain_keeps(r));
-  AafRecord no_day = r;
+TEST_CASE("the chain takes dated records like a200dat and VERKETTEN BEENDEN trims the rest") {
+  ChartRecord dated = sample();
+  ChartRecord no_day = dated;
   no_day.day = 0;
-  CHECK_FALSE(chain_keeps(no_day));
-  AafRecord no_place = r;
-  no_place.lat_deg = 0;
-  CHECK_FALSE(chain_keeps(no_place));
+  ChartRecord no_month = dated;
+  no_month.month = 0;
+  ChartRecord no_place = dated;
+  no_place.name = "OHNE ORT";
+  no_place.lon = 0.0;
+  no_place.lat = 0.0;
+  std::vector<ChartRecord> chain{dated};
+  CHECK(chain_append(chain, {no_day, dated, no_month, no_place}) == 2);
+  REQUIRE(chain.size() == 3);
+  CHECK(chain[2].name == "OHNE ORT");
+  // a2f_tr_dat(-1), the place test comes only with the end of the chain
+  trim_records(chain);
+  CHECK(chain.size() == 2);
 }
 
 TEST_CASE("the exporter writes a DAT record like horcom_aaf3") {

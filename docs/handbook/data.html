@@ -294,9 +294,14 @@ with the star rule of aaf_ident as the fallback, before the new one
 joins at the end, IN ADDITION keeps both, and the DAT follows the AAF
 file. Record lists and place lists sort
 an umlaut like its base vowel.
-CHAIN FILES carries his chaining tool over, any mix of DAT and
-AAF collections reads in sequence and writes out as one AAF chain
-file, the way he merged collections for the statistics work. The AAF
+CHAIN FILES carries his chaining tool daterw over, the way he merged
+collections for the statistics work. The records of the files called one
+after another, DAT or AAF, join his chain file AA_MUDAT.DAT in SPEZIAL
+with day and month, chain_append in src/horcom/data/collection.*, and
+END CHAINING runs the trim pass over it. The same box deletes or
+renames the chain file. SPEZIAL is found in any letter case, so the
+evaluation file of the statistics finds the chain on a case sensitive
+system too. The AAF
 to HORCOM conversion presses exchange records into the fixed 128 byte
 layout with the Julian flag on the remark, and his two maintenance
 passes survive as TRIM the file, empty records out and leading blanks

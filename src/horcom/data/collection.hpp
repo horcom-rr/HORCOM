@@ -91,13 +91,17 @@ namespace horcom {
 /// @return the index of the record of the same name, nothing when none
 [[nodiscard]] std::optional<std::size_t> aaf_same_name(const std::vector<AafRecord>& aaf, const AafRecord& r);
 
-/// Whether DATEIEN VERKETTEN carries a record into the chain file. His
-/// a200dat took a record with day and month, the trim pass at VERKETTEN
-/// BEENDEN dropped every record without place coordinates.
+/// Appends the records of one called file to the chain of DATEIEN
+/// VERKETTEN, ported from the chain branch of a200dat.
 ///
-/// @param r the record
-/// @return true when the record joins the chain
-[[nodiscard]] bool chain_keeps(const AafRecord& r);
+/// A record joins with day and month only. The trim pass of VERKETTEN
+/// BEENDEN, trim_records, drops the records without place coordinates
+/// later.
+///
+/// @param chain the records of the chain file, extended in place
+/// @param add   the records of the file called
+/// @return how many records joined
+std::size_t chain_append(std::vector<ChartRecord>& chain, const std::vector<ChartRecord>& add);
 
 /// Rebuilds the DAT twin from its AAF pilot, ported from aaf_horcom2.
 ///

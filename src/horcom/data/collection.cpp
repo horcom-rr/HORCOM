@@ -266,11 +266,16 @@ std::optional<std::size_t> aaf_same_name(const std::vector<AafRecord>& aaf, cons
   return hit;
 }
 
-// ported from the IF taa&(j&) > 0 && moo&(j&) > 0 of a200dat and the
-// coordinate test of a2f_tr_dat
-bool chain_keeps(const AafRecord& r) {
-  const bool placed = !(r.longitude() == 0.0 && r.latitude() == 0.0);
-  return r.day > 0 && r.month > 0 && placed;
+std::size_t chain_append(std::vector<ChartRecord>& chain, const std::vector<ChartRecord>& add) {
+  std::size_t joined = 0;
+  for (const ChartRecord& r : add) {
+    // his IF (taa&(j&) > 0 && moo&(j&) > 0 && datein!), PUT #datei&,j&
+    if (r.day > 0 && r.month > 0) {
+      chain.push_back(r);
+      ++joined;
+    }
+  }
+  return joined;
 }
 
 bool write_dat_from_aaf(const std::filesystem::path& dat, const std::vector<AafRecord>& aaf) {

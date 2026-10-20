@@ -2940,53 +2940,124 @@ void MainWindow::midpoint_tree() {
   view.exec();
 }
 
-// ported from daterw and the chain branch of a200dat. A record joins the
-// chain with day and month, and the trim pass of his VERKETTEN BEENDEN,
-// a2f_tr_dat(-1), drops every record without place coordinates. The
-// port chains DAT and AAF files in one go into an AAF or a DAT file
+// ported from daterw and the chain branch of a200dat. The chain lands in
+// his KETTEN-DATEI SPEZIAL\AA_MUDAT.DAT, the files are called one after
+// another and each one joins at once. His files came through DATEI
+// EIN-/AUSGABE while erw! stayed on, the port calls them right here. An
+// AAF file joins through its DAT form
 void MainWindow::chain_files() {
-  //RR ZU VERKETTENDE HORCOM - DATEN - DATEIEN NACHEINANDER AUFRUFEN !
-  const QStringList sources = QFileDialog::getOpenFileNames(
-      this, tr("Zu verkettende Dateien wählen"), collection_start(data_file_, data_dir_),
-      tr("HORCOM Daten (*.DAT *.dat *.AAF *.aaf)"));
-  if (sources.isEmpty()) {
-    return;
-  }
-  QString kind;
-  QString target = QFileDialog::getSaveFileName(
-      this, tr("Ketten-Datei"), QString::fromStdWString((aaf_folder(data_file_, data_dir_) / "kette.aaf").wstring()),
-      tr("AAF (*.aaf *.AAF);;HORCOM Daten-Dateien (*.DAT *.dat)"), &kind);
-  if (target.isEmpty()) {
-    return;
-  }
-  target = with_suffix(target, kind.startsWith("AAF") ? "AAF" : "DAT");
-  std::vector<AafRecord> all;
-  const auto join = [&all](const AafRecord& r) {
-    if (chain_keeps(r)) {
-      all.push_back(r);
+  const std::filesystem::path spezial = find_case_blind(data_dir_, "SPEZIAL");
+  //RR d$ = hrc$ + "\SPEZIAL\AA_MUDAT.DAT"
+  const std::filesystem::path chain_path = find_case_blind(spezial, "AA_MUDAT.DAT");
+  std::error_code ec;
+  const bool exists = std::filesystem::is_regular_file(chain_path, ec);
+  // his rows 2 and 3 stood blank and grey without a chain file, the port
+  // keeps their captions in grey so the box says what they would do. With
+  // a chain file his ze& = 2 framed LÖSCHEN, an old chain goes before a new
+  // one starts
+  //RR DATEN-DATEIEN VERKETTEN ?
+  const int es = ChoiceDialog::ask_with_disabled(
+      this, tr("DATEN-DATEIEN VERKETTEN ?"), {},
+      {tr("VERKETTEN EINSCHALTEN"), tr(" KETTEN-DATEI AA_MUDAT  LÖSCHEN ? "),
+       tr(" KETTEN-DATEI AA_MUDAT  UMBENENNEN ? "), tr("ABBRUCH")},
+      exists ? 1 : 0, exists ? std::vector<int>{} : std::vector<int>{1, 2});
+  // his KILL and NAME stopped in @fehler when the file system refused
+  const auto refused = [this, &chain_path](const std::error_code& e) {
+    if (e) {
+      QMessageBox::warning(this, "HORCOM", tr("DATEI ???") + QChar(0x0A) + QString::fromStdWString(chain_path.wstring()));
     }
   };
-  for (const QString& src : sources) {
-    const std::filesystem::path p(src.toStdWString());
-    if (src.endsWith(".dat", Qt::CaseInsensitive)) {
-      if (const auto records = read_chart_file(p)) {
-        for (const ChartRecord& r : *records) {
-          join(aaf_from_chart_record(r));
-        }
-      }
-    } else if (const auto records = read_aaf(p)) {
-      for (const AafRecord& r : *records) {
-        join(r);
-      }
-    }
-  }
-  const std::filesystem::path out(target.toStdWString());
-  if (all.empty() ||
-      !(target.endsWith(".dat", Qt::CaseInsensitive) ? write_dat_from_aaf(out, all) : write_aaf(out, all))) {
-    QMessageBox::warning(this, "HORCOM", tr("Die Ketten-Datei ließ sich nicht schreiben."));
+  if (es == 1) {
+    //RR KILL d$
+    std::filesystem::remove(chain_path, ec);
+    refused(ec);
     return;
   }
-  QMessageBox::information(this, "HORCOM", tr("%1 Datensätze verkettet.").arg(all.size()));
+  if (es == 2) {
+    for (;;) {
+      //RR ANDEREN Namen EINGEBEN !
+      const std::optional<QString> stem = ask_file_stem();
+      if (!stem) {
+        return;
+      }
+      const std::filesystem::path renamed = spezial / (stem->toStdWString() + L".DAT");
+      if (!std::filesystem::exists(renamed, ec)) {
+        //RR NAME d$ AS s$
+        std::filesystem::rename(chain_path, renamed, ec);
+        refused(ec);
+        return;
+      }
+      //RR @fanz("Name '" + s1$ + "' existiert schon !")
+      QMessageBox::information(this, "HORCOM", tr("Name '%1' existiert schon !").arg(*stem));
+    }
+  }
+  if (es != 0) {
+    return;
+  }
+  std::vector<ChartRecord> chain;
+  if (exists) {
+    // a chain file the reader refuses stays untouched, the first file
+    // called would have replaced it with its own records alone
+    const auto old = read_chart_file(chain_path);
+    if (!old) {
+      QMessageBox::warning(this, "HORCOM", tr("DATEI ???") + QChar(0x0A) + QString::fromStdWString(chain_path.wstring()));
+      return;
+    }
+    chain = *old;
+  }
+  std::filesystem::create_directories(spezial, ec);
+  QString start = collection_start(data_file_, data_dir_);
+  for (;;) {
+    //RR ZU VERKETTENDE HORCOM - DATEN - DATEIEN NACHEINANDER AUFRUFEN !
+    const QString src = QFileDialog::getOpenFileName(
+        this, tr("ZU VERKETTENDE HORCOM - DATEN - DATEIEN NACHEINANDER AUFRUFEN !"), start,
+        tr("HORCOM Daten-Dateien (*.DAT *.dat);;AAF (*.AAF *.aaf)"));
+    if (src.isEmpty()) {
+      return;
+    }
+    start = QFileInfo(src).absolutePath();
+    const std::filesystem::path p(src.toStdWString());
+    std::optional<std::vector<ChartRecord>> add;
+    if (src.endsWith(".aaf", Qt::CaseInsensitive)) {
+      if (const auto records = read_aaf(p)) {
+        add.emplace();
+        for (const AafRecord& r : *records) {
+          add->push_back(chart_record_from_aaf(r));
+        }
+      }
+    } else {
+      add = read_chart_file(p);
+    }
+    if (!add) {
+      // a file the reader refuses joins nothing, the next one is called
+      QMessageBox::warning(this, "HORCOM", tr("DATEI ???") + QChar(0x0A) + src);
+      continue;
+    }
+    chain_append(chain, *add);
+    if (!write_chart_file(chain_path, chain)) {
+      QMessageBox::warning(this, "HORCOM", tr("Die Ketten-Datei ließ sich nicht schreiben."));
+      return;
+    }
+    //RR " DATEI : " + spm$, STR$(lf1&*l2&)+" BYTE = "+STR$(lf1&)+" SÄTZE", wr$+" VERKETTEN ?","oder",be$+" ?"
+    const int b = ChoiceDialog::ask(this, "HORCOM",
+                                    {tr(" DATEI : ") + QString::fromStdWString(chain_path.wstring()), QString(),
+                                     tr("%1 BYTE = %2 SÄTZE").arg(chain.size() * kChartRecordBytes).arg(chain.size()),
+                                     tr("Weiter VERKETTEN ?"), tr("oder"), tr(" Beenden ?")},
+                                    {tr("WEITER"), tr("VERKETTEN  Beenden")}, 0);
+    if (b == 1) {
+      // his @a2f_tr_dat(-1), the trim pass ends the chain and the file is
+      // replaced only when it shrank
+      const std::size_t before = chain.size();
+      trim_records(chain);
+      if (chain.size() != before && !write_chart_file(chain_path, chain)) {
+        QMessageBox::warning(this, "HORCOM", tr("Die Ketten-Datei ließ sich nicht schreiben."));
+      }
+      return;
+    }
+    if (b != 0) {
+      return;
+    }
+  }
 }
 
 // ported from aaf_horcom, AAF-DATEI < > HORCOM-DATEI in both directions,

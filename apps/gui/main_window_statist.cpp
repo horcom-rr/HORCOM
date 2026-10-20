@@ -20,6 +20,7 @@
 
 #include "choice_dialog.hpp"
 #include "horcom/core/constants.hpp"
+#include "horcom/data/file_io.hpp"
 #include "main_window_statist.hpp"
 
 namespace horcom {
@@ -168,7 +169,7 @@ void MainWindow::create_statistics() {
   }
   // FILESELECT hrc$ + "\SPEZIAL\*.DAT"
   const QString src = QFileDialog::getOpenFileName(this, tr("AUSWERTEFÄHIGE DATEI ERSTELLEN"),
-                                                   QString::fromStdWString((data_dir_ / "spezial").wstring()),
+                                                   QString::fromStdWString(find_case_blind(data_dir_, "SPEZIAL").wstring()),
                                                    tr("HORCOM Daten-Dateien (*.DAT *.dat)"));
   if (src.isEmpty()) {
     return;

@@ -16,7 +16,7 @@ Statuses.
   the GFA BASIC environment, superseded by the Qt shell, the display
   list and the shared painter. No astronomical or astrological content.
 
-Counts: 701 ported by name, 63 absorbed, 329 screen era, 1093 total.
+Counts: 703 ported by name, 63 absorbed, 327 screen era, 1093 total.
 
 | original | status | account |
 |---|---|---|
@@ -125,7 +125,7 @@ Counts: 701 ported by name, 63 absorbed, 329 screen era, 1093 total.
 | `a18tab` | ported | named in the sources or the handbook origin maps |
 | `a19` | ported | named in the sources or the handbook origin maps |
 | `a20` | ported | named in the sources or the handbook origin maps |
-| `a200dat` | screen era | GEM and GDI era screen, dialog, bitmap or printer plumbing, superseded by the Qt shell and the display list |
+| `a200dat` | ported | named in the sources or the handbook origin maps |
 | `a200get` | screen era | GEM and GDI era screen, dialog, bitmap or printer plumbing, superseded by the Qt shell and the display list |
 | `a200loe` | screen era | GEM and GDI era screen, dialog, bitmap or printer plumbing, superseded by the Qt shell and the display list |
 | `a200loe_1` | absorbed | internal helper of the transit scan with the event place |
@@ -411,7 +411,7 @@ Counts: 701 ported by name, 63 absorbed, 329 screen era, 1093 total.
 | `date_form` | ported | named in the sources or the handbook origin maps |
 | `datei_pr` | ported | named in the sources or the handbook origin maps |
 | `datensatz_maxanz` | screen era | GEM and GDI era screen, dialog, bitmap or printer plumbing, superseded by the Qt shell and the display list |
-| `daterw` | screen era | GEM and GDI era screen, dialog, bitmap or printer plumbing, superseded by the Qt shell and the display list |
+| `daterw` | ported | named in the sources or the handbook origin maps |
 | `datru` | screen era | GEM and GDI era screen, dialog, bitmap or printer plumbing, superseded by the Qt shell and the display list |
 | `dats_einz_l` | screen era | GEM and GDI era screen, dialog, bitmap or printer plumbing, superseded by the Qt shell and the display list |
 | `dats_l` | ported | named in the sources or the handbook origin maps |
