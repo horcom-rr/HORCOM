@@ -84,6 +84,8 @@ if(Qt6_FOUND)
     gui/place_dialog.hpp
     gui/place_hub.cpp
     gui/place_hub.hpp
+    gui/table_export.cpp
+    gui/table_export.hpp
     gui/transit_list_dialog.cpp
     gui/transit_list_dialog.hpp
     gui/a18_rows.hpp

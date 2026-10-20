@@ -104,6 +104,12 @@ class TransitListDialog : public QDialog {
   void build(bool mundane);
   void fill();
   void accept_row(int row);
+  /// The lines an export writes above the table.
+  ///
+  /// @return the heading lines and the Ereignis-Ort line above an export
+  [[nodiscard]] QStringList export_lines() const;
+  /// Asks for a file and writes the table there for Excel.
+  void save_excel();
 
   A18Display display_;
   bool mundane_ = false;

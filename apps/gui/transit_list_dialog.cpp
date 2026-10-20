@@ -8,10 +8,14 @@
 #include <cmath>
 
 #include <QDialogButtonBox>
+#include <QDir>
+#include <QFileDialog>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
+#include <QMessageBox>
 #include <QPushButton>
+#include <QStandardPaths>
 #include <QTableWidget>
 #include <QVBoxLayout>
 
@@ -20,6 +24,7 @@
 #include "horcom/chart/signs.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
+#include "table_export.hpp"
 
 namespace horcom {
 
@@ -219,9 +224,14 @@ void TransitListDialog::build(bool mundane) {
   // the focus by the tab key only
   sort->setAutoDefault(false);
   sort->setFocusPolicy(Qt::TabFocus);
+  // the tester filters such lists in Excel, a modern addition
+  auto* save = new QPushButton(tr("ALS EXCEL-DATEI SPEICHERN…"), this);
+  save->setAutoDefault(false);
+  save->setFocusPolicy(Qt::TabFocus);
   auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
   auto* bottom = new QHBoxLayout();
   bottom->addWidget(count_, 1);
+  bottom->addWidget(save);
   bottom->addWidget(sort);
   v->addWidget(table_, 1);
   if (!display_.footer.isEmpty()) {
@@ -235,6 +245,7 @@ void TransitListDialog::build(bool mundane) {
       sort_rows(mode);
     }
   });
+  connect(save, &QPushButton::clicked, this, &TransitListDialog::save_excel);
   connect(table_, &QTableWidget::cellDoubleClicked, this, [this](int row, int) { accept_row(row); });
   // OK shows the sky of the chosen row, without a chosen row it closes
   connect(buttons, &QDialogButtonBox::accepted, this, [this]() {
@@ -266,7 +277,9 @@ void TransitListDialog::fill() {
     table_->setItem(row, kColDate, date_item);
     auto* time_item = new QTableWidgetItem(r.station ? QString("STATION") : time);
     if (r.station) {
+      // his red, bold like the values the list is read by
       time_item->setForeground(a18::kTableRed);
+      bold_cell(time_item);
     }
     table_->setItem(row, kColTime, time_item);
     // only running bodies wear the red mark, both tables invert
@@ -342,6 +355,34 @@ QStringList TransitListDialog::row_texts(int row) const {
     out << (item != nullptr ? item->text() : QString());
   }
   return out;
+}
+
+QStringList TransitListDialog::export_lines() const {
+  QStringList lines;
+  for (const QString& line : display_.heading) {
+    lines << line.trimmed();
+  }
+  if (!display_.footer.isEmpty()) {
+    lines << display_.footer.trimmed();
+  }
+  return lines;
+}
+
+void TransitListDialog::save_excel() {
+  const QString stem = mundane_ ? QStringLiteral("MUNDAN-ASPEKTE") : QStringLiteral("TRANSITE");
+  const QString start = QDir(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)).filePath(stem + ".csv");
+  // the suffix joins a typed name before the dialog asks about an existing
+  // file of that name
+  QFileDialog dialog(this, tr("ALS EXCEL-DATEI SPEICHERN"), start, tr("Excel CSV (*.csv)"));
+  dialog.setAcceptMode(QFileDialog::AcceptSave);
+  dialog.setDefaultSuffix(QStringLiteral("csv"));
+  if (dialog.exec() != QDialog::Accepted || dialog.selectedFiles().isEmpty()) {
+    return;
+  }
+  const QString path = dialog.selectedFiles().front();
+  if (!write_excel_csv(path, export_lines(), *table_)) {
+    QMessageBox::warning(this, "HORCOM", tr("Die Datei ließ sich nicht schreiben."));
+  }
 }
 
 void TransitListDialog::accept_row(int row) {

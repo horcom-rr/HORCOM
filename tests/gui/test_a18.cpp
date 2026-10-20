@@ -3,9 +3,14 @@
 // Copyright (c) 2026 Dominik Schwimmbeck
 
 #include <QComboBox>
+#include <QDir>
+#include <QFile>
+#include <QFileDialog>
 #include <QKeyEvent>
 #include <QHeaderView>
 #include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
 #include <QTableWidget>
 #include <cmath>
 
@@ -16,6 +21,7 @@
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
 #include "probe.hpp"
+#include "table_export.hpp"
 #include "transit_list_dialog.hpp"
 #include "wheel_widget.hpp"
 
@@ -143,6 +149,84 @@ TEST_CASE("TRANSIT-LISTE walks his a18eing boxes and lists the sun over radix ve
   if (MainWindowProbe::settings(*w).topocentric_parallax) {
     CHECK(heading.join(" ").contains("Ereignis-Ort"));
   }
+}
+
+TEST_CASE("the transit table sets STATION bold and saves itself for Excel") {
+  // the tester's tenth batch, both wishes of the TABELLE row
+  TransitEvent station;
+  station.jd_ut = julian_day({10, 1, 2027, 12, 0.0});
+  station.transiting = body::kMars;
+  station.radix = body::kSun;
+  station.multiple = 3;
+  station.angle_deg = 90.0;
+  station.running_lon = 160.0 * kDegToRad;
+  station.target_lon = 70.0 * kDegToRad;
+  station.station_touch = true;
+  TransitEvent plain = station;
+  plain.jd_ut += 30.0;
+  plain.station_touch = false;
+  A18Display display;
+  display.heading = {" TRANSITE ", " Datensatz : TESTFALL; Probe"};
+  TransitListDialog list({station, plain}, display);
+  const auto* t = list.findChild<QTableWidget*>();
+  REQUIRE(t != nullptr);
+  REQUIRE(t->rowCount() == 2);
+  CHECK(t->item(0, 1)->text() == "STATION");
+  CHECK(t->item(0, 1)->font().bold());
+  CHECK_FALSE(t->item(1, 1)->font().bold());
+  // a quote inside a field is doubled in the quoted field
+  CHECK(excel_csv({"Ort \"Am See\""}, *t).contains("\"Ort \"\"Am See\"\"\""));
+  // a semicolon file with the byte order mark of UTF-8, the heading lines,
+  // an empty row, the column heads and the rows as they stand
+  const QByteArray csv = excel_csv({"TRANSITE", "Datensatz : TESTFALL; Probe"}, *t);
+  CHECK(csv.startsWith("\xEF\xBB\xBF"));
+  const QStringList lines = QString::fromUtf8(csv.mid(3)).split("\r\n");
+  REQUIRE(lines.size() == 7);
+  CHECK(lines[0] == "TRANSITE");
+  CHECK(lines[1] == "\"Datensatz : TESTFALL; Probe\"");
+  CHECK(lines[2].isEmpty());
+  CHECK(lines[3] == "Datum;Zeit (UT);Laufend;Grad lfd.;Winkel;Radix;Grad Radix");
+  CHECK(lines[4] == "10.01.2027;STATION;MA;10VI00;90;SO;10GM00");
+  CHECK(lines[5].startsWith("09.02.2027;"));
+  CHECK(lines[6].isEmpty());
+  const QString path = QDir::temp().filePath("horcom_transit_export.csv");
+  REQUIRE(write_excel_csv(path, {"TRANSITE", "Datensatz : TESTFALL; Probe"}, *t));
+  QFile file(path);
+  REQUIRE(file.open(QIODevice::ReadOnly));
+  CHECK(file.readAll() == csv);
+  file.close();
+  QFile::remove(path);
+  // the button asks for the file, a name typed without suffix gets .csv,
+  // and the heading lines of the list head the file
+  QString saved;
+  {
+    DialogDriver drive;
+    drive.then([&saved](QDialog* d) {
+      auto* fd = qobject_cast<QFileDialog*>(d);
+      REQUIRE(fd != nullptr);
+      fd->setDirectory(QDir::tempPath());
+      if (auto* name = fd->findChild<QLineEdit*>("fileNameEdit")) {
+        name->setText("horcom_transit_button");
+      }
+      static_cast<QDialog*>(fd)->accept();
+      saved = fd->selectedFiles().value(0);
+    });
+    for (QPushButton* b : list.findChildren<QPushButton*>()) {
+      if (b->text().startsWith("ALS EXCEL-DATEI")) {
+        b->click();
+      }
+    }
+    CHECK(drive.pending() == 0);
+  }
+  CHECK(saved.endsWith("horcom_transit_button.csv"));
+  QFile button_file(saved);
+  REQUIRE(button_file.open(QIODevice::ReadOnly));
+  const QStringList button_lines = QString::fromUtf8(button_file.readAll().mid(3)).split("\r\n");
+  button_file.close();
+  QFile::remove(saved);
+  REQUIRE(button_lines.size() == 7);
+  CHECK(button_lines[0] == "TRANSITE");
+  CHECK(button_lines[1] == "\"Datensatz : TESTFALL; Probe\"");
 }
 
 TEST_CASE("MUNDAN-ASPEKTE draws his linear graph without a record") {
