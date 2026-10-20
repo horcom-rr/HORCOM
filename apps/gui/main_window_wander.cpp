@@ -753,7 +753,8 @@ bool MainWindow::multi_time_variation(const QString& mul) {
   }
   const double jd0 = last_chart_->jd_ut;
   const double event0 = multi_event_jd_;
-  const QString label = record_label_.trimmed();
+  // a COMBIN keeps its pair line, record_label_ names the record before it
+  const QString label = combin_name1_.empty() ? record_label_.trimmed() : combin_banner_;
   double jd = jd0;
   {
     // the steps stay out of the Zurück list and the slot until the end

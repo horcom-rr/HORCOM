@@ -1784,7 +1784,7 @@ MainWindow::PanelState MainWindow::panel_state() const {
   s.solar = active_is_solar_;
   s.slot = active_is_solar_ ? active_solar_ : active_slot_;
   s.combin = {combin_name1_, combin_moment1_, combin_name2_, combin_moment2_, combin_note_,
-              combin_list_,  combin_na_,      combin_origin_};
+              combin_list_,  combin_na_,      combin_banner_,  combin_origin_};
   s.loose_radix = loose_radix_;
   s.derived_input = derived_input_;
   s.banner = banner_->record();
@@ -1899,6 +1899,7 @@ void MainWindow::restore_state(const PanelState& s) {
   combin_note_ = s.combin.note;
   combin_list_ = s.combin.list;
   combin_na_ = s.combin.na;
+  combin_banner_ = s.combin.banner;
   combin_origin_ = s.combin.origin;
   loose_radix_ = s.loose_radix;
   derived_input_ = s.derived_input;
@@ -2039,6 +2040,19 @@ void MainWindow::recompute() {
   if (idle_ && !panel_day_valid()) {
     show_idle();
     return;
+  }
+  // MULTI and HARMONICS draw the radix, his od = 1 of multi1 and harm. A
+  // return on the panel ends them like his a16 drew a chart of its own, a
+  // cast, a SOLAR row taken back and a step of Zurück alike. The sheet had
+  // stayed over the return and counted the age from it
+  if (active_is_solar_ && multi_action_ != nullptr && harmonic_action_ != nullptr &&
+      (multi_action_->isChecked() || harmonic_action_->isChecked())) {
+    const QSignalBlocker b1(multi_action_);
+    const QSignalBlocker b2(harmonic_action_);
+    multi_action_->setChecked(false);
+    harmonic_action_->setChecked(false);
+    multi_event_jd_ = 0.0;
+    harm_n_ = 0.0;
   }
   // his zeuhr, the taken over clock record is the chart while its slot
   // leads and shows the moment itself
@@ -4865,8 +4879,8 @@ void MainWindow::combin_of(const std::vector<AafRecord>& parts, const std::vecto
                      .toStdString();
   // the banner names the first two names of both partners, the record of
   // the COMBIN keeps his na$(od,ze), ten letters of each whole name
-  apply_moment(julian_day(mixed.date_ut, cal),
-               "COMBIN " + first_two_names(parts[0]) + "-" + first_two_names(parts[1]));
+  combin_banner_ = "COMBIN " + first_two_names(parts[0]) + "-" + first_two_names(parts[1]);
+  apply_moment(julian_day(mixed.date_ut, cal), combin_banner_);
   combin_na_ = pair_na(parts[0], parts[1]);
   update_solar_actions();
 }
@@ -5230,6 +5244,37 @@ void MainWindow::claim_solar_row(const QString& label) {
   solar_labels_[static_cast<std::size_t>(idx)] = label;
   active_is_solar_ = true;
   active_solar_ = idx;
+}
+
+// his od = 1 of multi1 and harm. The RADIX row of the SOLAR's number comes
+// back like a SATZ click. A row with a radix of its own puts that moment
+// back without a SATZ row, the RADIX row of its number may hold another
+// person and a settling step would have written the birth into it
+void MainWindow::leave_solar_level() {
+  if (!active_is_solar_) {
+    return;
+  }
+  const int row = active_solar_;
+  if (row >= 0 && !solar_bases_[static_cast<std::size_t>(row)] && slots_[static_cast<std::size_t>(row)]) {
+    activate_slot({false, row});
+    return;
+  }
+  flush_history();
+  const ChartInput base = radix_input();
+  const EventPlace place = birth_place();
+  active_is_solar_ = false;
+  active_solar_ = -1;
+  active_slot_ = -1;
+  update_slot_actions();
+  update_solar_actions();
+  set_panel_place(place);
+  // a COMBIN keeps its pair line, a typed birth names its date
+  const bool combin = !combin_name1_.empty();
+  apply_moment(julian_day(base.date_ut, current_settings().calendar), combin ? combin_banner_ : QString(), false);
+  if (!combin) {
+    refresh_record_label();
+    refresh_current_step();
+  }
 }
 
 // the SOLAR...-DATEN slots, every derived chart writes itself back like
@@ -6586,6 +6631,7 @@ void MainWindow::drop_combin() {
   combin_note_.clear();
   combin_list_.clear();
   combin_na_.clear();
+  combin_banner_.clear();
   combin_origin_.reset();
 }
 

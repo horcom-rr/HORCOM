@@ -14,6 +14,7 @@
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QSettings>
+#include <QSpinBox>
 #include <QTimer>
 
 #include "choice_dialog.hpp"
@@ -608,6 +609,38 @@ void key_later(MainWindow& w, int ms) {
   });
 }
 
+void cast_solar(MainWindow& w, int year) {
+  DialogDriver drive;
+  drive.then([year](QDialog* d) {
+    QTimer::singleShot(0, d, [d, year]() {
+      d->findChild<QSpinBox*>()->setValue(year);
+      DialogDriver::click("OK")(d);
+    });
+  });
+  MainWindowProbe::solar(w);
+  CHECK(drive.unexpected() == 0);
+}
+
+// MULTI 1 for the first of October 2026 without the walk, the banner after
+QString multi_one(MainWindow& w) {
+  DialogDriver drive;
+  drive.then(DialogDriver::click("MULTI 1"))
+      .then(DialogDriver::fill({"", "1", "10", "2026"}, "OK"))
+      .then([&w](QDialog* d) {  // haus_ber
+        key_later(w, 200);
+        DialogDriver::click("Wie PLANETEN")(d);
+      })
+      .then([&w](QDialog* d) {  // GEBURTSZEIT VARIIEREN ?
+        key_later(w, 200);
+        DialogDriver::click("NEIN")(d);
+      })
+      .then(DialogDriver::click("BEENDEN"));
+  MainWindowProbe::multi_session(w);
+  CHECK(drive.pending() == 0);
+  CHECK(drive.unexpected() == 0);
+  return MainWindowProbe::banner_record(w);
+}
+
 }  // namespace
 
 TEST_CASE("DOPPEL-KREIS asks MODUS, INNEN and AUSSEN and draws his a12 sheet") {
@@ -747,6 +780,85 @@ TEST_CASE("zeitwim walks the birth time under the MULTI sheet and gives it back"
   // one step of thirty minutes, then the radix came back
   CHECK((walked - jd0) * 1440.0 == doctest::Approx(30.0).epsilon(0.01));
   CHECK(MainWindowProbe::panel_jd(*w) == doctest::Approx(jd0));
+}
+
+TEST_CASE("MULTI opened on a SOLAR runs on the radix the SOLAR counts from") {
+  // his multi1 and harm set od = 1. The port took the return on the panel
+  // for the birth, the age of the sheet counted from the SOLAR moment
+  auto plain = MainWindowProbe::make();
+  MainWindowProbe::apply(*plain, evening_birth());
+  const QString radix_banner = multi_one(*plain);
+  REQUIRE(radix_banner.startsWith("MULTI 1 = 42."));
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, evening_birth());
+  cast_solar(*w, 2026);
+  REQUIRE(MainWindowProbe::active_solar(*w) == 0);
+  const QString solar_label = MainWindowProbe::banner_record(*w);
+  CHECK(multi_one(*w) == radix_banner);
+  // the session stays on the radix like his multiple, Zurück brings the
+  // SOLAR back
+  CHECK(MainWindowProbe::active_solar(*w) == -1);
+  CHECK(MainWindowProbe::active_slot(*w) == 0);
+  CHECK(MainWindowProbe::multi_on(*w));
+  // the return ends the sheet, it had stayed and counted from the return
+  MainWindowProbe::history_back(*w);
+  CHECK(MainWindowProbe::active_solar(*w) == 0);
+  CHECK(MainWindowProbe::banner_record(*w) == solar_label);
+  CHECK_FALSE(MainWindowProbe::multi_on(*w));
+  REQUIRE(MainWindowProbe::multi_on(*plain));
+  cast_solar(*plain, 2026);
+  CHECK_FALSE(MainWindowProbe::multi_on(*plain));
+  CHECK(MainWindowProbe::banner_record(*plain) == solar_label);
+}
+
+TEST_CASE("zeitwim opened on a SOLAR varies the birth and JA writes it into the RADIX row") {
+  // his JA set od = 1 before @merk, the port only redrew the return
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, evening_birth());
+  cast_solar(*w, 2026);
+  REQUIRE(MainWindowProbe::active_solar(*w) == 0);
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("MULTI 1"))
+        .then(DialogDriver::fill({"", "1", "10", "2026"}, "OK"))
+        .then([&w](QDialog* d) {
+          key_later(*w, 200);
+          DialogDriver::click("Wie PLANETEN")(d);
+        })
+        .then(DialogDriver::click("JA"))         // GEBURTSZEIT VARIIEREN ?
+        .then(DialogDriver::click("MINUTEN"))    // ZEIT-EINHEIT ?
+        .then(DialogDriver::fill({"30"}, "OK"))  // MINUTEN als BELIEBIGE ZAHL
+        .then(DialogDriver::click("VOR"))        // RICHTUNG ?
+        .then([](QDialog* d) {                   // the key legend
+          QTimer::singleShot(0, d, [d]() {
+            QKeyEvent e(QEvent::KeyPress, Qt::Key_Space, Qt::NoModifier, " ");
+            QApplication::sendEvent(d, &e);
+          });
+        })
+        .then([](QDialog* d) {  // the walk, one step, then ESC
+          QTimer::singleShot(0, d, [d]() {
+            QKeyEvent v(QEvent::KeyPress, Qt::Key_V, Qt::NoModifier, "v");
+            QApplication::sendEvent(d, &v);
+            QKeyEvent esc(QEvent::KeyPress, Qt::Key_Escape, Qt::NoModifier);
+            QApplication::sendEvent(d, &esc);
+          });
+        })
+        .then(DialogDriver::click("NEIN = ENDE"))  // Weiter Mit NEUER ZEITEINHEIT ?
+        .then([&w](QDialog* d) {                   // VARIIERTE ZEIT in RADIX ÜBERNEHMEN ?
+          key_later(*w, 200);
+          DialogDriver::click("JA")(d);
+        })
+        .then(DialogDriver::click("BEENDEN"));
+    MainWindowProbe::multi_session(*w);
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  REQUIRE(MainWindowProbe::slot(*w, 0).has_value());
+  CHECK(MainWindowProbe::slot(*w, 0)->hour == 20);
+  CHECK(MainWindowProbe::slot(*w, 0)->minute == 30);
+  // the return stays in its row
+  REQUIRE(MainWindowProbe::solar_slot(*w, 0).has_value());
+  CHECK(MainWindowProbe::solar_slot(*w, 0)->year == 2026);
 }
 
 TEST_CASE("COMPOSIT asks his MODUS, both SATZ clicks and the ROBERT HAND residence") {

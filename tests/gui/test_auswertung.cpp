@@ -33,6 +33,9 @@ using horcom::test::DialogDriver;
 
 namespace {
 
+// one second in days, the panel holds whole seconds
+constexpr double kRadixSecond = 1.0 / kSecondsPerDay;
+
 // a synthetic morning birth east of Greenwich, no real person
 AafRecord morning_birth() {
   AafRecord r;
@@ -1149,6 +1152,8 @@ TEST_CASE("a SOLAR cast from a COMBIN counts from the COMBIN and names itself in
   MainWindowProbe::flush_history(*w);
   REQUIRE(wheel_return_names(*w) == QStringList{"COMBIN"});
   const double mean_jd = MainWindowProbe::panel_jd(*w);
+  const QString combin_banner = MainWindowProbe::banner_record(*w);
+  REQUIRE(combin_banner.startsWith("COMBIN "));
   CHECK(julian_day(MainWindowProbe::radix_input(*w).date_ut) == doctest::Approx(mean_jd).epsilon(1e-9));
   {
     DialogDriver drive;
@@ -1180,6 +1185,57 @@ TEST_CASE("a SOLAR cast from a COMBIN counts from the COMBIN and names itself in
   MainWindowProbe::history_forward(*w);
   CHECK(wheel_return_names(*w) == QStringList{label});
   CHECK(julian_day(MainWindowProbe::radix_input(*w).date_ut) == doctest::Approx(mean_jd).epsilon(1e-9));
+  // his od = 1 of MULTI brings the COMBIN back with its pair line, the
+  // RADIX rows keep their persons
+  MainWindowProbe::leave_solar_level(*w);
+  CHECK(MainWindowProbe::active_solar(*w) == -1);
+  CHECK(MainWindowProbe::active_slot(*w) == -1);
+  CHECK(std::abs(MainWindowProbe::panel_jd(*w) - mean_jd) < kRadixSecond);
+  CHECK(wheel_return_names(*w) == QStringList{"COMBIN"});
+  CHECK(MainWindowProbe::banner_record(*w) == combin_banner);
+  MainWindowProbe::flush_history(*w);
+  CHECK(MainWindowProbe::slot(*w, 0)->surname == "ERSTERFALL");
+  CHECK(MainWindowProbe::slot(*w, 1)->surname == "ZWEITERFALL");
+}
+
+TEST_CASE("leaving the SOLAR of a typed birth brings the birth back and leaves SATZ1 alone") {
+  // his od = 1 of MULTI. The RADIX row of the return's number holds a
+  // record fetched after the typed birth, a settling step had written the
+  // birth into it
+  auto w = MainWindowProbe::make();
+  w->start_idle();
+  MainWindowProbe::date(*w)->setText("10.05.1970");
+  emit MainWindowProbe::date(*w)->editingFinished();
+  MainWindowProbe::time(*w)->setTime(QTime(7, 0));
+  MainWindowProbe::flush_history(*w);
+  AafRecord other = morning_birth();
+  other.surname = "ANDERER";
+  other.year = 1950;
+  MainWindowProbe::apply(*w, other);
+  MainWindowProbe::flush_history(*w);
+  MainWindowProbe::history_back(*w);
+  REQUIRE(MainWindowProbe::date(*w)->text() == "10.05.1970");
+  const double typed = MainWindowProbe::panel_jd(*w);
+  {
+    DialogDriver drive;
+    drive.then([](QDialog* d) {
+      QTimer::singleShot(0, d, [d]() {
+        d->findChild<QSpinBox*>()->setValue(2026);
+        click_button(d, "OK");
+      });
+    });
+    MainWindowProbe::solar(*w);
+    CHECK(drive.unexpected() == 0);
+  }
+  REQUIRE(MainWindowProbe::active_solar(*w) == 0);
+  MainWindowProbe::leave_solar_level(*w);
+  CHECK(MainWindowProbe::active_solar(*w) == -1);
+  CHECK(MainWindowProbe::active_slot(*w) == -1);
+  CHECK(std::abs(MainWindowProbe::panel_jd(*w) - typed) < kRadixSecond);
+  CHECK(MainWindowProbe::banner_record(*w).contains("10.05.1970"));
+  CHECK(wheel_return_names(*w) == QStringList{"RADIX"});
+  MainWindowProbe::flush_history(*w);
+  CHECK(MainWindowProbe::slot(*w, 0)->surname == "ANDERER");
 }
 
 TEST_CASE("a SOLAR over the running UHR keeps its own moment") {

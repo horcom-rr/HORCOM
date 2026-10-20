@@ -198,6 +198,7 @@ struct MainWindowProbe {
   static QAction* slot_action(MainWindow& w, int i) { return w.slot_actions_[static_cast<std::size_t>(i)]; }
   static void session_click(MainWindow& w, int i) { w.activate_slot({false, i}); }
   static void take_solar(MainWindow& w, int i) { w.activate_slot({true, i}); }
+  static void leave_solar_level(MainWindow& w) { w.leave_solar_level(); }
   static void chart_between(MainWindow& w, int item) { w.chart_between(item); }
   static QCheckBox* parallax(MainWindow& w) { return w.parallax_; }
   static void edit_record(MainWindow& w) { w.edit_record(); }

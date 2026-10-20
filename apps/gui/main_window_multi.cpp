@@ -251,6 +251,10 @@ void MainWindow::multi_session() {
   if (es < 0 || es == 7) {
     return;
   }
+  // od = 1 of multi1 and harm, the session runs on the radix a SOLAR on
+  // the panel counts from and stays there. The sheet had taken the return
+  // for the birth and counted the age from it
+  leave_solar_level();
   const bool harmonic = es == 6;
   const MultiMode mode = static_cast<MultiMode>(es + 1);
   const QString mul = harmonic ? QString() : multi_name(mode);

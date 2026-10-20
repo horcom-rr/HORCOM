@@ -720,6 +720,7 @@ class MainWindow : public QMainWindow {
     std::string note;
     std::vector<std::string> list;
     QString na;
+    QString banner;
     std::optional<SlotChoice> origin;
 
     bool operator==(const CombinMemory& o) const {
@@ -1179,6 +1180,9 @@ class MainWindow : public QMainWindow {
   ///
   /// @param label his sol$ of the result
   void claim_solar_row(const QString& label);
+  /// Brings back the radix a SOLAR on the panel counts from, his od = 1.
+  /// Without a SOLAR on the panel nothing changes.
+  void leave_solar_level();
   /// Names the SOLAR...-DATEN rows after their results.
   void update_solar_actions();
   // AUFRÄUMEN / RÜCKSETZEN and the plain HOROSKOP - GRAPHIK entry
@@ -1621,6 +1625,9 @@ class MainWindow : public QMainWindow {
   std::optional<SlotChoice> combin_origin_;
   // his na$(0,2) of the COMBIN on the panel, LEFT$ 10 of the first two
   QString combin_na_;
+  // the record line of the COMBIN, it comes back when a return cast from
+  // the COMBIN gives way to it
+  QString combin_banner_;
   // the sol$ of the RADIX slots, empty reads RADIX, ERGEBNIS als RADIX
   // writes the label of its source with ALS RADIX
   std::array<QString, 5> radix_labels_{};
