@@ -847,3 +847,54 @@ TEST_CASE("the exporter writes a DAT record like horcom_aaf3") {
   c.place = "SEHR LANGER ORTSNAME*X";
   CHECK(aaf_export_record(c).place == "SEHR LANGER ORTSN");
 }
+
+TEST_CASE("a record converted from AAF keeps a full hour exact in the DAT minute field") {
+  // found with the test records of the tenth batch, the julian day left
+  // 4.47e-11 minutes beside 07:00 UT, the writer cut that to 4.47e and the
+  // record read back as 07:04:28
+  AafRecord a;
+  a.surname = "MUSTERFRAU";
+  a.given = "ANNA";
+  a.day = 10;
+  a.month = 5;
+  a.year = 1970;
+  a.hour = 8;
+  a.zone = aaf_zone(1.0);
+  a.dst = "0";
+  a.lat_deg = 48;
+  a.lat_min = 8;
+  a.lon_deg = 11;
+  a.lon_min = 35;
+  const ChartRecord c = chart_record_from_aaf(a);
+  CHECK(c.hour == 7.0);
+  CHECK(c.minute == 0.0);
+  const std::string rec = encode_chart_record(c);
+  // the minute field, five bytes after day, month, year and hour
+  CHECK(rec.substr(11, 5) == "    0");
+  const ChartRecord back = decode_chart_record(rec);
+  CHECK(back.hour == 7.0);
+  CHECK(back.minute == 0.0);
+  // a clock with seconds keeps them through both conversions
+  AafRecord s = a;
+  s.minute = 34;
+  s.second = 56;
+  const AafRecord round = aaf_from_chart_record(decode_chart_record(encode_chart_record(chart_record_from_aaf(s))));
+  CHECK(round.hour == 7);
+  CHECK(round.minute == 34);
+  CHECK(round.second == 56);
+}
+
+TEST_CASE("the DAT writer never writes an exponent and the reader drops a cut one") {
+  ChartRecord c = sample();
+  c.minute = 4.47e-11;
+  const std::string rec = encode_chart_record(c);
+  CHECK(rec.substr(11, 5).find('e') == std::string::npos);
+  CHECK(decode_chart_record(rec).minute == doctest::Approx(0.0));
+  // a record the earlier writer cut, the exponent of the remainder lost
+  std::string cut = rec;
+  cut.replace(11, 5, "4.47e");
+  CHECK(decode_chart_record(cut).minute == 0.0);
+  // a longitude west of Greenwich keeps its digits in the field
+  c.lon = -122.4194;
+  CHECK(decode_chart_record(encode_chart_record(c)).lon == doctest::Approx(-122.419).epsilon(1e-5));
+}

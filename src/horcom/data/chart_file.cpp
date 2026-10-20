@@ -8,6 +8,7 @@
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 
 #include "horcom/data/encoding.hpp"
 #include "horcom/data/file_io.hpp"
@@ -50,7 +51,16 @@ std::string trimmed(std::string_view v) {
 
 // GFA VAL, leading spaces allowed, stops at the first unusable character
 double val(std::string_view v) {
-  return std::strtod(std::string(v).c_str(), nullptr);
+  const std::string s(v);
+  // a field whose exponent was cut off held a remainder next to nothing,
+  // the writer of the rewrite before version 83 cut 4.47e-11 minutes to
+  // 4.47e, which read back as 4.47 minutes. His STR$ of typed minutes
+  // never wrote an exponent
+  const std::size_t e = s.find_first_of("eE");
+  if (e != std::string::npos && s.find_first_of("0123456789", e) == std::string::npos) {
+    return 0.0;
+  }
+  return std::strtod(s.c_str(), nullptr);
 }
 
 // numbers as the original RSET STR$(x) writes them, compact and right
@@ -61,7 +71,18 @@ void rset_number(std::string& rec, FieldSpec f, double v, bool integral) {
   if (integral) {
     std::snprintf(buf, sizeof(buf), "%lld", static_cast<long long>(v));
   } else {
-    std::snprintf(buf, sizeof(buf), "%.*g", static_cast<int>(f.len) - 1, v);
+    // the most digits that fit the field without an exponent, a remainder
+    // like 4.47e-11 would have been cut to 4.47e and read as 4.47
+    int digits = static_cast<int>(f.len) - 1;
+    for (; digits > 0; --digits) {
+      std::snprintf(buf, sizeof(buf), "%.*g", digits, v);
+      if (std::strchr(buf, 'e') == nullptr && std::strlen(buf) <= f.len) {
+        break;
+      }
+    }
+    if (digits == 0) {
+      std::snprintf(buf, sizeof(buf), "%.0f", v);
+    }
   }
   std::string s = buf;
   if (s.size() > f.len) {

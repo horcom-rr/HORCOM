@@ -110,13 +110,23 @@ std::string dat_field(std::string_view utf8, std::size_t length) {
 
 // ported from aaf_horcom2
 ChartRecord chart_record_from_aaf(const AafRecord& r) {
-  const CalendarDate ut = calendar_date(aaf_moment_jd_ut(r), r.calendar);
+  // the record holds whole seconds like aaf_from_chart_record reads it
+  // back. The julian day left a remainder of some hundred billionths of a
+  // minute beside a full hour, the field cut it to a wrong minute
+  constexpr long long kPerMinute = 60;
+  constexpr auto kPerHour = static_cast<long long>(kSecondsPerHour);
+  const double jd = std::floor(aaf_moment_jd_ut(r) * kSecondsPerDay + 0.5) / kSecondsPerDay;
+  const CalendarDate ut = calendar_date(jd, r.calendar);
+  long long seconds = std::llround((ut.hour * 60.0 + ut.minute) * 60.0);
+  if (seconds >= kSecondsPerDay) {
+    seconds = kSecondsPerDay - 1;
+  }
   ChartRecord c;
   c.day = ut.day;
   c.month = ut.month;
   c.year = ut.year;
-  c.hour = ut.hour;
-  c.minute = ut.minute;
+  c.hour = static_cast<double>(seconds / kPerHour);
+  c.minute = static_cast<double>(seconds % kPerHour) / static_cast<double>(kPerMinute);
   c.lon = r.longitude();
   c.lat = r.latitude();
   // LSET naa$ = UPPER$(LEFT$(TRIM$(aaf$(1) + " " + aaf$(2)),25))
