@@ -371,6 +371,12 @@ QHeaderView::section {
   font-weight: bold;
   letter-spacing: 1px;
 }
+/* The row heads carry his sprites, the padding of the column heads cut a
+   sprite down to the middle of a narrow row and the frame of the true node
+   lost its top and bottom lines */
+QHeaderView::section:vertical {
+  padding: 0px 8px;
+}
 QTableCornerButton::section {
   background: @headBg@;
   border: none;

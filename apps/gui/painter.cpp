@@ -5,11 +5,14 @@
 #include "painter.hpp"
 
 #include <QBuffer>
+#include <QCoreApplication>
 #include <QFontMetricsF>
 #include <QHash>
+#include <QIcon>
 #include <QImage>
 #include <QPainter>
 #include <QPainterPath>
+#include <QPixmap>
 #include <QString>
 #include <algorithm>
 #include <cmath>
@@ -387,6 +390,74 @@ QImage glyph_sprite(const QString& glyph, Rgb color) {
     return sprite(glyph, color);
   }
   return {};
+}
+
+namespace {
+
+// the small sizes a stamped icon carries drawn to the pixel, the table
+// heads and cells land between them at any text size and screen scale
+constexpr int kStampedIconMin = 8;
+constexpr int kStampedIconMax = 48;
+
+// a stamped sprite on its whole cell, as the patches of the wheel cover
+// it. A side of zero keeps the full drawing with the hairline share of
+// framed_patch, a small side draws the frame one pixel wide like his boxn
+QImage stamped_sprite(const QString& glyph, Rgb ink, SpriteStamp stamp, int side) {
+  const QColor ground = to_qcolor(ink);
+  const bool inverted = stamp == SpriteStamp::kInverted;
+  const Rgb drawing_ink = inverted ? to_rgb(theme::ink_on(ground)) : ink;
+  const QImage drawing =
+      side > 0 ? glyph_sprite_fitted(glyph, drawing_ink, QSize(side, side)) : glyph_sprite(glyph, drawing_ink);
+  if (drawing.isNull() || stamp == SpriteStamp::kPlain) {
+    return drawing;
+  }
+  QImage out(drawing.size(), QImage::Format_ARGB32_Premultiplied);
+  out.fill(inverted ? ground : QColor(Qt::transparent));
+  QPainter p(&out);
+  p.drawImage(0, 0, drawing);
+  if (stamp == SpriteStamp::kFramed) {
+    const double line = side > 0 ? 1.0 : out.width() / kSpriteBox * kFrameLineShare;
+    QPen pen(ground, line);
+    pen.setJoinStyle(Qt::MiterJoin);
+    p.setPen(pen);
+    p.setBrush(Qt::NoBrush);
+    p.drawRect(QRectF(out.rect()).adjusted(line / 2.0, line / 2.0, -line / 2.0, -line / 2.0));
+  }
+  p.end();
+  return out;
+}
+
+// the stamped icons of a session, their pixmaps go before the application
+QHash<QString, QIcon>& stamped_icons() {
+  static QHash<QString, QIcon> cache;
+  static const bool cleared_on_exit = []() {
+    qAddPostRoutine([]() { stamped_icons().clear(); });
+    return true;
+  }();
+  static_cast<void>(cleared_on_exit);
+  return cache;
+}
+
+}  // namespace
+
+QIcon stamped_icon(const QString& glyph, Rgb ink, SpriteStamp stamp) {
+  QHash<QString, QIcon>& cache = stamped_icons();
+  const QString key = glyph + QChar(':') + QString::number(ink, 16) + QChar(':') + QString::number(static_cast<int>(stamp));
+  const auto it = cache.constFind(key);
+  if (it != cache.constEnd()) {
+    return *it;
+  }
+  const QImage full = stamped_sprite(glyph, ink, stamp, 0);
+  if (full.isNull()) {
+    return {};
+  }
+  QIcon icon(QPixmap::fromImage(full));
+  if (stamp != SpriteStamp::kPlain) {
+    for (int side = kStampedIconMin; side <= kStampedIconMax; ++side) {
+      icon.addPixmap(QPixmap::fromImage(stamped_sprite(glyph, ink, stamp, side)));
+    }
+  }
+  return *cache.insert(key, icon);
 }
 
 QImage glyph_sprite_fitted(const QString& glyph, Rgb color, QSize px) {

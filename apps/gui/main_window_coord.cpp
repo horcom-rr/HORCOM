@@ -202,14 +202,15 @@ void MainWindow::fill_coordinate_table(QTableWidget* table, const Chart& chart, 
         rows.push_back({slot});
       }
     }
-    // the points under the planets as the tester wished, the two nodes,
-    // the two forms of the Black Moon and last the Glückspunkt, geocentric
-    // ideas all of them, his IF NOT (hrg! && i& = n4&)
+    // the points under the planets, the two nodes, the two forms of the
+    // Black Moon and last the Glückspunkt, geocentric ideas all of them,
+    // his IF NOT (hrg! && i& = n4&). The true form leads like in the
+    // Koordinaten-Tafel, his ko_ta wrote Mittel first
     if (!helio) {
-      rows.push_back({body::kNodeAsc, true, false});
       rows.push_back({body::kNodeAsc, false, true});
-      rows.push_back({body::kApogee, true, false});
+      rows.push_back({body::kNodeAsc, true, false});
       rows.push_back({body::kApogee, false, true});
+      rows.push_back({body::kApogee, true, false});
       rows.push_back({body::kFortune});
     }
   } else {
@@ -258,14 +259,17 @@ void MainWindow::fill_coordinate_table(QTableWidget* table, const Chart& chart, 
       caption += " " + (r.truth ? tr("wahr") : tr("mittel"));
     }
     auto* head = new QTableWidgetItem(caption);
-    const QImage img = glyph_sprite(QString::fromUtf8(body_glyph(r.slot)), to_rgb(theme::ink_now()));
-    if (!img.isNull()) {
-      head->setIcon(QIcon(QPixmap::fromImage(img)));
+    // his grzemise and plein2 stamped the true forms inverted at both ends
+    // of the row, the node wears the frame of the wheel instead
+    const QIcon icon = stamped_icon(QString::fromUtf8(body_glyph(r.slot)), to_rgb(theme::ink_now()),
+                                    r.truth ? true_form_stamp(r.slot) : SpriteStamp::kPlain);
+    if (!icon.isNull()) {
+      head->setIcon(icon);
     }
     set(row, 0, head);
     auto* tail = new QTableWidgetItem;
-    if (!img.isNull()) {
-      tail->setIcon(QIcon(QPixmap::fromImage(img)));
+    if (!icon.isNull()) {
+      tail->setIcon(icon);
     }
     set(row, last_col, tail);
     // his IF NOT jdplanetex!(i&) = TRUE, a body outside its span stays blank
@@ -294,10 +298,9 @@ void MainWindow::fill_coordinate_table(QTableWidget* table, const Chart& chart, 
     const bool minutes = r.truth || hypothetical(r.slot) || r.slot == body::kTranspluto || r.slot == body::kFortune;
     if (el > kEps) {
       QTableWidgetItem* lon = zodiac_item(el, !minutes, true);
-      // the true node and the true apogee stamped inverted, and with
-      // plinv the heavy planets
+      // with plinv the heavy planets stand inverted
       const bool heavy = r.slot == body::kMars || (r.slot >= body::kSaturn && r.slot <= body::kPluto);
-      if (!helio && (r.truth || (invert_heavy && heavy))) {
+      if (!helio && invert_heavy && heavy) {
         auto* h = table->item(row, 0);
         h->setBackground(QColor(0, 0, 0));
         h->setForeground(QColor(0xFF, 0xFF, 0xFF));
@@ -560,10 +563,10 @@ void MainWindow::coordinate_table(bool extras) {
     if (!extras && !s.heliocentric) {
       // his w$ under btab& = 11
       notes << theme::heading_span(s.true_apogee ? tr("MOND-Apsiden : Wahrer Wert") : tr("MOND-Apsiden : Mittelwert"));
-      // the inverse symbols of plinv answer the tester's question where
-      // they come from, the true forms stand inverted always
+      // the inverse symbols of plinv name where they come from, the true
+      // Black Moon stands inverted always
       if (konsta_.plinv == 1 || konsta_.plinv == 3) {
-        notes << tr("Invertiert : MA,SA,UR,NE,PL und die WAHREN Werte").toHtmlEscaped()
+        notes << tr("Invertiert : MA,SA,UR,NE,PL und der WAHRE Schwarze Mond").toHtmlEscaped()
               << tr("( KENNZEICHNUNG in VORGABEN DIREKTIONEN ÄNDERN )").toHtmlEscaped();
       }
     }

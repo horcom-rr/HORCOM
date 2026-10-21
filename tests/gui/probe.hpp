@@ -7,6 +7,8 @@
 #include <QCheckBox>
 #include <QDockWidget>
 #include <QDoubleSpinBox>
+#include <QIcon>
+#include <QImage>
 #include <QLineEdit>
 #include <QTableWidget>
 #include <QTimeEdit>
@@ -281,5 +283,21 @@ struct MainWindowProbe {
     return w.rhythm_phase_screen(run, rhythm_triggers(c, scan, a, o), phase);
   }
 };
+
+// the dress of a table icon read off its pixels, his sprites leave the
+// corner of their cell blank, a frame covers the corner only and the
+// inverted square the cell inside the frame line too
+inline QString icon_stamp(const QIcon& icon) {
+  const QImage img = icon.pixmap(QSize(64, 64)).toImage();
+  if (img.isNull()) {
+    return QStringLiteral("none");
+  }
+  const bool corner = qAlpha(img.pixel(0, 0)) > 128;
+  const bool inside = qAlpha(img.pixel(8, 8)) > 128;
+  if (!corner) {
+    return QStringLiteral("plain");
+  }
+  return inside ? QStringLiteral("inverted") : QStringLiteral("framed");
+}
 
 }  // namespace horcom

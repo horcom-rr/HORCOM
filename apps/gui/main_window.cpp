@@ -2442,19 +2442,25 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects, bo
     // uppercase tag the family wished for. The two forms of the node and
     // the Black Moon say which they are, the tester missed the note
     QString caption = name;
-    if (r.form == DockRow::Form::kTrue) {
-      caption += " " + tr("wahr");
-    } else if (r.form == DockRow::Form::kMean) {
-      caption += " " + tr("mittel");
-    } else if (!helio && !longitudes_only && (r.slot == body::kNodeAsc || r.slot == body::kApogee)) {
-      // a single row names the form in force like the M and W of bes11
-      const bool truth = r.slot == body::kNodeAsc ? s.true_node : s.true_apogee;
-      caption += " " + (truth ? tr("wahr") : tr("mittel"));
+    bool true_form = r.form == DockRow::Form::kTrue;
+    if (r.form != DockRow::Form::kAsComputed) {
+      caption += " " + (true_form ? tr("wahr") : tr("mittel"));
+    } else if (!helio && (r.slot == body::kNodeAsc || r.slot == body::kApogee)) {
+      // a single row is the form in force, named like the M and W of bes11
+      // where the chart has its own lunar points. The midpoints of a
+      // composite name no form but wear the dress of its wheel
+      true_form = r.slot == body::kNodeAsc ? s.true_node : s.true_apogee;
+      if (!longitudes_only) {
+        caption += " " + (true_form ? tr("wahr") : tr("mittel"));
+      }
     }
     auto* head = new QTableWidgetItem(caption);
-    const QImage head_img = glyph_sprite(name, to_rgb(theme::ink_now()));
-    if (!head_img.isNull()) {
-      head->setIcon(QIcon(QPixmap::fromImage(head_img)));
+    // the true node framed and the true Black Moon inverted, the two forms
+    // read apart like on the wheel
+    const QIcon head_icon =
+        stamped_icon(name, to_rgb(theme::ink_now()), true_form ? true_form_stamp(r.slot) : SpriteStamp::kPlain);
+    if (!head_icon.isNull()) {
+      head->setIcon(head_icon);
     }
     bodies_->setVerticalHeaderItem(row, head);
     if (!b.valid) {

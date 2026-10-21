@@ -94,6 +94,10 @@ TEST_CASE("PLANETEN-KOORDINATEN draws his ko_ta rows with both nodes") {
   QString gl_tag;
   QString gl_lon;
   QStringList form_heads;
+  QStringList form_stamps;
+  QStringList tail_stamps;
+  QList<bool> form_backs;
+  bool framed_rim_whole = true;
   QString mean_retro;
   QString sun_retro;
   QColor mean_node_back;
@@ -114,36 +118,48 @@ TEST_CASE("PLANETEN-KOORDINATEN draws his ko_ta rows with both nodes") {
             head_text += l->text() + "|";
           }
           rows = t->rowCount();
-          mean_vel = cell(t, 10, 3);
-          mean_a = cell(t, 10, 4);
-          true_a = cell(t, 11, 4);
+          mean_vel = cell(t, 11, 3);
+          mean_a = cell(t, 11, 4);
+          true_a = cell(t, 10, 4);
           sun_a = cell(t, 0, 4);
           // his textrc of Mittel and Wahr in the Breite column of the nodes
-          mean_mark = cell(t, 10, 5);
-          true_lon = cell(t, 11, 1);
-          true_mark = cell(t, 11, 5);
-          true_ra = cell(t, 11, 6);
+          mean_mark = cell(t, 11, 5);
+          true_lon = cell(t, 10, 1);
+          true_mark = cell(t, 10, 5);
+          true_ra = cell(t, 10, 6);
           sun_ra = cell(t, 0, 6);
           sun_percent = cell(t, 0, 8);
           sun_au = cell(t, 0, 9);
           sun_apsides = cell(t, 0, 12);
           mars_node = cell(t, 4, 10);
           // the Black Moon moved up from ZUSATZ, its box in the Rekt. column
-          ag_mean_lon = cell(t, 12, 1);
-          ag_true_lon = cell(t, 13, 1);
-          ag_mean_mark = cell(t, 12, 6);
-          ag_true_mark = cell(t, 13, 6);
+          ag_mean_lon = cell(t, 13, 1);
+          ag_true_lon = cell(t, 12, 1);
+          ag_mean_mark = cell(t, 13, 6);
+          ag_true_mark = cell(t, 12, 6);
           gl_tag = cell(t, 14, 0);
           gl_lon = cell(t, 14, 1);
           for (int r = 10; r <= 13; ++r) {
             form_heads << cell(t, r, 0);
+            form_stamps << icon_stamp(t->item(r, 0)->icon());
+            if (r == 10) {
+              // the frame stays whole on the small sizes, a frame scaled
+              // down from the full sprite lost its top line
+              const QImage small = t->item(r, 0)->icon().pixmap(QSize(13, 13)).toImage();
+              for (int x = 0; x < small.width(); ++x) {
+                framed_rim_whole = framed_rim_whole && qAlpha(small.pixel(x, 0)) == 255 &&
+                                   qAlpha(small.pixel(x, small.height() - 1)) == 255;
+              }
+            }
+            tail_stamps << icon_stamp(t->item(r, t->columnCount() - 1)->icon());
+            form_backs << (t->item(r, 0)->background().style() != Qt::NoBrush);
           }
-          mean_retro = cell(t, 10, 2);
+          mean_retro = cell(t, 11, 2);
           sun_retro = cell(t, 0, 2);
-          mean_node_back = t->item(10, 5)->background().color();
-          true_node_back = t->item(11, 5)->background().color();
-          mean_ag_back = t->item(12, 6)->background().color();
-          true_ag_back = t->item(13, 6)->background().color();
+          mean_node_back = t->item(11, 5)->background().color();
+          true_node_back = t->item(10, 5)->background().color();
+          mean_ag_back = t->item(13, 6)->background().color();
+          true_ag_back = t->item(12, 6)->background().color();
           press_later(d, Qt::Key_Space);
         })
         .then([&question](QDialog* d) {
@@ -168,8 +184,17 @@ TEST_CASE("PLANETEN-KOORDINATEN draws his ko_ta rows with both nodes") {
   // motion right after the longitude
   CHECK(heads == QStringList{"Pl", "Ekl. Länge", "R", "Vel.'", "A", "Breite", "Rekt.°", "Dekl.°", "Entf.%",
                              "Entf.AE", "Knot.ND", "Knot.SD", "Apsiden", "Pl"});
-  // the forms name themselves beside the tag like in the Tafel
-  CHECK(form_heads == QStringList{"DR mittel", "DR wahr", "AG mittel", "AG wahr"});
+  // the forms name themselves beside the tag and the true one leads like
+  // in the Tafel
+  CHECK(form_heads == QStringList{"DR wahr", "DR mittel", "AG wahr", "AG mittel"});
+  // the symbol of the true node framed and the one of the true Black Moon
+  // on its dark square like the wheel, at both ends of the row, the cell
+  // itself stays plain
+  const QStringList stamps{"framed", "plain", "inverted", "plain"};
+  CHECK(form_stamps == stamps);
+  CHECK(tail_stamps == stamps);
+  CHECK_FALSE(form_backs.contains(true));
+  CHECK(framed_rim_whole);
   // the mean node always runs back, the Sun never
   CHECK(mean_retro == "R");
   CHECK(sun_retro.isEmpty());
@@ -696,7 +721,7 @@ TEST_CASE("PLANETEN-KOORDINATEN stands beyond the polar circle and names the inv
       const auto* t = d->findChild<QTableWidget*>();
       REQUIRE(t != nullptr);
       sun = cell(t, 0, 1);
-      node_vel = cell(t, 11, 3);
+      node_vel = cell(t, 10, 3);
       for (const QLabel* l : d->findChildren<QLabel*>()) {
         notes += l->text() + "|";
       }

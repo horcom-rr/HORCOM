@@ -5,10 +5,12 @@
 #pragma once
 
 #include <QColor>
+#include <QIcon>
 #include <QImage>
 #include <QRectF>
 #include <QString>
 
+#include "horcom/chart/bodies.hpp"
 #include "horcom/render/svg.hpp"
 #include "horcom/render/wheel.hpp"
 
@@ -77,6 +79,38 @@ void paint_fitted(QPainter& p, const DisplayList& dl, const QRectF& target);
 /// @param color the tint, black keeps the sprite as drawn
 /// @return the sprite image, null when no sprite exists for the glyph
 [[nodiscard]] QImage glyph_sprite(const QString& glyph, Rgb color);
+
+/// How a table stamps a body sprite, the dress the wheel gives it.
+enum class SpriteStamp {
+  kPlain,     ///< the drawing alone
+  kFramed,    ///< a thin frame around the cell, the true node
+  kInverted,  ///< the cell filled with the ink, his SRCINVERT of the true Black Moon
+};
+
+/// The dress of the true form of a body in the tables, the one the wheel
+/// gives it. The node is framed, the family asked for it without his
+/// inverted square, the Black Moon stays inverted like his apogw!.
+///
+/// @param slot the node or the Black Moon
+/// @return the stamp, plain for any other slot
+[[nodiscard]] inline SpriteStamp true_form_stamp(int slot) {
+  if (slot == body::kNodeAsc || slot == body::kNodeDesc) {
+    return SpriteStamp::kFramed;
+  }
+  return slot == body::kApogee ? SpriteStamp::kInverted : SpriteStamp::kPlain;
+}
+
+/// One of his sprites as a table icon, stamped like the wheel stamps it
+/// for the rows that name the true form of a body. A stamped icon also
+/// holds the small sizes drawn to the pixel, a frame scaled down from
+/// the full sprite thinned into the cell and lost an edge.
+///
+/// @param glyph the unicode glyph or text tag a display list would use
+/// @param ink   the ink of the table, the frame and the filled cell take it
+///              and the inverted drawing the colour that reads on it
+/// @param stamp the dress
+/// @return the icon, null when no sprite exists for the glyph
+[[nodiscard]] QIcon stamped_icon(const QString& glyph, Rgb ink, SpriteStamp stamp);
 
 /// One of his sprites averaged down to the device pixels it lands on,
 /// for the table cells that draw it one to one as sharp as the wheel.

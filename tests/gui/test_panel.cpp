@@ -283,8 +283,7 @@ TEST_CASE("the coordinate dock lists the tester's rows with both lunar forms") {
   INFO(heads.join(",").toStdString());
   // SO to PL, the node twice, the real extras, the Black Moon twice, the
   // Glückspunkt, the invented points and the axes last, no DS, the order
-  // of the tester's proposal SO-PL, DR wahr, DR mittel, CH, QU, XE, AG
-  // wahr, AG mittel, GL, AC, MC
+  // SO-PL, DR wahr, DR mittel, CH, QU, XE, AG wahr, AG mittel, GL, AC, MC
   REQUIRE(heads.size() > 14);
   CHECK(heads.mid(0, 10) == QStringList{"SO", "MO", "ME", "VE", "MA", "JU", "SA", "UR", "NE", "PL"});
   CHECK(heads[10] == "DR wahr");
@@ -307,6 +306,15 @@ TEST_CASE("the coordinate dock lists the tester's rows with both lunar forms") {
   CHECK(t->item(10, 0)->text() == true_node->text());
   CHECK(t->item(11, 0)->text() == mean_node->text());
   CHECK(t->item(10, 0)->text() != t->item(11, 0)->text());
+  // the true node framed and the true Black Moon on its dark square, the
+  // dress the wheel gives them, the mean forms plain
+  CHECK(icon_stamp(t->verticalHeaderItem(10)->icon()) == "framed");
+  CHECK(icon_stamp(t->verticalHeaderItem(11)->icon()) == "plain");
+  REQUIRE(heads.contains("AG wahr"));
+  REQUIRE(heads.contains("AG mittel"));
+  CHECK(icon_stamp(t->verticalHeaderItem(heads.indexOf("AG wahr"))->icon()) == "inverted");
+  CHECK(icon_stamp(t->verticalHeaderItem(heads.indexOf("AG mittel"))->icon()) == "plain");
+  CHECK(icon_stamp(t->verticalHeaderItem(0)->icon()) == "plain");
   // the motion right after the longitude as the tester reads a planet, the
   // R of a retrograde body, the arc minutes per day and the sign of their
   // change, then latitude and declination, the distance in percent of the
@@ -372,6 +380,7 @@ TEST_CASE("the mundane frame lists the one projected form of each lunar point") 
   CHECK_FALSE(heads.contains("DR mittel"));
   const int dr = heads.indexOf("DR wahr");
   QTableWidget* t = MainWindowProbe::bodies(*w);
+  CHECK(icon_stamp(t->verticalHeaderItem(dr)->icon()) == "framed");
   const std::unique_ptr<QTableWidgetItem> projected(zodiac_item(MainWindowProbe::chart(*w).b[body::kNodeAsc].el));
   CHECK(t->item(dr, 0)->text() == projected->text());
   // the true node carries its sign in the A column, a mean node row stays
@@ -383,6 +392,7 @@ TEST_CASE("the mundane frame lists the one projected form of each lunar point") 
   REQUIRE(heads.contains("DR mittel"));
   CHECK_FALSE(heads.contains("DR wahr"));
   CHECK(MainWindowProbe::bodies(*w)->item(heads.indexOf("DR mittel"), a) == nullptr);
+  CHECK(icon_stamp(MainWindowProbe::bodies(*w)->verticalHeaderItem(heads.indexOf("DR mittel"))->icon()) == "plain");
   MainWindowProbe::set_mundane_frame(*w, false);
 }
 

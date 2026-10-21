@@ -911,6 +911,20 @@ TEST_CASE("COMPOSIT asks his MODUS, both SATZ clicks and the ROBERT HAND residen
   CHECK(MainWindowProbe::active_slot(*w) == 0);
   REQUIRE(MainWindowProbe::residence(*w).has_value());
   CHECK(*MainWindowProbe::residence(*w) == "TESTRESIDENZ");
+  {
+    // the midpoint node names no form in the panel but wears the dress of
+    // the composite wheel, framed when the true node is in force
+    const QTableWidget* dock = MainWindowProbe::bodies(*w);
+    int node_row = -1;
+    for (int r = 0; r < dock->rowCount(); ++r) {
+      if (dock->verticalHeaderItem(r)->text() == "DR") {
+        node_row = r;
+      }
+    }
+    REQUIRE(node_row >= 0);
+    const QString want = MainWindowProbe::settings(*w).true_node ? "framed" : "plain";
+    CHECK(icon_stamp(dock->verticalHeaderItem(node_row)->icon()) == want);
+  }
   // bes2_comp in the centre, H1 on the first cusp and the AC midpoint on
   // its own axis
   bool label = false;
