@@ -52,7 +52,7 @@ topocentric parallax.
   <tr><td><code>plant, plant1, ver, ver1r, a16_ta</code></td><td><code>find_longitude_backward, body_longitude</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
   <tr><td><code>korh</code> and the a16 solar and lunar flow</td><td><code>solar_return, lunar_return</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
   <tr><td><code>a180, a180_1, a180a, a180b</code></td><td><code>scan_transits</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
-  <tr><td><code>ingre1</code>, the planets with the first entry of a loop</td><td><code>sign_ingresses, loop_first_entry</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
+  <tr><td><code>ingre1</code>, the planets with the first entry of a loop</td><td><code>sign_ingresses, sign_entry_before, loop_first_entry, step_sign_ingresses</code></td><td><code>src/horcom/chart/transit_search.*</code></td></tr>
   <tr><td><code>a13, halbsmin, a13comp_1, a13comp_2</code> and <code>a14</code></td><td><code>composite_chart, midpoint_near, combin_input</code></td><td><code>src/horcom/chart/composite.*</code></td></tr>
   <tr><td><code>prima, primhorg, richtung$</code></td><td><code>direct_axes</code></td><td><code>src/horcom/chart/directions.*</code></td></tr>
   <tr><td><code>korr, korr0, korr1, korr10, korr2, korr21</code></td><td><code>correct_birth_time, moment_for_armc</code></td><td><code>src/horcom/chart/rectification.*</code></td></tr>
@@ -364,17 +364,35 @@ date and place from the full record mask and list three days side by
 side, the longitude column showing the axis computed at the found
 moment. Space, plus and PgDn move on, R, minus and PgUp back, a year
 for the Sun, 29 days on or 28 days back from the Pisces ingress of the
-table shown for the Moon, one orbital period but at least a year for
-the tester's planets, three days for the angles. A page of a body with
-an ephemeris file of its own never leaves the span his loader gives
-that file, jdplanete to jdplaneta, the latest page ends on the last
-day of the file and the earliest holds one whole circuit inside it.
-One circuit of Xena lasts some 557 years. The page from 2026 lists the
-last entry into every sign before it, Aries in 1927 and the others
-between 1522 and 1847, so its rows seemed to stop in the nineteenth
-century, and the next page, a whole circuit on, ran past 2201 where his
-files for Quaoar and Xena stop. It now ends on the last day of the file
-and shows Taurus in 2048, Gemini in 2148 and Cancer in 2193. His plus a year from
+table shown for the Moon, three days for the angles. A planet steps
+every sign to its own next or previous entry
+(<code>step_sign_ingresses</code>), the next one searched back from one
+and a half circuits past the shown entry and then over its
+predecessors. The port first moved the date of the page by one circuit,
+an orbital period but at least a year, and the entries of a sign do not
+follow that evenly. Saturn enters Aries at gaps of 29.1 to 29.9 years,
+from the page of 1.1.1908 the entry of 14.5.1878 showed twice and the
+one of 19.3.1908 never. The dialog keeps the pages it has shown, so back
+and on again bring the same entries, and a stepped page names its
+latest entry in the title. Each entry is the first of its loop
+(<code>sign_entry_before</code>). His plant steps by the arc still to go,
+so from a date between the passage back and the second entry of a loop,
+where the body stands just below the sign start, its first step spanned
+nearly a whole circle and passed the loop. On 2.12.1937 the Aries entry
+of Saturn read 19.3.1908 instead of 25.4.1937. The search now looks for
+a passage back within the window of planth first and walks from there
+to the entry. Checked against a day by day scan of every first entry
+for Mercury to Xena, every page and every step both ways. A page of a
+body with an ephemeris file of its own never leaves the span his loader
+gives that file, jdplanete to jdplaneta, the date of the first page
+stays between one circuit after the first day of the file and its last
+day, and a sign whose next entry lies past the file keeps its own. A
+step that finds no new entry at all leaves the page standing, so the end
+of a file piles up no copies of the last page. One circuit of Xena
+lasts some 557 years. The page from 2026 lists the last entry into
+every sign before it, Aries in 1922 and the others between 1517 and
+1845, and the next page shows Taurus in 2044, Gemini in 2144 and Cancer
+in 2191, his files for Quaoar and Xena stop in 2201. His plus a year from
 the first of January landed on the last of December after a leap year
 and showed that year again, the port opens the next calendar year. A
 double click opens the transit view of the moment, the tester's

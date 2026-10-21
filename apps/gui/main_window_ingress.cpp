@@ -11,8 +11,10 @@
 #include <QTableWidget>
 #include <QVBoxLayout>
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <limits>
+#include <vector>
 
 #include "calendar_mark.hpp"
 #include "cell_weight.hpp"
@@ -57,6 +59,35 @@ struct Choice {
   int slot;
   const char* caption;
 };
+
+// one page of a body's table, its entries and the date of its title
+struct BodyPage {
+  std::array<LongitudeCrossing, kSignCount> hits{};
+  double jd = 0.0;
+};
+
+// whether a step found no entry beyond the page, every sign kept its own
+// at the end of the body's ephemeris
+bool same_entries(const std::array<LongitudeCrossing, kSignCount>& a, const std::array<LongitudeCrossing, kSignCount>& b) {
+  for (std::size_t t = 0; t < a.size(); ++t) {
+    if (a[t].ok != b[t].ok || (a[t].ok && a[t].jd_ut != b[t].jd_ut)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// the date a stepped page names, his "bis ca. dem Datum", the latest of
+// its entries
+double latest_entry(const std::array<LongitudeCrossing, kSignCount>& hits, double fallback) {
+  double latest = 0.0;
+  for (const LongitudeCrossing& h : hits) {
+    if (h.ok) {
+      latest = std::max(latest, h.jd_ut);
+    }
+  }
+  return latest > 0.0 ? latest : fallback;
+}
 
 // his ze$() rows SONNE, MOND, MC and AC, the tester's bodies before the
 // ABBRUCH
@@ -211,9 +242,9 @@ void MainWindow::ingress_table() {
   std::vector<double> shown_jd;
   // plant leaves his jd on the last hit of ingre1, the PISCES ingress
   double last_hit = 0.0;
-  // the tester's bodies page one circuit of the zodiac, his month of the
-  // MOND would hardly move a slow body, Mercury and Venus circle with the
-  // Sun in a year
+  // the pages of a planet reach about one circuit of the zodiac, his
+  // month of the MOND would hardly move a slow body, Mercury and Venus
+  // circle with the Sun in a year
   const double tja = time_arguments(jd).tropical_year_days;
   const double circuit = std::max(tja, body_period_days(choice.slot, tja));
   // the span of the body's own ephemeris, his jdplanete and jdplaneta. A
@@ -231,6 +262,17 @@ void MainWindow::ingress_table() {
     }
   }
   jd = std::clamp(jd, first_day, last_day);
+  // the pages of a body seen so far. Each sign steps from its own entry,
+  // the entries of a sign follow unevenly and a date moved by one circuit
+  // skipped some of them, Saturn's Aries entry of 1908 among them. Back
+  // and on again show the same pages
+  std::vector<BodyPage> pages;
+  std::size_t page_at = 0;
+  if (choice.kind == Kind::kBody) {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    pages.push_back({sign_ingresses(jd, choice.slot, ctx), jd});
+    QApplication::restoreOverrideCursor();
+  }
 
   const auto fill = [&]() {
     QApplication::setOverrideCursor(Qt::WaitCursor);
@@ -258,7 +300,7 @@ void MainWindow::ingress_table() {
       table->setRowCount(kSignCount);
       // his "Datum         UT = GMT      Länge " + pl$, the sign ahead
       table->setHorizontalHeaderLabels({tr("Zeichen"), tr("Datum"), tr("UT = GMT"), tr("Länge ") + tag});
-      const auto hits = sign_ingresses(jd, choice.slot, ctx);
+      const auto hits = choice.kind == Kind::kBody ? pages[page_at].hits : sign_ingresses(jd, choice.slot, ctx);
       for (int t = 0; t < kSignCount; ++t) {
         table->setItem(t, 0, sign_cell(t));
         const LongitudeCrossing& hit = hits[static_cast<std::size_t>(t)];
@@ -341,9 +383,33 @@ void MainWindow::ingress_table() {
         // his ADD jd,29 bzw. SUB jd,28 count from the PISCES ingress
         jd = (last_hit > 0.0 ? last_hit : jd) + (forward ? kMoonForward : -kMoonBack);
         break;
-      case Kind::kBody:
-        jd = std::clamp(jd + (forward ? circuit : -circuit), first_day, last_day);
+      case Kind::kBody: {
+        QApplication::setOverrideCursor(Qt::WaitCursor);
+        const BodyPage& at = pages[page_at];
+        // a step that finds nothing new leaves the page standing, the end
+        // of the ephemeris piles up no copies of it
+        bool moved = true;
+        if (forward && page_at + 1 == pages.size()) {
+          const auto hits = step_sign_ingresses(at.hits, at.jd, circuit, last_day, true, choice.slot, ctx);
+          moved = !same_entries(hits, at.hits);
+          if (moved) {
+            pages.push_back({hits, latest_entry(hits, at.jd + circuit)});
+          }
+        } else if (!forward && page_at == 0) {
+          const auto hits = step_sign_ingresses(at.hits, at.jd, circuit, last_day, false, choice.slot, ctx);
+          moved = !same_entries(hits, at.hits);
+          if (moved) {
+            pages.insert(pages.begin(), {hits, latest_entry(hits, at.jd - circuit)});
+            ++page_at;
+          }
+        }
+        if (moved) {
+          page_at = forward ? page_at + 1 : page_at - 1;
+        }
+        jd = pages[page_at].jd;
+        QApplication::restoreOverrideCursor();
         break;
+      }
     }
     fill();
   };

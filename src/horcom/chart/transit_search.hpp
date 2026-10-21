@@ -128,9 +128,9 @@ struct LongitudeCrossing {
 /// The twelve sign entries of a body around a start moment, the ingre1
 /// table. Each target is the sign start plus the epsilon that keeps the
 /// zero longitude guard quiet, searched backward with plant, the sun
-/// corrected into the calendar year of the start. A planet that loops
-/// over a sign start names the first entry of the loop, see
-/// loop_first_entry.
+/// corrected into the calendar year of the start. A planet names the
+/// first entry of its last loop over each sign start, see
+/// sign_entry_before.
 ///
 /// @param jd_start_ut the search anchor
 /// @param slot        body slot, sun and moon like his menu, planets too
@@ -272,6 +272,46 @@ struct TransitScan {
 ///         direct and no loop lies before it, ok false when a retrograde
 ///         found has no entry before it
 [[nodiscard]] LongitudeCrossing loop_first_entry(const LongitudeCrossing& found, int slot, double target_rad, const SearchContext& ctx);
+
+/// The entry of a body into a sign start last before a moment.
+///
+/// The backward search of plant finds the last direct passage. A body
+/// that ran back over the start within the walk window of planth stands
+/// just below it, there the search steps by nearly a whole circle and
+/// passes the entry of that loop, so the passage back names the loop.
+/// Either passage leads to the first entry of its loop.
+///
+/// @param jd_ut      the moment, UT
+/// @param slot       a planet, the Sun and the Moon never run back
+/// @param target_rad the sign start, radians
+/// @param ctx        observer and settings
+/// @return the first direct passage of the last loop, ok false where
+///         the ephemeris ends first or a loop has no entry within the
+///         walk window
+[[nodiscard]] LongitudeCrossing sign_entry_before(double jd_ut, int slot, double target_rad, const SearchContext& ctx);
+
+/// The sign entries of a body one entry on from a page of sign_ingresses.
+///
+/// Each sign takes the entry after or before its own. The entries of one
+/// sign follow at about one circuit, unevenly for a looping or eccentric
+/// body, and a common date moved by one circuit skipped some of them and
+/// showed others twice.
+///
+/// @param page          the shown entries, Aries first
+/// @param jd_page_ut    the date of the page, a sign without an entry
+///                      searches from it moved by one circuit
+/// @param circuit_days  one circuit of the body through the zodiac
+/// @param last_day_ut   the latest moment a search may start from, the
+///                      end of the body's ephemeris
+/// @param forward       true for the next entries, false for the earlier
+/// @param slot          a planet
+/// @param ctx           observer and settings
+/// @return the entries of the next page, a sign whose next entry lies past
+///         the ephemeris keeps its own
+[[nodiscard]] std::array<LongitudeCrossing, 12> step_sign_ingresses(const std::array<LongitudeCrossing, 12>& page,
+                                                                    double jd_page_ut, double circuit_days,
+                                                                    double last_day_ut, bool forward, int slot,
+                                                                    const SearchContext& ctx);
 
 /// The period a planetar is counted and shown with. His a16_ta made the
 /// periods of Jupiter to Pluto too long, the count takes the sidereal

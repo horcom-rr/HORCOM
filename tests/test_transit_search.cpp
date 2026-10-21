@@ -3,7 +3,9 @@
 // Copyright (c) 2026 Dominik Schwimmbeck
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <vector>
 
 #include "doctest.h"
 #include "horcom/chart/composite.hpp"
@@ -214,6 +216,80 @@ TEST_CASE("a planet looping over a sign start names its first entry") {
   CHECK(leo.year == 2026);
   CHECK(leo.month == 9);
   CHECK(std::abs(leo.day - 28) <= 1);
+}
+
+TEST_CASE("a planet that ran back out of a sign names the entry of its loop") {
+  // Saturn entered Aries on 25.4.1937, ran back into Pisces in October
+  // and entered again on 14.1.1938. From a page between the two the
+  // backward search stepped by nearly a whole circle past the loop and
+  // named the entry of 19.3.1908
+  const SearchContext ctx = context();
+  const auto table = sign_ingresses(julian_day({2, 12, 1937, 0, 0.0}), body::kSaturn, ctx);
+  const LongitudeCrossing& aries = table[0];
+  REQUIRE(aries.ok);
+  CHECK_FALSE(aries.retrograde);
+  const CalendarDate d = calendar_date(aries.jd_ut);
+  CHECK(d.year == 1937);
+  CHECK(d.month == 4);
+  CHECK(d.day == 25);
+  CHECK(residual_arcsec(aries, body::kSaturn, kEps, ctx) < 0.5);
+  // after the second entry the walk over the loop lands on the same day
+  const auto later = sign_ingresses(julian_day({1, 6, 1938, 0, 0.0}), body::kSaturn, ctx);
+  REQUIRE(later[0].ok);
+  CHECK(std::abs(later[0].jd_ut - aries.jd_ut) < 1.0e-3);
+  // the walk of planth starts one step before its date, a passage back a
+  // few days before the page lies in that first step
+  for (const int day : {20, 21, 23}) {
+    INFO("page " << day << ".10.1937");
+    const auto soon = sign_ingresses(julian_day({day, 10, 1937, 0, 0.0}), body::kSaturn, ctx);
+    REQUIRE(soon[0].ok);
+    CHECK(std::abs(soon[0].jd_ut - aries.jd_ut) < 1.0e-3);
+  }
+}
+
+TEST_CASE("the ingress pages step each sign to its own next entry") {
+  // a page date moved by one Saturn circuit showed the Aries entry of
+  // 14.5.1878 twice and skipped the one of 19.3.1908, the gaps between
+  // the entries of a sign run from 29.1 to 29.9 years
+  const SearchContext ctx = context();
+  const double start = julian_day({1, 1, 1908, 0, 0.0});
+  const double tja = time_arguments(start).tropical_year_days;
+  const double circuit = std::max(tja, body_period_days(body::kSaturn, tja));
+  const double open_end = julian_day({1, 1, 2100, 0, 0.0});
+  std::array<LongitudeCrossing, 12> page = sign_ingresses(start, body::kSaturn, ctx);
+  REQUIRE(page[0].ok);
+  CHECK(calendar_date(page[0].jd_ut).year == 1878);
+  // the entries of 19.3.1908, 25.4.1937 and 3.3.1967
+  const CalendarDate want[] = {{19, 3, 1908, 0, 0.0}, {25, 4, 1937, 0, 0.0}, {3, 3, 1967, 0, 0.0}};
+  std::vector<std::array<LongitudeCrossing, 12>> pages{page};
+  for (const CalendarDate& w : want) {
+    const std::array<LongitudeCrossing, 12> next =
+        step_sign_ingresses(pages.back(), start, circuit, open_end, true, body::kSaturn, ctx);
+    for (std::size_t t = 0; t < next.size(); ++t) {
+      INFO("sign " << t);
+      REQUIRE(next[t].ok);
+      CHECK_FALSE(next[t].retrograde);
+      // every sign one entry on, never the same one and never two at once
+      const double gap = next[t].jd_ut - pages.back()[t].jd_ut;
+      CHECK(gap > 0.9 * circuit);
+      CHECK(gap < 1.1 * circuit);
+    }
+    const CalendarDate d = calendar_date(next[0].jd_ut);
+    CHECK(d.year == w.year);
+    CHECK(d.month == w.month);
+    CHECK(d.day == w.day);
+    pages.push_back(next);
+  }
+  // back again over the same entries
+  std::array<LongitudeCrossing, 12> back = pages.back();
+  for (std::size_t k = pages.size() - 1; k > 0; --k) {
+    back = step_sign_ingresses(back, start, circuit, open_end, false, body::kSaturn, ctx);
+    for (std::size_t t = 0; t < back.size(); ++t) {
+      INFO("page " << k << " sign " << t);
+      REQUIRE(back[t].ok);
+      CHECK(std::abs(back[t].jd_ut - pages[k - 1][t].jd_ut) < 1.0e-3);
+    }
+  }
 }
 
 TEST_CASE("an extra body outside his ephemeris rides the element fallback") {

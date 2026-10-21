@@ -672,12 +672,12 @@ TEST_CASE("INGRESSE of the MOND page on from the PISCES ingress where plant left
   CHECK(title_back == head + datum3_text(calendar_date(second.jd_ut - 28.0, cal)));
 }
 
-TEST_CASE("INGRESSE of the tester's bodies page one circuit of the zodiac") {
+TEST_CASE("INGRESSE of a planet name the latest entry of a stepped page") {
   auto w = MainWindowProbe::make();
   MainWindowProbe::apply(*w, morning_birth());
   const bool parallax = MainWindowProbe::settings(*w).topocentric_parallax;
-  const double jd = MainWindowProbe::panel_jd(*w);
   QString title_next;
+  QStringList dates_next;
   {
     DialogDriver drive;
     drive.then(DialogDriver::click("MARS"));
@@ -692,16 +692,28 @@ TEST_CASE("INGRESSE of the tester's bodies page one circuit of the zodiac") {
           title_next = l->text();
         }
       }
+      const auto* t = d->findChild<QTableWidget*>();
+      REQUIRE(t != nullptr);
+      for (int r = 0; r < t->rowCount(); ++r) {
+        if (t->item(r, 1) != nullptr) {
+          dates_next << t->item(r, 1)->text();
+        }
+      }
       d->reject();
     });
     MainWindowProbe::ingress_table(*w);
     CHECK(drive.pending() == 0);
   }
-  const double tja = time_arguments(jd).tropical_year_days;
-  const double circuit = body_period_days(body::kMars, tja);
-  CHECK(circuit > tja);
-  CHECK(title_next == " Ingresse von MARS bis ca. dem Datum : " +
-                          datum3_text(calendar_date(jd + circuit, MainWindowProbe::settings(*w).calendar)));
+  // the dates in his datum3$, day and month padded, the latest one names
+  // the page
+  const auto when = [](const QString& d) {
+    const QStringList p = d.trimmed().split('.', Qt::SkipEmptyParts);
+    return p.size() == 3 ? p[2].trimmed().toInt() * 10000 + p[1].trimmed().toInt() * 100 + p[0].trimmed().toInt() : 0;
+  };
+  REQUIRE(dates_next.size() == 12);
+  const QString latest = *std::max_element(dates_next.begin(), dates_next.end(),
+                                           [&when](const QString& a, const QString& b) { return when(a) < when(b); });
+  CHECK(title_next == " Ingresse von MARS bis ca. dem Datum : " + latest);
 }
 
 TEST_CASE("PLANETEN-KOORDINATEN stands beyond the polar circle and names the inverted planets") {
@@ -746,6 +758,7 @@ TEST_CASE("INGRESSE of XENA page up to the last day of its ephemeris") {
   MainWindowProbe::apply(*w, morning_birth());
   const bool parallax = MainWindowProbe::settings(*w).topocentric_parallax;
   QString title_next;
+  QString title_back;
   QStringList years_next;
   {
     DialogDriver drive;
@@ -769,16 +782,29 @@ TEST_CASE("INGRESSE of XENA page up to the last day of its ephemeris") {
           years_next << t->item(r, 1)->text().trimmed().right(4);
         }
       }
+      // no sign has an entry left before 2201, the page stands and one R
+      // goes back to the first page
+      for (const int key : {Qt::Key_Space, Qt::Key_R}) {
+        QKeyEvent e(QEvent::KeyPress, key, Qt::NoModifier);
+        QApplication::sendEvent(d, &e);
+      }
+      for (const QLabel* l : d->findChildren<QLabel*>()) {
+        if (l->text().contains("Ingresse")) {
+          title_back = l->text();
+        }
+      }
       d->reject();
     });
     MainWindowProbe::ingress_table(*w);
     CHECK(drive.pending() == 0);
   }
   INFO(title_next.toStdString() << " | " << years_next.join(",").toStdString());
-  // his XENA file ends in 2201, a whole circuit of 557 years on the page
-  // stops there instead of turning empty, the tester saw the dates end in
-  // the 19th century
-  CHECK(title_next.trimmed().right(4).toInt() >= 2200);
+  // his XENA file ends in 2201, the signs whose next entry lies beyond
+  // keep their own instead of turning empty, a page date past the file
+  // once left the dates in the 19th century. The title names the latest
+  // entry of the page
+  CHECK(title_next.trimmed().right(4) == "2191");
+  CHECK(title_back.trimmed().endsWith("1. 1.2026"));
   CHECK(std::any_of(years_next.begin(), years_next.end(), [](const QString& y) { return y.toInt() > 2026; }));
   // the coming entries of his file, TAURUS, GEMINI and CANCER. Xena runs
   // back and forth over each sign start for years, the table names the
@@ -787,6 +813,61 @@ TEST_CASE("INGRESSE of XENA page up to the last day of its ephemeris") {
   for (const char* year : {"2044", "2144", "2191"}) {
     CHECK(years_next.contains(year));
   }
+}
+
+TEST_CASE("INGRESSE of SATURN page each sign to its next entry and back") {
+  // from the Aries entry of 19.3.1908 the next page jumped to 3.3.1967.
+  // A page date moved by one circuit skipped entries that came sooner,
+  // and from a page inside the loop of 1937 the backward search passed
+  // the entry of 25.4.1937
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, morning_birth());
+  const bool parallax = MainWindowProbe::settings(*w).topocentric_parallax;
+  QStringList aries;
+  QStringList titles;
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("SATURN"));
+    if (parallax) {
+      drive.then(DialogDriver::click("OK"));
+    }
+    drive.then(DialogDriver::fill({"", "1", "1", "1908"}, "OK")).then([&](QDialog* d) {
+      const auto* t = d->findChild<QTableWidget*>();
+      REQUIRE(t != nullptr);
+      const auto read = [&]() {
+        aries << (t->item(0, 1) != nullptr ? t->item(0, 1)->text().trimmed() : QString());
+        for (const QLabel* l : d->findChildren<QLabel*>()) {
+          if (l->text().contains("Ingresse")) {
+            titles << l->text().trimmed();
+          }
+        }
+      };
+      read();
+      for (const int key : {Qt::Key_Space, Qt::Key_Space, Qt::Key_Space, Qt::Key_R, Qt::Key_R, Qt::Key_R, Qt::Key_R}) {
+        QKeyEvent e(QEvent::KeyPress, key, Qt::NoModifier);
+        QApplication::sendEvent(d, &e);
+        read();
+      }
+      d->reject();
+    });
+    MainWindowProbe::ingress_table(*w);
+    CHECK(drive.pending() == 0);
+  }
+  INFO(aries.join(" | ").toStdString());
+  // his datum3$, the entries of 1878 to 1967 and the one before 1878
+  REQUIRE(aries.size() == 8);
+  CHECK(aries[0] == "14. 5.1878");
+  CHECK(aries[1] == "19. 3.1908");
+  CHECK(aries[2] == "25. 4.1937");
+  CHECK(aries[3] == "3. 3.1967");
+  CHECK(aries[4] == "25. 4.1937");
+  CHECK(aries[5] == "19. 3.1908");
+  CHECK(aries[6] == "14. 5.1878");
+  CHECK(aries[7].endsWith("1849"));
+  // the first page keeps the date that was asked, a stepped page names
+  // its latest entry
+  CHECK(titles[0].endsWith("1. 1.1908"));
+  CHECK(titles[6] == titles[0]);
 }
 
 TEST_CASE("the zodiac cells carry a rounded unit into the next sign like grze_0") {

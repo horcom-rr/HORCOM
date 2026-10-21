@@ -61,6 +61,17 @@ constexpr double kEarlierWindowDays = 320.0;
 // retrograde run, Mercury's of some twenty days, cannot hide between two
 // probes
 constexpr double kStationProbeDays = 5.0;
+// a page of ingresses steps on by searching back from one and a half
+// circuits past an entry, beyond the next entry and short of the one
+// after even where a loop or an eccentric orbit moves them a quarter
+// circuit
+constexpr double kNextEntryCircuits = 1.5;
+// two searches that land within this many days found the same entry
+constexpr double kSameEntryDays = 0.5;
+// the search for the entry before another starts this many days before it
+constexpr double kBeforeEntryDays = 0.5;
+// the predecessors a forward step walks back over, one is the rule
+constexpr int kStepBackBudget = 4;
 
 StepTable step_table(int slot) {
   switch (slot) {
@@ -512,6 +523,13 @@ std::array<LongitudeCrossing, 12> sign_ingresses(double jd_start_ut, int slot, c
   for (int t = 1; t <= 12; ++t) {
     //RR vermeide 29/59/60
     const double pz = kEps + (t - 1) * kPi / 6.0;
+    // his ingre1 knew the Sun and the Moon, which never run back. The
+    // planets of the port name the first entry of a loop over the sign
+    // start, the last passage of the loop hid it
+    if (slot != body::kSun && slot != body::kMoon) {
+      out[static_cast<std::size_t>(t - 1)] = sign_entry_before(jd_start_ut, slot, pz, ctx);
+      continue;
+    }
     double jdz = jd_start_ut;
     LongitudeCrossing hit;
     for (int retry = 0; retry < 4; ++retry) {
@@ -530,12 +548,6 @@ std::array<LongitudeCrossing, 12> sign_ingresses(double jd_start_ut, int slot, c
         continue;
       }
       break;
-    }
-    // his ingre1 knew the Sun and the Moon, which never run back. The
-    // planets of the port name the first entry of a loop over the sign
-    // start, the last one hid it, the tester's tenth batch
-    if (slot != body::kSun && slot != body::kMoon) {
-      hit = loop_first_entry(hit, slot, pz, ctx);
     }
     out[static_cast<std::size_t>(t - 1)] = hit;
   }
@@ -1035,6 +1047,93 @@ LongitudeCrossing loop_first_entry(const LongitudeCrossing& found, int slot, dou
       return entry;
     }
   }
+}
+
+namespace {
+
+// the last passage over a sign start within the walk window of planth
+// before a moment, for a body standing less than a sign below the start
+// where only a loop can have carried it back. The walk starts one step
+// before the moment, a passage back inside that step stays unseen and the
+// entry before it is the first passage met, either belongs to the loop
+LongitudeCrossing passage_back_before(double jd_ut, int slot, double target_rad, const SearchContext& ctx) {
+  const BodyLongitude now = body_longitude(jd_ut, slot, ctx);
+  if (!now.valid) {
+    return {};
+  }
+  const double below = fold_rad(now.el - target_rad);
+  if (below >= 0.0 || below < -kSignRad) {
+    return {};
+  }
+  LongitudeCrossing at;
+  at.ok = true;
+  at.jd_ut = jd_ut;
+  const std::vector<LongitudeCrossing> before = planetar_earlier(at, slot, target_rad, ctx);
+  return before.empty() ? LongitudeCrossing{} : before.front();
+}
+
+// the entry before a first entry. No loop runs back over the start
+// within the window before a first entry, so the walk of
+// passage_back_before would find nothing and plant alone serves
+LongitudeCrossing entry_before_entry(const LongitudeCrossing& entry, int slot, double target_rad,
+                                     const SearchContext& ctx) {
+  const LongitudeCrossing hit = find_longitude_backward(entry.jd_ut - kBeforeEntryDays, slot, target_rad, ctx);
+  return loop_first_entry(hit, slot, target_rad, ctx);
+}
+
+}  // namespace
+
+LongitudeCrossing sign_entry_before(double jd_ut, int slot, double target_rad, const SearchContext& ctx) {
+  LongitudeCrossing hit = find_longitude_backward(jd_ut, slot, target_rad, ctx);
+  // the step of plant grows with the arc still to go, from just below
+  // the start nearly a whole circle, and passed the entry of the loop
+  // that carried the body back, Saturn on 2.12.1937 found 1908 for the
+  // Aries entry of 25.4.1937
+  const LongitudeCrossing back = passage_back_before(jd_ut, slot, target_rad, ctx);
+  if (back.ok && (!hit.ok || back.jd_ut > hit.jd_ut)) {
+    hit = back;
+  }
+  return loop_first_entry(hit, slot, target_rad, ctx);
+}
+
+std::array<LongitudeCrossing, 12> step_sign_ingresses(const std::array<LongitudeCrossing, 12>& page, double jd_page_ut,
+                                                      double circuit_days, double last_day_ut, bool forward, int slot,
+                                                      const SearchContext& ctx) {
+  std::array<LongitudeCrossing, 12> out = page;
+  for (std::size_t t = 0; t < out.size(); ++t) {
+    //RR vermeide 29/59/60
+    const double pz = kEps + static_cast<double>(t) * kSignRad;
+    const LongitudeCrossing& shown = page[t];
+    if (!shown.ok) {
+      // a sign without an entry starts from the page date
+      const double from = std::min(jd_page_ut + (forward ? circuit_days : -circuit_days), last_day_ut);
+      out[t] = sign_entry_before(from, slot, pz, ctx);
+      continue;
+    }
+    if (!forward) {
+      const LongitudeCrossing before = entry_before_entry(shown, slot, pz, ctx);
+      if (before.ok && before.jd_ut < shown.jd_ut - kSameEntryDays) {
+        out[t] = before;
+      }
+      continue;
+    }
+    LongitudeCrossing next =
+        sign_entry_before(std::min(shown.jd_ut + kNextEntryCircuits * circuit_days, last_day_ut), slot, pz, ctx);
+    if (!next.ok || next.jd_ut <= shown.jd_ut + kSameEntryDays) {
+      // the next entry lies past the ephemeris, the sign keeps its own
+      continue;
+    }
+    // a short circuit may hold two entries, the one right after counts
+    for (int i = 0; i < kStepBackBudget; ++i) {
+      const LongitudeCrossing before = entry_before_entry(next, slot, pz, ctx);
+      if (!before.ok || before.jd_ut <= shown.jd_ut + kSameEntryDays) {
+        break;
+      }
+      next = before;
+    }
+    out[t] = next;
+  }
+  return out;
 }
 
 // the counting periods, the mean motions of Meeus Table 31.A for Jupiter
