@@ -3079,6 +3079,13 @@ void MainWindow::chain_files() {
     }
     start = QFileInfo(src).absolutePath();
     const std::filesystem::path p(src.toStdWString());
+    // his daterw let the chain file be called too, every record it held
+    // then stood in it twice
+    const bool aaf_source = src.endsWith(".aaf", Qt::CaseInsensitive);
+    if (std::error_code same; std::filesystem::equivalent(aaf_source ? dat_twin_path(p) : p, chain_path, same)) {
+      QMessageBox::information(this, "HORCOM", tr("Die KETTEN-DATEI AA_MUDAT kann nicht an sich selbst angehängt werden !"));
+      continue;
+    }
     std::optional<std::vector<ChartRecord>> add;
     if (src.endsWith(".aaf", Qt::CaseInsensitive)) {
       if (const auto records = read_aaf(p)) {
@@ -3111,9 +3118,18 @@ void MainWindow::chain_files() {
       // replaced only when it shrank
       const std::size_t before = chain.size();
       trim_records(chain);
-      if (chain.size() != before && !write_chart_file(chain_path, chain)) {
-        QMessageBox::warning(this, "HORCOM", tr("Die Ketten-Datei ließ sich nicht schreiben."));
+      if (chain.size() == before) {
+        return;
       }
+      if (!write_chart_file(chain_path, chain)) {
+        QMessageBox::warning(this, "HORCOM", tr("Die Ketten-Datei ließ sich nicht schreiben."));
+        return;
+      }
+      // the joined records reach the chain with a date, his trim drops the
+      // ones without any place coordinates, the count above named them all
+      QMessageBox::information(this, "HORCOM",
+                               tr("%1 von %2 Datensätzen bleiben.").arg(chain.size()).arg(before) + "\n" +
+                                   tr("Datensätze OHNE Orts-Koordinaten entfernt : %1").arg(before - chain.size()));
       return;
     }
     if (b != 0) {
@@ -6046,8 +6062,8 @@ void MainWindow::delete_from_file() {
     if (order.empty()) {
       break;
     }
-    //RR Bis zu 10 zu LÖSCHENDE DATENSÄTZE markieren !
-    RecordListDialog list(view, order, label, 10, RecordListDialog::Mode::kDelete, this);
+    // his dsr&(10) held ten marks, the list takes as many as the file holds
+    RecordListDialog list(view, order, label, static_cast<int>(view.size()), RecordListDialog::Mode::kDelete, this);
     if (list.exec() != QDialog::Accepted || list.picked().empty()) {
       break;
     }

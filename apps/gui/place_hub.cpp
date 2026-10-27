@@ -67,8 +67,15 @@ void delete_loop(QWidget* parent, const std::filesystem::path& data_dir, const s
   for (;;) {
     PlaceDialog pick(data_dir / "places", data_dir / "landnima.int", parent);
     pick.lock_file(file);
-    pick.set_delete_mode(10);
-    if (pick.exec() != QDialog::Accepted) {
+    pick.set_delete_mode();
+    if (pick.exec() != QDialog::Accepted || pick.marked().empty()) {
+      return;
+    }
+    // any number of marks may stand now, the count is asked before the pass
+    const int sure = ChoiceDialog::ask(parent, PlaceHub::tr("DATEI : %1").arg(name), {},
+                                       {PlaceHub::tr("%1 Datensätze LÖSCHEN ?").arg(pick.marked().size()),
+                                        PlaceHub::tr("ABBRUCH")});
+    if (sure != 0) {
       return;
     }
     auto places = read_place_file(file);

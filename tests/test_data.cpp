@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -645,6 +646,25 @@ TEST_CASE("aaf twin paths swap his folder pair and fall back to siblings") {
   fs::remove_all(root);
 }
 
+TEST_CASE("deleting drops any number of marked records") {
+  std::vector<ChartRecord> r(40);
+  for (std::size_t i = 0; i < r.size(); ++i) {
+    r[i].name = "Fall " + std::to_string(i);
+    r[i].day = 1;
+    r[i].lon = 11.5;
+    r[i].lat = 48.1;
+  }
+  std::vector<std::size_t> doomed;
+  for (std::size_t i = 0; i < r.size(); i += 2) {
+    doomed.push_back(i);
+  }
+  // his dsr& held ten, the pass takes twenty at once
+  delete_records(r, doomed);
+  REQUIRE(r.size() == 20);
+  CHECK(r.front().name == "Fall 1");
+  CHECK(r.back().name == "Fall 39");
+}
+
 TEST_CASE("minimizing collapses same name and birth clock") {
   std::vector<ChartRecord> r(3);
   r[0].name = "Muster Hans";
@@ -656,7 +676,41 @@ TEST_CASE("minimizing collapses same name and birth clock") {
   r[2].day = 14;
   minimize_records(r);
   REQUIRE(r.size() == 2);
+  CHECK(r[0].place.empty());
   CHECK(r[1].day == 14);
+}
+
+TEST_CASE("minimizing a chain of tens of thousands keeps the first record of each birth in order") {
+  // his minim_dat compared every record with all before it, a chained
+  // collection of this size took billions of comparisons
+  constexpr int kRecords = 60000;
+  constexpr int kBirths = 6000;
+  std::vector<ChartRecord> r(kRecords);
+  for (int i = 0; i < kRecords; ++i) {
+    r[static_cast<std::size_t>(i)].name = "Fall " + std::to_string(i % kBirths);
+    r[static_cast<std::size_t>(i)].day = 1 + i % 28;
+    r[static_cast<std::size_t>(i)].month = 1 + (i % kBirths) % 12;
+    r[static_cast<std::size_t>(i)].year = 1950;
+    r[static_cast<std::size_t>(i)].hour = 12.0;
+    r[static_cast<std::size_t>(i)].place = std::to_string(i);
+  }
+  minimize_records(r);
+  // the day runs on its own cycle, a name meets several days, every name
+  // and day pair stays once
+  std::size_t expected = 0;
+  {
+    std::set<std::pair<int, int>> pairs;
+    for (int i = 0; i < kRecords; ++i) {
+      pairs.insert({i % kBirths, i % 28});
+    }
+    expected = pairs.size();
+  }
+  CHECK(r.size() == expected);
+  CHECK(r.front().place == "0");
+  CHECK(std::stoi(r.back().place) < kRecords);
+  for (std::size_t i = 1; i < r.size(); ++i) {
+    REQUIRE(std::stoi(r[i - 1].place) < std::stoi(r[i].place));
+  }
 }
 
 TEST_CASE("appending to a place file the reader refuses leaves it untouched") {

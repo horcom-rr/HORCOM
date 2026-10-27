@@ -319,9 +319,10 @@ to HORCOM conversion presses exchange records into the fixed 128 byte
 layout with the Julian flag on the remark, and his two maintenance
 passes survive as TRIM the file, empty records out and leading blanks
 off the names, and MINIMIZE the file, duplicates of name and birth
-clock collapsed. The collections browser deletes marked records and
-writes the file back, his DELETE of up to ten at a time without the
-count limit.
+clock collapsed, MINIMIZE through a hash set where his pass compared
+every record with all before it. The collections browser and DELETE
+records remove any number of marked records and write the file back,
+his DELETE took ten at a time, the size of his mark array.
 </p>
 
 <h2>The country tables</h2>

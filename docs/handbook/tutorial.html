@@ -750,8 +750,8 @@ collection into a research dataset.
 
 <h2 id="files">Managing your data files</h2>
 <ul>
-  <li><b>DELETE records</b> marks up to ten records for removal, a full
-  copy of the file stays as RRESERVE.DAT beside it.</li>
+  <li><b>DELETE records</b> marks any number of records for removal, a
+  full copy of the file stays as RRESERVE.DAT beside it.</li>
   <li><b>TRIM the file</b> drops records without a day or without
   coordinates.</li>
   <li><b>MINIMIZE the file</b> merges records with the same name and
@@ -763,7 +763,9 @@ collection into a research dataset.
   SWITCH CHAINING ON asks for the files one after another, DAT or AAF,
   adds their records to a chain file that already exists, and after
   each file shows the size of the chain with Continue CHAINING or
-  END CHAINING. END drops the records without coordinates. While a chain
+  END CHAINING. END drops the records without coordinates and says how
+  many records remain and how many went. The chain file itself cannot
+  be called as one of the files, it would hold every record twice. While a chain
   file exists the same box offers to delete it first or to rename it, so
   the next chain starts afresh.</li>
   <li><b>AAF FILE &lt; &gt; HORCOM FILE</b> converts between the two

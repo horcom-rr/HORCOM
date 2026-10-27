@@ -33,7 +33,7 @@ class RecordListDialog : public QDialog {
   enum class Mode {
     kSingle,  ///< one record, a double click takes it straight away
     kFetch,   ///< up to max_pick records for the free slots
-    kDelete,  ///< up to ten records marked for LÖSCHEN
+    kDelete,  ///< any number of records marked for LÖSCHEN
   };
 
   /// @param records    the collection in file order

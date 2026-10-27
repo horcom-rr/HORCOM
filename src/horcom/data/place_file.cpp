@@ -167,10 +167,17 @@ void trim_places(std::vector<PlaceRecord>& places) {
 
 // ported from a2f_tr_ort
 void delete_places(std::vector<PlaceRecord>& places, const std::vector<std::size_t>& doomed) {
+  // any number of marks, one look per place
+  std::vector<bool> marked(places.size(), false);
+  for (const std::size_t i : doomed) {
+    if (i < marked.size()) {
+      marked[i] = true;
+    }
+  }
   std::vector<PlaceRecord> kept;
   kept.reserve(places.size());
   for (std::size_t i = 0; i < places.size(); ++i) {
-    if (std::find(doomed.begin(), doomed.end(), i) != doomed.end()) {
+    if (marked[i]) {
       continue;
     }
     const PlaceRecord& p = places[i];

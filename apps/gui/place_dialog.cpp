@@ -18,6 +18,7 @@
 #include <QTableWidget>
 #include <QVBoxLayout>
 #include <algorithm>
+#include <limits>
 #include <string>
 
 #include "cell_weight.hpp"
@@ -165,17 +166,15 @@ void PlaceDialog::lock_file(const std::filesystem::path& file) {
 }
 
 // ported from ausw_datei with loe$, the marking list of LÖSCHEN
-void PlaceDialog::set_delete_mode(int max_pick) {
-  max_pick_ = max_pick;
-  //RR Bis zu 10 zu LÖSCHENDE DATENSÄTZE markieren !
-  setWindowTitle(tr("Bis zu %1 zu LÖSCHENDE DATENSÄTZE markieren !  Datei: %2")
-                     .arg(max_pick)
-                     .arg(files_->currentText()));
+void PlaceDialog::set_delete_mode() {
+  // his Bis zu 10 zu LÖSCHENDE DATENSÄTZE, his dsr& array held ten marks,
+  // the list takes any number and the count is asked before the pass
+  max_pick_ = std::numeric_limits<int>::max();
+  setWindowTitle(tr("ZU LÖSCHENDE DATENSÄTZE markieren !  Datei: %1").arg(files_->currentText()));
   table_->setSelectionMode(QAbstractItemView::MultiSelection);
   table_->clearSelection();
   marks_.clear();
-  // his dsr&(1..10) held ten marks, a further click is refused. The marks
-  // belong to the places, a new filter shows them again
+  // the marks belong to the places, a new filter shows them again
   connect(table_->selectionModel(), &QItemSelectionModel::selectionChanged, this,
           [this](const QItemSelection& added, const QItemSelection& removed) {
             if (refreshing_) {

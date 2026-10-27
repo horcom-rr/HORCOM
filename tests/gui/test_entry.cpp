@@ -551,6 +551,46 @@ TEST_CASE("a new Daten-Datei needs a loaded record like a2dat") {
   CHECK(records->size() == 1);
 }
 
+TEST_CASE("LÖSCHEN takes more than his ten marks in one round") {
+  Scratch s("horcom_entry_delete_many");
+  const QString file = s.path("VIELE.DAT");
+  std::vector<ChartRecord> recs;
+  for (int i = 0; i < 15; ++i) {
+    ChartRecord c = stored("FALL");
+    c.name = "FALL " + std::to_string(10 + i);
+    recs.push_back(c);
+  }
+  REQUIRE(write_chart_file(std::filesystem::path(file.toStdWString()), recs));
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::bind(*w, file);
+  QString title;
+  {
+    DialogDriver drive;
+    drive.then([&title](QDialog* d) {
+           title = d->windowTitle();
+           auto* list = d->findChild<QListWidget*>();
+           // his dsr&(10) refused the eleventh mark, a drag marks rows no
+           // click names and they go too
+           for (int r = 0; list != nullptr && r < 12; ++r) {
+             list->item(r)->setSelected(true);
+             if (r < 6) {
+               emit list->itemClicked(list->item(r));
+             }
+           }
+           DialogDriver::click("WAHL - ENDE")(d);
+         })
+        .then(DialogDriver::click("LÖSCHEN ?"))
+        .then(DialogDriver::click("LÖSCHEN Beenden"));
+    MainWindowProbe::delete_from_file(*w);
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  CHECK_FALSE(title.contains("Bis zu"));
+  const auto left = read_chart_file(std::filesystem::path(file.toStdWString()));
+  REQUIRE(left.has_value());
+  CHECK(left->size() == 3);
+}
+
 TEST_CASE("LÖSCHEN with the AAF records kept leaves the deletion in place") {
   Scratch s("horcom_entry_delete_kept");
   const QString file = s.path("DREI.DAT");
@@ -748,8 +788,15 @@ TEST_CASE("DATEIEN VERKETTEN joins DAT files one after another into AA_MUDAT and
   }
   auto w = MainWindowProbe::make();
   MainWindowProbe::set_data_dir(*w, s.dir);
+  const std::filesystem::path chain_path = s.dir / "SPEZIAL" / "AA_MUDAT.DAT";
   QString first;
   QString refused;
+  QString itself;
+  QString twin;
+  QString report;
+  // the AAF twin of the chain, the converted chain file
+  std::filesystem::create_directories(s.dir / "AAFDATEN");
+  REQUIRE(write_aaf(s.dir / "AAFDATEN" / "AA_MUDAT.AAF", {exchange}));
   {
     DialogDriver drive;
     drive.then(DialogDriver::click("VERKETTEN EINSCHALTEN"))
@@ -760,10 +807,15 @@ TEST_CASE("DATEIEN VERKETTEN joins DAT files one after another into AA_MUDAT and
         })
         .then(pick_file(s.path("KAPUTT.DAT")))
         .then(read_box(refused))
+        .then(pick_file(QString::fromStdWString(chain_path.wstring())))
+        .then(read_box(itself))
+        .then(pick_file(s.path("AAFDATEN/AA_MUDAT.AAF")))
+        .then(read_box(twin))
         .then(pick_file(s.path("C.AAF")))
         .then(DialogDriver::click("WEITER"))
         .then(pick_file(s.path("B.DAT")))
-        .then(DialogDriver::click("VERKETTEN  Beenden"));
+        .then(DialogDriver::click("VERKETTEN  Beenden"))
+        .then(read_box(report));
     MainWindowProbe::chain_files(*w);
     CHECK(drive.pending() == 0);
     CHECK(drive.unexpected() == 0);
@@ -773,7 +825,13 @@ TEST_CASE("DATEIEN VERKETTEN joins DAT files one after another into AA_MUDAT and
   // the refused file is named and the chain goes on
   CHECK(refused.contains("DATEI ???"));
   CHECK(refused.contains("KAPUTT.DAT"));
-  const std::filesystem::path chain_path = s.dir / "SPEZIAL" / "AA_MUDAT.DAT";
+  // the chain file called as a source had doubled every record in it
+  CHECK(itself.contains("nicht an sich selbst"));
+  CHECK(twin.contains("nicht an sich selbst"));
+  // the trim of VERKETTEN BEENDEN names the records it dropped, the count
+  // of the chain had named them too
+  CHECK(report.contains("3 von 4 Datensätzen bleiben."));
+  CHECK(report.contains("OHNE Orts-Koordinaten entfernt : 1"));
   const auto chain = read_chart_file(chain_path);
   REQUIRE(chain.has_value());
   REQUIRE(chain->size() == 3);

@@ -101,8 +101,10 @@ RecordListDialog::RecordListDialog(const std::vector<AafRecord>& records, const 
       setWindowTitle(tr("Bis zu %1 Datensätze wählen, dann 'WAHL - ENDE' !  Datei: %2").arg(max_pick_).arg(file_label));
       break;
     case Mode::kDelete:
-      //RR Bis zu 10 zu LÖSCHENDE DATENSÄTZE markieren !
-      setWindowTitle(tr("Bis zu %1 zu LÖSCHENDE DATENSÄTZE markieren !  Datei: %2").arg(max_pick_).arg(file_label));
+      // his Bis zu 10 zu LÖSCHENDE DATENSÄTZE, ten marks were the size of
+      // his dsr& array, the list takes any number, the reserve copy of the
+      // file stands behind every round
+      setWindowTitle(tr("ZU LÖSCHENDE DATENSÄTZE markieren !  Datei: %1").arg(file_label));
       break;
     case Mode::kSingle:
       setWindowTitle(tr("Datensatz wählen !  Datei: %1").arg(file_label));
@@ -196,6 +198,15 @@ RecordListDialog::RecordListDialog(const std::vector<AafRecord>& records, const 
   connect(done, &QPushButton::clicked, this, [this]() {
     if (mode_ == Mode::kSingle && list_->currentItem() != nullptr) {
       picked_ = {list_->currentItem()->data(Qt::UserRole).toULongLong()};
+    }
+    // the marked rows go, a drag or Ctrl+A marks rows no click had named
+    if (mode_ == Mode::kDelete) {
+      picked_.clear();
+      for (int i = 0; i < list_->count(); ++i) {
+        if (list_->item(i)->isSelected()) {
+          picked_.push_back(list_->item(i)->data(Qt::UserRole).toULongLong());
+        }
+      }
     }
     if (picked_.empty()) {
       // the original stayed in the box until something was chosen

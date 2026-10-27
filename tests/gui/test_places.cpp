@@ -127,8 +127,11 @@ TEST_CASE("ORTS-DATEIEN LÖSCHEN keeps a reserve and asks WEITER") {
     drive.then(open_file(file))
         .then(DialogDriver::click("LÖSCHEN"))
         .then(mark_places({"Anderort / D"}))
+        // any number of marks may stand, the count is asked first
+        .then(DialogDriver::click("1 Datensätze LÖSCHEN ?"))
         .then(DialogDriver::click("Weiter LÖSCHEN"))
         .then(mark_places({"Testdorf / D"}))
+        .then(DialogDriver::click("1 Datensätze LÖSCHEN ?"))
         .then(DialogDriver::click("LÖSCHEN Beenden"));
     CHECK_FALSE(place_file_hub(nullptr, s.dir).has_value());
     CHECK(drive.pending() == 0);
@@ -243,7 +246,7 @@ TEST_CASE("the delete marks of the place list survive a new filter") {
   REQUIRE(write_place_file(file, three_places()));
   PlaceDialog pick(s.dir / "places", s.dir / "landnima.int");
   pick.lock_file(file);
-  pick.set_delete_mode(10);
+  pick.set_delete_mode();
   auto* table = pick.findChild<QTableWidget*>();
   auto* filter = pick.findChild<QLineEdit*>();
   REQUIRE(table != nullptr);

@@ -46,10 +46,8 @@ class PlaceDialog : public QDialog {
   void lock_file(const std::filesystem::path& file);
 
   /// Turns the chooser into his LÖSCHEN list, places are marked by
-  /// click until WAHL - ENDE.
-  ///
-  /// @param max_pick how many places may be marked, his ten
-  void set_delete_mode(int max_pick);
+  /// click until WAHL - ENDE, as many as the file holds.
+  void set_delete_mode();
 
   /// @return the marked places as indices in file order, valid after an
   ///         accepted delete mode run

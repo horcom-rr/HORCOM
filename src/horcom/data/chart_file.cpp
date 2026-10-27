@@ -9,6 +9,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <functional>
+#include <string>
+#include <unordered_set>
 
 #include "horcom/data/encoding.hpp"
 #include "horcom/data/file_io.hpp"
@@ -179,6 +182,13 @@ bool write_chart_file(const std::filesystem::path& path, const std::vector<Chart
 // ported from a2f_tr_dat, the trim and the delete branch share one
 // pass over the file like the original t! switch
 void delete_records(std::vector<ChartRecord>& records, const std::vector<std::size_t>& doomed) {
+  // any number of marks, one look per record
+  std::vector<bool> marked(records.size(), false);
+  for (const std::size_t i : doomed) {
+    if (i < marked.size()) {
+      marked[i] = true;
+    }
+  }
   std::vector<ChartRecord> kept;
   kept.reserve(records.size());
   for (std::size_t i = 0; i < records.size(); ++i) {
@@ -187,7 +197,7 @@ void delete_records(std::vector<ChartRecord>& records, const std::vector<std::si
     if (r.lon == 0.0 && r.lat == 0.0) {
       continue;
     }
-    if (std::find(doomed.begin(), doomed.end(), i) != doomed.end()) {
+    if (marked[i]) {
       continue;
     }
     // the original kept a record only while its day field held a value
@@ -250,21 +260,43 @@ std::size_t remove_records_by_name(std::vector<ChartRecord>& records, const std:
   return removed;
 }
 
-// ported from Datei MINIMIEREN
+namespace {
+
+// the fields his minim_dat compared, name, date and time
+struct BirthKey {
+  std::string name;
+  int day = 0;
+  int month = 0;
+  int year = 0;
+  double hour = 0.0;
+  double minute = 0.0;
+  bool operator==(const BirthKey&) const = default;
+};
+
+struct BirthKeyHash {
+  std::size_t operator()(const BirthKey& k) const {
+    std::size_t h = std::hash<std::string>{}(k.name);
+    for (const std::size_t v : {std::hash<int>{}(k.day), std::hash<int>{}(k.month), std::hash<int>{}(k.year),
+                                std::hash<double>{}(k.hour), std::hash<double>{}(k.minute)}) {
+      h ^= v + 0x9e3779b97f4a7c15ULL + (h << 6) + (h >> 2);
+    }
+    return h;
+  }
+};
+
+}  // namespace
+
+// ported from Datei MINIMIEREN. His minim_dat held every record against
+// all before it, a chain of eighty thousand records took billions of
+// comparisons, the set keeps the same first record of each birth
 void minimize_records(std::vector<ChartRecord>& records) {
   std::vector<ChartRecord> kept;
   kept.reserve(records.size());
+  std::unordered_set<BirthKey, BirthKeyHash> seen;
+  seen.reserve(records.size());
   for (ChartRecord& r : records) {
-    bool duplicate = false;
-    for (const ChartRecord& k : kept) {
-      //RR mehrfach vorhandene Datensätze mit gleichem Namen und gleicher Geburtszeit
-      if (k.name == r.name && k.day == r.day && k.month == r.month && k.year == r.year && k.hour == r.hour &&
-          k.minute == r.minute) {
-        duplicate = true;
-        break;
-      }
-    }
-    if (!duplicate) {
+    //RR mehrfach vorhandene Datensätze mit gleichem Namen und gleicher Geburtszeit
+    if (seen.insert({r.name, r.day, r.month, r.year, r.hour, r.minute}).second) {
       kept.push_back(std::move(r));
     }
   }
