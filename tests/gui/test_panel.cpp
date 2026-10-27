@@ -6,6 +6,7 @@
 #include <QCheckBox>
 #include <QDockWidget>
 #include <QElapsedTimer>
+#include <QFormLayout>
 #include <QDoubleSpinBox>
 #include <QKeyEvent>
 #include <QLineEdit>
@@ -1028,6 +1029,63 @@ TEST_CASE("the Weltzeit row shows the UT the Uhrzeit stands for") {
   MainWindowProbe::apply(*w, sample(29, 5, 1917, 22, 30, "05hW00:00"));
   CHECK(MainWindowProbe::ut_time(*w)->time() == QTime(3, 30));
   CHECK(MainWindowProbe::ut_day(*w) == "30.05.1917");
+}
+
+TEST_CASE("the place and its coordinates follow the Uhrzeit and the UT closes the time rows") {
+  auto w = MainWindowProbe::make();
+  QFormLayout* form = nullptr;
+  for (QFormLayout* f : w->findChildren<QFormLayout*>()) {
+    int row = -1;
+    QFormLayout::ItemRole role = QFormLayout::FieldRole;
+    f->getWidgetPosition(MainWindowProbe::date(*w), &row, &role);
+    if (row >= 0) {
+      form = f;
+    }
+  }
+  REQUIRE(form != nullptr);
+  // each row by its caption, a row of switches by its first switch
+  QStringList rows;
+  for (int r = 0; r < form->rowCount(); ++r) {
+    if (const QLayoutItem* label = form->itemAt(r, QFormLayout::LabelRole); label != nullptr && label->widget() != nullptr) {
+      rows << static_cast<const QLabel*>(label->widget())->text();
+    } else if (const QLayoutItem* span = form->itemAt(r, QFormLayout::SpanningRole);
+               span != nullptr && span->widget() != nullptr) {
+      const auto* box = qobject_cast<const QCheckBox*>(span->widget());
+      if (box == nullptr) {
+        box = span->widget()->findChild<QCheckBox*>();
+      }
+      rows << (box != nullptr ? box->text() : QString());
+    }
+  }
+  const qsizetype from = rows.indexOf("Datum");
+  REQUIRE(from >= 0);
+  // ORT, LÄNGE and BREITE stand together like in his EINGABE box, the UT
+  // follows everything that makes it
+  CHECK(rows.mid(from, 10) == QStringList{"Datum", "Uhrzeit", "Ortsname", "Länge (Ost +)", "Breite (Nord +)", "Zeit-Zone",
+                                          "Sommerzeit", "Wahre Ortszeit (LT)", "Weltzeit (UT)", "Häuser"});
+  // the moment of the transits names its clock the same way
+  CHECK(rows.mid(rows.indexOf("Transit-Datum"), 2) == QStringList{"Transit-Datum", "Weltzeit (UT)"});
+  // the keys walk the fields in the order of the rows
+  QList<QWidget*> stops{MainWindowProbe::date(*w)};
+  QWidget* at = stops.front();
+  while (stops.size() < 24) {
+    at = at->nextInFocusChain();
+    if (at == stops.front()) {
+      break;
+    }
+    if ((at->focusPolicy() & Qt::TabFocus) == 0 || !at->isVisibleTo(w.get()) || stops.back()->isAncestorOf(at)) {
+      continue;
+    }
+    stops << at;
+  }
+  const auto stop = [&stops](QWidget* x) { return stops.indexOf(x); };
+  CHECK(stop(MainWindowProbe::time(*w)) == 1);
+  CHECK(stop(MainWindowProbe::place_field(*w)) == 2);
+  CHECK(stop(MainWindowProbe::place_field(*w)) < stop(MainWindowProbe::zone(*w)));
+  CHECK(stop(MainWindowProbe::zone(*w)) < stop(MainWindowProbe::sommerzeit(*w)));
+  CHECK(stop(MainWindowProbe::sommerzeit(*w)) < stop(MainWindowProbe::local_time_box(*w)));
+  CHECK(stop(MainWindowProbe::local_time_box(*w)) < stop(MainWindowProbe::julian(*w)));
+  CHECK(stop(MainWindowProbe::julian(*w)) + 1 == stop(MainWindowProbe::ut_time(*w)));
 }
 
 TEST_CASE("a place with a zone keeps the UT of a fetched record") {

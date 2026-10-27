@@ -890,18 +890,16 @@ void MainWindow::build_ui() {
   refresh_sommer_effect_ = refresh_sommer;
   form->addRow(tr("Datum"), date_);
   // the clock reading, the zone plus Sommerzeit or the local clock turn
-  // it into the UT of the row below
+  // it into the UT at the end of the block
   form->addRow(tr("Uhrzeit"), time_);
-  auto* ut_row = new QWidget(form_host);
-  auto* ut_lay = new QHBoxLayout(ut_row);
-  ut_lay->setContentsMargins(0, 0, 0, 0);
-  ut_lay->setSpacing(8);
-  ut_lay->addWidget(ut_time_, 1);
-  ut_lay->addWidget(ut_day_);
-  form->addRow(tr("Weltzeit (UT)"), ut_row);
-  // Ortsname sits between the clock time and the zone, the ORT SUCHEN
-  // picker fills the zone and the coordinates below
+  // the place with its coordinates right after it like ORT, LÄNGE and
+  // BREITE of his EINGABE box, the ORT SUCHEN picker fills them and the
+  // zone below
   form->addRow(tr("Ortsname"), place_row);
+  // the hidden lon_/lat_ spinboxes stay off the form, the DMS rows carry
+  // the visible entry and mirror the double back into them
+  form->addRow(tr("Länge (Ost +)"), lon_row);
+  form->addRow(tr("Breite (Nord +)"), lat_row);
   // the zone field carries a picker into the zone name catalogue
   auto* zone_row = new QWidget(form_host);
   auto* zone_lay = new QHBoxLayout(zone_row);
@@ -916,10 +914,15 @@ void MainWindow::build_ui() {
   form->addRow(tr("Zeit-Zone"), zone_row);
   form->addRow(sommer_row);
   form->addRow(history_row);
-  // the hidden lon_/lat_ spinboxes stay off the form, the DMS rows carry
-  // the visible entry and mirror the double back into them
-  form->addRow(tr("Länge (Ost +)"), lon_row);
-  form->addRow(tr("Breite (Nord +)"), lat_row);
+  // the UT closes the block as what the clock, the zone, the summer time
+  // and the local clock above make of the moment
+  auto* ut_row = new QWidget(form_host);
+  auto* ut_lay = new QHBoxLayout(ut_row);
+  ut_lay->setContentsMargins(0, 0, 0, 0);
+  ut_lay->setSpacing(8);
+  ut_lay->addWidget(ut_time_, 1);
+  ut_lay->addWidget(ut_day_);
+  form->addRow(tr("Weltzeit (UT)"), ut_row);
   form->addRow(tr("Häuser"), houses_);
   form->addRow(parallax_);
   form->addRow(extras_);
@@ -973,7 +976,22 @@ void MainWindow::build_ui() {
   ttime_->setEnabled(false);
   form->addRow(transit_on_);
   form->addRow(tr("Transit-Datum"), tdate_);
-  form->addRow(tr("Zeit (UT)"), ttime_);
+  // the moment of the transits reads in UT like the Weltzeit of the birth
+  form->addRow(tr("Weltzeit (UT)"), ttime_);
+  // the keys walk the fields as the rows stand, the widgets were built in
+  // another order
+  QWidget* previous = nullptr;
+  for (QWidget* next : std::initializer_list<QWidget*>{
+           surname_,     date_,       time_,       place_field_, place_pick,    lon_deg,      lon_min,     lon_sec,
+           lon_hemi,     lat_deg,     lat_min,     lat_sec,      lat_hemi,      zone_,        zone_pick,   sommerzeit_,
+           double_dst_,  local_time_, julian_,     ut_time_,     houses_,       parallax_,    extras_,     node_show_,
+           node_wahr,    node_mittel, apogee_show_, apogee_wahr, apogee_mittel, extra_pick,   helio_,      transit_on_,
+           tdate_,       ttime_}) {
+    if (previous != nullptr) {
+      QWidget::setTabOrder(previous, next);
+    }
+    previous = next;
+  }
   input_dock->setWidget(form_host);
   addDockWidget(Qt::LeftDockWidgetArea, input_dock);
 

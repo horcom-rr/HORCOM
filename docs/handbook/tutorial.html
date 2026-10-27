@@ -103,30 +103,35 @@ recomputes with every change, there is no calculate button.
   after the year. The chart appears as soon as the year has its four
   digits, a pause in the middle of the year draws nothing. Enter takes a
   shorter year such as 197 at once.</li>
-  <li>Enter the <b>Clock time</b> of birth and the time zone in hours east
-  of Greenwich. The <code>…</code> button beside the zone opens the zone
-  catalogue when you only know the zone by name. The <b>Universal time
-  (UT)</b> row under the clock time shows the moment every calculation
-  uses, with the UT date beside it when that falls on another day. When
-  you know the UT, type it there and the clock time follows.</li>
-  <li>Enter longitude and latitude in decimal degrees, east and north
-  positive. Alternatively <b>PLACE FILES / FIND PLACE</b> in the IN-OUT menu
-  (Ctrl+L) finds both in the gazetteer and carries the place name onto
-  the sheet. <b>ENTER PLACE into a place file</b> beside it keeps the
-  current place in a place file of your own.</li>
+  <li>Enter the <b>Clock time</b> of birth.</li>
+  <li>Type the place name. Its longitude and latitude stand right under
+  it, as in Robert Rettig's entry box, in degrees, minutes and seconds,
+  east and north positive. Alternatively <b>PLACE FILES / FIND PLACE</b>
+  in the IN-OUT menu (Ctrl+L) finds the place in the gazetteer and fills
+  its name, its coordinates and its zone. <b>ENTER PLACE into a place
+  file</b> beside it keeps the current place in a place file of your
+  own.</li>
+  <li>Enter the time zone in hours east of Greenwich. The <code>…</code>
+  button beside the zone opens the zone catalogue when you only know the
+  zone by name.</li>
+  <li>Set the two rows of switches under the zone. <b>Summer time</b>
+  raises the entered clock time by one hour, so a daylight saving birth
+  reaches UT without editing the zone. <b>True local time (LT)</b> reads
+  the clock time as the solar time of the place, for births from before
+  the time zones. Before 1810 it is turned into mean local time on its
+  own, until 1890 HORCOM asks which of the two the record gives, the note
+  beside Summer time names the clock in force.</li>
+  <li>The <b>Universal time (UT)</b> row closes the time rows. It shows
+  the moment every calculation uses, what the clock time, the zone and the
+  switches make of it, with the UT date beside it when that falls on
+  another day. When you know the UT, type it there and the clock time
+  follows.</li>
   <li>Choose the house system. Placidus is the default.</li>
 </ol>
 <p>
-The switches under the fields set the chart's options.
+The switches under the house system set the chart's options.
 </p>
 <ul>
-  <li><b>Summer time</b> raises the entered clock time by one hour, so a
-  daylight saving birth reaches UT without editing the zone.</li>
-  <li><b>True local time (LT)</b> reads the clock time as the solar time
-  of the place, for births from before the time zones. Before 1810 it is
-  turned into mean local time on its own, until 1890 HORCOM asks which of
-  the two the record gives, the note beside Summer time names the clock
-  in force.</li>
   <li><b>Parallax (topocentric)</b> computes the positions for an observer
   standing on the Earth's surface rather than at its centre. It matters
   most for the Moon, whose position can shift by up to about a degree.
