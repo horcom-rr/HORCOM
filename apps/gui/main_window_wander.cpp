@@ -97,8 +97,9 @@ class WanderView final : public QDialog {
     bottom->addWidget(diff);
     bottom->addStretch(1);
     // the key sheet of the walk comes back over the held walk, the button
-    // takes no focus so the keys stay with the walk
-    auto* help = new QPushButton(tr("HILFE ( F1 )"), bar_);
+    // takes no focus so the keys stay with the walk. The view has no
+    // Q_OBJECT, its own tr would look the caption up under QDialog
+    auto* help = new QPushButton(QCoreApplication::translate("horcom::MainWindow", "HILFE ( F1 )"), bar_);
     help->setFocusPolicy(Qt::NoFocus);
     connect(help, &QPushButton::clicked, this, [this]() {
       if (on_help) {
