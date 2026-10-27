@@ -62,6 +62,14 @@ class RecordListDialog : public QDialog {
   void double_click(QListWidgetItem* item);
   void exit_list();
   void search(const QString& text);
+  /// His Allgemein suchen, the next row from the cursor on that holds the
+  /// text of the search field.
+  void scan_on();
+  /// Moves the cursor to a found row. A list of several records keeps its
+  /// marks, the cursor had marked the found row and WAHL - ENDE took it.
+  ///
+  /// @param row the found row
+  void move_to(int row);
   void show_marked();
 
   std::vector<AafRecord> records_;

@@ -2,10 +2,13 @@
 // horcom, the C++ rewrite of HORCOM by Robert Rettig (1989 to 2010)
 // Copyright (c) 2026 Dominik Schwimmbeck
 
+#include <QApplication>
 #include <QCheckBox>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QKeyEvent>
 #include <QLabel>
+#include <QLineEdit>
 #include <QListWidget>
 #include <QMessageBox>
 #include <QTableWidget>
@@ -589,6 +592,69 @@ TEST_CASE("LÖSCHEN takes more than his ten marks in one round") {
   const auto left = read_chart_file(std::filesystem::path(file.toStdWString()));
   REQUIRE(left.has_value());
   CHECK(left->size() == 3);
+}
+
+TEST_CASE("the search of the LÖSCHEN list moves the cursor and marks nothing") {
+  Scratch s("horcom_entry_delete_search");
+  const QString file = s.path("GROSS.DAT");
+  std::vector<ChartRecord> recs;
+  // more than 58 records bring the search field
+  for (int i = 0; i < 70; ++i) {
+    ChartRecord c = stored("FALL");
+    c.name = (i == 40 ? "MEIER " : "FALL ") + std::to_string(10 + i);
+    recs.push_back(c);
+  }
+  REQUIRE(write_chart_file(std::filesystem::path(file.toStdWString()), recs));
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::bind(*w, file);
+  int marked = -1;
+  bool open_after_enter = false;
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("ALPHABETISCH: 1."))  // SORTIER-MODUS ?
+        .then([&](QDialog* d) {
+      auto* search = d->findChild<QLineEdit*>();
+      auto* list = d->findChild<QListWidget*>();
+      REQUIRE(search != nullptr);
+      REQUIRE(list != nullptr);
+      search->setFocus();
+      search->setText("MEIER");
+      emit search->textEdited("MEIER");
+      // Enter scans on in the field, it had pressed the default WAHL - ENDE
+      // with the found row marked and the next Enter deleted it
+      QKeyEvent enter(QEvent::KeyPress, Qt::Key_Return, Qt::NoModifier);
+      QApplication::sendEvent(search, &enter);
+      open_after_enter = d->isVisible();
+      marked = static_cast<int>(list->selectedItems().size());
+      CHECK(list->currentItem() != nullptr);
+      CHECK(list->currentItem()->text().contains("MEIER"));
+      d->reject();
+    });
+    MainWindowProbe::delete_from_file(*w);
+    CHECK(drive.pending() == 0);
+  }
+  CHECK(open_after_enter);
+  CHECK(marked == 0);
+  const auto left = read_chart_file(std::filesystem::path(file.toStdWString()));
+  REQUIRE(left.has_value());
+  CHECK(left->size() == 70);
+}
+
+TEST_CASE("a rename onto a file in use is refused and keeps both collections") {
+  Scratch s("horcom_entry_rename_taken");
+  const std::filesystem::path kunden(s.path("KUNDEN.DAT").toStdWString());
+  const std::filesystem::path meier(s.path("MEIER.DAT").toStdWString());
+  REQUIRE(write_chart_file(kunden, {stored("KUNDE")}));
+  REQUIRE(write_chart_file(meier, {stored("MEIER"), stored("MEIER")}));
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::bind(*w, s.path("KUNDEN.DAT"));
+  // the file system had replaced MEIER.DAT without a reserve copy
+  CHECK_FALSE(MainWindowProbe::rename_data_file(*w, kunden, meier));
+  const auto kept = read_chart_file(meier);
+  REQUIRE(kept.has_value());
+  CHECK(kept->size() == 2);
+  CHECK(std::filesystem::exists(kunden));
+  CHECK(MainWindowProbe::data_file(*w) == s.path("KUNDEN.DAT"));
 }
 
 TEST_CASE("LÖSCHEN with the AAF records kept leaves the deletion in place") {

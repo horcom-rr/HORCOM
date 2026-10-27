@@ -550,6 +550,8 @@ void MainWindow::time_wander() {
   }
   // his @merk, the start the walk may return to
   const double jd0 = last_chart_->jd_ut;
+  // the start comes back led as it was, a typed Uhrzeit keeps the lead
+  const TimeLead lead0 = time_lead();
   const QString label = record_label_.trimmed();
   const std::array<int, body::kSlotCount> emphasis_before = emphasis_;
   // his ARRAYFILL halbsz%(),0 and aspz%(),0, the start chart is not counted
@@ -691,7 +693,7 @@ void MainWindow::time_wander() {
       recompute();
     }
   } else {
-    apply_moment(jd0, label, false, true);
+    return_to(lead0, label);
   }
 }
 
@@ -796,6 +798,8 @@ bool MainWindow::multi_time_variation(const QString& mul) {
     return false;
   }
   const double jd0 = last_chart_->jd_ut;
+  // the start comes back led as it was, a typed Uhrzeit keeps the lead
+  const TimeLead lead0 = time_lead();
   const double event0 = multi_event_jd_;
   // a COMBIN keeps its pair line, record_label_ names the record before it
   const QString label = combin_name1_.empty() ? record_label_.trimmed() : combin_banner_;
@@ -887,7 +891,7 @@ bool MainWindow::multi_time_variation(const QString& mul) {
     }
   } else if (jd != jd0) {
     multi_event_jd_ = event0;
-    apply_moment(jd0, label, false, true);
+    return_to(lead0, label);
   }
   return true;
 }

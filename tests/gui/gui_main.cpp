@@ -157,9 +157,12 @@ int main(int argc, char** argv) {
     app.installEventFilter(&sweep);
   }
   if (qEnvironmentVariableIsSet("HORCOM_THEME")) {
+    // HORCOM_THEME=1 stays the design size, a scale starts at the smallest
+    // step of the ladder
     bool ok = false;
     const int percent = qEnvironmentVariableIntValue("HORCOM_THEME", &ok);
-    horcom::theme::apply(ok && percent > 0 ? percent : horcom::theme::kTextScaleNormal, false);
+    horcom::theme::apply(ok && percent >= horcom::theme::kTextScaleMin ? percent : horcom::theme::kTextScaleNormal,
+                         false);
   }
   doctest::Context context(argc, argv);
   const int result = context.run();

@@ -503,6 +503,13 @@ void keep_retro_marks_clear(DisplayList& dl, std::size_t first_mark, const TextR
   }
 }
 
+// the short name of a body, TE for the Earth in the slot of the Moon of a
+// sun centred chart like his pl$(2) under hrg!
+std::string body_tag(int slot, bool helio) {
+  const std::string_view v = helio && slot == body::kMoon ? body::kEarthName : body::kName[static_cast<std::size_t>(slot)];
+  return std::string(v.data(), v.size());
+}
+
 }  // namespace
 
 Rgb ring_fill_color(int element, Rgb color, RingFill fill) {
@@ -1348,7 +1355,12 @@ void add_classic_text(DisplayList& dl, const Chart& chart, const ChartSettings& 
   const int mirror_rows = 1 + static_cast<int>(mirrors.size() + 1) / 2;
   const double room = kCanvasHeight - kSheetFoot - kTableTop - 2.0 * kRule - house_rows * kRowStep -
                       mirror_rows * kMirrorRow;
-  const double step = rows.empty() ? kRowStep : std::min(kRowStep, room / static_cast<double>(rows.size()));
+  // never below half a row. A chart with scores of Spiegelungen had shrunk
+  // the rows to nothing and past it the room turned negative, the
+  // Spiegelungen then run off the foot of the sheet instead
+  constexpr double kRowStepMin = kRowStep / 2.0;
+  const double step =
+      rows.empty() ? kRowStep : std::clamp(room / static_cast<double>(rows.size()), kRowStepMin, kRowStep);
   const double row_text = kRowText * step / kRowStep;
   // his Vel. stood over the speeds, under vf! his d1& moved it in with the
   // smaller rows, and hrg! drew no speeds
@@ -1374,9 +1386,9 @@ void add_classic_text(DisplayList& dl, const Chart& chart, const ChartSettings& 
       }
     }
     // TE, his pl$(2) of the sun centred chart
-    const std::string tag = (s.heliocentric && slot == body::kMoon) ? std::string(body::kEarthName)
+    const std::string tag = (s.heliocentric && slot == body::kMoon) ? body_tag(slot, true)
                             : slot <= body::kNodeAsc ? std::string(kRowTag[slot - 1])
-                                                     : std::string(body::kName[static_cast<std::size_t>(slot)]);
+                                                     : body_tag(slot, false);
     // no speed for a body standing still in the table and none for GL,
     // his ru$ = "" for tb(i&) = 0 and i& = nk&(4)
     char buf[48];
@@ -1449,8 +1461,8 @@ void add_classic_text(DisplayList& dl, const Chart& chart, const ChartSettings& 
       mx = x0;
       y += kMirrorRow;
     }
-    text(mx, y, std::string(body::kName[static_cast<std::size_t>(t)]));
-    text(mx + kMirrorPartner, y, "-" + std::string(body::kName[static_cast<std::size_t>(u)]));
+    text(mx, y, body_tag(t, s.heliocentric));
+    text(mx + kMirrorPartner, y, "-" + body_tag(u, s.heliocentric));
     mx += kMirrorStep;
   }
 
@@ -1656,10 +1668,9 @@ DisplayList a4_print_sheet(const Chart& chart, const ChartSettings& s, const Asp
                   total % 60);
     return std::string(buf);
   };
-  const auto tag = [](int slot) {
-    const std::string_view v = body::kName[static_cast<std::size_t>(slot)];
-    return std::string(v.data(), v.size());
-  };
+  // the Earth of a sun centred sheet is TE like on the wheel, the list
+  // had named it MO
+  const auto tag = [&s](int slot) { return body_tag(slot, s.heliocentric); };
 
   //RR boxn(1,1,639,979), the page frame
   box(1.0, 1.0, 639.0, 979.0);

@@ -770,6 +770,8 @@ class MainWindow : public QMainWindow {
     /// the UT led the step, left out of the comparison like the radix
     /// memory, the two times of the step show the same moment either way
     bool ut_leads = true;
+    /// the exact moment that led, left out of the comparison as well
+    double ut_anchor = 0.0;
     /// the Daten-Datei of the step's SATZ column, his datru$(ze)
     QString slot_file;
     double lon = 0.0;
@@ -1153,11 +1155,41 @@ class MainWindow : public QMainWindow {
   /// Keeps the UT of the panel while it leads, the Uhrzeit takes the new
   /// zone, summer time, local clock or place.
   void hold_ut();
+  /// Moves the exact moment that leads with the panel. A held moment the
+  /// clock reads back in whole seconds stays, a typed Uhrzeit, a typed date
+  /// or any other change of the moment takes the moment of the panel.
+  ///
+  /// @param jd_ut the moment the panel reads now
+  void follow_anchor(double jd_ut);
   [[nodiscard]] ChartSettings current_settings() const;
   void apply_record(const AafRecord& r, bool claim_slot = true);
   /// Puts a found moment onto the panel. Derived charts land in UT, a
   /// corrected radix keeps the panel's own clock, zone and calendar.
-  void apply_moment(double jd_ut, const QString& label, bool solar_slot = false, bool keep_clock = false);
+  ///
+  /// @param jd_ut      the moment in UT
+  /// @param label      the line of the banner
+  /// @param solar_slot true when the moment is a derived chart of a SOLAR row
+  /// @param keep_clock true when the panel keeps its clock, zone and calendar
+  /// @param ut_leads   false when a typed Uhrzeit leads the moment, a walk
+  ///                   that returns to its start gives back the lead it had
+  void apply_moment(double jd_ut, const QString& label, bool solar_slot = false, bool keep_clock = false,
+                    bool ut_leads = true);
+  /// The time that leads the panel with its exact moment.
+  struct TimeLead {
+    double jd_ut = 0.0;
+    bool ut = true;
+  };
+  /// @return the lead of the panel, a walk gives it back when it returns
+  [[nodiscard]] TimeLead time_lead() const { return {ut_anchor_, ut_leads_}; }
+  /// Returns a walk to the moment it started from, led as it was led.
+  ///
+  /// @param lead  the lead at the start of the walk
+  /// @param label the line of the banner
+  void return_to(const TimeLead& lead, const QString& label) { apply_moment(lead.jd_ut, label, false, true, lead.ut); }
+  /// The derived moment of a SOLAR row is the exact moment that leads, the
+  /// clock rounds to whole seconds and its read back lies up to half a
+  /// second off.
+  void mark_derived();
   /// Casts the SOLAR of a year, one pass of his a16sol loop.
   ///
   /// @param year  the calendar year of the return
@@ -1528,8 +1560,13 @@ class MainWindow : public QMainWindow {
   /// and a new zone, summer time, local clock or place moves the Uhrzeit,
   /// a typed Uhrzeit leads and the UT follows
   bool ut_leads_ = true;
-  /// the UT of the panel at the last refresh, the moment hold_ut keeps
+  /// the UT of the panel at the last refresh, read back from the clock in
+  /// whole seconds
   double panel_jd_ut_ = 0.0;
+  /// the exact UT that leads, the moment hold_ut keeps. A local clock is
+  /// off the UT by a fraction of a second, a hold from the read back
+  /// would round again on every new zone or place and drift
+  double ut_anchor_ = 0.0;
   QDoubleSpinBox* zone_ = nullptr;
   /// the hidden double coordinate, the source of truth every calc and
   /// file path already reads through lon_/lat_->value()

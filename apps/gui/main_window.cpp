@@ -59,6 +59,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <algorithm>
+#include <system_error>
 #include <utility>
 #include <cmath>
 #include <functional>
@@ -211,6 +212,10 @@ constexpr int kClockStripMs = 1000;
 
 // a burst of edits settles into one history step after this pause
 constexpr int kHistorySettleMs = 800;
+// two moments read through the calendar and back agree to a millisecond
+constexpr double kSameMomentSeconds = 0.001;
+// the clock in whole seconds reads a moment back up to half a second off
+constexpr double kReadBackSeconds = 0.5;
 // the year of the panel date as set_panel_day writes it after Christ
 constexpr qsizetype kYearDigits = 4;
 // the panel history keeps this many steps
@@ -1681,9 +1686,11 @@ void MainWindow::build_ui() {
   // field follow through the zone and the clock
   connect(ut_time_, &QTimeEdit::timeChanged, this, [this](const QTime& t) {
     ut_leads_ = true;
-    const CalendarDate u = calendar_date(panel_jd_ut_, panel_calendar_);
+    // the day the row shows, the read back may lie a hair before midnight
+    const CalendarDate u = whole_second(panel_jd_ut_, panel_calendar_).day;
     const CalendarDate typed{u.day, u.month, u.year, static_cast<double>(t.hour()), t.minute() + t.second() / 60.0};
-    set_panel_clock(julian_day(typed, panel_calendar_));
+    ut_anchor_ = julian_day(typed, panel_calendar_);
+    set_panel_clock(ut_anchor_);
     recompute();
   });
   // the zone, the summer time, the local clock and the longitude it reads
@@ -1789,6 +1796,15 @@ void MainWindow::set_panel_clock(double jd_ut) {
   time_->setTime(t);
 }
 
+void MainWindow::follow_anchor(double jd_ut) {
+  // a typed Uhrzeit leads or the moment itself moved, a typed date or a
+  // shifted clock. A held moment read back from the clock is still the
+  // moment that leads
+  if (!ut_leads_ || std::abs(jd_ut - ut_anchor_) * kSecondsPerDay > kReadBackSeconds + kSameMomentSeconds) {
+    ut_anchor_ = jd_ut;
+  }
+}
+
 void MainWindow::refresh_ut_field(double jd_ut) {
   panel_jd_ut_ = jd_ut;
   const auto [u, t] = whole_second(jd_ut, panel_calendar_);
@@ -1804,8 +1820,13 @@ void MainWindow::refresh_ut_field(double jd_ut) {
 
 void MainWindow::hold_ut() {
   if (ut_leads_ && !idle_ && panel_day_valid()) {
-    set_panel_clock(panel_jd_ut_);
+    set_panel_clock(ut_anchor_);
   }
+}
+
+void MainWindow::mark_derived() {
+  derived_input_ = current_input();
+  derived_input_->date_ut = calendar_date(ut_anchor_, current_settings().calendar);
 }
 
 ChartSettings MainWindow::current_settings() const {
@@ -1911,6 +1932,7 @@ MainWindow::PanelState MainWindow::panel_state() const {
   s.calendar = panel_calendar_;
   s.clock = clock_kind_;
   s.ut_leads = ut_leads_;
+  s.ut_anchor = ut_anchor_;
   if (const int col = active_is_solar_ ? active_solar_ : active_slot_; col >= 0) {
     s.slot_file = slot_files_[static_cast<std::size_t>(col)];
   }
@@ -1981,6 +2003,7 @@ void MainWindow::restore_state(const PanelState& s) {
     zone_->setValue(s.zone);
     clock_kind_ = s.clock;
     ut_leads_ = s.ut_leads;
+    ut_anchor_ = s.ut_anchor;
     set_dst(s.dst);
     set_panel_calendar(s.calendar);
     local_time_->setChecked(s.clock != ClockKind::kZone);
@@ -2215,18 +2238,20 @@ void MainWindow::recompute() {
   ChartInput in;
   if (!clock) {
     in = current_input();
+    follow_anchor(julian_day(in.date_ut, current_settings().calendar));
     // the panel holds a radix, without a SATZ row its moment lives only
     // here once a derived chart takes the panel. A moment typed over the
     // derived one is the radix of a panel without a SATZ row again, like
     // the panel always was, a place moved under the derived chart is none.
     // A step of Zurück or Vor brings its own memory
-    // a zone or a local clock held under the derived moment reads the UT
-    // back through whole seconds, up to half a second off, it is the same
-    // moment. A typed change moves it by a whole second at least
-    const auto shows_derived = [this, &in]() {
+    // the panel shows the derived moment while its UT leads exactly that
+    // moment, a zone, a local clock or a place held under it keeps it. The
+    // clock in whole seconds read back lies up to half a second off and a
+    // tolerance there had also swallowed a typed second
+    const auto shows_derived = [this]() {
       const Calendar cal = current_settings().calendar;
-      return derived_input_ &&
-             std::abs(julian_day(in.date_ut, cal) - julian_day(derived_input_->date_ut, cal)) * kSecondsPerDay < 1.0;
+      return derived_input_ && ut_leads_ &&
+             std::abs(ut_anchor_ - julian_day(derived_input_->date_ut, cal)) * kSecondsPerDay < kSameMomentSeconds;
     };
     if (!deriving_ && !restoring_ && !(active_is_solar_ && shows_derived())) {
       loose_radix_ = panel_radix(in);
@@ -2841,7 +2866,7 @@ void MainWindow::save_place() {
   enter_place(this, data_dir_, r);
 }
 
-void MainWindow::apply_moment(double jd_ut, const QString& label, bool solar_slot, bool keep_clock) {
+void MainWindow::apply_moment(double jd_ut, const QString& label, bool solar_slot, bool keep_clock, bool ut_leads) {
   if (!progression_pending_) {
     prog_event_note_.clear();
     prog_radix_note_.clear();
@@ -2855,8 +2880,12 @@ void MainWindow::apply_moment(double jd_ut, const QString& label, bool solar_slo
     zone_->setValue(0.0);
   }
   set_panel_clock(jd_ut);
-  // a reckoned moment is a UT, a new zone shows it on another clock
-  ut_leads_ = true;
+  // a reckoned moment is a UT, a new zone shows it on another clock. Set
+  // before the recompute, which hands the lead to the radix memory
+  ut_leads_ = ut_leads;
+  if (ut_leads) {
+    ut_anchor_ = jd_ut;
+  }
   if (refresh_sommer_effect_) refresh_sommer_effect_();
   // the derived moment is no radix, the one it came from stays known. Its
   // row leads before the chart is drawn, bes2 names the return in the
@@ -2869,7 +2898,7 @@ void MainWindow::apply_moment(double jd_ut, const QString& label, bool solar_slo
   recompute();
   deriving_ = false;
   if (solar_slot) {
-    derived_input_ = current_input();
+    mark_derived();
   }
   banner_->set_record(label);
   // the ^ items of his menu write the result back into a SOLAR slot
@@ -3421,7 +3450,8 @@ void MainWindow::export_dat_file() {
           return;
         }
         aaf = aaf.parent_path() / (renamed->toStdWString() + L".AAF");
-      } while (std::filesystem::exists(aaf));
+        // the DAT takes the name too, a DAT of that name stays untouched
+      } while (std::filesystem::exists(aaf) || std::filesystem::exists(dat.parent_path() / (renamed->toStdWString() + L".DAT")));
     } else if (r != 1) {
       return;
     }
@@ -5254,20 +5284,37 @@ bool MainWindow::rename_data_file(const std::filesystem::path& from, const std::
     std::error_code same;
     return !file.isEmpty() && std::filesystem::equivalent(std::filesystem::path(file.toStdWString()), from, same);
   };
-  std::vector<std::size_t> columns;
-  for (std::size_t i = 0; i < slot_files_.size(); ++i) {
-    if (names(slot_files_[i])) {
-      columns.push_back(i);
+  // the columns and the steps of Zurück and Vor that name the file, read
+  // before the rename while the old name still finds it. The steps had
+  // brought the old name back to a column
+  std::vector<QString*> named;
+  for (QString& file : slot_files_) {
+    named.push_back(&file);
+  }
+  for (std::vector<PanelState>* steps : {&back_, &forward_}) {
+    for (PanelState& step : *steps) {
+      named.push_back(&step.slot_file);
     }
   }
+  if (pending_) {
+    named.push_back(&pending_->slot_file);
+  }
+  named.push_back(&current_state_.slot_file);
+  std::erase_if(named, [&names](const QString* file) { return !names(*file); });
   const bool working = names(data_file_);
+  // his NAME failed on a name in use, the file system would replace the
+  // other collection without a reserve copy
+  if (std::error_code same; std::filesystem::exists(to) && !std::filesystem::equivalent(from, to, same)) {
+    ec = std::make_error_code(std::errc::file_exists);
+    return false;
+  }
   std::filesystem::rename(from, to, ec);
   if (ec) {
     return false;
   }
   const QString moved = QString::fromStdWString(to.wstring());
-  for (const std::size_t i : columns) {
-    slot_files_[i] = moved;
+  for (QString* file : named) {
+    *file = moved;
   }
   if (working) {
     bind_data_file(moved);
@@ -5533,14 +5580,10 @@ void MainWindow::leave_solar_level() {
   }
   set_panel_place(place);
   // a COMBIN keeps its pair line, a typed birth names its date
-  apply_moment(julian_day(base.date_ut, current_settings().calendar), combin ? combin_banner_ : QString(), false,
-               memory.has_value() && !combin);
   // the birth is led by the time it was typed in, a reckoned moment had
   // turned a typed Uhrzeit into a UT that leads
-  if (memory && !combin) {
-    ut_leads_ = memory->ut_leads;
-    refresh_current_step();
-  }
+  apply_moment(julian_day(base.date_ut, current_settings().calendar), combin ? combin_banner_ : QString(), false,
+               memory.has_value() && !combin, memory && !combin ? memory->ut_leads : true);
   if (!combin) {
     refresh_record_label();
     refresh_current_step();
@@ -6584,8 +6627,13 @@ void MainWindow::new_records_entry() {
                                  tr("NEUE DATEN-DATEI %1 !").arg(QString::fromStdWString(dat.filename().wstring())));
         return;
       }
+      const QString before = data_file_;
       bind_data_file(path);
-      store_record(true);
+      // a record that never entered the file leaves the panel on the file
+      // it named before
+      if (!store_record(true) && !before.isEmpty()) {
+        bind_data_file(before);
+      }
     }
     return;
   }
@@ -7013,9 +7061,11 @@ void MainWindow::apply_record(const AafRecord& r, bool claim_slot) {
   // a record taken on the SOLAR level is a derived chart, the radix of the
   // panel stays where it was
   deriving_ = !claim_slot && active_is_solar_;
+  // the record's own UT leads, the clock in whole seconds only shows it
+  ut_anchor_ = jd_rules ? r.jd : panel_jd_ut();
   recompute();
   if (deriving_) {
-    derived_input_ = current_input();
+    mark_derived();
     deriving_ = false;
   }
   refresh_record_label();
@@ -7324,9 +7374,9 @@ AafRecord MainWindow::panel_record() const {
 // overwrite question, and where the AAF twin exists it is the pilot,
 // the record lands there too and the DAT is rebuilt from it
 void MainWindow::save_record() {
-  // the tester wants to store into another file too, the box offers the
-  // bound file and another one like the fetch of fetch_from_file, a new
-  // name starts a file with this record like a2dat
+  // the record may go into another file too, the box offers the bound
+  // file and another one like the fetch of fetch_from_file, a new name
+  // starts a file with this record like a2dat
   // without a bound file only the choice of a file is left, the box would
   // offer nothing to enter into
   int action = 1;
@@ -7360,7 +7410,14 @@ void MainWindow::save_record() {
       QMessageBox::information(this, "HORCOM", tr("NEUE DATEN-DATEI %1 !").arg(QString::fromStdWString(dat.filename().wstring())));
       return;
     }
+    const QString before = data_file_;
     bind_data_file(path);
+    // a record that never entered the other file leaves the panel on the
+    // file it named before
+    if (!store_record(false) && !before.isEmpty()) {
+      bind_data_file(before);
+    }
+    return;
   }
   store_record(false);
 }

@@ -24,7 +24,7 @@ mkdir -p "$work/tools"
 cmake -S "$root" -B "$work/build" -G Ninja -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR" -DHORCOM_VERSION="$version"
 cmake --build "$work/build"
-ctest --test-dir "$work/build" --output-on-failure
+ctest --test-dir "$work/build" --output-on-failure --parallel "$(nproc)"
 
 appdir="$work/AppDir"
 rm -rf "$appdir"

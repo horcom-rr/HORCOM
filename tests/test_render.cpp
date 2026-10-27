@@ -633,9 +633,14 @@ TEST_CASE("the A4 position list marks like bes_big_plan, the south node blank an
   }
   const DisplayList hel = sheet(true);
   CHECK(heading(hel).find("Vel.") == std::string::npos);
+  bool earth = false;
   for (const std::string& row : list_rows(hel)) {
     CHECK(row.find(" p ") == std::string::npos);
+    // the Earth stands as TE like on the wheel, the list had named it MO
+    CHECK(row.rfind("MO", 0) != 0);
+    earth = earth || row.rfind("TE", 0) == 0;
   }
+  CHECK(earth);
 }
 
 TEST_CASE("the A4 sheet draws his element and quality columns") {
@@ -1760,6 +1765,33 @@ TEST_CASE("a long body list shrinks so the classic sheet keeps its houses") {
   }
   CHECK(h12);
   CHECK(lowest < kCanvasHeight);
+}
+
+TEST_CASE("the classic sheet keeps readable rows under scores of Spiegelungen") {
+  ChartInput in;
+  in.date_ut = {13, 10, 1992, 3, 0.0};
+  in.lon_deg_east = 11.3244;
+  in.lat_deg = 48.1742;
+  ChartSettings s;
+  s.extra_bodies = true;
+  for (int i = 1; i <= 22; ++i) {
+    s.nk[static_cast<std::size_t>(i)] = i == 1 ? body::kApogee : body::kExtraSlotBase + i;
+  }
+  const Chart c = compute_chart(in, s, vsop(), eph());
+  REQUIRE(c.ok);
+  DisplayList dl = build_wheel(c, s, scan_aspects(c, s, {}));
+  // a raised orb over every extra body brings scores of pairs, the room
+  // for the rows had turned negative and the text size with it
+  const std::vector<std::pair<int, int>> mirrors(80, {body::kSun, body::kMoon});
+  add_classic_text(dl, c, s, ClassicSheetText{}, mirrors);
+  double smallest = 1.0e9;
+  for (const Primitive& p : dl.items) {
+    if (p.kind == Primitive::Kind::kText && p.anchor == Primitive::Anchor::kCorner) {
+      smallest = std::min(smallest, p.size);
+    }
+  }
+  // half a row at the least, the text in step with it
+  CHECK(smallest >= 10.0 / 2.0 - 1.0e-9);
 }
 
 TEST_CASE("the sun centred classic sheet follows his hrg! branch") {

@@ -87,6 +87,10 @@ jobs:
         run: cmake --build build
 
       - name: Test
+        # the sanitizers slow every case several times over, the watchdog of
+        # the GUI suite waits longer before it calls a case hung
+        env:
+          HORCOM_CASE_LIMIT_S: ${{ matrix.name == 'sanitize' && '180' || '60' }}
         run: ctest --test-dir build --output-on-failure --parallel 4
 
       - name: Smoke test

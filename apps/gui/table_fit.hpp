@@ -11,6 +11,7 @@
 #include <QLabel>
 #include <QLayout>
 #include <QPointer>
+#include <QScreen>
 #include <QScrollBar>
 #include <QStyle>
 #include <QTableWidget>
@@ -22,6 +23,9 @@
 #include "theme.hpp"
 
 namespace horcom {
+
+/// The share of the screen width a fitted table may ask for.
+inline constexpr double kFitScreenShare = 0.9;
 
 /// Makes a table ask for the room of all its columns, so the window
 /// holding it grows until every column shows whole. The width a column
@@ -40,6 +44,11 @@ inline void fit_columns(QTableWidget* t) {
     if (!t->isColumnHidden(c)) {
       width += std::max(view->sizeHintForColumn(c), t->horizontalHeader()->sectionSizeHint(c));
     }
+  }
+  // the window never grows past the screen, a table wider than that keeps
+  // its scroll bar. The frame and the margins of the window take the rest
+  if (const QScreen* screen = t->screen(); screen != nullptr) {
+    width = std::min(width, static_cast<int>(screen->availableGeometry().width() * kFitScreenShare));
   }
   t->setMinimumWidth(width);
 }

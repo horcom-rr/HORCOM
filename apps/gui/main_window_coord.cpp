@@ -589,6 +589,8 @@ void MainWindow::coordinate_table(bool extras) {
     view.setProperty(kWalkKeysProperty, on);
   };
   const double jd0 = last_chart_->jd_ut;
+  // the start comes back led as it was, a typed Uhrzeit keeps the lead
+  const TimeLead lead0 = time_lead();
   double jd = jd0;
   QTimer timer;
   timer.setSingleShot(true);
@@ -611,6 +613,9 @@ void MainWindow::coordinate_table(bool extras) {
     }
   };
   const auto step = [&]() {
+    // a walk that steps is held no longer, after the key sheet or a Space
+    // and a Weiter at ESC the next Space had stepped
+    paused = false;
     if (!release) {
       release = hold_history();
     }
@@ -715,7 +720,7 @@ void MainWindow::coordinate_table(bool extras) {
         refresh_current_step();
       }
     } else {
-      apply_moment(jd0, label, false, true);
+      return_to(lead0, label);
     }
     jd = jd0;
     refill();
@@ -812,7 +817,7 @@ void MainWindow::coordinate_table(bool extras) {
   unhold();
   // a closed window ends a running walk like ESC, the moment returns
   if (walking || jd != jd0) {
-    apply_moment(jd0, label, false, true);
+    return_to(lead0, label);
   }
 }
 

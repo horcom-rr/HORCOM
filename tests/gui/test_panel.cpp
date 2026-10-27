@@ -1211,6 +1211,44 @@ TEST_CASE("a typed UT at midnight under a local clock stays on its day") {
   CHECK(MainWindowProbe::ut_day(*w).isEmpty());
   CHECK(MainWindowProbe::time(*w)->time() == QTime(0, 46, 20));
   CHECK(std::abs(MainWindowProbe::panel_jd(*w) - julian_day({1, 3, 1900, 0.0, 0.0}, Calendar::kAuto)) < kSecondDays);
+  // the next key reads the day the row shows, the read back lies a hair
+  // before midnight and had taken the day before
+  MainWindowProbe::ut_time(*w)->setTime(QTime(0, 5));
+  CHECK(MainWindowProbe::date(*w)->text() == "01.03.1900");
+  CHECK(std::abs(MainWindowProbe::panel_jd(*w) - julian_day({1, 3, 1900, 0.0, 5.0}, Calendar::kAuto)) < kSecondDays);
+}
+
+TEST_CASE("a date typed while the UT leads is the moment the next zone holds") {
+  auto w = MainWindowProbe::make();
+  // a record leads with its UT
+  MainWindowProbe::apply(*w, sample(1, 3, 1900, 12, 0, "00hE00:00"));
+  MainWindowProbe::date(*w)->setText("02.03.1900");
+  emit MainWindowProbe::date(*w)->editingFinished();
+  // the hold had kept the moment the record brought and the zone put the
+  // panel back on the day before
+  MainWindowProbe::zone(*w)->setValue(1.0);
+  CHECK(MainWindowProbe::date(*w)->text() == "02.03.1900");
+  CHECK(MainWindowProbe::time(*w)->time() == QTime(13, 0));
+  CHECK(std::abs(MainWindowProbe::panel_jd(*w) - julian_day({2, 3, 1900, 12.0, 0.0}, Calendar::kAuto)) < kSecondDays);
+}
+
+TEST_CASE("a UT held under a local clock does not drift with the place") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, sample(1, 3, 1900, 12, 0, "00hE00:00"));
+  MainWindowProbe::lon_box(*w)->setValue(11.0);
+  // the switch like a click, the UT of the record holds and the clock moves
+  MainWindowProbe::local_time_box(*w)->setChecked(true);
+  REQUIRE(MainWindowProbe::clock(*w) == ClockKind::kMeanLocal);
+  INFO(MainWindowProbe::time(*w)->time().toString().toStdString());
+  CHECK(MainWindowProbe::time(*w)->time() == QTime(12, 44));
+  // every hold rounded the clock again from the read back of the last one,
+  // a few seconds of longitude there and back left the UT two seconds off
+  for (const double seconds : {6.0, 12.0, 3.0, 9.0, 0.0}) {
+    MainWindowProbe::lon_box(*w)->setValue(11.0 + seconds / 3600.0);
+  }
+  CHECK(MainWindowProbe::ut_time(*w)->time() == QTime(12, 0));
+  CHECK(MainWindowProbe::time(*w)->time() == QTime(12, 44));
+  CHECK(std::abs(MainWindowProbe::panel_jd(*w) - julian_day({1, 3, 1900, 12.0, 0.0}, Calendar::kAuto)) < kSecondDays);
 }
 
 TEST_CASE("a typed UT under the true local clock reads back to the second") {

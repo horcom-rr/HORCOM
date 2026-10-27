@@ -217,6 +217,26 @@ TEST_CASE("the session switch-off skips the counter box on the next walk") {
   CHECK(first_titles.join(QChar(0x0A)).contains("ZEIT-EINHEIT ?"));
 }
 
+TEST_CASE("a walk left at its unit question gives a typed Uhrzeit its lead back") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, walker());
+  MainWindowProbe::zone(*w)->setValue(-5.0);
+  // the typed Uhrzeit leads, the UT follows the zone
+  MainWindowProbe::time(*w)->setTime(QTime(15, 0));
+  REQUIRE(MainWindowProbe::ut_time(*w)->time() == QTime(20, 0));
+  DialogDriver drive;
+  drive.then(DialogDriver::click("Zähler DAUERND AUSSCHALTEN"))
+      .then(DialogDriver::click("NORMALE AUSGABE"))
+      .then([](QDialog* d) { d->reject(); });  // ZEIT-EINHEIT ?
+  MainWindowProbe::time_wander(*w);
+  CHECK(drive.pending() == 0);
+  // the walk had returned to its start as a reckoned UT, the next zone
+  // moved the Uhrzeit and the chart by an hour
+  MainWindowProbe::zone(*w)->setValue(-6.0);
+  CHECK(MainWindowProbe::time(*w)->time() == QTime(15, 0));
+  CHECK(MainWindowProbe::ut_time(*w)->time() == QTime(21, 0));
+}
+
 namespace {
 
 // the chain up to the place walk, two degrees east and no latitude shift

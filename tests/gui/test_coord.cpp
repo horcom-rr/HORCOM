@@ -3,6 +3,8 @@
 // Copyright (c) 2026 Dominik Schwimmbeck
 
 #include <QAbstractButton>
+#include <QElapsedTimer>
+#include <QEventLoop>
 #include <QKeyEvent>
 #include <QListWidget>
 #include <QLabel>
@@ -349,6 +351,56 @@ TEST_CASE("ZEIT VARIIEREN walks the table and keeps the varied moment") {
   CHECK(stepped - jd0 == doctest::Approx(1.0).epsilon(1e-6));
   // JA keeps the varied moment in the record
   CHECK(MainWindowProbe::panel_jd(*w) - jd0 == doctest::Approx(1.0).epsilon(1e-6));
+}
+
+TEST_CASE("ZEIT VARIIEREN goes on unheld after a held walk took Irrtum at ESC") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, morning_birth());
+  const double jd0 = MainWindowProbe::panel_jd(*w);
+  double held = 0.0;
+  double later = 0.0;
+  const auto press = [](QDialog* d, int key) {
+    QKeyEvent e(QEvent::KeyPress, key, Qt::NoModifier);
+    QApplication::sendEvent(d, &e);
+  };
+  {
+    DialogDriver drive;
+    drive.then([](QDialog* d) { press_later(d, Qt::Key_Space); })
+        .then(DialogDriver::click("JA"))        // ZEIT VARIIEREN ?
+        .then(DialogDriver::click("TAGE"))      // ZEIT-EINHEIT ?
+        .then(DialogDriver::fill({"1"}, "OK"))  // TAGE als BELIEBIGE ZAHL
+        .then(DialogDriver::click("VOR"))       // RICHTUNG ?
+        .then([](QDialog* d) { d->accept(); })  // the eingalp sheet
+        .then([&press](QDialog* d) {
+          // the first step done, Space holds the walk and ESC asks
+          press(d, Qt::Key_Space);
+          press_later(d, Qt::Key_Escape);
+        })
+        // Irrtum steps on and runs the walk again
+        .then(DialogDriver::click("Irrtum"))
+        .then([&](QDialog* d) {
+          // the hold of the first Space had stayed, this Space stepped and
+          // the walk ran on by itself
+          press(d, Qt::Key_Space);
+          held = MainWindowProbe::panel_jd(*w);
+          QElapsedTimer t;
+          t.start();
+          while (t.elapsed() < 2600) {
+            QApplication::processEvents(QEventLoop::AllEvents, 20);
+          }
+          later = MainWindowProbe::panel_jd(*w);
+          press_later(d, Qt::Key_Escape);
+        })
+        .then(DialogDriver::click("NEIN = ENDE"))
+        .then(DialogDriver::click(" NEIN "))  // VARIIERTE ZEIT in RADIX ÜBERNEHMEN ?
+        .then([](QDialog* d) { d->reject(); });
+    MainWindowProbe::coordinate_table(*w, false);
+    INFO(drive.titles().join(" | ").toStdString());
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  CHECK(held - jd0 == doctest::Approx(2.0).epsilon(1e-6));
+  CHECK(later == doctest::Approx(held).epsilon(1e-12));
 }
 
 TEST_CASE("GRAD-LISTE G/H pages his list and sorts it on request") {

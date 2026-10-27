@@ -22,6 +22,7 @@
 #include <cmath>
 
 #include "choice_dialog.hpp"
+#include "event_filter.hpp"
 #include "horcom/core/constants.hpp"
 #include "horcom/data/chart_file.hpp"
 #include "horcom/data/collection.hpp"
@@ -172,21 +173,16 @@ RecordListDialog::RecordListDialog(const std::vector<AafRecord>& records, const 
     search_->setPlaceholderText(tr("Suchen"));
     search_->setClearButtonEnabled(true);
     connect(search_, &QLineEdit::textEdited, this, &RecordListDialog::search);
-    connect(search_, &QLineEdit::returnPressed, this, [this]() {
-      const QString needle = search_->text().trimmed().toUpper();
-      if (needle.isEmpty()) {
-        return;
+    // Enter scans on and stays in the field, passed on it had pressed the
+    // default WAHL - ENDE with the found row
+    const auto scan_key = [this](int key) {
+      if (key != Qt::Key_Return && key != Qt::Key_Enter) {
+        return false;
       }
-      //RR Allgemein suchen
-      const int start = list_->currentRow() + 1;
-      for (int off = 0; off < list_->count(); ++off) {
-        const int i = (start + off) % list_->count();
-        if (list_->item(i)->text().contains(needle)) {
-          list_->setCurrentRow(i);
-          return;
-        }
-      }
-    });
+      scan_on();
+      return true;
+    };
+    search_->installEventFilter(new LambdaFilter(LambdaFilter::keys(scan_key), search_));
     row->addSpacing(16);
     row->addWidget(search_, 1);
   } else {
@@ -310,10 +306,36 @@ void RecordListDialog::search(const QString& text) {
   for (int i = 0; i < list_->count(); ++i) {
     // rows carry one lead blank before the name
     if (list_->item(i)->text().mid(1).startsWith(needle)) {
-      list_->setCurrentRow(i);
+      move_to(i);
       return;
     }
   }
+}
+
+void RecordListDialog::scan_on() {
+  const QString needle = search_->text().trimmed().toUpper();
+  if (needle.isEmpty()) {
+    return;
+  }
+  //RR Allgemein suchen
+  const int start = list_->currentRow() + 1;
+  for (int off = 0; off < list_->count(); ++off) {
+    const int i = (start + off) % list_->count();
+    if (list_->item(i)->text().contains(needle)) {
+      move_to(i);
+      return;
+    }
+  }
+}
+
+void RecordListDialog::move_to(int row) {
+  QListWidgetItem* item = list_->item(row);
+  if (mode_ == Mode::kSingle) {
+    list_->setCurrentItem(item);
+  } else {
+    list_->setCurrentItem(item, QItemSelectionModel::NoUpdate);
+  }
+  list_->scrollToItem(item);
 }
 
 void RecordListDialog::set_preview(std::function<void(const AafRecord&)> preview) {
