@@ -166,13 +166,12 @@ TEST_CASE("PLANETEN-KOORDINATEN draws his ko_ta rows with both nodes") {
           for (const QLabel* l : d->findChildren<QLabel*>()) {
             question += l->text();
           }
-          // the table stays after NEIN, ESC closes it
-          auto* table = qobject_cast<QDialog*>(d->parentWidget());
           DialogDriver::click(" NEIN ")(d);
-          if (table != nullptr) {
-            QTimer::singleShot(0, table, [table]() { table->reject(); });
-          }
-        });
+        })
+        // the table stays after NEIN and comes back to the front, ESC closes
+        // it. A queued close raced the driver, which then took the table
+        // returning to the front for a new dialog
+        .then([](QDialog* d) { d->reject(); });
     MainWindowProbe::coordinate_table(*w, false);
     INFO(drive.titles().join(" | ").toStdString());
     CHECK(drive.pending() == 0);

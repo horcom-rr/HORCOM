@@ -126,13 +126,11 @@ TEST_CASE("layout: PLANETEN-KOORDINATEN and ZUSATZ-PLANETEN-KOORDINATEN") {
           issues += check_view(d, "coord");
           QTimer::singleShot(0, d, [d]() { key(d, Qt::Key_Space); });
         })
-        .then([](QDialog* d) {
-          auto* table = qobject_cast<QDialog*>(d->parentWidget());
-          DialogDriver::click(" NEIN ")(d);
-          if (table != nullptr) {
-            QTimer::singleShot(0, table, [table]() { table->reject(); });
-          }
-        });
+        .then(DialogDriver::click(" NEIN "))
+        // back in front after NEIN the table closes as a step of its own, a
+        // queued close raced the driver, which then took the table returning
+        // to the front for a new dialog
+        .then([](QDialog* d) { d->reject(); });
     MainWindowProbe::coordinate_table(*w, false);
   }
   {
