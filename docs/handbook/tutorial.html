@@ -316,7 +316,10 @@ replaces it.
 The fetched charts sit in the five <b>RADIX DATA</b> slots of the IN-OUT
 menu, SATZ1 to SATZ5. The checked slot is the chart on the wheel.
 Clicking another slot switches to it and opens its entry box, OK takes
-an edit over, CANCEL just switches. Every computed return writes itself
+an edit over, CANCEL just switches. Every slot remembers the data file
+its record came from or was entered into, and switching to the slot
+makes that file the bound one again, so the DATA panel and the next
+FETCH name the file of the chart on screen. Every computed return writes itself
 into the <b>SOLAR... DATA</b> row of its radix, so the latest solar
 return stays one click away.
 </p>

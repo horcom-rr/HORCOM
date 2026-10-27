@@ -215,6 +215,7 @@ bool MainWindow::stat_row(StatSession& ss, int record) {
   AafRecord a = stat_aaf_record(r);
   // bem$(1,ze) = "DATEN AUS 'STATISTIK'-DATEI ÜBERNOMMEN"
   a.comment = "DATEN AUS 'STATISTIK'-DATEI ÜBERNOMMEN";
+  slot_files_[static_cast<std::size_t>(slot)].clear();
   set_slot(slot, a, true);
   // @a11_1 and @stop with the parameters of the panel
   if (const std::optional<DisplayList> sheet = sheet_wheel(a, record_input(a), current_settings())) {

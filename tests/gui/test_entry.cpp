@@ -864,6 +864,147 @@ TEST_CASE("DATEIEN VERKETTEN joins DAT files one after another into AA_MUDAT and
   CHECK(read_chart_file(s.dir / "SPEZIAL" / "KETTE.DAT")->size() == 3);
 }
 
+TEST_CASE("the Daten-Datei follows the SATZ column its record came from like datru$(ze)") {
+  Scratch s("horcom_entry_slot_files");
+  REQUIRE(write_chart_file(s.dir / "A.DAT", {stored("ERSTER FALL")}));
+  REQUIRE(write_chart_file(s.dir / "B.DAT", {stored("ZWEITER FALL")}));
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::set_data_dir(*w, s.dir);
+  // marks the one record of the list and takes it into the mask
+  const auto take = [](QDialog* d) {
+    auto* list = d->findChild<QListWidget*>();
+    if (list != nullptr && list->count() > 0) {
+      list->item(0)->setSelected(true);
+      emit list->itemClicked(list->item(0));
+    }
+    DialogDriver::click("WAHL - ENDE")(d);
+  };
+  for (const char* file : {"A.DAT", "B.DAT"}) {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("Andere Datei"))
+        .then(pick_file(s.path(file)))
+        .then(take)
+        .then(DialogDriver::click("OK"));
+    MainWindowProbe::fetch(*w);
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  REQUIRE(MainWindowProbe::slot(*w, 1).has_value());
+  CHECK(QFileInfo(MainWindowProbe::data_file(*w)).fileName() == "B.DAT");
+  // the first port named the last clicked file over the record of SATZ1
+  MainWindowProbe::session_click(*w, 0);
+  CHECK(QFileInfo(MainWindowProbe::data_file(*w)).fileName() == "A.DAT");
+  QString offered;
+  {
+    DialogDriver drive;
+    drive.then([&offered](QDialog* d) {
+      for (const QPushButton* b : d->findChildren<QPushButton*>()) {
+        offered += b->text() + "|";
+      }
+      DialogDriver::click("Andere Datei")(d);
+    })
+        .then(pick_file(s.path("B.DAT")))
+        .then([](QDialog* d) { d->reject(); });
+    MainWindowProbe::fetch(*w);
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  CHECK(offered.contains("Aus A.DAT"));
+  // a file picked and left without a record leaves the panel on the file
+  // of the record in view
+  CHECK(QFileInfo(MainWindowProbe::data_file(*w)).fileName() == "A.DAT");
+}
+
+TEST_CASE("a record that gives way keeps its file through Zurück and a cancelled mask") {
+  Scratch s("horcom_entry_slot_files_give_way");
+  REQUIRE(write_chart_file(s.dir / "A.DAT", {stored("ERSTER FALL")}));
+  REQUIRE(write_chart_file(s.dir / "B.DAT", {stored("ZWEITER FALL")}));
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::set_data_dir(*w, s.dir);
+  // five full columns, the first one from A
+  for (int i = 0; i < 5; ++i) {
+    MainWindowProbe::put_slot(*w, i, aaf_from_chart_record(stored(i == 0 ? "ERSTER FALL" : "ANDERER FALL")));
+  }
+  MainWindowProbe::set_slot_file(*w, 0, s.path("A.DAT"));
+  MainWindowProbe::session_click(*w, 0);
+  MainWindowProbe::flush_history(*w);
+  REQUIRE(QFileInfo(MainWindowProbe::data_file(*w)).fileName() == "A.DAT");
+  const auto take = [](QDialog* d) {
+    auto* list = d->findChild<QListWidget*>();
+    if (list != nullptr && list->count() > 0) {
+      list->item(0)->setSelected(true);
+      emit list->itemClicked(list->item(0));
+    }
+    DialogDriver::click("WAHL - ENDE")(d);
+  };
+  // the record that would give way stays when the mask is given up
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("Andere Datei"))
+        .then(pick_file(s.path("B.DAT")))
+        .then(take)
+        .then(DialogDriver::click("Weiter"))
+        .then([](QDialog* d) { d->reject(); });
+    MainWindowProbe::fetch(*w);
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  // the first build had cleared the file of the record at the question
+  CHECK(QFileInfo(MainWindowProbe::slot_file(*w, 0)).fileName() == "A.DAT");
+  CHECK(QFileInfo(MainWindowProbe::data_file(*w)).fileName() == "A.DAT");
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("Andere Datei"))
+        .then(pick_file(s.path("B.DAT")))
+        .then(take)
+        .then(DialogDriver::click("Weiter"))
+        .then(DialogDriver::click("OK"));
+    MainWindowProbe::fetch(*w);
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  CHECK(QFileInfo(MainWindowProbe::slot_file(*w, 0)).fileName() == "B.DAT");
+  // Zurück brings the record that gave way back with its file
+  MainWindowProbe::history_back(*w);
+  CHECK(MainWindowProbe::slot(*w, 0)->surname.starts_with("ERSTER"));
+  CHECK(QFileInfo(MainWindowProbe::data_file(*w)).fileName() == "A.DAT");
+  MainWindowProbe::history_forward(*w);
+  CHECK(QFileInfo(MainWindowProbe::data_file(*w)).fileName() == "B.DAT");
+}
+
+TEST_CASE("a renamed file carries the columns and the working file along") {
+  Scratch s("horcom_entry_slot_files_rename");
+  REQUIRE(write_chart_file(s.dir / "ALT.DAT", {stored("ERSTER FALL")}));
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::put_slot(*w, 2, aaf_from_chart_record(stored("ERSTER FALL")));
+  MainWindowProbe::set_slot_file(*w, 2, s.path("ALT.DAT"));
+  MainWindowProbe::bind(*w, s.path("ALT.DAT"));
+  REQUIRE(MainWindowProbe::rename_data_file(*w, s.dir / "ALT.DAT", s.dir / "NEU.DAT"));
+  CHECK(QFileInfo(MainWindowProbe::slot_file(*w, 2)).fileName() == "NEU.DAT");
+  CHECK(QFileInfo(MainWindowProbe::data_file(*w)).fileName() == "NEU.DAT");
+}
+
+TEST_CASE("a file picked in the hub and left gives the panel back to the file of the record") {
+  Scratch s("horcom_entry_slot_files_hub");
+  REQUIRE(write_chart_file(s.dir / "A.DAT", {stored("ERSTER FALL")}));
+  REQUIRE(write_chart_file(s.dir / "B.DAT", {stored("ZWEITER FALL")}));
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::set_data_dir(*w, s.dir);
+  MainWindowProbe::put_slot(*w, 0, aaf_from_chart_record(stored("ERSTER FALL")));
+  MainWindowProbe::set_slot_file(*w, 0, s.path("A.DAT"));
+  MainWindowProbe::session_click(*w, 0);
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("ANDERE DATEI"))
+        .then(pick_file(s.path("B.DAT")))
+        .then(DialogDriver::click("ABBRUCH"));
+    MainWindowProbe::data_file_io(*w);
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  CHECK(QFileInfo(MainWindowProbe::data_file(*w)).fileName() == "A.DAT");
+}
+
 TEST_CASE("DATUM FEHLT keeps the typed fields and NUR ÜBERNEHMEN writes nothing") {
   auto w = MainWindowProbe::make();
   QString kept;

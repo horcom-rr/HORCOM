@@ -262,8 +262,15 @@ struct MainWindowProbe {
     w.uhr_slot_ = slot;
   }
   static void data_file_io(MainWindow& w) { w.data_file_io(); }
+  static void fetch(MainWindow& w) { w.fetch_from_file(); }
   static void leave_solar(MainWindow& w) { w.leave_solar_level(); }
   static QLineEdit* place_field(MainWindow& w) { return w.place_field_; }
+  static QString slot_file(const MainWindow& w, int i) { return w.slot_files_[static_cast<std::size_t>(i)]; }
+  static void set_slot_file(MainWindow& w, int i, const QString& f) { w.slot_files_[static_cast<std::size_t>(i)] = f; }
+  static bool rename_data_file(MainWindow& w, const std::filesystem::path& from, const std::filesystem::path& to) {
+    std::error_code ec;
+    return w.rename_data_file(from, to, ec);
+  }
   static void planet_selection(MainWindow& w) { w.planet_selection(); }
   static bool export_png(MainWindow& w, const QString& path) { return w.export_png_to(path); }
   static void chain_files(MainWindow& w) { w.chain_files(); }

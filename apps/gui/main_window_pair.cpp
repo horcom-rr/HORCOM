@@ -93,6 +93,7 @@ void MainWindow::activate_slot(const SlotChoice& c) {
     active_is_solar_ = false;
     apply_record(*slots_[i]);
   }
+  follow_slot_file();
   update_slot_actions();
   update_solar_actions();
 }

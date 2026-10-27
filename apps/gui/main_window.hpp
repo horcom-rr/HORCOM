@@ -770,6 +770,8 @@ class MainWindow : public QMainWindow {
     /// the UT led the step, left out of the comparison like the radix
     /// memory, the two times of the step show the same moment either way
     bool ut_leads = true;
+    /// the Daten-Datei of the step's SATZ column, his datru$(ze)
+    QString slot_file;
     double lon = 0.0;
     double lat = 0.0;
     int houses = 0;
@@ -1197,6 +1199,20 @@ class MainWindow : public QMainWindow {
   // the working Daten-Datei and its hub, ported from a2dat and a2fdat
   void bind_data_file(const QString& path);
   void refresh_data_file_label();
+  /// His @datru, the Daten-Datei of the active SATZ column becomes the
+  /// working file again when it still exists.
+  void follow_slot_file();
+  /// The active SATZ column takes the working file as its own, his
+  /// datru$(ze) = datru$ after a fetch or an entry.
+  void claim_slot_file();
+  /// Renames a data file, the working file and the SATZ columns that
+  /// named it follow the new name.
+  ///
+  /// @param from the file as it is named now
+  /// @param to   the new name
+  /// @param ec   the error of the file system, if any
+  /// @return true when the file carries the new name
+  bool rename_data_file(const std::filesystem::path& from, const std::filesystem::path& to, std::error_code& ec);
   [[nodiscard]] std::optional<std::vector<AafRecord>> load_collection(const QString& path) const;
   [[nodiscard]] std::vector<std::size_t> ask_order(const std::vector<AafRecord>& records, const QString& file_label);
   void fetch_from_file();
@@ -1383,6 +1399,9 @@ class MainWindow : public QMainWindow {
   QString data_file_;
   int data_count_ = 0;
   QLabel* data_file_label_ = nullptr;
+  /// his datru$(ze), the Daten-Datei each SATZ column was fetched from or
+  /// entered into, empty for a typed or reckoned record
+  std::array<QString, 5> slot_files_{};
   /// the RADIX SATZ1 to SATZ5 slots, the active one drives the panel
   std::array<std::optional<AafRecord>, 5> slots_{};
   int active_slot_ = -1;

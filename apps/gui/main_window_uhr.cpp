@@ -176,6 +176,7 @@ void MainWindow::uhr() {
         return;
       }
       uhr_slot_ = slot;
+      slot_files_[static_cast<std::size_t>(slot)].clear();
       set_slot(slot, clock_record(clock_now()), true);
       clock_menu_update();
       return;

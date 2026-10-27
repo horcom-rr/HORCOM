@@ -1893,6 +1893,9 @@ MainWindow::PanelState MainWindow::panel_state() const {
   s.calendar = panel_calendar_;
   s.clock = clock_kind_;
   s.ut_leads = ut_leads_;
+  if (const int col = active_is_solar_ ? active_solar_ : active_slot_; col >= 0) {
+    s.slot_file = slot_files_[static_cast<std::size_t>(col)];
+  }
   s.lon = lon_->value();
   s.lat = lat_->value();
   s.houses = houses_->currentIndex();
@@ -2042,6 +2045,12 @@ void MainWindow::restore_state(const PanelState& s) {
   if (!s.banner.isEmpty() && !clock) {
     banner_->set_record(s.banner);
   }
+  // the column takes the file of the record its step brings back, a
+  // record that gave way had left the file of the new one there
+  if (const int col = active_is_solar_ ? active_solar_ : active_slot_; col >= 0) {
+    slot_files_[static_cast<std::size_t>(col)] = s.slot_file;
+  }
+  follow_slot_file();
   update_slot_actions();
   update_solar_actions();
   restoring_ = false;
@@ -3167,7 +3176,7 @@ void MainWindow::chain_files() {
       const std::filesystem::path renamed = spezial / (stem->toStdWString() + L".DAT");
       if (!std::filesystem::exists(renamed, ec)) {
         //RR NAME d$ AS s$
-        std::filesystem::rename(chain_path, renamed, ec);
+        rename_data_file(chain_path, renamed, ec);
         refused(ec);
         return;
       }
@@ -3405,11 +3414,7 @@ void MainWindow::export_dat_file() {
     //RR NAME horcfile$ AS hrc$ + "\SPEZIAL\" + s$ + ".DAT"
     const std::filesystem::path moved = dat.parent_path() / (renamed->toStdWString() + L".DAT");
     std::error_code ec;
-    std::filesystem::rename(dat, moved, ec);
-    if (!ec) {
-      if (QFileInfo(data_file_) == QFileInfo(src)) {
-        bind_data_file(QString::fromStdWString(moved.wstring()));
-      }
+    if (rename_data_file(dat, moved, ec)) {
       dat = moved;
     }
   }
@@ -5095,6 +5100,10 @@ void MainWindow::data_file_io() {
   // tester the impression that the program keeps asking to save
   bool need_pick = data_file_.isEmpty() ||
                    !std::filesystem::exists(std::filesystem::path(data_file_.toStdWString()));
+  // a file picked here for TRIMMEN, LÖSCHEN or nothing names no record on
+  // screen, the panel goes back to the file of the record in view like the
+  // fetch, a record fetched or entered here made its file the column's
+  const auto back_to_record = qScopeGuard([this]() { follow_slot_file(); });
   while (true) {
     if (need_pick) {
       // FILESELECT hrc$+"\SPEZIAL\*.DAT", a fresh name starts a new file
@@ -5137,6 +5146,7 @@ void MainWindow::data_file_io() {
             this, "HORCOM",
             tr("NEUE DATEN-DATEI %1 !").arg(QString::fromStdWString(dat.filename().wstring())));
         bind_data_file(QString::fromStdWString(dat.wstring()));
+        claim_slot_file();
         return;
       }
       bind_data_file(QString::fromStdWString(dat.wstring()));
@@ -5179,9 +5189,11 @@ void MainWindow::data_file_io() {
 void MainWindow::bind_data_file(const QString& path) {
   data_file_ = path;
   data_count_ = 0;
-  if (!path.isEmpty()) {
-    const auto records = read_chart_file(std::filesystem::path(path.toStdWString()));
-    data_count_ = records ? static_cast<int>(records->size()) : 0;
+  // his laf& = LOF(#20) / 128, the count needs no record decoded
+  std::error_code ec;
+  const auto bytes = path.isEmpty() ? 0 : std::filesystem::file_size(std::filesystem::path(path.toStdWString()), ec);
+  if (!ec && bytes % kChartRecordBytes == 0) {
+    data_count_ = static_cast<int>(bytes / kChartRecordBytes);
   }
   refresh_data_file_label();
 }
@@ -5197,6 +5209,54 @@ void MainWindow::refresh_data_file_label() {
   //RR Daten-Datei: ... Anzahl Dats.:
   data_file_label_->setText(QString("%1\n%2").arg(QFileInfo(data_file_).fileName(),
                                                   tr("Anzahl Dats.: %1").arg(data_count_)));
+}
+
+void MainWindow::follow_slot_file() {
+  const int col = active_is_solar_ ? active_solar_ : active_slot_;
+  if (col < 0) {
+    return;
+  }
+  const QString& file = slot_files_[static_cast<std::size_t>(col)];
+  std::error_code ec;
+  if (!file.isEmpty() && file != data_file_ && std::filesystem::exists(std::filesystem::path(file.toStdWString()), ec)) {
+    bind_data_file(file);
+  }
+}
+
+bool MainWindow::rename_data_file(const std::filesystem::path& from, const std::filesystem::path& to,
+                                  std::error_code& ec) {
+  const auto names = [&from](const QString& file) {
+    std::error_code same;
+    return !file.isEmpty() && std::filesystem::equivalent(std::filesystem::path(file.toStdWString()), from, same);
+  };
+  std::vector<std::size_t> columns;
+  for (std::size_t i = 0; i < slot_files_.size(); ++i) {
+    if (names(slot_files_[i])) {
+      columns.push_back(i);
+    }
+  }
+  const bool working = names(data_file_);
+  std::filesystem::rename(from, to, ec);
+  if (ec) {
+    return false;
+  }
+  const QString moved = QString::fromStdWString(to.wstring());
+  for (const std::size_t i : columns) {
+    slot_files_[i] = moved;
+  }
+  if (working) {
+    bind_data_file(moved);
+  }
+  return true;
+}
+
+void MainWindow::claim_slot_file() {
+  const int col = active_is_solar_ ? active_solar_ : active_slot_;
+  if (col >= 0) {
+    slot_files_[static_cast<std::size_t>(col)] = data_file_;
+    // the step on screen names the file from now on
+    refresh_current_step();
+  }
 }
 
 // reads a collection into the exchange form, DAT or AAF
@@ -5560,6 +5620,8 @@ void MainWindow::result_as_radix() {
   }
   // b$ = s$ + " ALS " + rd$, sol$(od,ze) = b$, the name stays
   const QString label = result->second + " ALS RADIX";
+  // a reckoned record comes from no file
+  slot_files_[static_cast<std::size_t>(slot)].clear();
   set_slot(slot, result->first, true, label);
   // @direkt(0,-1,1,18), the EINGABE- und ANZEIGE-BOX of the new radix
   RecordMaskDialog mask(result->first, tr("EINGABE- und ANZEIGE-BOX | %1 NR.%2").arg(label).arg(slot + 1),
@@ -5586,6 +5648,7 @@ void MainWindow::promote_result_to_radix_scripted(int slot) {
   if (idx < 0) {
     idx = active_is_solar_ ? active_solar_ : kDoubleCombin;
   }
+  slot_files_[static_cast<std::size_t>(idx)].clear();
   set_slot(idx, result->first, true, result->second + " ALS RADIX");
 }
 
@@ -5654,6 +5717,7 @@ void MainWindow::clear_slots() {
   solar_labels_.fill(QString());
   solar_bases_.fill(std::nullopt);
   radix_labels_.fill(QString());
+  slot_files_.fill(QString());
   active_slot_ = -1;
   active_solar_ = -1;
   active_is_solar_ = false;
@@ -6110,6 +6174,15 @@ void MainWindow::choose_house_system() {
 // ported from a210 through a2113, HOLEN fills the free slots and every
 // record passes through the ANZEIGE box on its way in
 void MainWindow::fetch_from_file() {
+  // a file picked here and left without a record named the panel after a
+  // file its record never came from, his FILESELECT had no way back
+  const QString before = data_file_;
+  bool taken = false;
+  const auto keep_file = qScopeGuard([this, &before, &taken]() {
+    if (!taken && !before.isEmpty() && data_file_ != before) {
+      bind_data_file(before);
+    }
+  });
   // the family wants to pick the file on every fetch like in the
   // original, without going back through the hub. The dialog takes the
   // current file as default and offers another file beside it
@@ -6179,16 +6252,23 @@ void MainWindow::fetch_from_file() {
     if (mask.exec() != QDialog::Accepted) {
       continue;
     }
+    // his aaf_satz_speich, datru$ = horcfile$, an AAF save makes its DAT
+    // twin the file of the record
+    QString file = QString::fromStdWString(dat.wstring());
+    if (mask.aaf_saved()) {
+      const std::filesystem::path twin_dat = dat_twin_path(*mask.aaf_saved());
+      if (std::filesystem::exists(twin_dat)) {
+        file = QString::fromStdWString(twin_dat.wstring());
+        bind_data_file(file);
+      }
+    }
+    //RR datru$(ze) = datru$, the column remembers the file of its record,
+    // set before the chart so its step of Zurück carries it
+    slot_files_[static_cast<std::size_t>(slot)] = file;
     // his ABSPEICHERN of the edited record works on the record in view
     set_slot(slot, mask.record(), first || mask.save_requested());
     first = false;
-    if (mask.aaf_saved()) {
-      // his aaf_satz_speich, datru$ = horcfile$, the DAT twin is the file
-      const std::filesystem::path twin_dat = dat_twin_path(*mask.aaf_saved());
-      if (std::filesystem::exists(twin_dat)) {
-        bind_data_file(QString::fromStdWString(twin_dat.wstring()));
-      }
-    }
+    taken = true;
     if (mask.save_requested()) {
       store_record(false);
     }
@@ -6364,13 +6444,17 @@ void MainWindow::new_records_entry() {
         QMessageBox::information(this, "HORCOM", tr("Kein Datensatz eingegeben !"));
         return;
       }
+      QString entered;
       if (mask.saved_file()) {
         // aaf_satz_speich, datru$ = horcfile$, the twin is the working file
         const std::filesystem::path dat = dat_twin_path(*mask.saved_file());
         if (std::filesystem::exists(dat)) {
           bind_data_file(QString::fromStdWString(dat.wstring()));
+          entered = data_file_;
         }
       }
+      //RR datru$(ze) = datru$, the column remembers the file it was entered into
+      slot_files_[static_cast<std::size_t>(slot)] = entered;
       set_slot(slot, got, true);
       //RR WEITEREN Datensatz NEU EINGEBEN ?
       const int more = ChoiceDialog::ask(this, "HORCOM", {tr("WEITEREN Datensatz NEU EINGEBEN ?")},
@@ -6448,6 +6532,8 @@ void MainWindow::new_records_entry() {
       return;
     }
     taken = true;
+    // the record comes from no file until ABSPEICHERN enters it
+    slot_files_[static_cast<std::size_t>(slot)].clear();
     set_slot(slot, got, true);
     if (es == 0) {
       // a2dat, FILESELECT SPEZIAL\*.DAT with the last file as default,
@@ -6467,6 +6553,7 @@ void MainWindow::new_records_entry() {
           return;
         }
         bind_data_file(path);
+        claim_slot_file();
         //RR NEUE DATEN-DATEI <path> !
         QMessageBox::information(this, "HORCOM",
                                  tr("NEUE DATEN-DATEI %1 !").arg(QString::fromStdWString(dat.filename().wstring())));
@@ -7022,12 +7109,20 @@ void MainWindow::edit_record() {
   if (dialog.exec() != QDialog::Accepted) {
     return;
   }
+  bool entered = false;
   if (dialog.saved_file()) {
     const std::filesystem::path dat = dat_twin_path(*dialog.saved_file());
     if (std::filesystem::exists(dat)) {
       bind_data_file(QString::fromStdWString(dat.wstring()));
+      entered = true;
     }
   }
+  // the column takes the file the record was entered into, his datru$(ze)
+  const auto keep_file = qScopeGuard([this, entered]() {
+    if (entered) {
+      claim_slot_file();
+    }
+  });
   // the edit of a SOLAR row stays in that row like his od = 2, the claim of
   // apply_record wrote it into the RADIX slot the panel had left
   if (active_is_solar_ && active_solar_ >= 0) {
@@ -7045,6 +7140,7 @@ void MainWindow::edit_record() {
   if (active_slot_ < 0 && !active_is_solar_ && !combin_name1_.empty()) {
     const int slot = claim_radix_slot(-1);
     if (slot >= 0) {
+      slot_files_[static_cast<std::size_t>(slot)].clear();
       set_slot(slot, dialog.record(), true);
     }
     return;
@@ -7234,6 +7330,7 @@ void MainWindow::save_record() {
         return;
       }
       bind_data_file(path);
+      claim_slot_file();
       //RR NEUE DATEN-DATEI <path> !
       QMessageBox::information(this, "HORCOM", tr("NEUE DATEN-DATEI %1 !").arg(QString::fromStdWString(dat.filename().wstring())));
       return;
@@ -7344,6 +7441,7 @@ bool MainWindow::store_record(bool from_entry) {
     return false;
   }
   bind_data_file(data_file_);
+  claim_slot_file();
   //RR DATEI x : n BYTE = m SÄTZE
   std::error_code ec;
   const auto bytes = std::filesystem::file_size(dat, ec);
