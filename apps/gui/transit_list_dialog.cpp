@@ -308,6 +308,7 @@ void TransitListDialog::fill() {
   table_->ensurePolished();
   table_->resizeColumnsToContents();
   fit_columns(table_);
+  fit_rows(table_);
   // no row stands chosen before a click, the preselected first row showed
   // as a black band on paper and the tester took it for a fault
 }

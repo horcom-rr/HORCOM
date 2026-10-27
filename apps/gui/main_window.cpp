@@ -4447,6 +4447,9 @@ void MainWindow::rise_set() {
       block(b, 1, s, rs.transit);
       block(b, 2, s, rs.set);
     }
+    // the three stretched columns share the window, a larger text size
+    // widens the window until each holds its lines
+    fit_columns(table);
     QApplication::restoreOverrideCursor();
   };
   // his INC jd, the next five days, or the next five bodies from the first
@@ -4754,7 +4757,11 @@ void MainWindow::eclipse_table() {
       put(i, 0, left[static_cast<std::size_t>(i)], body::kSun);
       put(i, 4, right[static_cast<std::size_t>(i)], body::kMoon);
     }
+    // measured after the polish, a larger text size asks for more room, the window
+    // grows with the columns
+    table->ensurePolished();
     table->resizeColumnsToContents();
+    fit_columns(table);
     QApplication::restoreOverrideCursor();
   };
   // his k1 = k1 + INT(ABS(zf& - zf& / 5)), the next screen overlaps a fifth

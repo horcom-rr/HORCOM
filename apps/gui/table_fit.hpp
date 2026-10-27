@@ -7,9 +7,11 @@
 #include <QAbstractItemModel>
 #include <QEvent>
 #include <QFontInfo>
+#include <QFontMetrics>
 #include <QHeaderView>
 #include <QLabel>
 #include <QLayout>
+#include <QListWidget>
 #include <QPointer>
 #include <QScreen>
 #include <QScrollBar>
@@ -24,8 +26,25 @@
 
 namespace horcom {
 
-/// The share of the screen width a fitted table may ask for.
-inline constexpr double kFitScreenShare = 0.9;
+/// The share of the screen width a fitted table may ask for, the rest is
+/// left to the frame and the margins of its window.
+inline constexpr double kFitScreenShare = 0.95;
+/// The room a list row keeps beside its text, both sides together.
+inline constexpr int kListTextRoom = 12;
+
+/// Caps the width a widget asks for at its share of the screen. A table
+/// wider than that keeps its scroll bar, the frame and the margins of the
+/// window take the rest.
+///
+/// @param w     the widget
+/// @param width the width it would ask for
+/// @return the width it may ask for
+[[nodiscard]] inline int screen_capped(const QWidget* w, int width) {
+  if (const QScreen* screen = w->screen(); screen != nullptr) {
+    return std::min(width, static_cast<int>(screen->availableGeometry().width() * kFitScreenShare));
+  }
+  return width;
+}
 
 /// Makes a table ask for the room of all its columns, so the window
 /// holding it grows until every column shows whole. The width a column
@@ -45,12 +64,42 @@ inline void fit_columns(QTableWidget* t) {
       width += std::max(view->sizeHintForColumn(c), t->horizontalHeader()->sectionSizeHint(c));
     }
   }
-  // the window never grows past the screen, a table wider than that keeps
-  // its scroll bar. The frame and the margins of the window take the rest
-  if (const QScreen* screen = t->screen(); screen != nullptr) {
-    width = std::min(width, static_cast<int>(screen->availableGeometry().width() * kFitScreenShare));
+  t->setMinimumWidth(screen_capped(t, width));
+}
+
+/// Gives the rows of a filled table the height their text asks for at the
+/// text size of the program. The height the table was designed with stays
+/// the floor, a larger text had run over rows of fixed pixels.
+///
+/// @param t the table, its cells filled
+inline void fit_rows(QTableWidget* t) {
+  t->ensurePolished();
+  const auto* view = static_cast<const QAbstractItemView*>(t);
+  // the grid line belongs to the row above it
+  const int grid = t->showGrid() ? 1 : 0;
+  int need = t->verticalHeader()->defaultSectionSize();
+  for (int r = 0; r < t->rowCount(); ++r) {
+    need = std::max(need, view->sizeHintForRow(r) - grid);
   }
-  t->setMinimumWidth(width);
+  t->verticalHeader()->setDefaultSectionSize(need);
+}
+
+/// Makes a list ask for the width of its widest row, like fit_columns for
+/// a table.
+///
+/// @param l the list, its rows filled
+inline void fit_list(QListWidget* l) {
+  l->ensurePolished();
+  const auto* view = static_cast<const QAbstractItemView*>(l);
+  int text = view->sizeHintForColumn(0);
+  // the delegate keeps little more than the focus frame beside a text, the
+  // longest row touched the edge of the list
+  const QFontMetrics fm(l->font());
+  for (int i = 0; i < l->count(); ++i) {
+    text = std::max(text, fm.horizontalAdvance(l->item(i)->text()) + kListTextRoom);
+  }
+  const int width = 2 * l->frameWidth() + l->verticalScrollBar()->sizeHint().width() + text;
+  l->setMinimumWidth(screen_capped(l, width));
 }
 
 /// Grows the text of a table with its window like his screens, which

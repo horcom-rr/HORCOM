@@ -5,8 +5,11 @@
 #include <QApplication>
 #include <QElapsedTimer>
 #include <QFontInfo>
+#include <QFontMetricsF>
+#include <QHeaderView>
 #include <QImage>
 #include <QKeyEvent>
+#include <QListWidget>
 #include <QPainter>
 #include <QScrollBar>
 #include <QTableWidget>
@@ -210,6 +213,47 @@ TEST_CASE("layout: a table that grows with its window keeps its heads a step abo
   CHECK(zoom_sheet.contains(QString("QHeaderView::section { font-size: %1px; }").arg(theme::kTableHeadPx)));
   CHECK(zoom_sheet.contains(QString("QTableWidget { font-size: %1px; }").arg(theme::kTableCellPx)));
   CHECK(zoom_sheet.contains(QString("QHeaderView::section:vertical { font-size: %1px; }").arg(theme::kTableCellPx)));
+}
+
+TEST_CASE("layout: rows and lists grow with a larger text size") {
+  if (!measurable()) {
+    return;
+  }
+  const QString sheet_before = qApp->styleSheet();
+  theme::apply(150, false);
+  int row = 0;
+  int row_need = 0;
+  int list_min = 0;
+  double list_need = 0.0;
+  {
+    // a plain window, the sweep captures dialogs
+    QWidget host;
+    auto* v = new QVBoxLayout(&host);
+    auto* t = new QTableWidget(3, 2, &host);
+    // a row of fixed pixels like his a18liv and arabtex. The header here
+    // would raise it to its own minimum, the dialogs hide their row heads
+    // and kept the pixels
+    t->verticalHeader()->setMinimumSectionSize(1);
+    t->verticalHeader()->setDefaultSectionSize(20);
+    for (int r = 0; r < t->rowCount(); ++r) {
+      t->setItem(r, 0, new QTableWidgetItem("UNGENANNT"));
+    }
+    v->addWidget(t);
+    auto* l = new QListWidget(&host);
+    l->addItem(" CHIRON         a=13.61  e=0.38  i=6.94°  T=50 Jahre ");
+    v->addWidget(l);
+    fit_rows(t);
+    fit_list(l);
+    row = t->verticalHeader()->defaultSectionSize();
+    row_need = static_cast<const QAbstractItemView*>(t)->sizeHintForRow(0) - (t->showGrid() ? 1 : 0);
+    list_min = l->minimumWidth();
+    list_need = QFontMetricsF(l->font()).horizontalAdvance(l->item(0)->text()) + kListTextRoom + 2 * l->frameWidth();
+  }
+  qApp->setStyleSheet(sheet_before);
+  // the text of the larger size had run over the rows and the list
+  CHECK(row > 20);
+  CHECK(row >= row_need);
+  CHECK(list_min >= list_need);
 }
 
 TEST_CASE("layout: GRAD-LISTE with and without the degree panel") {

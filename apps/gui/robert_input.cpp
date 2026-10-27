@@ -25,6 +25,7 @@
 #include "horcom/core/constants.hpp"
 #include "auto_advance.hpp"
 #include "cell_weight.hpp"
+#include "table_fit.hpp"
 
 namespace horcom {
 
@@ -122,6 +123,8 @@ std::optional<int> pick_sign(QWidget* parent) {
     list->addItem(QString("%1 = %2").arg(i + 1, 3).arg(sign_name(i)));
   }
   list->setCurrentRow(0);
+  // the window takes the widest sign at the text size of the program
+  fit_list(list);
   v->addWidget(list);
   // CONTROL " &OK ",101
   auto* ok = new QPushButton(RobertInput::tr(" &OK "), &d);
@@ -479,6 +482,8 @@ std::optional<int> ask_object(QWidget* parent, const std::vector<std::pair<int, 
   // the planets to choose stand bold, the tester found the plain rows hard
   // to read, the yellow of the chosen row stays
   bold_all(list);
+  // the window takes the widest row at the text size of the program
+  fit_list(list);
   v->addWidget(list, 1);
   auto* ok = new QPushButton(RobertInput::tr("&OK"), &d);
   ok->setDefault(true);

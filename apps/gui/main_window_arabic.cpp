@@ -340,6 +340,7 @@ void MainWindow::arabic_table() {
     table->ensurePolished();
     table->resizeColumnsToContents();
     fit_columns(table);
+    fit_rows(table);
   };
   LambdaFilter keys(LambdaFilter::keys([&](int key) {
     if (key == Qt::Key_Space || key == Qt::Key_Return || key == Qt::Key_Enter) {

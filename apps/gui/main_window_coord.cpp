@@ -578,6 +578,11 @@ void MainWindow::coordinate_table(bool extras) {
     cusp_box->setVisible(!cusps.isEmpty());
   };
   refill();
+  // the window holds every column at the text size of the program, a
+  // larger text had widened the columns past it and the zoom never shrinks
+  // below that size
+  table->ensurePolished();
+  fit_columns(table);
 
   // a9zw, the wart before the question, ZEIT VARIIEREN ?
   bool asked = false;

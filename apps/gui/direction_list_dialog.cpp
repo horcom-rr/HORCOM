@@ -20,6 +20,7 @@
 #include "horcom/chart/bodies.hpp"
 #include "horcom/core/constants.hpp"
 #include "horcom/time/calendar.hpp"
+#include "table_fit.hpp"
 
 namespace horcom {
 
@@ -195,7 +196,9 @@ void DirectionListDialog::fill() {
     table_->setItem(row, kColKind, new QTableWidgetItem(r.kind));
   }
   count_->setText(a18::count_line(rows_.size()));
+  // the rows of his a18liv in pixels, a larger text size asks for more
   table_->resizeColumnsToContents();
+  fit_rows(table_);
 }
 
 // a click on a column head orders the list by that column, the
