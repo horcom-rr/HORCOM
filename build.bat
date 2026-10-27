@@ -5,4 +5,4 @@ if errorlevel 1 exit /b 1
 if errorlevel 1 exit /b 1
 "C:\Program Files\CMake\bin\cmake.exe" --build %~dp0build
 if errorlevel 1 exit /b 1
-"C:\Program Files\CMake\bin\ctest.exe" --test-dir %~dp0build --output-on-failure
+"C:\Program Files\CMake\bin\ctest.exe" --test-dir %~dp0build --output-on-failure --parallel %NUMBER_OF_PROCESSORS%

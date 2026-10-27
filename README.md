@@ -117,7 +117,7 @@ A C++20 compiler and CMake 3.25 or newer build the library, the `horcom` command
 ```
 cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=C:/Qt/6.8.3/msvc2022_64
 cmake --build build
-ctest --test-dir build --output-on-failure
+ctest --test-dir build --output-on-failure --parallel 8
 ```
 
 **Linux** (GCC 12+ or Clang 18+, the distribution's Qt 6). Install the dependencies, then run `./build.sh` from the repository root, which configures, builds and tests. `QT_PREFIX=~/Qt/6.8.3/gcc_64 ./build.sh` uses a Qt outside the system.

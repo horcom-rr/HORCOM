@@ -142,7 +142,7 @@ expects Qt in <code>C:\Qt\6.8.3\msvc2022_64</code>. By hand:
 </p>
 <pre><code>cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=C:/Qt/6.8.3/msvc2022_64
 cmake --build build
-ctest --test-dir build --output-on-failure</code></pre>
+ctest --test-dir build --output-on-failure --parallel 8</code></pre>
 <p>
 A shell built in the source tree finds the <code>data</code> folder of the
 repository, which is what every release ships. It never works in it. Like a

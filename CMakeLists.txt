@@ -25,6 +25,12 @@ else()
   endif()
 endif()
 
+# nearly every GUI source and GUI test pulls in all of QtWidgets through
+# main_window.hpp, the precompiled headers parse it once per target.
+# MSVC only, the other compilers keep checking that each file includes
+# what it uses
+set(HORCOM_GUI_PCH <QtWidgets/QtWidgets> <filesystem> <functional> <memory> <optional> <string> <vector>)
+
 add_subdirectory(src)
 add_subdirectory(apps)
 

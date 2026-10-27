@@ -9,4 +9,5 @@ set -eu
 root=$(cd "$(dirname "$0")" && pwd)
 cmake -S "$root" -B "$root/build" -G Ninja -DCMAKE_BUILD_TYPE=Release ${QT_PREFIX:+-DCMAKE_PREFIX_PATH="$QT_PREFIX"}
 cmake --build "$root/build"
-ctest --test-dir "$root/build" --output-on-failure
+# the GUI suite runs as shards side by side, one per processor
+ctest --test-dir "$root/build" --output-on-failure --parallel "$(nproc 2>/dev/null || sysctl -n hw.ncpu)"

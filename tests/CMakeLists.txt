@@ -42,8 +42,7 @@ add_test(NAME horcom_tests COMMAND horcom_tests)
 # offscreen platform, a probe struct reaches the panel state
 if(TARGET horcom_gui_core)
   find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
-  add_executable(horcom_gui_tests
-    gui/gui_main.cpp
+  set(HORCOM_GUI_TEST_SOURCES
     gui/test_panel.cpp
     gui/test_korrektur.cpp
     gui/test_auswertung.cpp
@@ -65,6 +64,7 @@ if(TARGET horcom_gui_core)
     gui/test_layout.cpp
     gui/test_painter.cpp
   )
+  add_executable(horcom_gui_tests gui/gui_main.cpp ${HORCOM_GUI_TEST_SOURCES})
   # tests/gui/local holds untracked comparison drivers that replay the
   # screens of the original with charts from the local archive, their
   # cases are skipped unless asked for with --no-skip
@@ -74,6 +74,7 @@ if(TARGET horcom_gui_core)
   target_include_directories(horcom_gui_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vendor)
   if(MSVC)
     target_compile_options(horcom_gui_tests PRIVATE /external:I ${CMAKE_CURRENT_SOURCE_DIR}/vendor /external:W0)
+    target_precompile_headers(horcom_gui_tests PRIVATE ${HORCOM_GUI_PCH})
   endif()
   target_compile_definitions(horcom_gui_tests PRIVATE HORCOM_TEST_DATA_DIR="${CMAKE_SOURCE_DIR}/data")
   # the English run loads the compiled translation of the shell
@@ -87,13 +88,38 @@ if(TARGET horcom_gui_core)
     BASE ${CMAKE_SOURCE_DIR}/assets/symb
     FILES ${HORCOM_TEST_SYMB}
   )
-  add_test(NAME horcom_gui_tests COMMAND horcom_gui_tests "--test-case-exclude=layout:*")
-  # a dialog a test fails to answer waits forever, the timeout turns such
-  # a hang into a failure
-  set_tests_properties(horcom_gui_tests PROPERTIES
-    TIMEOUT 600
-    ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
-    ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>")
+  # the suite runs as shards of at most five cases of one file, ctest -j
+  # runs them side by side. Each process keeps its settings and scratch
+  # files apart (gui_main.cpp). The last shard of a file runs every case
+  # from its first on, a case added after the configure runs there. A case
+  # that hangs ends its shard through the watchdog of gui_main.cpp long
+  # before the timeout
+  set(HORCOM_GUI_SHARD_CASES 5)
+  foreach(source IN LISTS HORCOM_GUI_TEST_SOURCES)
+    get_filename_component(stem ${source} NAME_WE)
+    file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/${source} cases REGEX "^TEST_CASE[(]")
+    list(LENGTH cases count)
+    set(first 1)
+    set(part 1)
+    while(TRUE)
+      math(EXPR last "${first} + ${HORCOM_GUI_SHARD_CASES} - 1")
+      set(range "--first=${first}")
+      if(last LESS count)
+        list(APPEND range "--last=${last}")
+      endif()
+      add_test(NAME gui_${stem}_${part}
+        COMMAND horcom_gui_tests "--source-file=*${stem}.cpp" "--test-case-exclude=layout:*" ${range})
+      set_tests_properties(gui_${stem}_${part} PROPERTIES
+        TIMEOUT 300
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>")
+      if(NOT last LESS count)
+        break()
+      endif()
+      math(EXPR first "${last} + 1")
+      math(EXPR part "${part} + 1")
+    endwhile()
+  endforeach()
   # the layout checks measure real faces on a full HD screen, the boxes
   # size themselves against the screen. The offscreen platform reads its
   # screen from a file beside the test, the colon of a drive letter would

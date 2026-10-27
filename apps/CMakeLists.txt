@@ -99,6 +99,9 @@ if(Qt6_FOUND)
   target_link_libraries(horcom_gui_core PUBLIC horcom Qt6::Widgets Qt6::Svg Qt6::PrintSupport)
   target_include_directories(horcom_gui_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/gui)
   target_compile_definitions(horcom_gui_core PUBLIC HORCOM_VERSION_STRING="${HORCOM_VERSION}")
+  if(MSVC)
+    target_precompile_headers(horcom_gui_core PRIVATE ${HORCOM_GUI_PCH})
+  endif()
   qt_add_executable(horcom_gui
     gui/main.cpp
   )
