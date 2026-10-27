@@ -32,6 +32,7 @@
 #include "horcom/data/aaf.hpp"
 #include "horcom/data/chart_file.hpp"
 #include "horcom/data/konsta.hpp"
+#include "horcom/data/place_file.hpp"
 #include "horcom/time/local_time.hpp"
 #include "print_pages.hpp"
 #include "probe.hpp"
@@ -1006,4 +1007,187 @@ TEST_CASE("HOROSKOP-HINTERGRUND turns the paper white and back to the dress") {
   CHECK(framed == "WEIß");
   CHECK_FALSE(theme::paper_override().isValid());
   CHECK_FALSE(QSettings().contains(theme::kPaperKey));
+}
+
+TEST_CASE("the Weltzeit row shows the UT the Uhrzeit stands for") {
+  auto w = MainWindowProbe::make();
+  // the panel names both clocks like his box named UHRZEIT and WZ = GMT = UT
+  QStringList labels;
+  for (const QLabel* l : w->findChildren<QLabel*>()) {
+    labels << l->text();
+  }
+  CHECK(labels.contains("Uhrzeit"));
+  CHECK(labels.contains("Weltzeit (UT)"));
+  CHECK(MainWindowProbe::local_time_box(*w)->text() == "Wahre Ortszeit (LT)");
+  // an afternoon five hours west of Greenwich
+  MainWindowProbe::apply(*w, sample(29, 5, 1917, 15, 0, "05hW00:00"));
+  CHECK(MainWindowProbe::time(*w)->time() == QTime(15, 0));
+  CHECK(MainWindowProbe::ut_time(*w)->time() == QTime(20, 0));
+  CHECK(MainWindowProbe::ut_day(*w).isEmpty());
+  // a late evening reaches UT on the next day, the row names that day
+  MainWindowProbe::apply(*w, sample(29, 5, 1917, 22, 30, "05hW00:00"));
+  CHECK(MainWindowProbe::ut_time(*w)->time() == QTime(3, 30));
+  CHECK(MainWindowProbe::ut_day(*w) == "30.05.1917");
+}
+
+TEST_CASE("a place with a zone keeps the UT of a fetched record") {
+  const auto dir = std::filesystem::temp_directory_path() / "horcom_panel_place_zone";
+  std::filesystem::remove_all(dir);
+  std::filesystem::create_directories(dir / "places");
+  // the picker files carry the step from zone time to UT in the name tail
+  REQUIRE(write_place_file(dir / "places" / "ZONE.INT", {{-73.9, 40.6, "Neustadt / US    +5"}}));
+  auto w = MainWindowProbe::make();
+  // a DAT record holds the UT and no zone
+  MainWindowProbe::apply(*w, sample(29, 5, 1917, 20, 0, "00hE00:00"));
+  const double before = MainWindowProbe::panel_jd(*w);
+  MainWindowProbe::set_data_dir(*w, dir);
+  {
+    test::DialogDriver drive;
+    drive.then([](QDialog* d) {
+      auto* table = d->findChild<QTableWidget*>();
+      for (int r = 0; table != nullptr && r < table->rowCount(); ++r) {
+        if (table->item(r, 0) != nullptr && table->item(r, 0)->text().startsWith("Neustadt")) {
+          emit table->cellDoubleClicked(r, 0);
+          return;
+        }
+      }
+      d->reject();
+    });
+    MainWindowProbe::open_place(*w);
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  CHECK(MainWindowProbe::zone(*w)->value() == doctest::Approx(-5.0));
+  // the first port kept the clock and the UT jumped to 01:00 of the next day
+  CHECK(std::abs(MainWindowProbe::panel_jd(*w) - before) < kSecondDays);
+  CHECK(MainWindowProbe::ut_time(*w)->time() == QTime(20, 0));
+  CHECK(MainWindowProbe::time(*w)->time() == QTime(15, 0));
+  std::filesystem::remove_all(dir);
+}
+
+TEST_CASE("a typed Uhrzeit leads and the UT follows a new zone") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, sample(1, 3, 1990, 12, 0, "00hE00:00"));
+  MainWindowProbe::time(*w)->setTime(QTime(15, 0));
+  MainWindowProbe::zone(*w)->setValue(-5.0);
+  CHECK(MainWindowProbe::time(*w)->time() == QTime(15, 0));
+  CHECK(MainWindowProbe::ut_time(*w)->time() == QTime(20, 0));
+  // the summer hour rides on the zone, the clock stays as typed
+  MainWindowProbe::sommerzeit(*w)->setChecked(true);
+  CHECK(MainWindowProbe::time(*w)->time() == QTime(15, 0));
+  CHECK(MainWindowProbe::ut_time(*w)->time() == QTime(19, 0));
+}
+
+TEST_CASE("a fetched or typed UT leads and the Uhrzeit follows a new zone") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, sample(29, 5, 1917, 20, 0, "00hE00:00"));
+  MainWindowProbe::zone(*w)->setValue(-5.0);
+  CHECK(MainWindowProbe::time(*w)->time() == QTime(15, 0));
+  CHECK(MainWindowProbe::ut_time(*w)->time() == QTime(20, 0));
+  // a typed UT moves the Uhrzeit through the zone in force
+  MainWindowProbe::ut_time(*w)->setTime(QTime(21, 30));
+  CHECK(MainWindowProbe::time(*w)->time() == QTime(16, 30));
+  CHECK(std::abs(MainWindowProbe::panel_jd(*w) - julian_day({29, 5, 1917, 21.0, 30.0}, Calendar::kAuto)) < kSecondDays);
+  // and keeps leading when the zone changes again
+  MainWindowProbe::zone(*w)->setValue(10.0);
+  CHECK(MainWindowProbe::ut_time(*w)->time() == QTime(21, 30));
+  CHECK(MainWindowProbe::time(*w)->time() == QTime(7, 30));
+  CHECK(MainWindowProbe::date(*w)->text() == "30.05.1917");
+  CHECK(MainWindowProbe::ut_day(*w) == "29.05.1917");
+}
+
+TEST_CASE("Zurück takes a typed UT back with its Uhrzeit") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, sample(1, 3, 1990, 12, 0, "01hE00:00"));
+  MainWindowProbe::flush_history(*w);
+  MainWindowProbe::ut_time(*w)->setTime(QTime(14, 15));
+  CHECK(MainWindowProbe::time(*w)->time() == QTime(15, 15));
+  MainWindowProbe::history_back(*w);
+  CHECK(MainWindowProbe::time(*w)->time() == QTime(12, 0));
+  CHECK(MainWindowProbe::ut_time(*w)->time() == QTime(11, 0));
+}
+
+TEST_CASE("Wahre Ortszeit on a UT record keeps the UT, a typed clock reckons it") {
+  auto w = MainWindowProbe::make();
+  // a synthetic historic UT record, before 1810 the clock is true local time
+  MainWindowProbe::apply(*w, sample(28, 8, 1749, 11, 25, "00hE00:00"));
+  const double before = MainWindowProbe::panel_jd(*w);
+  {
+    test::DialogDriver drive;
+    //RR WAHRE Ortszeit wird in MITTLERE Ortszeit umgerechnet !
+    drive.then(test::DialogDriver::click("OK"));
+    MainWindowProbe::local_time_box(*w)->setChecked(true);
+    CHECK(drive.pending() == 0);
+  }
+  CHECK(MainWindowProbe::clock(*w) == ClockKind::kTrueLocal);
+  CHECK(std::abs(MainWindowProbe::panel_jd(*w) - before) < kSecondDays);
+  // the clock now reads the true solar time of the place, about 46 minutes later
+  CHECK(MainWindowProbe::time(*w)->time() > QTime(12, 5));
+  // a clock typed under the box gives its UT
+  MainWindowProbe::time(*w)->setTime(QTime(12, 0));
+  const double local = julian_day({28, 8, 1749, 12.0, 0.0}, Calendar::kAuto);
+  CHECK(std::abs(MainWindowProbe::panel_jd(*w) -
+                 ut_from_local_clock(local, MainWindowProbe::lon(*w), ClockKind::kTrueLocal)) < kSecondDays);
+}
+
+TEST_CASE("a typed UT at midnight under a local clock stays on its day") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, sample(1, 3, 1900, 12, 0, "00hE00:00"));
+  MainWindowProbe::local_time(*w, true);
+  REQUIRE(MainWindowProbe::clock(*w) == ClockKind::kMeanLocal);
+  // 11 35 7 east is 46 minutes 20.47 seconds of clock, the whole seconds
+  // of the clock read back half a second before midnight
+  MainWindowProbe::lon_box(*w)->setValue(11.0 + 35.0 / 60.0 + 7.0 / 3600.0);
+  MainWindowProbe::ut_time(*w)->setTime(QTime(0, 0));
+  // the clamp had shown 23:59:59 of the day before and the next key
+  // landed a day early
+  CHECK(MainWindowProbe::ut_time(*w)->time() == QTime(0, 0));
+  CHECK(MainWindowProbe::ut_day(*w).isEmpty());
+  CHECK(MainWindowProbe::time(*w)->time() == QTime(0, 46, 20));
+  CHECK(std::abs(MainWindowProbe::panel_jd(*w) - julian_day({1, 3, 1900, 0.0, 0.0}, Calendar::kAuto)) < kSecondDays);
+}
+
+TEST_CASE("a typed UT under the true local clock reads back to the second") {
+  auto w = MainWindowProbe::make();
+  // before 1810 the local clock is true solar time
+  MainWindowProbe::apply(*w, sample(28, 8, 1749, 11, 25, "00hE00:00"));
+  MainWindowProbe::local_time(*w, true);
+  REQUIRE(MainWindowProbe::clock(*w) == ClockKind::kTrueLocal);
+  // the inverse read the equation of time at the mean clock and the field
+  // jumped a second under the typing now and then
+  for (int i = 0; i < 40; ++i) {
+    const QTime typed(9 + i % 7, (i * 7) % 60, (i * 13 + 1) % 60);
+    MainWindowProbe::ut_time(*w)->setTime(typed);
+    INFO(typed.toString().toStdString());
+    CHECK(MainWindowProbe::ut_time(*w)->time() == typed);
+  }
+}
+
+TEST_CASE("NOCH JULIANISCH reads the typed clock, the UT follows a new place") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, sample(1, 6, 1700, 12, 0, "00hE00:00"));
+  {
+    test::DialogDriver drive;
+    //RR WAHRE Ortszeit wird in MITTLERE Ortszeit umgerechnet !
+    drive.then(test::DialogDriver::click("OK"));
+    MainWindowProbe::julian(*w)->setChecked(true);
+    CHECK(drive.pending() == 0);
+  }
+  const QTime clock = MainWindowProbe::time(*w)->time();
+  const double before = MainWindowProbe::panel_jd(*w);
+  // a place a degree further east keeps the clock and moves the UT by
+  // four minutes, the box spoke for the typed clock
+  MainWindowProbe::lon_box(*w)->setValue(MainWindowProbe::lon(*w) + 1.0);
+  CHECK(MainWindowProbe::time(*w)->time() == clock);
+  CHECK((before - MainWindowProbe::panel_jd(*w)) * kSecondsPerDay == doctest::Approx(240.0).epsilon(0.01));
+}
+
+TEST_CASE("the empty start shows no UT of the chart before") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, sample(29, 5, 1917, 22, 30, "05hW00:00"));
+  REQUIRE_FALSE(MainWindowProbe::ut_day(*w).isEmpty());
+  w->start_idle();
+  CHECK(MainWindowProbe::ut_time(*w)->time() == QTime(0, 0));
+  CHECK(MainWindowProbe::ut_day(*w).isEmpty());
+  CHECK_FALSE(MainWindowProbe::ut_time(*w)->isEnabled());
 }

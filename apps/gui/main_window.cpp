@@ -235,6 +235,28 @@ constexpr double kStartLat = 48.1742;
 // the house system in the text of the house table, larger than the text
 constexpr double kHouseNameScale = 1.4;
 
+// a day as the date field writes it, TT.MM.JJJJ and years BC with vC
+QString day_text(int day, int month, int astro_year) {
+  if (astro_year > 0) {
+    return QString::asprintf("%02d.%02d.%04d", day, month, astro_year);
+  }
+  //RR vC like in his record list
+  return QString::asprintf("%02d.%02d.%d vC", day, month, 1 - astro_year);
+}
+
+// a moment on the whole seconds of the panel fields. Half a second
+// carries into the next second and over midnight into the next day, a
+// clamp at 23:59:59 had named the day before
+struct WholeSecond {
+  CalendarDate day;
+  QTime time;
+};
+
+WholeSecond whole_second(double jd, Calendar cal) {
+  const CalendarDate d = calendar_date(jd + 0.5 / kSecondsPerDay, cal);
+  const int s = std::min(static_cast<int>((d.hour * 60.0 + d.minute) * 60.0), kSecondsPerDay - 1);
+  return {d, QTime(s / 3600, (s / 60) % 60, s % 60)};
+}
 
 // the fractional variant, seconds carry the double's precision so the
 // panel does not throw away the accuracy the place file already knows
@@ -581,6 +603,22 @@ void MainWindow::build_ui() {
   // arrow keys and the mouse wheel step the fields, the tiny stepper
   // buttons would only clutter the panel
   time_->setButtonSymbols(QAbstractSpinBox::NoButtons);
+  // his box named the time it asked for, UHRZEIT in a new entry and
+  // WZ = GMT = UT for a record, the panel shows both at once and every
+  // calculation reads the UT
+  ut_time_ = new QTimeEdit(form_host);
+  ut_time_->setDisplayFormat("HH:mm:ss");
+  ut_time_->setButtonSymbols(QAbstractSpinBox::NoButtons);
+  ut_time_->setToolTip(tr("WZ = GMT = UT, die Grundlage aller Berechnungen"));
+  ut_day_ = new QLabel(form_host);
+  ut_day_->setToolTip(tr("Datum der Weltzeit, wenn es vom Datum der Uhrzeit abweicht"));
+  // the hidden date keeps its room, the UT field does not jump while a
+  // zone is typed across midnight
+  QSizePolicy day_policy = ut_day_->sizePolicy();
+  day_policy.setRetainSizeWhenHidden(true);
+  ut_day_->setSizePolicy(day_policy);
+  ut_day_->setText(day_text(kStartDay, kStartMonth, kStartYear));
+  ut_day_->hide();
   zone_ = new QDoubleSpinBox(form_host);
   zone_->setRange(-14.0, 14.0);
   zone_->setDecimals(2);
@@ -815,7 +853,10 @@ void MainWindow::build_ui() {
   //RR ORTSZEIT (HISTORISCHE HOROSKOPE)
   //RR NOCH JULIANISCH ( NACH 1582 )
   // the two switches of his EINGABE box
-  local_time_ = new QCheckBox(tr("Ortszeit"), form_host);
+  // the true solar time of the place that historic records give, before
+  // 1810 his zuo turns it into mean local time, later it asks or takes
+  // the mean clock, the hint beside Sommerzeit names the clock in force
+  local_time_ = new QCheckBox(tr("Wahre Ortszeit (LT)"), form_host);
   local_time_->setToolTip(tr("ORTSZEIT (HISTORISCHE HOROSKOPE), die Uhr folgt der geographischen Länge"));
   julian_ = new QCheckBox(tr("noch julianisch"), form_host);
   julian_->setToolTip(tr("NOCH JULIANISCH ( NACH 1582 ), das Datum gilt im julianischen Kalender"));
@@ -828,6 +869,8 @@ void MainWindow::build_ui() {
   history_lay->addStretch(1);
   connect(local_time_, &QCheckBox::toggled, this, [this](bool on) { set_local_time(on, true); });
   connect(julian_, &QCheckBox::toggled, this, [this](bool on) {
+    // the box says how the typed date and clock read, the UT follows them
+    ut_leads_ = false;
     set_panel_calendar(on ? Calendar::kJulian : Calendar::kAuto);
     // his ortsz!(ze) = TRUE, NOCH JULIANISCH brings in the local time too
     if (on && !local_time_->isChecked()) {
@@ -846,9 +889,16 @@ void MainWindow::build_ui() {
   // in step with the two fields that feed it
   refresh_sommer_effect_ = refresh_sommer;
   form->addRow(tr("Datum"), date_);
-  // the birth time reads as local clock, the zone plus Sommerzeit
-  // convert it to UT the moment the recompute runs
-  form->addRow(tr("Zeit"), time_);
+  // the clock reading, the zone plus Sommerzeit or the local clock turn
+  // it into the UT of the row below
+  form->addRow(tr("Uhrzeit"), time_);
+  auto* ut_row = new QWidget(form_host);
+  auto* ut_lay = new QHBoxLayout(ut_row);
+  ut_lay->setContentsMargins(0, 0, 0, 0);
+  ut_lay->setSpacing(8);
+  ut_lay->addWidget(ut_time_, 1);
+  ut_lay->addWidget(ut_day_);
+  form->addRow(tr("Weltzeit (UT)"), ut_row);
   // Ortsname sits between the clock time and the zone, the ORT SUCHEN
   // picker fills the zone and the coordinates below
   form->addRow(tr("Ortsname"), place_row);
@@ -1606,14 +1656,34 @@ void MainWindow::build_ui() {
     date_timer_->stop();
     recompute();
   });
+  // the time typed last leads, a typed Uhrzeit carries the UT along
+  connect(time_, &QTimeEdit::timeChanged, this, [this]() { ut_leads_ = false; });
   connect(time_, &QTimeEdit::timeChanged, this, &MainWindow::recompute);
-  connect(zone_, &QDoubleSpinBox::valueChanged, this, &MainWindow::recompute);
-  connect(lon_, &QDoubleSpinBox::valueChanged, this, &MainWindow::recompute);
+  // a typed UT keeps the UT date of the panel, the Uhrzeit and the date
+  // field follow through the zone and the clock
+  connect(ut_time_, &QTimeEdit::timeChanged, this, [this](const QTime& t) {
+    ut_leads_ = true;
+    const CalendarDate u = calendar_date(panel_jd_ut_, panel_calendar_);
+    const CalendarDate typed{u.day, u.month, u.year, static_cast<double>(t.hour()), t.minute() + t.second() / 60.0};
+    set_panel_clock(julian_day(typed, panel_calendar_));
+    recompute();
+  });
+  // the zone, the summer time, the local clock and the longitude it reads
+  // move the Uhrzeit while the UT leads
+  const auto offsets_changed = [this]() {
+    hold_ut();
+    recompute();
+  };
+  connect(zone_, &QDoubleSpinBox::valueChanged, this, offsets_changed);
+  connect(lon_, &QDoubleSpinBox::valueChanged, this, offsets_changed);
   connect(lat_, &QDoubleSpinBox::valueChanged, this, &MainWindow::recompute);
   connect(houses_, &QComboBox::currentIndexChanged, this, &MainWindow::recompute);
   for (QCheckBox* box : {parallax_, extras_, hamburg_, apogee_show_, node_show_, true_node_, true_apogee_, helio_,
-                         sommerzeit_, double_dst_, local_time_, julian_}) {
+                         julian_}) {
     connect(box, &QCheckBox::toggled, this, &MainWindow::recompute);
+  }
+  for (QCheckBox* box : {sommerzeit_, double_dst_, local_time_}) {
+    connect(box, &QCheckBox::toggled, this, offsets_changed);
   }
   connect(transit_on_, &QCheckBox::toggled, this, [this](bool on) {
     tdate_->setEnabled(on);
@@ -1651,24 +1721,73 @@ void MainWindow::build_ui() {
 // leaving here carries the settings calendar the engine converts with
 ChartInput MainWindow::current_input() const {
   ChartInput in;
+  in.date_ut = calendar_date(panel_jd_ut(), current_settings().calendar);
+  in.lon_deg_east = lon_->value();
+  in.lat_deg = lat_->value();
+  return in;
+}
+
+// ported from zuo, the clock of the panel into UT
+double MainWindow::panel_jd_ut() const {
   CalendarDate local = panel_day();
   const QTime t = time_->time();
   local.hour = static_cast<double>(t.hour());
   local.minute = t.minute() + t.second() / 60.0;
   const double jd_local = julian_day(local, panel_calendar_);
-  double jd_ut = 0.0;
   if (clock_kind_ != ClockKind::kZone) {
     //RR jd = jd - gl / 360, with the equation of time for a true clock
-    jd_ut = ut_from_local_clock(jd_local, lon_->value(), clock_kind_);
-  } else {
-    // zone hours east of Greenwich lead back to UT by subtraction, the
-    // summer shift rides on the zone like his ZONEN-Datei carried it
-    jd_ut = jd_local - (zone_->value() + dst_hours_) / kHoursPerDay;
+    return ut_from_local_clock(jd_local, lon_->value(), clock_kind_);
   }
-  in.date_ut = calendar_date(jd_ut, current_settings().calendar);
-  in.lon_deg_east = lon_->value();
-  in.lat_deg = lat_->value();
-  return in;
+  // zone hours east of Greenwich lead back to UT by subtraction, the
+  // summer shift rides on the zone like his ZONEN-Datei carried it
+  return jd_local - (zone_->value() + dst_hours_) / kHoursPerDay;
+}
+
+double MainWindow::clock_jd(double jd_ut) const {
+  if (clock_kind_ != ClockKind::kZone) {
+    // the inverse of zuo. His equation of time is read at the true clock,
+    // two passes from the mean clock land on it within a millisecond
+    const double mean = jd_ut + lon_->value() / kDegPerCircle;
+    if (clock_kind_ != ClockKind::kTrueLocal) {
+      return mean;
+    }
+    double jd = mean + equation_of_time_days(mean);
+    jd = mean + equation_of_time_days(jd);
+    return jd;
+  }
+  return jd_ut + (zone_->value() + dst_hours_) / kHoursPerDay;
+}
+
+void MainWindow::set_panel_clock(double jd_ut) {
+  const auto [d, t] = whole_second(clock_jd(jd_ut), panel_calendar_);
+  // a clock that already shows the moment keeps the date as typed
+  const CalendarDate p = panel_day();
+  if (panel_day_valid() && d.day == p.day && d.month == p.month && d.year == p.year && time_->time() == t) {
+    return;
+  }
+  const QSignalBlocker b1(date_);
+  const QSignalBlocker b2(time_);
+  set_panel_day(d.day, d.month, d.year);
+  time_->setTime(t);
+}
+
+void MainWindow::refresh_ut_field(double jd_ut) {
+  panel_jd_ut_ = jd_ut;
+  const auto [u, t] = whole_second(jd_ut, panel_calendar_);
+  // the field being typed in already shows the moment it gave
+  if (ut_time_->time() != t) {
+    const QSignalBlocker b(ut_time_);
+    ut_time_->setTime(t);
+  }
+  const CalendarDate p = panel_day();
+  ut_day_->setText(day_text(u.day, u.month, u.year));
+  ut_day_->setHidden(u.day == p.day && u.month == p.month && u.year == p.year);
+}
+
+void MainWindow::hold_ut() {
+  if (ut_leads_ && !idle_ && panel_day_valid()) {
+    set_panel_clock(panel_jd_ut_);
+  }
 }
 
 ChartSettings MainWindow::current_settings() const {
@@ -1773,6 +1892,7 @@ MainWindow::PanelState MainWindow::panel_state() const {
   s.dst = dst_hours_;
   s.calendar = panel_calendar_;
   s.clock = clock_kind_;
+  s.ut_leads = ut_leads_;
   s.lon = lon_->value();
   s.lat = lat_->value();
   s.houses = houses_->currentIndex();
@@ -1839,6 +1959,7 @@ void MainWindow::restore_state(const PanelState& s) {
     time_->setTime(s.time);
     zone_->setValue(s.zone);
     clock_kind_ = s.clock;
+    ut_leads_ = s.ut_leads;
     set_dst(s.dst);
     set_panel_calendar(s.calendar);
     local_time_->setChecked(s.clock != ClockKind::kZone);
@@ -2072,24 +2193,29 @@ void MainWindow::recompute() {
     // derived one is the radix of a panel without a SATZ row again, like
     // the panel always was, a place moved under the derived chart is none.
     // A step of Zurück or Vor brings its own memory
+    // a zone or a local clock held under the derived moment reads the UT
+    // back through whole seconds, up to half a second off, it is the same
+    // moment. A typed change moves it by a whole second at least
     const auto shows_derived = [this, &in]() {
-      return derived_input_ && in.date_ut.day == derived_input_->date_ut.day &&
-             in.date_ut.month == derived_input_->date_ut.month && in.date_ut.year == derived_input_->date_ut.year &&
-             in.date_ut.hour == derived_input_->date_ut.hour && in.date_ut.minute == derived_input_->date_ut.minute;
+      const Calendar cal = current_settings().calendar;
+      return derived_input_ &&
+             std::abs(julian_day(in.date_ut, cal) - julian_day(derived_input_->date_ut, cal)) * kSecondsPerDay < 1.0;
     };
     if (!deriving_ && !restoring_ && !(active_is_solar_ && shows_derived())) {
-      loose_radix_ = in;
+      loose_radix_ = panel_radix(in);
       // a birth typed over a derived chart of a row without a RADIX row is
       // its radix again
       if (active_is_solar_ && active_solar_ >= 0 && solar_bases_[static_cast<std::size_t>(active_solar_)]) {
-        solar_bases_[static_cast<std::size_t>(active_solar_)] = in;
+        solar_bases_[static_cast<std::size_t>(active_solar_)] = loose_radix_;
       }
     }
   }
   // the running clock is the radix of the steps it leads, a step kept the
   // birth shown before the clock and a SOLAR from it counted from that
   if (clock && !deriving_ && !restoring_) {
-    loose_radix_ = clock_input();
+    // the clock runs in UT at the place of the clock
+    loose_radix_ = RadixMemory{clock_input()};
+    loose_radix_->place = uhr_place_.place;
   }
   // the step takes the radix memory of the moment it shows, read after the
   // capture. Read before it, every step carried the birth of the step
@@ -2110,6 +2236,7 @@ void MainWindow::recompute() {
     time_->setTime(QTime(r.hour, r.minute, r.second));
     current_state_ = panel_state();
   }
+  refresh_ut_field(clock ? julian_day(in.date_ut, current_settings().calendar) : panel_jd_ut());
   const ChartSettings s = current_settings();
   Chart chart = chart_or_polar_fallback(in, s);
   // the horm 2 transform runs before every scanner like the original,
@@ -2661,6 +2788,9 @@ void MainWindow::open_place() {
   if (const auto to_ut = r.zone_to_ut()) {
     zone_->setValue(-*to_ut);
   }
+  // his a2ort left the time alone, a fetched or reckoned UT stays and the
+  // Uhrzeit shows the clock of the new place
+  hold_ut();
   // the new place belongs on the sheet, not only its coordinates
   record_.place = dialog.chosen_name().toStdString();
   {
@@ -2690,31 +2820,16 @@ void MainWindow::apply_moment(double jd_ut, const QString& label, bool solar_slo
     prog_radix_note_.clear();
   }
   // a derived chart is written in UT, a corrected radix in its own clock
-  double jd_clock = jd_ut;
   if (!keep_clock) {
     set_panel_calendar(Calendar::kAuto);
     set_local_time(false, false);
     set_dst(0.0);
     const QSignalBlocker b3(zone_);
     zone_->setValue(0.0);
-  } else if (clock_kind_ != ClockKind::kZone) {
-    // the inverse of zuo, the equation of time barely moves in the step
-    jd_clock = jd_ut + lon_->value() / kDegPerCircle;
-    if (clock_kind_ == ClockKind::kTrueLocal) {
-      jd_clock += equation_of_time_days(jd_clock);
-    }
-  } else {
-    jd_clock = jd_ut + (zone_->value() + dst_hours_) / kHoursPerDay;
   }
-  const CalendarDate d = calendar_date(jd_clock, panel_calendar_);
-  int seconds = static_cast<int>((d.hour * 60.0 + d.minute) * 60.0 + 0.5);
-  if (seconds >= kSecondsPerDay) {
-    seconds = kSecondsPerDay - 1;
-  }
-  const QSignalBlocker b1(date_);
-  const QSignalBlocker b2(time_);
-  set_panel_day(d.day, d.month, d.year);
-  time_->setTime(QTime(seconds / 3600, (seconds / 60) % 60, seconds % 60));
+  set_panel_clock(jd_ut);
+  // a reckoned moment is a UT, a new zone shows it on another clock
+  ut_leads_ = true;
   if (refresh_sommer_effect_) refresh_sommer_effect_();
   // the derived moment is no radix, the one it came from stays known. Its
   // row leads before the chart is drawn, bes2 names the return in the
@@ -4966,6 +5081,7 @@ void MainWindow::pick_zone() {
     const QSignalBlocker b(zone_);
     zone_->setValue(-*z.to_ut_hours);
   }
+  hold_ut();
   if (refresh_sommer_effect_) refresh_sommer_effect_();
   recompute();
 }
@@ -5308,16 +5424,38 @@ void MainWindow::leave_solar_level() {
   }
   flush_history();
   const ChartInput base = radix_input();
-  const EventPlace place = birth_place();
+  const std::optional<RadixMemory> memory = radix_memory();
+  EventPlace place = birth_place();
   active_is_solar_ = false;
   active_solar_ = -1;
   active_slot_ = -1;
   update_slot_actions();
   update_solar_actions();
+  const bool combin = !combin_name1_.empty();
+  // the birth comes back on the clock and at the place it was typed with,
+  // a bare UT had shown the clock of zone 0 and the return's place
+  if (memory && !combin) {
+    place.name = memory->place;
+    const QSignalBlocker b1(zone_);
+    const QSignalBlocker b2(local_time_);
+    zone_->setValue(memory->zone);
+    clock_kind_ = memory->clock;
+    local_time_->setChecked(memory->clock != ClockKind::kZone);
+    zone_->setEnabled(memory->clock == ClockKind::kZone);
+    sommerzeit_->setEnabled(memory->clock == ClockKind::kZone);
+    set_dst(memory->dst);
+    set_panel_calendar(memory->calendar);
+  }
   set_panel_place(place);
   // a COMBIN keeps its pair line, a typed birth names its date
-  const bool combin = !combin_name1_.empty();
-  apply_moment(julian_day(base.date_ut, current_settings().calendar), combin ? combin_banner_ : QString(), false);
+  apply_moment(julian_day(base.date_ut, current_settings().calendar), combin ? combin_banner_ : QString(), false,
+               memory.has_value() && !combin);
+  // the birth is led by the time it was typed in, a reckoned moment had
+  // turned a typed Uhrzeit into a UT that leads
+  if (memory && !combin) {
+    ut_leads_ = memory->ut_leads;
+    refresh_current_step();
+  }
   if (!combin) {
     refresh_record_label();
     refresh_current_step();
@@ -5585,6 +5723,14 @@ void MainWindow::start_idle() {
     date_->clear();
     time_->setTime(QTime(0, 0));
   }
+  // a new entry starts from the clock like his UHRZEIT box, the zone typed
+  // after it carries the UT along, the UT row waits empty of meaning
+  ut_leads_ = false;
+  {
+    const QSignalBlocker b(ut_time_);
+    ut_time_->setTime(QTime(0, 0));
+  }
+  ut_day_->hide();
   // no step of Zurück leads into the empty start
   history_timer_->stop();
   pending_.reset();
@@ -5627,6 +5773,8 @@ void MainWindow::update_idle_actions() {
   for (QAction* a : chart_actions_) {
     a->setEnabled(!idle_);
   }
+  // the UT row needs a whole date to stand on
+  ut_time_->setEnabled(!idle_);
   // the entries with a state of their own, the SOLAR level and the
   // heliocentric menu, take it back
   update_solar_actions();
@@ -6726,22 +6874,22 @@ void MainWindow::apply_record(const AafRecord& r, bool claim_slot) {
   const double from_fields = julian_day(local, r.calendar) - (zone_hours + dst) / kHoursPerDay;
   const bool jd_rules = r.jd > 0.0 && std::abs(from_fields - r.jd) * kSecondsPerDay > 30.0;
   CalendarDate shown = local;
+  QTime shown_time(r.hour, r.minute, r.second);
   if (jd_rules) {
-    shown = calendar_date(r.jd, r.calendar);
-  }
-  int seconds = jd_rules ? static_cast<int>((shown.hour * 60.0 + shown.minute) * 60.0 + 0.5)
-                         : (r.hour * 60 + r.minute) * 60 + r.second;
-  if (seconds >= kSecondsPerDay) {
-    seconds = kSecondsPerDay - 1;
+    const WholeSecond w = whole_second(r.jd, r.calendar);
+    shown = w.day;
+    shown_time = w.time;
   }
   set_dst(jd_rules ? 0.0 : dst);
+  // the record keeps its UT, a place picked afterwards moves the Uhrzeit
+  ut_leads_ = true;
   const QSignalBlocker b1(date_);
   const QSignalBlocker b2(time_);
   const QSignalBlocker b3(zone_);
   const QSignalBlocker b4(lon_);
   const QSignalBlocker b5(lat_);
   set_panel_day(shown.day, shown.month, shown.year);
-  time_->setTime(QTime(seconds / 3600, (seconds / 60) % 60, seconds % 60));
+  time_->setTime(shown_time);
   zone_->setValue(jd_rules ? 0.0 : zone_hours);
   lon_->setValue(r.longitude());
   lat_->setValue(r.latitude());
@@ -6950,12 +7098,7 @@ bool MainWindow::panel_day_written() const {
 
 void MainWindow::set_panel_day(int day, int month, int astro_year) {
   const QSignalBlocker block(date_);
-  if (astro_year > 0) {
-    date_->setText(QString::asprintf("%02d.%02d.%04d", day, month, astro_year));
-  } else {
-    //RR vC like in his record list
-    date_->setText(QString::asprintf("%02d.%02d.%d vC", day, month, 1 - astro_year));
-  }
+  date_->setText(day_text(day, month, astro_year));
 }
 
 QDate MainWindow::panel_qdate() const {

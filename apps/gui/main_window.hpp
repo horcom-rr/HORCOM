@@ -732,6 +732,27 @@ class MainWindow : public QMainWindow {
              note == o.note && list == o.list;
     }
   };
+  /// A radix the panel holds without a SATZ row, the moment with the
+  /// clock and the place it was shown with, so leaving a return brings
+  /// the birth back as it was typed and not as a bare UT.
+  struct RadixMemory {
+    ChartInput in;
+    double zone = 0.0;
+    double dst = 0.0;
+    ClockKind clock = ClockKind::kZone;
+    Calendar calendar = Calendar::kAuto;
+    std::string place;
+    /// the time the birth was led by, a typed Uhrzeit or a UT
+    bool ut_leads = true;
+  };
+  /// @param in the moment the panel shows
+  /// @return the moment with the clock and place of the panel
+  [[nodiscard]] RadixMemory panel_radix(const ChartInput& in) const;
+  /// @return the radix memory a derived chart counts from, nothing when
+  ///         the SATZ row of a return or the running UHR holds the radix,
+  ///         and at radix level the moment last shown when there is one
+  [[nodiscard]] std::optional<RadixMemory> radix_memory() const;
+
   struct PanelState {
     QString given;
     QString surname;
@@ -746,6 +767,9 @@ class MainWindow : public QMainWindow {
     Calendar calendar = Calendar::kAuto;
     /// which clock the time field shows, zone time or a local time
     ClockKind clock = ClockKind::kZone;
+    /// the UT led the step, left out of the comparison like the radix
+    /// memory, the two times of the step show the same moment either way
+    bool ut_leads = true;
     double lon = 0.0;
     double lat = 0.0;
     int houses = 0;
@@ -771,7 +795,7 @@ class MainWindow : public QMainWindow {
     CombinMemory combin;
     /// the radix memory of a birth typed without a SATZ row, carried with
     /// the step and left out of the comparison
-    std::optional<ChartInput> loose_radix;
+    std::optional<RadixMemory> loose_radix;
     std::optional<ChartInput> derived_input;
     /// the record line of the banner, 54.SOLAR or KORRIGIERT, a step back
     /// had kept the line of the last chart
@@ -780,7 +804,7 @@ class MainWindow : public QMainWindow {
     /// reads it while the step is drawn, empty at radix level
     QString solar_label;
     /// the radix of that SOLAR row when no RADIX row stood behind it
-    std::optional<ChartInput> solar_base;
+    std::optional<RadixMemory> solar_base;
     /// the bodies of the Planeten-Auswahl with their show and red marks,
     /// a choice there was no step and Zurück took back the one before
     std::array<bool, body::kSlotCount> included{};
@@ -1106,6 +1130,27 @@ class MainWindow : public QMainWindow {
   ///         the mundane frame the note that it needs the ecliptic
   [[nodiscard]] QString compact_midpoints(const Chart& chart) const;
   [[nodiscard]] ChartInput current_input() const;
+  /// @return the Julian day UT of the panel, the Uhrzeit read through the
+  ///         zone and the summer time or through the local clock
+  [[nodiscard]] double panel_jd_ut() const;
+  /// The Uhrzeit that shows a moment, the inverse of panel_jd_ut.
+  ///
+  /// @param jd_ut the moment in UT
+  /// @return the Julian day of the clock, read in the panel calendar
+  [[nodiscard]] double clock_jd(double jd_ut) const;
+  /// Writes a moment into the date and Uhrzeit fields through the zone,
+  /// the summer time and the clock of the panel, without firing edits.
+  ///
+  /// @param jd_ut the moment in UT
+  void set_panel_clock(double jd_ut);
+  /// Shows a moment in the Weltzeit (UT) row, with the UT date beside it
+  /// when that is another day than the date of the Uhrzeit.
+  ///
+  /// @param jd_ut the moment the chart is drawn for
+  void refresh_ut_field(double jd_ut);
+  /// Keeps the UT of the panel while it leads, the Uhrzeit takes the new
+  /// zone, summer time, local clock or place.
+  void hold_ut();
   [[nodiscard]] ChartSettings current_settings() const;
   void apply_record(const AafRecord& r, bool claim_slot = true);
   /// Puts a found moment onto the panel. Derived charts land in UT, a
@@ -1348,7 +1393,7 @@ class MainWindow : public QMainWindow {
   /// the radix of a SOLAR row that no RADIX row stood behind, a birth
   /// typed without a SATZ row or a COMBIN. The row shares its number with
   /// a RADIX row that may hold another person
-  std::array<std::optional<ChartInput>, 5> solar_bases_{};
+  std::array<std::optional<RadixMemory>, 5> solar_bases_{};
   std::array<QAction*, 5> solar_actions_{};
   /// which slot family holds the panel, false radix, true solar
   bool active_is_solar_ = false;
@@ -1454,7 +1499,18 @@ class MainWindow : public QMainWindow {
   /// a recompute a short pause after typing stops, so the user does not
   /// need to leave the field for the chart to catch up
   QTimer* date_timer_ = nullptr;
+  /// the Uhrzeit, the zone time read off the clock or a local clock
   QTimeEdit* time_ = nullptr;
+  /// the Weltzeit (UT) row, the moment every calculation reads
+  QTimeEdit* ut_time_ = nullptr;
+  /// the UT date beside it, shown only when it is not the date field's day
+  QLabel* ut_day_ = nullptr;
+  /// which time the last edit fixed. A fetched, derived or typed UT leads
+  /// and a new zone, summer time, local clock or place moves the Uhrzeit,
+  /// a typed Uhrzeit leads and the UT follows
+  bool ut_leads_ = true;
+  /// the UT of the panel at the last refresh, the moment hold_ut keeps
+  double panel_jd_ut_ = 0.0;
   QDoubleSpinBox* zone_ = nullptr;
   /// the hidden double coordinate, the source of truth every calc and
   /// file path already reads through lon_/lat_->value()
@@ -1661,7 +1717,7 @@ class MainWindow : public QMainWindow {
   std::vector<QAction*> chart_actions_;
   // the radix a derived chart came from when it was typed into the panel
   // without a SATZ row, the panel shows the derived moment afterwards
-  std::optional<ChartInput> loose_radix_;
+  std::optional<RadixMemory> loose_radix_;
   // the moment the last derived chart put on the panel, while the panel
   // still shows it the radix stays in loose_radix_
   std::optional<ChartInput> derived_input_;

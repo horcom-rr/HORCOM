@@ -845,6 +845,68 @@ TEST_CASE("TAGES-HOROSKOP switches the heliocentric mode off like CLR hrg!") {
   CHECK(MainWindowProbe::banner_record(*w) == "TAG-HOR");
 }
 
+TEST_CASE("a zone held under the SOLAR of a typed birth keeps the birth as its radix") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::date(*w)->setText("10.05.1970");
+  emit MainWindowProbe::date(*w)->editingFinished();
+  MainWindowProbe::time(*w)->setTime(QTime(7, 0));
+  {
+    DialogDriver drive;
+    drive.then([](QDialog* d) {
+      QTimer::singleShot(0, d, [d]() {
+        d->findChild<QSpinBox*>()->setValue(2026);
+        click_button(d, "OK");
+      });
+    });
+    MainWindowProbe::solar(*w);
+    CHECK(drive.unexpected() == 0);
+  }
+  REQUIRE(MainWindowProbe::banner_record(*w) == "56.SOLAR");
+  // the zone moves the clock of the return, its UT reads back a hair off
+  // and the exact comparison had taken the return for a new birth
+  for (const double zone : {-5.0, 5.5, -8.0, 1.0, 0.25, -3.5}) {
+    MainWindowProbe::zone(*w)->setValue(zone);
+    INFO(zone);
+    CHECK(MainWindowProbe::radix_input(*w).date_ut.year == 1970);
+    CHECK(MainWindowProbe::radix_input(*w).date_ut.month == 5);
+  }
+}
+
+TEST_CASE("leaving the SOLAR of a typed birth brings it back on its own clock and place") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::date(*w)->setText("10.05.1970");
+  emit MainWindowProbe::date(*w)->editingFinished();
+  MainWindowProbe::zone(*w)->setValue(-5.0);
+  MainWindowProbe::time(*w)->setTime(QTime(15, 0));
+  MainWindowProbe::place_field(*w)->setText("NEUSTADT");
+  emit MainWindowProbe::place_field(*w)->editingFinished();
+  const double birth = MainWindowProbe::panel_jd(*w);
+  {
+    DialogDriver drive;
+    drive.then([](QDialog* d) {
+      QTimer::singleShot(0, d, [d]() {
+        d->findChild<QSpinBox*>()->setValue(2026);
+        click_button(d, "OK");
+      });
+    });
+    MainWindowProbe::solar(*w);
+    CHECK(drive.unexpected() == 0);
+  }
+  REQUIRE(MainWindowProbe::banner_record(*w) == "56.SOLAR");
+  // MULTI and HARMONICS leave the return for the birth like his od = 1
+  MainWindowProbe::leave_solar(*w);
+  CHECK(std::abs(MainWindowProbe::panel_jd(*w) - birth) * kSecondsPerDay < 1.0);
+  // the first port showed 20:00 on zone 0 and the place of the return
+  CHECK(MainWindowProbe::time(*w)->time() == QTime(15, 0));
+  CHECK(MainWindowProbe::zone(*w)->value() == doctest::Approx(-5.0));
+  CHECK(MainWindowProbe::place_field(*w)->text() == "NEUSTADT");
+  // the typed Uhrzeit still leads, a corrected zone moves the UT as it did
+  // before the return
+  MainWindowProbe::zone(*w)->setValue(-6.0);
+  CHECK(MainWindowProbe::time(*w)->time() == QTime(15, 0));
+  CHECK((MainWindowProbe::panel_jd(*w) - birth) * kSecondsPerDay == doctest::Approx(3600.0).epsilon(0.001));
+}
+
 TEST_CASE("SOLAR and LUNAR over a radix typed into the panel count from the birth both ways") {
   // the tester typed the birth into DATEN, the first SOLAR then became the
   // base of the next one and VORHERIGES JAHR counted -1

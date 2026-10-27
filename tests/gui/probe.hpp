@@ -53,6 +53,9 @@ struct MainWindowProbe {
   static bool day_valid(const MainWindow& w) { return w.panel_day_valid(); }
   static QLineEdit* date(MainWindow& w) { return w.date_; }
   static QTimeEdit* time(MainWindow& w) { return w.time_; }
+  static QTimeEdit* ut_time(MainWindow& w) { return w.ut_time_; }
+  static QString ut_day(const MainWindow& w) { return w.ut_day_->isHidden() ? QString() : w.ut_day_->text(); }
+  static void open_place(MainWindow& w) { w.open_place(); }
   static QDoubleSpinBox* zone(MainWindow& w) { return w.zone_; }
   static QCheckBox* sommerzeit(MainWindow& w) { return w.sommerzeit_; }
   static QCheckBox* julian(MainWindow& w) { return w.julian_; }
@@ -60,6 +63,7 @@ struct MainWindowProbe {
   static Calendar calendar(const MainWindow& w) { return w.panel_calendar_; }
   static ClockKind clock(const MainWindow& w) { return w.clock_kind_; }
   static void local_time(MainWindow& w, bool on) { w.set_local_time(on, false); }
+  static QCheckBox* local_time_box(MainWindow& w) { return w.local_time_; }
   static double lon(const MainWindow& w) { return w.lon_->value(); }
   static QDoubleSpinBox* lon_box(MainWindow& w) { return w.lon_; }
   static const Chart& chart(const MainWindow& w) { return *w.last_chart_; }
@@ -258,6 +262,8 @@ struct MainWindowProbe {
     w.uhr_slot_ = slot;
   }
   static void data_file_io(MainWindow& w) { w.data_file_io(); }
+  static void leave_solar(MainWindow& w) { w.leave_solar_level(); }
+  static QLineEdit* place_field(MainWindow& w) { return w.place_field_; }
   static void planet_selection(MainWindow& w) { w.planet_selection(); }
   static bool export_png(MainWindow& w, const QString& path) { return w.export_png_to(path); }
   static void chain_files(MainWindow& w) { w.chain_files(); }

@@ -256,34 +256,46 @@ void MainWindow::set_panel_place(const EventPlace& p) {
 // row behind it keeps that radix itself, the RADIX row of its number may
 // hold another person
 ChartInput MainWindow::radix_input() const {
-  if (active_is_solar_ && active_solar_ >= 0) {
-    const auto row = static_cast<std::size_t>(active_solar_);
-    if (solar_bases_[row]) {
-      return *solar_bases_[row];
-    }
-    if (slots_[row]) {
-      return record_input(*slots_[row]);
-    }
+  if (const std::optional<RadixMemory> memory = radix_memory()) {
+    return memory->in;
   }
-  // a SOLAR row taken back puts its own record here, the radix stays
-  if (active_is_solar_ && loose_radix_) {
-    return *loose_radix_;
+  if (active_is_solar_ && active_solar_ >= 0 && slots_[static_cast<std::size_t>(active_solar_)]) {
+    return record_input(*slots_[static_cast<std::size_t>(active_solar_)]);
   }
-  if (!active_is_solar_) {
-    // the running UHR is the radix of its slot
-    if (uhr_slot_ >= 0 && active_slot_ == uhr_slot_ && slots_[static_cast<std::size_t>(uhr_slot_)]) {
-      return record_input(*slots_[static_cast<std::size_t>(uhr_slot_)]);
-    }
-    // the radix last shown, a typed time, a KORRIGIERT moment or a COMBIN,
-    // which record_ never took up. A walk holds the history and leaves it
-    // as the walk began. His a16 read the RADIX row ze, after a COMBIN the
-    // row 2
-    if (loose_radix_) {
-      return *loose_radix_;
-    }
+  // the running UHR is the radix of its slot
+  if (!active_is_solar_ && uhr_slot_ >= 0 && active_slot_ == uhr_slot_ && slots_[static_cast<std::size_t>(uhr_slot_)]) {
+    return record_input(*slots_[static_cast<std::size_t>(uhr_slot_)]);
   }
   const bool use_record = record_.day > 0 || record_.jd > 0.0;
   return use_record ? record_input(record_) : current_input();
+}
+
+std::optional<MainWindow::RadixMemory> MainWindow::radix_memory() const {
+  if (active_is_solar_ && active_solar_ >= 0) {
+    const auto row = static_cast<std::size_t>(active_solar_);
+    if (solar_bases_[row]) {
+      return solar_bases_[row];
+    }
+    if (slots_[row]) {
+      return std::nullopt;
+    }
+    // a SOLAR row taken back puts its own record here, the radix stays
+    return loose_radix_;
+  }
+  // the running UHR is the radix of its slot
+  if (uhr_slot_ >= 0 && active_slot_ == uhr_slot_ && slots_[static_cast<std::size_t>(uhr_slot_)]) {
+    return std::nullopt;
+  }
+  // the radix last shown, a typed time, a KORRIGIERT moment or a COMBIN,
+  // which record_ never took up. A walk holds the history and leaves it
+  // as the walk began. His a16 read the RADIX row ze, after a COMBIN the
+  // row 2
+  return loose_radix_;
+}
+
+MainWindow::RadixMemory MainWindow::panel_radix(const ChartInput& in) const {
+  return {in,         zone_->value(), dst_hours_, clock_kind_, panel_calendar_, place_field_->text().trimmed().toStdString(),
+          ut_leads_};
 }
 
 Chart MainWindow::radix_chart() const {

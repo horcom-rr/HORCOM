@@ -103,9 +103,12 @@ recomputes with every change, there is no calculate button.
   after the year. The chart appears as soon as the year has its four
   digits, a pause in the middle of the year draws nothing. Enter takes a
   shorter year such as 197 at once.</li>
-  <li>Enter the clock time of birth and the time zone in hours east of
-  Greenwich. The <code>…</code> button beside the zone opens the zone
-  catalogue when you only know the zone by name.</li>
+  <li>Enter the <b>Clock time</b> of birth and the time zone in hours east
+  of Greenwich. The <code>…</code> button beside the zone opens the zone
+  catalogue when you only know the zone by name. The <b>Universal time
+  (UT)</b> row under the clock time shows the moment every calculation
+  uses, with the UT date beside it when that falls on another day. When
+  you know the UT, type it there and the clock time follows.</li>
   <li>Enter longitude and latitude in decimal degrees, east and north
   positive. Alternatively <b>PLACE FILES / FIND PLACE</b> in the IN-OUT menu
   (Ctrl+L) finds both in the gazetteer and carries the place name onto
@@ -119,6 +122,11 @@ The switches under the fields set the chart's options.
 <ul>
   <li><b>Summer time</b> raises the entered clock time by one hour, so a
   daylight saving birth reaches UT without editing the zone.</li>
+  <li><b>True local time (LT)</b> reads the clock time as the solar time
+  of the place, for births from before the time zones. Before 1810 it is
+  turned into mean local time on its own, until 1890 HORCOM asks which of
+  the two the record gives, the note beside Summer time names the clock
+  in force.</li>
   <li><b>Parallax (topocentric)</b> computes the positions for an observer
   standing on the Earth's surface rather than at its centre. It matters
   most for the Moon, whose position can shift by up to about a degree.
@@ -135,6 +143,14 @@ The switches under the fields set the chart's options.
   <li><b>Heliocentric</b> turns the whole chart sun centred. The Earth
   appears on the wheel and the houses disappear.</li>
 </ul>
+<p>
+The time you typed last leads. A fetched record, a computed chart or a
+typed UT keeps its UT when the zone, the summer time, the local time
+switch or the place changes, and the clock time moves instead. Picking
+the birth place of a fetched record therefore shows its clock time and
+never shifts the chart. A clock time you typed keeps its value, and the
+UT follows the zone, the summer time or the place you give after it.
+</p>
 <p>
 <b>Back</b> and <b>Forward</b> on top of the panel walk through your
 changes, so Back is also the undo key (Alt+Left or Ctrl+Z, forward

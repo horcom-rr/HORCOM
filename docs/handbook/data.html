@@ -92,7 +92,11 @@ The repository ships his two hand curated zone picker files as
 shell's place search reads any file in that folder plus files opened by
 hand, so the full SPEZ_ORT gazetteer of the archive works when copied
 in. A <code>data/ort.ext</code> in the original format seeds the startup
-coordinates when present.
+coordinates when present. A place picked from a file with a zone fills
+the zone field the way his zeitzon box took the zone of a nearby place.
+His a2ort itself never touched the time, so the panel keeps the UT of a
+fetched or computed record and moves only the clock time, while a clock
+time typed before the pick keeps its value and its UT follows the zone.
 </p>
 
 <h2>Privacy rule</h2>
