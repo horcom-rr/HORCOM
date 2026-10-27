@@ -21,6 +21,7 @@
 #include "robert_input.hpp"
 #include "robert_text.hpp"
 #include "sheet_view.hpp"
+#include "signal_tone.hpp"
 
 namespace horcom {
 
@@ -466,10 +467,10 @@ void MainWindow::dynamo_arc_pass(const Dynamogram& d, std::size_t first, std::si
   QTimer step;
   QTimer second_beep;
   second_beep.setSingleShot(true);
-  connect(&second_beep, &QTimer::timeout, &arcs, []() { QApplication::beep(); });
+  connect(&second_beep, &QTimer::timeout, &arcs, []() { tone::ring(); });
   // BEEP, DELAY 0.2, BEEP once every arc of the pass stands
   const auto done = [&second_beep]() {
-    QApplication::beep();
+    tone::ring();
     second_beep.start(kBeepGapMs);
   };
   const auto show = [&]() {

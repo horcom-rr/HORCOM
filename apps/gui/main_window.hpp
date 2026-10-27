@@ -52,6 +52,10 @@ class Banner;
 class WheelWidget;
 struct DirectedAxes;
 
+/// The property of a walk window that takes F1 itself, his key sheet of
+/// eingalp or ortgalp comes back over the held walk.
+inline constexpr const char* kWalkKeysProperty = "horcomWalkKeys";
+
 /// The main window, the wheel always visible, his data on docks beside
 /// it, the workflow of the original in a resizable shell.
 class MainWindow : public QMainWindow {

@@ -43,6 +43,7 @@
 #include "place_dialog.hpp"
 #include "robert_input.hpp"
 #include "robert_text.hpp"
+#include "signal_tone.hpp"
 #include "wheel_widget.hpp"
 
 namespace horcom {
@@ -1064,7 +1065,7 @@ void MainWindow::return_list(bool lunar) {
     }
     paint_robert_page(pen, sheet, robert_page_rect(*printer, page_margin::kLeft, page_margin::kTop, 1.0));
     pen.end();
-    QApplication::beep();
+    tone::ring();
     return;
   }
   QDialog dialog(this);

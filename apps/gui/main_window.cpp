@@ -121,6 +121,7 @@
 #include "record_mask_dialog.hpp"
 #include "robert_input.hpp"
 #include "robert_text.hpp"
+#include "signal_tone.hpp"
 #include "table_fit.hpp"
 #include "zodiac_cells.hpp"
 #include "theme.hpp"
@@ -1536,6 +1537,12 @@ void MainWindow::build_ui() {
   add_lang(tr("AUTOMATISCH ( SYSTEMSPRACHE )"), QString());
   add_lang("DEUTSCH", "de");
   add_lang("ENGLISH", "en");
+  // his BEEP after every step of a walk, a soft ping now that this
+  // switch silences, the strip of a walk still lights up
+  auto* tone_action = view->addAction(tr("SIGNALTON EIN / AUS"));
+  tone_action->setCheckable(true);
+  tone_action->setChecked(tone::enabled());
+  connect(tone_action, &QAction::toggled, this, [](bool on) { tone::set_enabled(on); });
   view->addSeparator();
   // the whole program back to its first start, beside his AUFRÄUMEN /
   // RÜCKSETZEN that clears the session alone

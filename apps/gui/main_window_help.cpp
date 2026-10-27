@@ -447,7 +447,9 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* e) {
   const bool main_wart = modal == nullptr && wart_item_ != 0;
   const bool main_screen = modal == nullptr && (isActiveWindow() || main_wart);
   if (mods == Qt::AltModifier) {
-    if (item == 0 && !main_screen) {
+    // a walk takes no ALT key but the E of its key sheet
+    const bool walk_help = key == Qt::Key_E && modal != nullptr && modal->property(kWalkKeysProperty).toBool();
+    if (item == 0 && !main_screen && !walk_help) {
       return QMainWindow::eventFilter(watched, e);
     }
     // his main loop read ALT + E as the EINFÜHRUNG, ae1
@@ -469,6 +471,16 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* e) {
   }
   switch (key) {
     case Qt::Key_F1:
+      // a running walk shows its own key sheet again, ALT + E reaches it
+      // as the F1 it stands for, the walk had taken the E for a step
+      if (modal != nullptr && modal->property(kWalkKeysProperty).toBool()) {
+        if (k->key() != Qt::Key_F1) {
+          QKeyEvent f1(QEvent::KeyPress, Qt::Key_F1, Qt::NoModifier);
+          QApplication::sendEvent(modal, &f1);
+          return true;
+        }
+        return QMainWindow::eventFilter(watched, e);
+      }
       if (modal != nullptr || main_wart) {
         context_help();
       } else if (isActiveWindow()) {

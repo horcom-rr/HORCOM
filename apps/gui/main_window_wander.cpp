@@ -16,6 +16,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QMouseEvent>
+#include <QPushButton>
 #include <QScopeGuard>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -33,6 +34,7 @@
 #include "horcom/data/place_file.hpp"
 #include "main_window.hpp"
 #include "robert_input.hpp"
+#include "signal_tone.hpp"
 #include "theme.hpp"
 #include "wheel_widget.hpp"
 
@@ -94,6 +96,17 @@ class WanderView final : public QDialog {
     bottom->addSpacing(24);
     bottom->addWidget(diff);
     bottom->addStretch(1);
+    // the key sheet of the walk comes back over the held walk, the button
+    // takes no focus so the keys stay with the walk
+    auto* help = new QPushButton(tr("HILFE ( F1 )"), bar_);
+    help->setFocusPolicy(Qt::NoFocus);
+    connect(help, &QPushButton::clicked, this, [this]() {
+      if (on_help) {
+        on_help();
+      }
+    });
+    bottom->addWidget(help);
+    setProperty(kWalkKeysProperty, true);
     v->addWidget(bar_);
     timer_.setSingleShot(true);
     connect(&timer_, &QTimer::timeout, this, [this]() {
@@ -107,8 +120,11 @@ class WanderView final : public QDialog {
   ///
   /// @param signal false waits without the signal
   void arm(bool signal = true) {
+    // a walk that goes on is held no longer, a step after the key sheet
+    // had left the hold standing and the next Leertaste stepped
+    paused_ = false;
     if (signal) {
-      QApplication::beep();
+      tone::ring();
       // most Linux desktops stay silent on the beep, the strip lights up
       bar_->setStyleSheet("QFrame#walkBar { background: #ffff00; }");
       QTimer::singleShot(kFlashMs, bar_, [bar = bar_]() { bar->setStyleSheet(QString()); });
@@ -121,6 +137,15 @@ class WanderView final : public QDialog {
 
   /// Stops the wait, a key steps at once or the walk ends.
   void halt() { timer_.stop(); }
+
+  /// Holds the walk like his Leertaste, the next key goes on with a step.
+  void hold() {
+    timer_.stop();
+    paused_ = true;
+  }
+
+  /// @return the wait after the signal, with the mouse clicks of the walk
+  [[nodiscard]] int wait_ms() const { return wait_ms_; }
 
   /// His Leertaste. It stops a running walk, any key of a stopped walk
   /// goes on with a step.
@@ -147,6 +172,8 @@ class WanderView final : public QDialog {
   QLabel* asp_box = nullptr;
   std::function<void(int)> on_key;
   std::function<void()> on_step;
+  /// F1 and HILFE, the key sheet of the walk over the held walk
+  std::function<void()> on_help;
 
  protected:
   void keyPressEvent(QKeyEvent* e) override {
@@ -164,6 +191,11 @@ class WanderView final : public QDialog {
       case Qt::Key_CapsLock:
       case Qt::Key_NumLock:
       case Qt::Key_ScrollLock:
+        return;
+      case Qt::Key_F1:
+        if (on_help) {
+          on_help();
+        }
         return;
       default:
         on_key(e->key());
@@ -292,6 +324,9 @@ void symbolic_key(int key, double tja, int& rf, double& djd) {
 
 // his @stop, any key closes the key sheet
 void run_key_sheet(QDialog& sheet) {
+  // F1 held down over the sheet closes it like any key, the global F1 had
+  // opened the ERLÄUTERUNG over it
+  sheet.setProperty(kWalkKeysProperty, true);
   LambdaFilter any(LambdaFilter::keys([&sheet](int) {
     sheet.accept();
     return true;
@@ -564,6 +599,10 @@ void MainWindow::time_wander() {
 
       WanderView view(this);
       view.setWindowTitle(tr("ZEIT-WANDERN") + " | " + label);
+      view.on_help = [this, &view]() {
+        view.hold();
+        wander_help_sheet(view.wait_ms());
+      };
       bool ended = false;
       const auto show_boxes = [&]() {
         QString mid_text;
@@ -691,6 +730,10 @@ void MainWindow::ring_walk(const QString& title, bool progressive, double tja, d
 
     WanderView view(this);
     view.setWindowTitle(title);
+    view.on_help = [this, &view, progressive]() {
+      view.hold();
+      wander_help_sheet(view.wait_ms(), false, progressive);
+    };
     // the Zeit-Diff box belongs to zeitw! alone
     view.diff->hide();
     bool ended = false;
@@ -782,6 +825,10 @@ bool MainWindow::multi_time_variation(const QString& mul) {
 
       WanderView view(this);
       view.setWindowTitle(mul + " | " + label);
+      view.on_help = [this, &view]() {
+        view.hold();
+        wander_help_sheet(view.wait_ms(), true);
+      };
       view.direction->hide();
       view.diff->hide();
       bool ended = false;
@@ -1004,6 +1051,10 @@ void MainWindow::place_wander() {
 
     WanderView view(this);
     view.setWindowTitle(tr("ORT-WANDERN") + " | " + label);
+    view.on_help = [this, &view]() {
+      view.hold();
+      place_help_sheet(view.wait_ms());
+    };
     view.direction->hide();
     bool ended = false;
     bool invalid = false;
@@ -1102,7 +1153,7 @@ void MainWindow::place_wander() {
                               " " + capital->name + " ");
         view.mid_box->setStyleSheet("QLabel { background: #c0c0c0; color: #000000; border: 2px solid #808080; padding: 2px; }");
         view.mid_box->show();
-        QApplication::beep();
+        tone::ring();
         return;
       }
       if (view.pause_on(key)) {

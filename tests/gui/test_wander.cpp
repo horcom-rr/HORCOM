@@ -4,19 +4,25 @@
 
 #include <QAbstractButton>
 #include <QAction>
+#include <QApplication>
 #include <QDateTime>
+#include <QElapsedTimer>
 #include <QEventLoop>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QMessageBox>
+#include <QPushButton>
+#include <QSettings>
 #include <QTimer>
 
 #include <cmath>
+#include <cstdint>
 
 #include "dialog_driver.hpp"
 #include "doctest.h"
 #include "horcom/core/constants.hpp"
 #include "probe.hpp"
+#include "signal_tone.hpp"
 
 using namespace horcom;
 using horcom::test::DialogDriver;
@@ -604,4 +610,161 @@ TEST_CASE("UHR ticks its record only while no output stands in front") {
   MainWindowProbe::clock_gate_open(*w);
   MainWindowProbe::clock_tick(*w);
   CHECK(MainWindowProbe::time(*w)->time() != marker);
+}
+
+namespace {
+
+void wait_ms(int ms) {
+  QElapsedTimer t;
+  t.start();
+  while (t.elapsed() < ms) {
+    QApplication::processEvents(QEventLoop::AllEvents, 20);
+  }
+}
+
+}  // namespace
+
+TEST_CASE("a key held down rings an even tick of the signal tone, never a ping cut short") {
+  tone::set_enabled(true);
+  // the ping before rings out first
+  wait_ms(200);
+  const std::uint64_t before = tone::rung();
+  // the auto repeat of a key held down, a few milliseconds apart
+  for (int i = 0; i < 10; ++i) {
+    tone::ring();
+  }
+  CHECK(tone::rung() == before + 1);
+  wait_ms(200);
+  tone::ring();
+  CHECK(tone::rung() == before + 2);
+  // SIGNALTON AUS keeps every walk silent
+  tone::set_enabled(false);
+  wait_ms(200);
+  tone::ring();
+  CHECK(tone::rung() == before + 2);
+  tone::set_enabled(true);
+}
+
+TEST_CASE("SIGNALTON EIN / AUS in ANSICHT switches the tone and keeps the choice") {
+  tone::set_enabled(true);
+  auto w = MainWindowProbe::make();
+  QAction* toggle = nullptr;
+  for (QAction* a : w->findChildren<QAction*>()) {
+    if (a->text() == "SIGNALTON EIN / AUS") {
+      toggle = a;
+    }
+  }
+  REQUIRE(toggle != nullptr);
+  CHECK(toggle->isChecked());
+  toggle->trigger();
+  CHECK_FALSE(tone::enabled());
+  CHECK_FALSE(QSettings().value(tone::kEnabledKey, true).toBool());
+  toggle->trigger();
+  CHECK(tone::enabled());
+}
+
+TEST_CASE("F1 over a running ZEIT-WANDERN shows his key sheet and holds the walk") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, walker());
+  QString sheet;
+  QString held_before;
+  QString held_after;
+  bool help_button = false;
+  DialogDriver drive;
+  open_walk(drive);
+  drive.then([&help_button](QDialog* d) {
+         QApplication::processEvents();
+         for (const QPushButton* b : d->findChildren<QPushButton*>()) {
+           help_button = help_button || b->text() == "HILFE ( F1 )";
+         }
+         // the global F1 had opened the ERLÄUTERUNG over the walk
+         QTimer::singleShot(0, d, [d]() { press(d, Qt::Key_F1); });
+       })
+      .then([&sheet](QDialog* d) {
+        sheet = d->windowTitle();
+        press(d, Qt::Key_Space);
+      })
+      .then([&](QDialog* d) {
+        // back on the walk, it stands past the wait of two seconds
+        held_before = read_screen(d).diff;
+        wait_ms(2600);
+        held_after = read_screen(d).diff;
+        press(d, Qt::Key_Escape);
+      })
+      .then(DialogDriver::click(" NEIN = ENDE "))
+      .then(DialogDriver::click(" NEIN "));
+  MainWindowProbe::time_wander(*w);
+  CHECK(drive.pending() == 0);
+  CHECK(drive.unexpected() == 0);
+  CHECK(help_button);
+  CHECK(sheet == "ZEIT-WANDERN");
+  CHECK_FALSE(held_before.isEmpty());
+  CHECK(held_after == held_before);
+}
+
+TEST_CASE("ALT + E over a running ZEIT-WANDERN is the F1 of the key sheet, not a step") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, walker());
+  QString sheet;
+  QString before;
+  QString after;
+  DialogDriver drive;
+  open_walk(drive);
+  drive.then([&before](QDialog* d) {
+         QApplication::processEvents();
+         before = read_screen(d).diff;
+         QTimer::singleShot(0, d, [d]() {
+           QKeyEvent alt_e(QEvent::KeyPress, Qt::Key_E, Qt::AltModifier);
+           QApplication::sendEvent(d, &alt_e);
+         });
+       })
+      .then([&sheet](QDialog* d) {
+        sheet = d->windowTitle();
+        press(d, Qt::Key_Space);
+      })
+      .then([&after](QDialog* d) {
+        after = read_screen(d).diff;
+        press(d, Qt::Key_Escape);
+      })
+      .then(DialogDriver::click(" NEIN = ENDE "))
+      .then(DialogDriver::click(" NEIN "));
+  MainWindowProbe::time_wander(*w);
+  CHECK(drive.pending() == 0);
+  CHECK(drive.unexpected() == 0);
+  CHECK(sheet == "ZEIT-WANDERN");
+  // the E had stepped the walk by six hours
+  CHECK(after == before);
+}
+
+TEST_CASE("ORT-WANDERN goes on unheld after the key sheet over the metropolis box") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, walker());
+  QString stopped;
+  QString later;
+  DialogDriver drive;
+  open_place_walk(drive, "1", "0");
+  drive.then([](QDialog* d) {
+         QApplication::processEvents();
+         press(d, Qt::Key_F10);
+         QTimer::singleShot(0, d, [d]() { press(d, Qt::Key_F1); });
+       })
+      .then([](QDialog* d) { press(d, Qt::Key_Space); })
+      .then([&](QDialog* d) {
+        // Space closes the box and the walk runs, the next Space stops it
+        press(d, Qt::Key_Space);
+        press(d, Qt::Key_Space);
+        stopped = diff_of(d);
+        wait_ms(2600);
+        later = diff_of(d);
+        press(d, Qt::Key_Escape);
+      })
+      // the walk never left its start, so no ORT is offered to the radix
+      .then(DialogDriver::click(" NEIN = ENDE "));
+  MainWindowProbe::place_wander(*w);
+  CHECK(drive.pending() == 0);
+  CHECK(drive.unexpected() == 0);
+  // the hold of the sheet had stayed, the second Space stepped and the
+  // walk ran on by itself
+  CHECK_FALSE(stopped.isEmpty());
+  CHECK(later == stopped);
 }

@@ -966,6 +966,7 @@ TEST_CASE("the menus stand in the order of the tester's sixth and eighth batch")
                             "PLANETEN-AUSWAHL…",
                             "|",
                             "SPRACHE / LANGUAGE",
+                            "SIGNALTON EIN / AUS",
                             "|",
                             "ALLES ZURÜCKSETZEN…",
                             "|",

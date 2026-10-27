@@ -31,6 +31,7 @@
 #include "main_window.hpp"
 #include "painter.hpp"
 #include "robert_input.hpp"
+#include "signal_tone.hpp"
 #include "table_fit.hpp"
 #include "theme.hpp"
 #include "zodiac_cells.hpp"
@@ -581,6 +582,12 @@ void MainWindow::coordinate_table(bool extras) {
   // a9zw, the wart before the question, ZEIT VARIIEREN ?
   bool asked = false;
   bool walking = false;
+  // F1 of a running walk shows its key sheet, outside the walk it stays
+  // the ERLÄUTERUNG of the sheet
+  const auto set_walking = [&view, &walking](bool on) {
+    walking = on;
+    view.setProperty(kWalkKeysProperty, on);
+  };
   const double jd0 = last_chart_->jd_ut;
   double jd = jd0;
   QTimer timer;
@@ -613,7 +620,7 @@ void MainWindow::coordinate_table(bool extras) {
     refill();
     // his ran, "Vorwärts !" or "Rückwärts!"
     ran->setText(theme::heading_span(rf > 0 ? tr("Vorwärts !") : tr("Rückwärts!")));
-    QApplication::beep();
+    tone::ring();
     more_used = false;
     less_used = false;
     waited.restart();
@@ -648,17 +655,17 @@ void MainWindow::coordinate_table(bool extras) {
   // the end of zeitwi, a new unit, the walk on or the end
   const auto walk_end = [&]() {
     timer.stop();
-    walking = false;
+    set_walking(false);
     const int er = ChoiceDialog::ask(&view, tr("AUSWAHL"), {QString(), tr("Weiter Mit NEUER ZEITEINHEIT ?")},
                                      {tr(" NEIN = ENDE "), tr("Weiter"), tr("Irrtum ( = UNDO = Zurück )")}, 0);
     if (er == 1) {
       if (ask_walk()) {
-        walking = true;
+        set_walking(true);
         step();
         return;
       }
     } else if (er == 2) {
-      walking = true;
+      set_walking(true);
       step();
       return;
     }
@@ -723,7 +730,7 @@ void MainWindow::coordinate_table(bool extras) {
       // his alertbox "ZEIT VARIIEREN ?" with " NEIN " and "JA"
       const int c = ChoiceDialog::ask(&view, tr("AUSWAHL"), {QString(), tr("ZEIT VARIIEREN ?")}, {tr(" NEIN "), tr("JA")}, 0);
       if (c == 1 && ask_walk()) {
-        walking = true;
+        set_walking(true);
         step();
       }
       return true;
@@ -733,6 +740,13 @@ void MainWindow::coordinate_table(bool extras) {
     }
     if (key == Qt::Key_Escape) {
       walk_end();
+      return true;
+    }
+    // the key sheet over the held walk
+    if (key == Qt::Key_F1) {
+      timer.stop();
+      paused = true;
+      wander_help_sheet(wait_ms);
       return true;
     }
     //RR STOP

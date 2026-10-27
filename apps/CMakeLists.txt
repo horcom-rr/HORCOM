@@ -51,6 +51,8 @@ if(Qt6_FOUND)
     gui/robert_input.cpp
     gui/robert_text.cpp
     gui/robert_input.hpp
+    gui/signal_tone.cpp
+    gui/signal_tone.hpp
     gui/direction_list_dialog.cpp
     gui/direction_list_dialog.hpp
     gui/main_window.cpp
@@ -97,6 +99,11 @@ if(Qt6_FOUND)
     gui/zone_dialog.hpp
   )
   target_link_libraries(horcom_gui_core PUBLIC horcom Qt6::Widgets Qt6::Svg Qt6::PrintSupport)
+  # the soft signal tone plays its ping from memory through winmm
+  if(WIN32)
+    target_link_libraries(horcom_gui_core PUBLIC winmm)
+    target_compile_definitions(horcom_gui_core PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
+  endif()
   target_include_directories(horcom_gui_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/gui)
   target_compile_definitions(horcom_gui_core PUBLIC HORCOM_VERSION_STRING="${HORCOM_VERSION}")
   if(MSVC)
