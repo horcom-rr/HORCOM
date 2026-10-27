@@ -258,6 +258,7 @@ struct MainWindowProbe {
     w.uhr_slot_ = slot;
   }
   static void data_file_io(MainWindow& w) { w.data_file_io(); }
+  static void planet_selection(MainWindow& w) { w.planet_selection(); }
   static bool export_png(MainWindow& w, const QString& path) { return w.export_png_to(path); }
   static void chain_files(MainWindow& w) { w.chain_files(); }
   static void clock_tick(MainWindow& w) { w.clock_tick(); }

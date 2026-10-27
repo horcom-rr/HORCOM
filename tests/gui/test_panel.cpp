@@ -629,6 +629,60 @@ TEST_CASE("a body taken in through the Planeten-Auswahl is a step of Zurück and
   w->hide();
 }
 
+TEST_CASE("the Planeten-Auswahl reads and sets DR and DS through the Mondknoten switch") {
+  using horcom::test::DialogDriver;
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, person("TESTFALL", 1990));
+  QCheckBox* nodes = nullptr;
+  for (QCheckBox* box : w->findChildren<QCheckBox*>()) {
+    if (box->text() == "Mondknoten") {
+      nodes = box;
+    }
+  }
+  REQUIRE(nodes != nullptr);
+  nodes->setChecked(false);
+  // reads the Zeigen of both node rows, then ticks the ones asked for
+  const auto visit = [&w](std::array<bool, 2>& seen, std::array<int, 2> tick) {
+    DialogDriver drive;
+    drive.then([&seen, tick](QDialog* d) {
+      auto* table = d->findChild<QTableWidget*>();
+      REQUIRE(table != nullptr);
+      for (int row = 0; row < table->rowCount(); ++row) {
+        const QTableWidgetItem* name = table->item(row, 0);
+        const int slot = name != nullptr ? name->data(Qt::UserRole).toInt() : -1;
+        if (slot != body::kNodeAsc && slot != body::kNodeDesc) {
+          continue;
+        }
+        auto* box = table->cellWidget(row, 1)->findChild<QCheckBox*>();
+        const std::size_t i = slot == body::kNodeAsc ? 0 : 1;
+        seen[i] = box->isChecked();
+        if (tick[i] >= 0) {
+          box->setChecked(tick[i] == 1);
+        }
+      }
+      d->accept();
+    });
+    w->open_planet_selection();
+    CHECK(drive.unexpected() == 0);
+  };
+  std::array<bool, 2> seen{};
+  // the first port showed both ticked while the wheel left them out
+  visit(seen, {1, -1});
+  CHECK_FALSE(seen[0]);
+  CHECK_FALSE(seen[1]);
+  // the tick of DR turns the switch on, DS stays out as it stood unticked
+  CHECK(nodes->isChecked());
+  visit(seen, {0, 0});
+  CHECK(seen[0]);
+  CHECK_FALSE(seen[1]);
+  // both rows off turn the switch off, the switch alone brings both back
+  CHECK_FALSE(nodes->isChecked());
+  nodes->setChecked(true);
+  visit(seen, {-1, -1});
+  CHECK(seen[0]);
+  CHECK(seen[1]);
+}
+
 TEST_CASE("Ctrl+Z and Ctrl+Y in a panel field reach Zurück and Vor") {
   auto w = MainWindowProbe::make();
   // a field that claims the key in its ShortcutOverride keeps it from the

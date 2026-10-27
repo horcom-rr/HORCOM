@@ -3584,7 +3584,7 @@ void MainWindow::planet_selection() {
   dialog.setWindowTitle(tr("Planeten-Auswahl"));
   auto* v = new QVBoxLayout(&dialog);
   auto* table = new QTableWidget(0, 3, &dialog);
-  table->setHorizontalHeaderLabels({tr("Punkt"), tr("Zeigen"), tr("Rot")});
+  table->setHorizontalHeaderLabels({tr("Element"), tr("Zeigen"), tr("Rot")});
   table->verticalHeader()->setVisible(false);
   table->verticalHeader()->setDefaultSectionSize(22);
   // clicks on the checkbox rows should never open an editor, the stock
@@ -3592,16 +3592,13 @@ void MainWindow::planet_selection() {
   // checkboxes swallow rapid clicks
   table->setEditTriggers(QAbstractItemView::NoEditTriggers);
   table->setSelectionMode(QAbstractItemView::NoSelection);
-  // the Punkt column stretches to the dialog width, the two checkbox
-  // columns hug their indicator so no dead space rides beside the tick
+  // the Element column stretches to the dialog width, the two checkbox
+  // columns take the width of their caption. A fixed 68 pixels cut the Z
+  // of Zeigen under the bold heading font of the program style
   auto* header = table->horizontalHeader();
   header->setSectionResizeMode(0, QHeaderView::Stretch);
-  header->setSectionResizeMode(1, QHeaderView::Fixed);
-  header->setSectionResizeMode(2, QHeaderView::Fixed);
-  // wide enough for the German header text "Zeigen" without truncation
-  const int check_col_width = 68;
-  table->setColumnWidth(1, check_col_width);
-  table->setColumnWidth(2, check_col_width);
+  header->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+  header->setSectionResizeMode(2, QHeaderView::ResizeToContents);
 
   // Section headers span the row like his group captions on the panel.
   // A body slot below the previous is off by default until the tester
@@ -3714,7 +3711,9 @@ void MainWindow::planet_selection() {
         }
       }
     } else {
-      on = emphasis_[static_cast<std::size_t>(slot)] >= 0;
+      // shown_emphasis is what the wheel draws, the Mondknoten switch of
+      // the panel rides on the marks of DR and DS
+      on = shown_emphasis()[static_cast<std::size_t>(slot)] >= 0;
       if (r.extra) {
         on = on && included_[static_cast<std::size_t>(slot)];
       }
@@ -3760,6 +3759,8 @@ void MainWindow::planet_selection() {
   if (dialog.exec() != QDialog::Accepted) {
     return;
   }
+  const bool nodes_were_on = node_show_ != nullptr && node_show_->isChecked();
+  bool node_shown = false;
   for (int row = 0; row < table->rowCount(); ++row) {
     QTableWidgetItem* name = table->item(row, 0);
     if (name == nullptr || name->data(Qt::UserRole).toInt() < 0) {
@@ -3787,6 +3788,9 @@ void MainWindow::planet_selection() {
         const QSignalBlocker b(hamburg_);
         hamburg_->setChecked(zeigen);
       }
+    } else if (slot == body::kNodeAsc || slot == body::kNodeDesc) {
+      node_shown = node_shown || zeigen;
+      emphasis_[static_cast<std::size_t>(slot)] = e;
     } else {
       emphasis_[static_cast<std::size_t>(slot)] = e;
       if (extra) {
@@ -3799,6 +3803,17 @@ void MainWindow::planet_selection() {
         apogee_show_->setChecked(zeigen);
       }
     }
+  }
+  // DR and DS follow the Mondknoten switch like AG follows Schwarzer
+  // Mond, a tick turns it on, both rows off turn it off and clear their
+  // marks so the switch brings both back
+  if (!node_shown) {
+    emphasis_[body::kNodeAsc] = 0;
+    emphasis_[body::kNodeDesc] = 0;
+  }
+  if (node_show_ != nullptr && node_shown != nodes_were_on) {
+    const QSignalBlocker b(node_show_);
+    node_show_->setChecked(node_shown);
   }
   ruler_red_ = ruler->isChecked();
   recompute();
@@ -5848,7 +5863,9 @@ void MainWindow::vorgaben_overview() {
   if (!andere.isEmpty()) {
     extra << andere.join(" ");
   }
-  mid += head(tr("Zusatz-Plan:")) + (extra.isEmpty() ? tr("KEINE") : extra.join("  ")) + "<br><br>";
+  // his z$ = "Zusatz-Plan:" was cut to the width of his overview, the
+  // wheel spelled it out in full and the box has the room
+  mid += head(tr("Zusatz-Planeten:")) + (extra.isEmpty() ? tr("KEINE") : extra.join("  ")) + "<br><br>";
   mid += head(tr("PARAM. Horoskop:"));
   //RR Aspekt-Orbes : Selbst definiert bzw. Von HORCOM gegeben
   mid += (aspect_settings_.equal_probability ? tr("Aspekt-Orben : Selbst definiert")
