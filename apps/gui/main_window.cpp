@@ -2272,6 +2272,9 @@ void MainWindow::recompute() {
     opt.outer_tint = false;
     // km = 0.82, the scale multi1 and harm share
     opt.scale = kMultiWheelScale;
+    // the houses moving with the bodies keep only the four corner points,
+    // the empty cusps between had stood stacked at 0 degrees Aries
+    opt.outer_axes_only = houses_mode == HarmonicHouses::kLikeBodies;
     // STR$(ha) + ".HARMONIC" or the mul$ of the mode
     const QString mul = harmonic ? QString::number(harm_n_, 'g', 6) + ".HARMONIC" : multi_name(multi_mode_);
     show_full_sheet(multi_sheet(radix, directed, ms, harmonic, mul, lja, harmonic ? radix.jd_ut : multi_event_jd_,

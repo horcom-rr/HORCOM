@@ -560,6 +560,84 @@ TEST_CASE("the linear graph marks his hits with the aspect and a hit line") {
   CHECK(hit_line);
 }
 
+TEST_CASE("the A4 position list closes up until every body of the wheel fits its box") {
+  ChartInput in;
+  in.date_ut = {13, 10, 1992, 3, 0.0};
+  in.lon_deg_east = 11.3244;
+  in.lat_deg = 48.1742;
+  ChartSettings s;
+  s.extra_bodies = true;
+  for (int i = 1; i <= 22; ++i) {
+    s.nk[static_cast<std::size_t>(i)] = i == 1 ? body::kApogee : body::kExtraSlotBase + i;
+  }
+  const Chart c = compute_chart(in, s, vsop(), eph());
+  REQUIRE(c.ok);
+  const DisplayList dl =
+      a4_print_sheet(c, s, scan_aspects(c, s, {}), scan_midpoints(c, s, {}), {}, WheelOptions{}, Histogram{},
+                     HistogramMode::kSigns);
+  bool xena = false;
+  bool cut = false;
+  double lowest = 0.0;
+  for (const Primitive& p : dl.items) {
+    if (p.kind != Primitive::Kind::kText || p.x1 > 20.0 || p.y1 < 624.0) {
+      continue;
+    }
+    xena = xena || p.text.rfind("XE ", 0) == 0;
+    cut = cut || p.text == "...";
+    lowest = std::max(lowest, p.y1);
+  }
+  // his box cut the list after twelve extras, the wheel showed them all
+  CHECK(xena);
+  CHECK_FALSE(cut);
+  CHECK(lowest <= 960.0);
+}
+
+TEST_CASE("the A4 position list marks like bes_big_plan, the south node blank and hrg! without marks") {
+  ChartInput in;
+  in.date_ut = {13, 10, 1992, 3, 0.0};
+  in.lon_deg_east = 11.3244;
+  in.lat_deg = 48.1742;
+  const auto sheet = [&in](bool helio) {
+    ChartSettings s;
+    s.heliocentric = helio;
+    s.topocentric_parallax = true;
+    const Chart c = compute_chart(in, s, vsop(), eph());
+    return a4_print_sheet(c, s, scan_aspects(c, s, {}), scan_midpoints(c, s, {}), {}, WheelOptions{}, Histogram{},
+                          HistogramMode::kSigns);
+  };
+  const auto list_rows = [](const DisplayList& dl) {
+    std::vector<std::string> rows;
+    for (const Primitive& p : dl.items) {
+      if (p.kind == Primitive::Kind::kText && p.x1 < 20.0 && p.y1 >= 624.0) {
+        rows.push_back(p.text);
+      }
+    }
+    return rows;
+  };
+  const auto heading = [](const DisplayList& dl) {
+    for (const Primitive& p : dl.items) {
+      if (p.kind == Primitive::Kind::kText && p.text.rfind("Ekl.L", 0) == 0) {
+        return p.text;
+      }
+    }
+    return std::string();
+  };
+  const DisplayList geo = sheet(false);
+  CHECK(heading(geo).find("Vel.") != std::string::npos);
+  for (const std::string& row : list_rows(geo)) {
+    // the first port marked DS like DR
+    if (row.rfind("DS", 0) == 0) {
+      CHECK(row.find(" w ") == std::string::npos);
+      CHECK(row.find(" m ") == std::string::npos);
+    }
+  }
+  const DisplayList hel = sheet(true);
+  CHECK(heading(hel).find("Vel.") == std::string::npos);
+  for (const std::string& row : list_rows(hel)) {
+    CHECK(row.find(" p ") == std::string::npos);
+  }
+}
+
 TEST_CASE("the A4 sheet draws his element and quality columns") {
   const Chart c = sample_chart();
   REQUIRE(c.ok);
@@ -1615,6 +1693,181 @@ TEST_CASE("the composite sheet drops Vel. and lists H1 with the AC row") {
   CHECK(has(rl, " AC:"));
   CHECK_FALSE(has(rl, " H1:"));
   CHECK(has(rl, "Ort:"));
+}
+
+TEST_CASE("the classic sheet lists every extra body of the wheel like bes11") {
+  ChartInput in;
+  in.date_ut = {13, 10, 1992, 3, 0.0};
+  in.lon_deg_east = 11.3244;
+  in.lat_deg = 48.1742;
+  ChartSettings s;
+  s.topocentric_parallax = true;
+  s.true_apogee = true;
+  s.extra_bodies = true;
+  s.nk[1] = body::kApogee;
+  s.nk[2] = body::kChiron;
+  s.nk[17] = body::kQuaoar;
+  s.nk[22] = body::kXena;
+  const Chart c = compute_chart(in, s, vsop(), eph());
+  REQUIRE(c.ok);
+  DisplayList dl = build_wheel(c, s, scan_aspects(c, s, {}));
+  add_classic_text(dl, c, s, ClassicSheetText{});
+  const auto row = [&dl](const std::string& tag) -> std::string {
+    for (const Primitive& p : dl.items) {
+      if (p.kind == Primitive::Kind::kText && p.anchor == Primitive::Anchor::kCorner && p.text.rfind(tag + " ", 0) == 0) {
+        return p.text;
+      }
+    }
+    return {};
+  };
+  // the first port stopped after DR, the saved picture lacked the extras
+  for (const char* tag : {"AG", "CH", "QU", "XE"}) {
+    CHECK_FALSE(row(tag).empty());
+  }
+  // the mark follows the minutes, "SO dd ZZ mm" then the mark
+  constexpr std::size_t kMarkAt = 11;
+  REQUIRE(row("SO").size() > kMarkAt);
+  REQUIRE(row("JU").size() > kMarkAt);
+  REQUIRE(row("AG").size() > kMarkAt);
+  //RR CASE 1,2,3,4,5, the parallax mark stands at SO to MA only
+  CHECK(row("SO")[kMarkAt] == 'P');
+  CHECK(row("MA")[kMarkAt] == 'P');
+  CHECK(row("JU")[kMarkAt] == ' ');
+  CHECK(row("AG")[kMarkAt] == 'W');
+}
+
+TEST_CASE("a long body list shrinks so the classic sheet keeps its houses") {
+  ChartInput in;
+  in.date_ut = {13, 10, 1992, 3, 0.0};
+  in.lon_deg_east = 11.3244;
+  in.lat_deg = 48.1742;
+  ChartSettings s;
+  s.extra_bodies = true;
+  for (int i = 1; i <= 22; ++i) {
+    s.nk[static_cast<std::size_t>(i)] = i == 1 ? body::kApogee : body::kExtraSlotBase + i;
+  }
+  const Chart c = compute_chart(in, s, vsop(), eph());
+  REQUIRE(c.ok);
+  DisplayList dl = build_wheel(c, s, scan_aspects(c, s, {}));
+  add_classic_text(dl, c, s, ClassicSheetText{});
+  double lowest = 0.0;
+  bool h12 = false;
+  for (const Primitive& p : dl.items) {
+    if (p.kind == Primitive::Kind::kText && p.anchor == Primitive::Anchor::kCorner && p.x1 < 100.0) {
+      lowest = std::max(lowest, p.y1);
+      h12 = h12 || p.text.rfind("H12:", 0) == 0;
+    }
+  }
+  CHECK(h12);
+  CHECK(lowest < kCanvasHeight);
+}
+
+TEST_CASE("the sun centred classic sheet follows his hrg! branch") {
+  ChartInput in;
+  in.date_ut = {13, 10, 1992, 3, 0.0};
+  in.lon_deg_east = 11.3244;
+  in.lat_deg = 48.1742;
+  ChartSettings s;
+  s.heliocentric = true;
+  s.topocentric_parallax = true;
+  const Chart c = compute_chart(in, s, vsop(), eph());
+  REQUIRE(c.ok);
+  DisplayList dl = build_wheel(c, s, scan_aspects(c, s, {}));
+  add_classic_text(dl, c, s, ClassicSheetText{});
+  bool earth = false;
+  bool marked = false;
+  bool vel = false;
+  bool houses = false;
+  for (const Primitive& p : dl.items) {
+    if (p.kind != Primitive::Kind::kText || p.anchor != Primitive::Anchor::kCorner) {
+      continue;
+    }
+    earth = earth || p.text.rfind("TE ", 0) == 0;
+    // the P stands after the minutes, "ME dd ZZ mm" then the mark
+    marked = marked || (p.text.size() > 11 && p.text[11] == 'P' && p.x1 < 20.0);
+    vel = vel || p.text == "Vel.";
+    houses = houses || p.text.rfind("H\xC3\xA4usersp.", 0) == 0;
+  }
+  // the first port named the Earth MO, marked P and listed six empty cusps
+  CHECK(earth);
+  CHECK_FALSE(marked);
+  CHECK_FALSE(vel);
+  CHECK_FALSE(houses);
+}
+
+TEST_CASE("the Vel. heading moves in with the shrunk rows") {
+  ChartInput in;
+  in.date_ut = {13, 10, 1992, 3, 0.0};
+  in.lon_deg_east = 11.3244;
+  in.lat_deg = 48.1742;
+  const auto vel_x = [&in](bool many) {
+    ChartSettings t;
+    if (many) {
+      t.extra_bodies = true;
+      for (int i = 1; i <= 22; ++i) {
+        t.nk[static_cast<std::size_t>(i)] = i == 1 ? body::kApogee : body::kExtraSlotBase + i;
+      }
+    }
+    const Chart c = compute_chart(in, t, vsop(), eph());
+    DisplayList dl = build_wheel(c, t, scan_aspects(c, t, {}));
+    add_classic_text(dl, c, t, ClassicSheetText{});
+    for (const Primitive& p : dl.items) {
+      if (p.kind == Primitive::Kind::kText && p.text == "Vel.") {
+        return p.x1;
+      }
+    }
+    return -1.0;
+  };
+  CHECK(vel_x(false) == doctest::Approx(118.0));
+  // at the smaller rows the speed column ends further left
+  CHECK(vel_x(true) > 0.0);
+  CHECK(vel_x(true) < 100.0);
+}
+
+TEST_CASE("the outer band of corner points draws only AC, IC, DC and MC like horg11mult without hneu!") {
+  const Chart inner = sample_chart();
+  REQUIRE(inner.ok);
+  // the houses moving with the bodies keep the four axes, the cusps between
+  // stay empty, his IC and DC follow MC and AC
+  Chart outer = inner;
+  for (int k : {2, 3, 4, 5, 6, 7, 8, 9, 11, 12}) {
+    outer.houses.cusp[static_cast<std::size_t>(k)] = 0.0;
+  }
+  const auto numbers = [](const DisplayList& dl) {
+    int n = 0;
+    for (const Primitive& p : dl.items) {
+      if (p.kind == Primitive::Kind::kText) {
+        for (const char* t : {"2", "3", "5", "6", "8", "9", "11", "12"}) {
+          n += p.text == t ? 1 : 0;
+        }
+      }
+    }
+    return n;
+  };
+  const auto label = [](const DisplayList& dl, const std::string& t) -> const Primitive* {
+    const Primitive* last = nullptr;
+    for (const Primitive& p : dl.items) {
+      if (p.kind == Primitive::Kind::kText && p.text == t) {
+        last = &p;
+      }
+    }
+    return last;
+  };
+  const AspectResult a = scan_aspects(inner, {}, {});
+  WheelOptions all;
+  WheelOptions axes;
+  axes.outer_axes_only = true;
+  const DisplayList stacked = build_double_wheel(inner, outer, {}, a, all);
+  const DisplayList clean = build_double_wheel(inner, outer, {}, a, axes);
+  // the first port stacked eight numbers on 0 degrees Aries
+  CHECK(numbers(stacked) - numbers(clean) == 8);
+  const Primitive* mc = label(clean, "MC");
+  const Primitive* ic = label(clean, "IC");
+  REQUIRE(mc != nullptr);
+  REQUIRE(ic != nullptr);
+  // IC opposite MC about the centre of the wheel
+  CHECK(mc->x1 + ic->x1 == doctest::Approx(2.0 * kWheelCenterX).epsilon(0.02));
+  CHECK(mc->y1 + ic->y1 == doctest::Approx(2.0 * kWheelCenterY).epsilon(0.02));
 }
 
 TEST_CASE("the classic sheet lists the Spiegelung pairs like spieg1") {

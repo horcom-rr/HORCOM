@@ -400,6 +400,10 @@ struct WheelOptions {
   /// whether the outer ring wears outer_color, his transit, ZEIT-WANDERN
   /// and DOPPELKREIS rings do, MULTI and HARMONICS stay black
   bool outer_tint = true;
+  /// his hneu! off in horg11mult, the houses of MULTI and HARMONICS move
+  /// with the bodies and the outer band draws only AC, IC, DC and MC, IC
+  /// and DC opposite MC and AC
+  bool outer_axes_only = false;
   /// the running factors of EINZELNE LAUFENDE PLANETEN ROT MARKIEREN, his
   /// plw& under plan_col!, their outer glyphs turn red before outer_color
   /// is asked

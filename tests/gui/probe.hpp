@@ -258,6 +258,7 @@ struct MainWindowProbe {
     w.uhr_slot_ = slot;
   }
   static void data_file_io(MainWindow& w) { w.data_file_io(); }
+  static bool export_png(MainWindow& w, const QString& path) { return w.export_png_to(path); }
   static void chain_files(MainWindow& w) { w.chain_files(); }
   static void clock_tick(MainWindow& w) { w.clock_tick(); }
   static void clock_gate_open(MainWindow& w) { w.clock_record_clock_.invalidate(); }

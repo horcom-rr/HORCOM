@@ -309,7 +309,8 @@ double glyph_lift(double w, double km, double glyph_ring, double outer_step, dou
 // glyph and no number of a crowded stretch. The numbers that hang below
 // like his take their place first. A number without a free side keeps to
 // its ring all the same
-std::vector<Pt> place_numbers(const std::vector<RingNumber>& numbers, double glyph_size, const TextRing& ring) {
+std::vector<Pt> place_numbers(const std::vector<RingNumber>& numbers, double glyph_size, const TextRing& ring,
+                              const std::vector<Box>& fixed = {}) {
   constexpr double kClear = 0.5;
   const auto hit = [](const Box& a, const Box& b) {
     return a.l < b.r - kClear && b.l < a.r - kClear && a.t < b.b - kClear && b.t < a.b - kClear;
@@ -317,7 +318,9 @@ std::vector<Pt> place_numbers(const std::vector<RingNumber>& numbers, double gly
   // two numbers side by side keep half a digit apart, else 4 and 16 read 416
   const double gap = 0.5 * kMonoAdvance * kNumberSize;
   const double glyph_half = 0.5 * kSpriteBox * glyph_size;
-  std::vector<Box> taken;
+  // the texts already on the sheet, the axis labels above all, stand in
+  // the way like the glyphs
+  std::vector<Box> taken = fixed;
   std::vector<Box> texts;
   for (const RingNumber& n : numbers) {
     taken.push_back({n.glyph.x - glyph_half, n.glyph.y - glyph_half, n.glyph.x + glyph_half, n.glyph.y + glyph_half});
@@ -388,7 +391,8 @@ std::vector<Pt> place_numbers(const std::vector<RingNumber>& numbers, double gly
 // all the same. The glyphs and the numbers stay where plentz and
 // place_numbers set them. Only the marks from first_mark on move, every
 // text and glyph of the list stands in their way
-void keep_retro_marks_clear(DisplayList& dl, std::size_t first_mark, const TextRing& ring) {
+void keep_retro_marks_clear(DisplayList& dl, std::size_t first_mark, const TextRing& ring,
+                            const std::vector<Box>& fixed = {}) {
   const auto text_box = [](const Primitive& p) { return text_box_at(p.x1, p.y1, p.size, p.text.size()); };
   const auto glyph_box = [](const Primitive& p) {
     const double half = 0.5 * kSpriteBox * p.size;
@@ -426,6 +430,9 @@ void keep_retro_marks_clear(DisplayList& dl, std::size_t first_mark, const TextR
       if (!within(b, ring)) {
         return true;
       }
+      if (std::any_of(fixed.begin(), fixed.end(), [&](const Box& t) { return hit(b, t); })) {
+        return true;
+      }
       for (const std::size_t n : numbers) {
         if (hit(b, text_box(dl.items[n]))) {
           return true;
@@ -446,15 +453,48 @@ void keep_retro_marks_clear(DisplayList& dl, std::size_t first_mark, const TextR
     if (glyphs.empty() || !blocked(text_box(r))) {
       continue;
     }
-    // the corners of its glyph, his upper right first
+    // the corners of its glyph, his upper right first, then the middle of
+    // either side where a crowded stretch left no corner free
     const double gx = dl.items[own].x1;
     const double gy = dl.items[own].y1;
-    const std::array<Pt, 4> corners{Pt{r.x1, r.y1}, Pt{2.0 * gx - r.x1, r.y1}, Pt{r.x1, 2.0 * gy - r.y1},
-                                    Pt{2.0 * gx - r.x1, 2.0 * gy - r.y1}};
+    const std::array<Pt, 6> corners{Pt{r.x1, r.y1},
+                                    Pt{2.0 * gx - r.x1, r.y1},
+                                    Pt{r.x1, 2.0 * gy - r.y1},
+                                    Pt{2.0 * gx - r.x1, 2.0 * gy - r.y1},
+                                    Pt{r.x1, gy},
+                                    Pt{2.0 * gx - r.x1, gy}};
     const auto box_at = [&r](const Pt& at) { return text_box_at(at.x, at.y, r.size, r.text.size()); };
     auto pick = std::find_if(corners.begin() + 1, corners.end(), [&](const Pt& at) { return !blocked(box_at(at)); });
-    if (pick == corners.end() && !within(box_at(corners[0]), ring)) {
-      pick = std::find_if(corners.begin() + 1, corners.end(), [&](const Pt& at) { return within(box_at(at), ring); });
+    if (pick == corners.end()) {
+      // no free place, the one inside the ring that covers least
+      const auto covered = [&](const Box& b) {
+        const auto overlap = [&b](const Box& t) {
+          return std::max(0.0, std::min(b.r, t.r) - std::max(b.l, t.l)) *
+                 std::max(0.0, std::min(b.b, t.b) - std::max(b.t, t.t));
+        };
+        double area = 0.0;
+        for (const Box& t : fixed) {
+          area += overlap(t);
+        }
+        for (const std::size_t n : numbers) {
+          area += overlap(text_box(dl.items[n]));
+        }
+        for (const std::size_t o : marks) {
+          area += o != m ? overlap(text_box(dl.items[o])) : 0.0;
+        }
+        for (const std::size_t g : glyphs) {
+          area += g != own ? overlap(glyph_box(dl.items[g])) : 0.0;
+        }
+        return area;
+      };
+      double least = std::numeric_limits<double>::infinity();
+      for (auto at = corners.begin(); at != corners.end(); ++at) {
+        const Box b = box_at(*at);
+        if (within(b, ring) && covered(b) < least) {
+          least = covered(b);
+          pick = at;
+        }
+      }
     }
     if (pick != corners.end()) {
       r.x1 = pick->x;
@@ -1043,6 +1083,15 @@ static void draw_outer_bodies(DisplayList& dl, const Chart& chart, double fza, d
     }
     add(p);
   }
+  // an outer ring runs past the axis labels of the wheel inside it, a
+  // number or an R set above its glyph had met MC there
+  std::vector<Box> fixed;
+  for (std::size_t i = 0; i < first_mark; ++i) {
+    const Primitive& t = dl.items[i];
+    if (t.kind == Primitive::Kind::kText) {
+      fixed.push_back(text_box_at(t.x1, t.y1, t.size, t.text.size()));
+    }
+  }
   if (opt.degree_numbers) {
     std::vector<RingNumber> numbers;
     for (int slot : slots) {
@@ -1051,7 +1100,7 @@ static void draw_outer_bodies(DisplayList& dl, const Chart& chart, double fza, d
       const double q = norm_deg(pl[si] * kRadToDeg);
       numbers.push_back({at(wl[si], glyph_ring + dc[si]), gs + kNumberGap, std::to_string(degree_in_sign(q))});
     }
-    const std::vector<Pt> placed = place_numbers(numbers, gs, text_ring);
+    const std::vector<Pt> placed = place_numbers(numbers, gs, text_ring, fixed);
     for (std::size_t i = 0; i < numbers.size(); ++i) {
       Primitive num;
       num.kind = Primitive::Kind::kText;
@@ -1076,7 +1125,7 @@ static void draw_outer_bodies(DisplayList& dl, const Chart& chart, double fza, d
       add(r);
     }
   }
-  keep_retro_marks_clear(dl, first_mark, text_ring);
+  keep_retro_marks_clear(dl, first_mark, text_ring, fixed);
 }
 
 DisplayList build_transit_wheel(const Chart& radix, const Chart& transit, const ChartSettings& s, const AspectResult& radix_aspects, const WheelOptions& opt) {
@@ -1130,7 +1179,13 @@ DisplayList build_double_wheel(const Chart& inner, const Chart& outer, const Cha
     static constexpr const char* kOuterAxis[4] = {"AC", "IC", "DC", "MC"};
     for (int a_idx = 0; a_idx < 4; ++a_idx) {
       const int a = kAxes[a_idx];
-      const double w = wheel_angle(outer.houses.cusp[static_cast<std::size_t>(a)], fza);
+      double cusp = outer.houses.cusp[static_cast<std::size_t>(a)];
+      // CASE 4 with fz(od,ze,10) and CASE 7 with fz(od,ze,1), the axes of
+      // the corner points stand opposite MC and AC
+      if (opt.outer_axes_only && (a == 4 || a == 7)) {
+        cusp = norm_rad(outer.houses.cusp[a == 4 ? 10 : 1] + kPi);
+      }
+      const double w = wheel_angle(cusp, fza);
       const Pt p1 = at(w, kOuterCuspInner);
       const Pt p2 = at(w, kOuterCuspOuter);
       add({Primitive::Kind::kLine, p1.x, p1.y, p2.x, p2.y, 0, 0, 0, 0, 0, 0x000000, 0xFFFFFF,
@@ -1144,8 +1199,9 @@ DisplayList build_double_wheel(const Chart& inner, const Chart& outer, const Cha
       t.text = kOuterAxis[a_idx];
       add(t);
     }
-    // the intermediate cusps drop out when only AC and MC are asked for
-    if (s.houses != HouseSystem::kAcMcOnly) {
+    // the intermediate cusps drop out when only AC and MC are asked for,
+    // and without his hneu! the corner points carry no cusps between
+    if (s.houses != HouseSystem::kAcMcOnly && !opt.outer_axes_only) {
       static constexpr int kMid[8] = {2, 3, 5, 6, 8, 9, 11, 12};
       for (int idx = 0; idx < 8; ++idx) {
         const int i = kMid[idx];
@@ -1257,49 +1313,95 @@ void add_classic_text(DisplayList& dl, const Chart& chart, const ChartSettings& 
                                                                         : "T";
   const double x0 = 6.0;
   text(x0, 16.0, (txt.len_header.empty() ? std::string("L\xC3\xA4nge:") : txt.len_header) + mode);
-  if (!txt.longitudes_only) {
-    text(118.0, 16.0, "Vel.");
-  }
   static constexpr const char* kRowTag[11] = {"SO", "MO", "ME", "VE", "MA", "JU",
                                               "SA", "UR", "NE", "PL", "DR"};
-  double y = 31.0;
-  for (int row = 0; row < 11; ++row) {
-    const int slot = (row < 10) ? row + 1 : body::kNodeAsc;
-    const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
-    if (!b.present || !b.valid) {
+  // bes11 runs from SO over DR into every extra body of the chart, the
+  // south node stays out and the heliocentric list drops the node, AG and
+  // GL like his hrg! branch
+  std::vector<int> rows;
+  for (int slot = body::kSun; slot < body::kSlotCount; ++slot) {
+    if (slot > body::kNodeAsc && slot < body::kApogee) {
       continue;
     }
-    // P marks the parallax corrected rows, W the true node like his W
-    char mark = ' ';
-    if (row < 10 && s.topocentric_parallax) {
-      mark = 'P';
-    } else if (row == 10) {
-      mark = s.true_node ? 'W' : 'M';
+    if (s.heliocentric && (slot == body::kNodeAsc || slot == body::kApogee || slot == body::kFortune)) {
+      continue;
     }
-    char buf[48];
-    if (txt.longitudes_only) {
-      std::snprintf(buf, sizeof(buf), "%s %s", kRowTag[row], zod(b.el, mark).c_str());
-    } else {
-      std::snprintf(buf, sizeof(buf), "%s %s %7.1f", kRowTag[row],
-                    zod(b.el, mark).c_str(), b.tb * kRadToDeg * 60.0);
+    const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
+    if (b.present && b.valid) {
+      rows.push_back(slot);
     }
-    text(x0, y, buf);
-    y += 12.5;
   }
-  y += 4.0;
+  // his bes00 drew the list smaller under vf! once many factors stood in
+  // it, the rows here shrink just enough to keep the house summary and the
+  // Spiegelungen on the sheet
+  constexpr double kTableTop = 31.0;
+  constexpr double kRowStep = 12.5;
+  constexpr double kRowText = 10.0;
+  constexpr double kRuleAbove = 4.0;
+  constexpr double kRuleBelow = 14.0;
+  constexpr double kRule = kRuleAbove + kRuleBelow;
+  constexpr double kMirrorRow = 10.0;
+  constexpr double kSheetFoot = 8.0;
+  // his bes111 stays dark under hrg!, the sun centred chart has no houses
+  const bool houses = chart.houses.ok && !s.heliocentric;
+  const int house_rows = houses ? 8 + (txt.h1_axis ? 1 : 0) : 0;
+  const int mirror_rows = 1 + static_cast<int>(mirrors.size() + 1) / 2;
+  const double room = kCanvasHeight - kSheetFoot - kTableTop - 2.0 * kRule - house_rows * kRowStep -
+                      mirror_rows * kMirrorRow;
+  const double step = rows.empty() ? kRowStep : std::min(kRowStep, room / static_cast<double>(rows.size()));
+  const double row_text = kRowText * step / kRowStep;
+  // his Vel. stood over the speeds, under vf! his d1& moved it in with the
+  // smaller rows, and hrg! drew no speeds
+  constexpr double kVelX = 118.0;
+  const bool speeds = !txt.longitudes_only && !s.heliocentric;
+  if (speeds) {
+    text(x0 + (kVelX - x0) * row_text / kRowText, 16.0, "Vel.");
+  }
+  double y = kTableTop;
+  for (const int slot : rows) {
+    const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
+    // his CASE 1,2,3,4,5 marks SO to MA with P under parallax, the node
+    // and AG carry W for the true and M for the mean value, hrg! clears
+    // the mark and the speed
+    char mark = ' ';
+    if (!s.heliocentric) {
+      if (slot <= body::kMars && s.topocentric_parallax) {
+        mark = 'P';
+      } else if (slot == body::kNodeAsc) {
+        mark = s.true_node ? 'W' : 'M';
+      } else if (slot == body::kApogee) {
+        mark = s.true_apogee ? 'W' : 'M';
+      }
+    }
+    // TE, his pl$(2) of the sun centred chart
+    const std::string tag = (s.heliocentric && slot == body::kMoon) ? std::string(body::kEarthName)
+                            : slot <= body::kNodeAsc ? std::string(kRowTag[slot - 1])
+                                                     : std::string(body::kName[static_cast<std::size_t>(slot)]);
+    // no speed for a body standing still in the table and none for GL,
+    // his ru$ = "" for tb(i&) = 0 and i& = nk&(4)
+    char buf[48];
+    if (!speeds || b.tb == 0.0 || slot == body::kFortune) {
+      std::snprintf(buf, sizeof(buf), "%s %s", tag.c_str(), zod(b.el, mark).c_str());
+    } else {
+      std::snprintf(buf, sizeof(buf), "%s %s %7.1f", tag.c_str(), zod(b.el, mark).c_str(), b.tb * kRadToDeg * 60.0);
+    }
+    text(x0, y, buf, row_text);
+    y += step;
+  }
+  y += kRuleAbove;
   dl.items.push_back({Primitive::Kind::kLine, x0, y, 190.0, y, 0, 0, 0, 0, 0, 0x000000, 0xFFFFFF,
                       Primitive::Style::kSolid, 1.0, false, false, Primitive::Anchor::kCorner, ""});
-  y += 14.0;
+  y += kRuleBelow;
   //RR Häusersp., his house summary under the table
-  if (chart.houses.ok) {
+  if (houses) {
     text(x0, y, txt.houses_header.empty() ? "H\xC3\xA4usersp." : txt.houses_header);
-    y += 12.5;
+    y += kRowStep;
     std::string hn(chart.houses.name.data(), chart.houses.name.size());
     while (!hn.empty() && hn.back() == ' ') {
       hn.pop_back();
     }
     text(x0, y, "(" + hn + ")");
-    y += 12.5;
+    y += kRowStep;
     static constexpr const char* kHouseTag[6] = {" AC", "H 2", "H 3", " MC", "H11", "H12"};
     static constexpr int kHouseIdx[6] = {1, 2, 3, 10, 11, 12};
     const auto cusp_row = [&](const char* tag, double c) {
@@ -1318,7 +1420,7 @@ void add_classic_text(DisplayList& dl, const Chart& chart, const ChartSettings& 
       char buf[40];
       std::snprintf(buf, sizeof(buf), "%s:%2d\xC2\xB0 %s %2d'", tag, d, kSignTag[sg], m);
       text(x0, y, buf);
-      y += 12.5;
+      y += kRowStep;
     };
     for (int i = 0; i < 6; ++i) {
       //RR h$ = "H1 " under comp_mstz! or comp_hand!, then t$ = " AC" + " :" + s1$
@@ -1328,10 +1430,10 @@ void add_classic_text(DisplayList& dl, const Chart& chart, const ChartSettings& 
       }
     }
   }
-  y += 4.0;
+  y += kRuleAbove;
   dl.items.push_back({Primitive::Kind::kLine, x0, y, 190.0, y, 0, 0, 0, 0, 0, 0x000000, 0xFFFFFF,
                       Primitive::Style::kSolid, 1.0, false, false, Primitive::Anchor::kCorner, ""});
-  y += 14.0;
+  y += kRuleBelow;
   //RR Spiegelung:
   text(x0, y, txt.mirror_label.empty() ? "Spiegelung:" : txt.mirror_label);
   // spieg1 writes pl$(t&) at xx& and "-" + pl$(u&) 14 further, 50 apart,
@@ -1339,7 +1441,6 @@ void add_classic_text(DisplayList& dl, const Chart& chart, const ChartSettings& 
   // header, two pairs to a row
   constexpr double kMirrorStep = 50.0;
   constexpr double kMirrorPartner = 14.0;
-  constexpr double kMirrorRow = 10.0;
   constexpr double kMirrorWrap = 92.0;
   double mx = x0;
   y += kMirrorRow;
@@ -1702,30 +1803,43 @@ DisplayList a4_print_sheet(const Chart& chart, const ChartSettings& s, const Asp
     const char* mode = s.apparent == ApparentMode::kLightTime             ? "(App1)"
                        : s.apparent == ApparentMode::kLightTimeAberration ? "(App2)"
                                                                           : "(Wahr)";
-    text(18.0, 624.0, std::string("Ekl.L\xC3\xA4nge:") + mode + "   Vel.", 9.0);
-    double y = 624.0;
+    // his d$ = "   Vel." only under hrg! = 0, the speeds themselves stay
+    text(18.0, 624.0, std::string("Ekl.L\xC3\xA4nge:") + mode + (s.heliocentric ? "" : "   Vel."), 9.0);
+    std::vector<int> rows;
     for (int slot = 1; slot < body::kSlotCount; ++slot) {
-      if (slot == body::kAscendant || slot == body::kMc) {
-        continue;
-      }
       const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
-      if (!b.present || !b.valid) {
-        continue;
+      if (slot != body::kAscendant && slot != body::kMc && b.present && b.valid) {
+        rows.push_back(slot);
       }
-      y += 15.0;
-      if (y > 950.0) {
-        //RR Nur MAXIMAL 12 ZUSATZ-Planeten hier darstellbar
-        text(18.0, y, "...", 9.0);
-        break;
-      }
+    }
+    // his box held twelve extras at the step of his page and cut the rest
+    // with Nur MAXIMAL 12 ZUSATZ-Planeten, the rows here close up until
+    // every body of the wheel fits the box, the text shrinks only below the
+    // step that holds it in full
+    constexpr double kListTop = 624.0;
+    constexpr double kListFoot = 952.0;
+    constexpr double kListStep = 15.0;
+    constexpr double kListText = 9.0;
+    constexpr double kListFullTextStep = 12.0;
+    const double step = rows.empty() ? kListStep
+                                     : std::min(kListStep, (kListFoot - kListTop) / static_cast<double>(rows.size()));
+    const double size = kListText * std::min(1.0, step / kListFullTextStep);
+    double y = kListTop;
+    for (const int slot : rows) {
+      const BodyState& b = chart.b[static_cast<std::size_t>(slot)];
+      y += step;
       //RR p bei Parallaxe, w wahrer, m mittlerer Wert
+      // his CASE 1 TO 6, CASE 11 and CASE n1&, the south node falls to his
+      // DEFAULT blank, and IF hrg! clears every mark
       char mark = ' ';
-      if (slot <= 6 && s.topocentric_parallax) {
-        mark = 'p';
-      } else if (slot == body::kNodeAsc || slot == body::kNodeDesc) {
-        mark = s.true_node ? 'w' : 'm';
-      } else if (slot == body::kApogee) {
-        mark = s.true_apogee ? 'w' : 'm';
+      if (!s.heliocentric) {
+        if (slot <= 6 && s.topocentric_parallax) {
+          mark = 'p';
+        } else if (slot == body::kNodeAsc) {
+          mark = s.true_node ? 'w' : 'm';
+        } else if (slot == body::kApogee) {
+          mark = s.true_apogee ? 'w' : 'm';
+        }
       }
       char buf[64];
       if (b.tb != 0.0) {
@@ -1734,7 +1848,7 @@ DisplayList a4_print_sheet(const Chart& chart, const ChartSettings& s, const Asp
       } else {
         std::snprintf(buf, sizeof(buf), "%-2s %s %c", tag(slot).c_str(), zodsec(b.el).c_str(), mark);
       }
-      text(8.0, y, buf, 9.0);
+      text(8.0, y, buf, size);
     }
   }
 
