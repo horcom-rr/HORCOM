@@ -19,6 +19,8 @@
 #include <cmath>
 #include <vector>
 
+#include "theme.hpp"
+
 namespace horcom {
 
 /// Makes a table ask for the room of all its columns, so the window
@@ -56,7 +58,10 @@ class TableZoom final : public QObject {
   TableZoom(QTableWidget* table, bool fixed_rows) : QObject(table), table_(table), fixed_rows_(fixed_rows) {
     table->ensurePolished();
     base_px_ = QFontInfo(table->font()).pixelSize();
-    head_px_ = QFontInfo(table->horizontalHeader()->font()).pixelSize();
+    // the size of the heads lives in a sub-control rule that the font of
+    // the header widget never carries, it follows the cells at the ratio
+    // of the theme
+    head_px_ = static_cast<int>(std::lround(base_px_ * static_cast<double>(theme::kTableHeadPx) / theme::kTableCellPx));
     base_row_ = table->verticalHeader()->defaultSectionSize();
     base_icon_ = table->iconSize().isValid()
                      ? table->iconSize().width()
@@ -171,7 +176,10 @@ class TableZoom final : public QObject {
   void set_scale(double f) {
     scale_ = f;
     const auto px = [f](int base) { return std::max(base, static_cast<int>(std::lround(base * f))); };
-    table_->setStyleSheet(QStringLiteral("QTableWidget { font-size: %1px; } QHeaderView::section { font-size: %2px; }")
+    // the row heads keep the size of the cells like the theme sets them, a
+    // rule of the table's own sheet outranks every rule of the program
+    table_->setStyleSheet(QStringLiteral("QTableWidget { font-size: %1px; } QHeaderView::section { font-size: %2px; } "
+                                         "QHeaderView::section:vertical { font-size: %1px; }")
                               .arg(px(base_px_))
                               .arg(px(head_px_)));
     table_->setIconSize(QSize(px(base_icon_), px(base_icon_)));

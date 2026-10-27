@@ -263,13 +263,21 @@ TEST_CASE("the text sizes step on his ladder, a pixel down and two up") {
   CHECK(theme::next_text_scale(theme::kTextScaleMin, false) == theme::kTextScaleMin);
   CHECK(theme::next_text_scale(140, true) == 150);
   CHECK(theme::next_text_scale(140, false) == 130);
-  // the column heads of every table stand bold and as large as the cells
+  // the column heads of every table stand bold and a step larger than the
+  // cells, bold alone had looked like the bold columns below them. The row
+  // heads keep the size of the cells
   const QString qss = theme::stylesheet(theme::kTextScaleNormal, false);
-  const qsizetype head = qss.indexOf("QHeaderView::section {");
-  REQUIRE(head >= 0);
-  const QString rule = qss.mid(head, qss.indexOf('}', head) - head);
-  CHECK(rule.contains("font-size: 13px;"));
-  CHECK(rule.contains("font-weight: bold;"));
+  const auto rule_of = [&qss](const QString& selector) {
+    const qsizetype at = qss.indexOf(selector + " {");
+    return at < 0 ? QString() : qss.mid(at, qss.indexOf('}', at) - at);
+  };
+  const QString head = rule_of("QHeaderView::section");
+  const QString cell_size = QString("font-size: %1px;").arg(theme::kTableCellPx);
+  REQUIRE_FALSE(head.isEmpty());
+  CHECK(head.contains(QString("font-size: %1px;").arg(theme::kTableHeadPx)));
+  CHECK(head.contains("font-weight: bold;"));
+  CHECK(rule_of("QTableWidget").contains(cell_size));
+  CHECK(rule_of("QHeaderView::section:vertical").contains(cell_size));
 }
 
 TEST_CASE("the coordinate dock lists the tester's rows with both lunar forms") {

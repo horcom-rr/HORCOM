@@ -26,6 +26,7 @@
 #include "main_window.hpp"
 #include "robert_input.hpp"
 #include "robert_text.hpp"
+#include "table_fit.hpp"
 #include "theme.hpp"
 #include "zodiac_cells.hpp"
 
@@ -334,7 +335,11 @@ void MainWindow::arabic_table() {
     }
     // the point, its longitude and its aspects bold like the fixed stars
     bold_columns(table, {0, 2, 3});
+    // measured after the polish, the fonts of the style sheet arrive with
+    // it, and the window grows until the heads keep every column whole
+    table->ensurePolished();
     table->resizeColumnsToContents();
+    fit_columns(table);
   };
   LambdaFilter keys(LambdaFilter::keys([&](int key) {
     if (key == Qt::Key_Space || key == Qt::Key_Return || key == Qt::Key_Enter) {

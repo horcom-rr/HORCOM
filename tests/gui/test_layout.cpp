@@ -11,6 +11,7 @@
 #include <QScrollBar>
 #include <QTableWidget>
 #include <QTimer>
+#include <QVBoxLayout>
 
 #include "choice_dialog.hpp"
 #include "dialog_driver.hpp"
@@ -21,6 +22,8 @@
 #include "horcom/render/stat_sheet.hpp"
 #include "painter.hpp"
 #include "probe.hpp"
+#include "table_fit.hpp"
+#include "theme.hpp"
 
 using namespace horcom;
 using horcom::test::check_view;
@@ -175,6 +178,38 @@ TEST_CASE("layout: the coordinate screen grows its text with the window like his
   CHECK(grown_px > base_px);
   CHECK_FALSE(scrolls);
   report(issues);
+}
+
+TEST_CASE("layout: a table that grows with its window keeps its heads a step above the cells") {
+  if (!measurable()) {
+    return;
+  }
+  const QString sheet_before = qApp->styleSheet();
+  theme::apply(theme::kTextScaleNormal, false);
+  QString zoom_sheet;
+  {
+    // a plain window, the sweep captures dialogs and this one is small on
+    // purpose
+    QWidget d;
+    auto* v = new QVBoxLayout(&d);
+    auto* t = new QTableWidget(40, 6, &d);
+    t->setHorizontalHeaderLabels({"Pl", "Ekl. Länge", "Breite", "Vel.'", "A", "Entf.AE"});
+    v->addWidget(t);
+    auto* zoom = new TableZoom(t, false);
+    // a window too small for the table, the zoom settles at the theme size
+    d.resize(240, 160);
+    d.show();
+    QApplication::processEvents();
+    zoom->apply();
+    zoom_sheet = t->styleSheet();
+  }
+  qApp->setStyleSheet(sheet_before);
+  // the head size had been read from the font of the header widget, the
+  // 14 pixels of the QWidget rule, and the table's own sheet then held the
+  // heads below the size of the theme
+  CHECK(zoom_sheet.contains(QString("QHeaderView::section { font-size: %1px; }").arg(theme::kTableHeadPx)));
+  CHECK(zoom_sheet.contains(QString("QTableWidget { font-size: %1px; }").arg(theme::kTableCellPx)));
+  CHECK(zoom_sheet.contains(QString("QHeaderView::section:vertical { font-size: %1px; }").arg(theme::kTableCellPx)));
 }
 
 TEST_CASE("layout: GRAD-LISTE with and without the degree panel") {

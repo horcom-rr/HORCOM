@@ -323,7 +323,7 @@ QGroupBox::title {
 }
 /* The rows of a list stand in the plain weight so the bold column heads
    above them read as bold, his FW_BOLD gave both the same face and the
-   tester asked twice for the heads to stand out */
+   heads have to stand out */
 QTableWidget {
   background: @field@;
   alternate-background-color: @panel@;
@@ -357,8 +357,9 @@ QHeaderView {
 QAbstractScrollArea::corner {
   background: @field@;
 }
-/* The column heads of every table stand bold and as large as the cells
-   below them, the tester's wish for all dialog boxes */
+/* The column heads of every table stand bold and a step larger than the
+   cells below them. Bold alone left them looking like the bold names,
+   longitudes and dates of the rows, his FW_BOLD drew heads and rows alike */
 QHeaderView::section {
   background: @headBg@;
   color: @headInk@;
@@ -367,15 +368,17 @@ QHeaderView::section {
   border-right: 1px solid @grid@;
   padding: 4px 8px;
   font-family: "Courier New", monospace;
-  font-size: @13px@;
+  font-size: @15px@;
   font-weight: bold;
   letter-spacing: 1px;
 }
 /* The row heads carry his sprites, the padding of the column heads cut a
    sprite down to the middle of a narrow row and the frame of the true node
-   lost its top and bottom lines */
+   lost its top and bottom lines. They name rows, not columns, and keep
+   the size of the cells */
 QHeaderView::section:vertical {
   padding: 0px 8px;
+  font-size: @13px@;
 }
 QTableCornerButton::section {
   background: @headBg@;
@@ -389,7 +392,7 @@ QLabel#listHead {
   border-bottom: 1px solid @edge@;
   padding: 4px 8px;
   font-family: "Courier New", monospace;
-  font-size: @13px@;
+  font-size: @15px@;
   font-weight: bold;
   letter-spacing: 1px;
 }
@@ -653,6 +656,11 @@ inline constexpr int kTextScaleNormal = 100;
 /// The design size of the text of every widget in pixels, the QWidget
 /// rule of the style sheet.
 inline constexpr int kBodyPx = 14;
+/// The design size of the cells of a table, the QTableWidget rule.
+inline constexpr int kTableCellPx = 13;
+/// The design size of the column heads of a table, the QHeaderView::section
+/// rule, a step above the cells so the heads stand out from bold columns.
+inline constexpr int kTableHeadPx = 15;
 /// The steps of SCHRIFT GRÖßER and SCHRIFT KLEINER. One step down takes
 /// every size a pixel smaller, one step up two pixels larger, the tester
 /// found the old even tenths too small downwards and too timid upwards.
@@ -703,7 +711,7 @@ inline int scaled_px(int base, int percent) {
 /// @return the sheet with every font size scaled and colour resolved
 inline QString stylesheet(int percent, bool dark) {
   QString qss = QString::fromUtf8(kStyleSheetTemplate);
-  for (const int base : {14, 13, 12, 11}) {
+  for (const int base : {15, 14, 13, 12, 11}) {
     qss.replace(QString("@%1px@").arg(base), QString("%1px").arg(scaled_px(base, percent)));
   }
   for (const Token& t : kTokens) {

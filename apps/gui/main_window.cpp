@@ -2926,7 +2926,6 @@ void MainWindow::fixed_star_table() {
   // his column heads of stel0
   table->setHorizontalHeaderLabels({tr("Stern - Name"), tr("Ekl.Länge"), tr("Aspekte"), tr("Qualität"),
                                     tr("Astron.Name"), tr("Breite"), tr("Rekt."), tr("Dekl."), tr("D/LJ")});
-  table->horizontalHeader()->setStretchLastSection(true);
   table->verticalHeader()->setVisible(false);
   table->verticalHeader()->setDefaultSectionSize(20);
   table->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -2981,9 +2980,17 @@ void MainWindow::fixed_star_table() {
     table->setItem(i, 8, new QTableWidgetItem(r.lightyears > 0 ? QString::asprintf("%6d", r.lightyears)
                                                                : QStringLiteral("    NN")));
   }
-  // the star, its longitude and its aspects bold, the tester reads them first
+  // the star, its longitude and its aspects bold, a reader looks for them first
   bold_columns(table, {0, 1, 2});
+  // the fonts of the style sheet arrive with the polish, measured before
+  // it the columns and the window came out narrower than the larger heads
+  table->ensurePolished();
   table->resizeColumnsToContents();
+  // the stretch keeps the width the last column has when it is switched
+  // on, before the fit that was the default of a hundred pixels
+  table->horizontalHeader()->setStretchLastSection(true);
+  // the window grows until the larger heads keep every column whole
+  fit_columns(table);
   v->addWidget(table, 1);
   // his stelt, LEFT$(na$,25) + "|" + dm$ + ":" + datum3$ + "|" + sol$ + "|Eph.:" + gena4$
   const ClassicSheetText sheet = classic_sheet_text();

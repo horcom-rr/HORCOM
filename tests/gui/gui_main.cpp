@@ -150,13 +150,16 @@ int main(int argc, char** argv) {
   app.setProperty(horcom::kEnglishEditionProperty, false);
   // HORCOM_SHOTS captures and checks every dialog the flows open,
   // HORCOM_THEME dresses them in the style sheet of the program so the
-  // sweep measures the cells as the program shows them
+  // sweep measures the cells as the program shows them, a number there
+  // is the text scale in percent
   horcom::test::LayoutSweep sweep;
   if (qEnvironmentVariableIsSet("HORCOM_SHOTS")) {
     app.installEventFilter(&sweep);
   }
   if (qEnvironmentVariableIsSet("HORCOM_THEME")) {
-    horcom::theme::apply(horcom::theme::kTextScaleNormal, false);
+    bool ok = false;
+    const int percent = qEnvironmentVariableIntValue("HORCOM_THEME", &ok);
+    horcom::theme::apply(ok && percent > 0 ? percent : horcom::theme::kTextScaleNormal, false);
   }
   doctest::Context context(argc, argv);
   const int result = context.run();

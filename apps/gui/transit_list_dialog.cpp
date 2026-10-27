@@ -24,6 +24,7 @@
 #include "horcom/chart/signs.hpp"
 #include "horcom/core/angle.hpp"
 #include "horcom/core/constants.hpp"
+#include "table_fit.hpp"
 #include "table_export.hpp"
 
 namespace horcom {
@@ -302,7 +303,11 @@ void TransitListDialog::fill() {
     table_->setItem(row, kColSecondLon, second_lon);
   }
   count_->setText(a18::count_line(rows_.size()));
+  // measured after the polish, the fonts of the style sheet arrive with
+  // it, and the window grows until the heads keep every column whole
+  table_->ensurePolished();
   table_->resizeColumnsToContents();
+  fit_columns(table_);
   // no row stands chosen before a click, the preselected first row showed
   // as a black band on paper and the tester took it for a fault
 }

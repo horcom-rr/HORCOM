@@ -30,6 +30,7 @@
 #include "record_mask_dialog.hpp"
 #include "robert_input.hpp"
 #include "robert_text.hpp"
+#include "table_fit.hpp"
 #include "theme.hpp"
 #include "zodiac_cells.hpp"
 
@@ -361,7 +362,11 @@ void MainWindow::ingress_table() {
         }
       }
     }
+    // measured after the polish, the fonts of the style sheet arrive with
+    // it, and the window grows until the heads keep every column whole
+    table->ensurePolished();
     table->resizeColumnsToContents();
+    fit_columns(table);
     QApplication::restoreOverrideCursor();
   };
   const auto step = [&](bool forward) {
