@@ -600,7 +600,7 @@ TEST_CASE("AUSWERTUNG des ZÄHLERS counts every listed record once") {
         .then(DialogDriver::click("NICHT  ÜBERNEHMEN"))
         .then(DialogDriver::click("AUSWERTUNG des ZÄHLERS"))
         .then(press(Qt::Key_Space, &first))  // the clicked chart first
-        .then(press(Qt::Key_Space, &whole))  // the last one with the sums
+        .then(press(Qt::Key_Space, &whole))  // the clicked one again with the sums
         .then(DialogDriver::click("JA"))     // WEITERGEHEN und ZÄHLER LÖSCHEN ?
         .then(DialogDriver::click("Beenden"));
     MainWindowProbe::statistics_hub(*w);
@@ -612,8 +612,10 @@ TEST_CASE("AUSWERTUNG des ZÄHLERS counts every listed record once") {
   // his kotab_sta drew the clicked chart plain before the list counted
   CHECK(first.startsWith("ANNA MUSTER|"));
   CHECK_FALSE(first.contains("DATENSÄTZE"));
-  CHECK(whole.startsWith("CARLA DEMO|"));
-  CHECK(whole == single);
+  // the windows stand over the clicked chart, his kota0 had left them over
+  // the last chart of the list, CARLA DEMO, one the reader never chose
+  CHECK(whole.startsWith("ANNA MUSTER|"));
+  CHECK(whole.section('|', 1) == single.section('|', 1));
 }
 
 TEST_CASE("a list without a match shows no page") {

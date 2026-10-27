@@ -361,9 +361,11 @@ int MainWindow::stat_list(StatSession& ss) {
     text.info_counts.push_back(("=" + QString::asprintf("%6.2f", percent(und)) + tr("% Relative Häufigkeit")).toStdString());
   }
 
-  // his mode 4, every listed record counted in one pass, the last chart
-  // shown with both windows until the counter is cleared. False when the
-  // count was stopped
+  // the record whose click chose the count of the whole list
+  int clicked = -1;
+  // his mode 4, every listed record counted in one pass, the chart shown
+  // with both windows until the counter is cleared. False when the count
+  // was stopped
   const auto count_all = [&]() {
     ss.counts = WanderCounts{};
     StatProgress progress(this, tr("STATISTIK"), {whole_counter_text(ss.suc, ss.obj, ss.sta)});
@@ -379,9 +381,13 @@ int MainWindow::stat_list(StatSession& ss) {
       }
     }
     progress.hide();
+    // his a11_1 drew every counted chart and kota0 put the windows over the
+    // last one, a chart the reader never chose. The windows stand over the
+    // clicked chart, the sums are the same
+    const int view_record = clicked >= 0 ? clicked : shown.back().record;
     for (;;) {
-      // kota0, the last chart again without a recount
-      stat_view(ss, shown.back().record, true);
+      // kota0, the windows again without a recount
+      stat_view(ss, view_record, true);
       // ALERT 3,"Wollen Sie WEITERGEHEN|und den ZÄHLER LÖSCHEN ?",1,"NEIN|JA"
       if (ChoiceDialog::ask(this, "HORCOM", {tr("Wollen Sie WEITERGEHEN"), tr("und den ZÄHLER LÖSCHEN ?")},
                             {tr("NEIN"), tr("JA")}, 0) == 1) {
@@ -447,6 +453,7 @@ int MainWindow::stat_list(StatSession& ss) {
                                    QString::fromUtf8(tag.data(), static_cast<int>(tag.size())) + tr(" AUßER BEREICH !"));
           return;
         }
+        clicked = hit.record;
         if (!stat_row(ss, hit.record)) {
           action = 0;
           view.accept();
