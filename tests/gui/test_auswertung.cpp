@@ -736,6 +736,59 @@ TEST_CASE("LUNAR by date names the lunar it found") {
   CHECK(static_cast<int>(std::trunc((5.0 + day0 - birth) / kTropicalMonthDays)) == k + 1);
 }
 
+TEST_CASE("the dynamogram sheet grows to hold the curves of the life at his scale") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, morning_birth());
+  const Chart& radix = MainWindowProbe::chart(*w);
+  Dynamogram d;
+  d.existential.assign(6001, 0.0);
+  d.mood.assign(6001, 0.0);
+  const std::size_t top = kDynamogramWindowStart + 100;
+  // the highest point of the blue curve, his pen of width two
+  const auto peak_y = [](const DisplayList& dl) {
+    double y = 10000.0;
+    for (const Primitive& p : dl.items) {
+      if (p.kind == Primitive::Kind::kLine && p.color == 0x0000FF && p.width == 2.0 && p.x2 == p.x1 + 1.0) {
+        y = std::min({y, p.y1, p.y2});
+      }
+    }
+    return y;
+  };
+  const auto title_row = [](const DisplayList& dl) {
+    for (const Primitive& p : dl.items) {
+      if (p.kind == Primitive::Kind::kText && QString::fromStdString(p.text).startsWith("DYNAMOGRAMM")) {
+        return p.y1;
+      }
+    }
+    return -1.0;
+  };
+  // a curve that stays under the title leaves his sheet as it was
+  d.mood[top] = 500.0;
+  d.life_high = 500.0;
+  const DisplayList plain = MainWindowProbe::dynamo_graph(*w, d, 20, radix);
+  CHECK(plain.height == doctest::Approx(480.0));
+  CHECK(peak_y(plain) == doctest::Approx(220.0 - 0.3 * 500.0));
+  const double title_at = title_row(plain);
+  // his CLIP cut a peak of the life at the top edge, now the plot moves
+  // down by what the highest peak needs, on every interval of the run,
+  // so a small interval takes the same sheet and the scale stays 0.3
+  d.life_high = 1000.0;
+  const DisplayList tall = MainWindowProbe::dynamo_graph(*w, d, 20, radix);
+  CHECK(tall.height == doctest::Approx(480.0 + 120.0));
+  CHECK(peak_y(tall) == doctest::Approx(340.0 - 0.3 * 500.0));
+  CHECK(title_row(tall) == doctest::Approx(title_at));
+  // the highest curve of the life ends under his title rule
+  d.mood[top] = 1000.0;
+  CHECK(peak_y(MainWindowProbe::dynamo_graph(*w, d, 20, radix)) == doctest::Approx(40.0));
+  // a peak below his clip row grows the foot of the sheet alone
+  d.life_high = 0.0;
+  d.life_low = -1000.0;
+  d.mood[top] = -1000.0;
+  const DisplayList deep = MainWindowProbe::dynamo_graph(*w, d, 20, radix);
+  CHECK(deep.height == doctest::Approx(480.0 + 61.0));
+  CHECK(peak_y(deep) == doctest::Approx(220.0));
+}
+
 TEST_CASE("the single arc screen closes every arc on the axis") {
   auto w = MainWindowProbe::make();
   MainWindowProbe::apply(*w, morning_birth());

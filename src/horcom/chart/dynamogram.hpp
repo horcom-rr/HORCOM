@@ -59,6 +59,10 @@ struct Dynamogram {
   double from_age = 0.0;
   /// the arcs that touch the visible window, in the order he drew them
   std::vector<DynamogramArc> arcs;
+  /// the highest and the lowest value of either curve and of their sum
+  /// over a life from birth, the same for every interval of one run
+  double life_high = 0.0;
+  double life_low = 0.0;
 };
 
 /// the first sample of the visible window, his na& = 25 * 120
@@ -67,6 +71,10 @@ inline constexpr int kDynamogramWindowStart = 3000;
 inline constexpr int kDynamogramWindowEnd = 3598;
 /// samples per year of life, one progressed day
 inline constexpr int kDynamogramPerYear = 120;
+/// the largest year of life the input takes, either way
+inline constexpr int kDynamogramMaxAge = 200;
+/// the years from birth that life_high and life_low look at
+inline constexpr int kDynamogramLifeYears = 120;
 /// the end of the single arc screen, five years past the window start,
 /// his 3600 of einzel_bogen_anz
 inline constexpr int kDynamogramArcWindowEnd = kDynamogramWindowStart + 5 * kDynamogramPerYear;
@@ -90,12 +98,15 @@ inline constexpr int kDynamogramArcWindowEnd = kDynamogramWindowStart + 5 * kDyn
 ///         fifty years of one hundred twenty samples
 [[nodiscard]] double dynamogram_mean(const Dynamogram& d, double scale);
 
-/// Runs the Dynamogramm over a radix.
+/// Runs the Dynamogramm over a radix. Every interval is cut from one walk
+/// that starts on a fixed day, so two intervals agree on every year of
+/// life they share. His walk of fifty one days began anew around each
+/// interval and the curves of neighbouring intervals did not meet.
 ///
 /// @param radix the birth chart
 /// @param opt   the run's switches
 /// @param ctx   observer and settings for the progressed positions
-/// @return the summed curves
+/// @return the summed curves of the interval, with the range of the life
 [[nodiscard]] Dynamogram dynamogram(const Chart& radix, const DynamogramOptions& opt, const SearchContext& ctx);
 
 }  // namespace horcom

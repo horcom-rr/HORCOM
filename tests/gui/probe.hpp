@@ -285,6 +285,9 @@ struct MainWindowProbe {
   static DisplayList dynamo_arc_screen(const MainWindow& w, const Dynamogram& d, std::size_t first, std::size_t k, int lja) {
     return w.dynamo_arc_screen(d, first, k, lja);
   }
+  static DisplayList dynamo_graph(const MainWindow& w, const Dynamogram& d, int lja, const Chart& radix) {
+    return w.dynamo_graph(d, lja, radix);
+  }
   // one GRAPHIK phase screen of the Rhythmenlehre over a given chart
   static DisplayList rhythm_screen(const MainWindow& w, const Chart& c, const RhythmOptions& o, int phase) {
     MainWindow::RhythmRun run;

@@ -963,6 +963,47 @@ TEST_CASE("the dynamogram records his single arcs and the MITTEL over all sample
   CHECK(dynamogram_mean(flat, 0.3) == doctest::Approx(1.8 * 6001.0 / 6000.0 + 0.3));
 }
 
+TEST_CASE("the intervals of the dynamogram agree on the years they share") {
+  const SearchContext ctx = context();
+  ChartInput in;
+  in.date_ut = {13, 10, 1992, 3, 0.0};
+  in.lon_deg_east = ctx.base.lon_deg_east;
+  in.lat_deg = ctx.base.lat_deg;
+  const Chart radix = compute_chart(in, ctx.settings, vsop(), eph());
+  REQUIRE(radix.ok);
+  for (const bool gauss : {true, false}) {
+    DynamogramOptions opt;
+    opt.gauss = gauss;
+    opt.regressive = true;
+    opt.from_age = 20.0;
+    const Dynamogram a = dynamogram(radix, opt, ctx);
+    opt.from_age = 24.0;
+    const Dynamogram b = dynamogram(radix, opt, ctx);
+    // the fifth year of an interval is the first of the next. In the
+    // original a Jupiter bell of this birth counted on one interval only
+    // and the Sun and MC arc moved with the start of the walk, the two
+    // intervals differed by 68.3 units with bell curves and by 6.2 with
+    // cosine arcs, before the factor 0.3
+    double worst = 0.0;
+    for (int i = 0; i <= 118; ++i) {
+      const auto x = static_cast<std::size_t>(kDynamogramWindowStart + 4 * kDynamogramPerYear + i);
+      const auto y = static_cast<std::size_t>(kDynamogramWindowStart + i);
+      worst = std::max(worst, std::abs(a.existential[x] - b.existential[y]));
+      worst = std::max(worst, std::abs(a.mood[x] - b.mood[y]));
+    }
+    CHECK(worst < 1e-6);
+    CHECK(a.life_high == doctest::Approx(b.life_high));
+    CHECK(a.life_low == doctest::Approx(b.life_low));
+    CHECK(a.life_high > 0.0);
+    CHECK(a.life_low < 0.0);
+  }
+  // an age past the end of the input stays on the walk
+  DynamogramOptions far;
+  far.from_age = 400.0;
+  const Dynamogram top = dynamogram(radix, far, ctx);
+  CHECK(top.mood.size() == 6001);
+}
+
 TEST_CASE("the angle ingresses land every sign within the day") {
   // his korr1 and korr2 iterated to 5e-7, the port once asked 1e-9, which
   // a julian day in double cannot resolve, and lost most signs

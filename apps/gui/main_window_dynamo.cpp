@@ -34,6 +34,8 @@ constexpr double kZeroY = 220.0;
 constexpr double kLeftX = 40.0;
 constexpr double kClipRight = 620.0;
 constexpr double kClipBottom = 459.0;
+// the highest row a curve may reach, under his title rule at 38
+constexpr double kPlotTop = 40.0;
 // his RGB(0,156,0) green pen of the mood curve and the benefic arcs, a
 // shade darker than the RGB(0,160,0) of the linear graph
 constexpr Rgb kGreen = 0x009C00;
@@ -63,14 +65,14 @@ Primitive upward(double x, double y, double size, const QString& t, Rgb c = kInk
 
 // CLIP 0,0,@xk(620),@yk(459), the part of a curve segment inside the
 // clip box of hubausg, false when none of it is
-bool clip_segment(double& x1, double& y1, double& x2, double& y2) {
+bool clip_segment(double& x1, double& y1, double& x2, double& y2, double bottom) {
   double t0 = 0.0;
   double t1 = 1.0;
   const double dx = x2 - x1;
   const double dy = y2 - y1;
   // the four edges as p * t <= q, left, right, top, bottom
   const double p[4] = {-dx, dx, -dy, dy};
-  const double q[4] = {x1, kClipRight - x1, y1, kClipBottom - y1};
+  const double q[4] = {x1, kClipRight - x1, y1, bottom - y1};
   for (int k = 0; k < 4; ++k) {
     if (p[k] == 0.0) {
       if (q[k] < 0.0) {
@@ -99,7 +101,7 @@ bool clip_segment(double& x1, double& y1, double& x2, double& y2) {
 
 // one curve with his pen pattern, the dashes emulated sample by sample
 // because every segment is one pixel long
-void curve(DisplayList& dl, const std::vector<double>& y, Rgb c, double w, Primitive::Style pen) {
+void curve(DisplayList& dl, const std::vector<double>& y, Rgb c, double w, Primitive::Style pen, double bottom) {
   // on and off lengths of the patterns in pixels
   static constexpr int kDash[2] = {6, 4};
   static constexpr int kDashDot[4] = {6, 3, 1, 3};
@@ -127,7 +129,7 @@ void curve(DisplayList& dl, const std::vector<double>& y, Rgb c, double w, Primi
     double x2 = x1 + 1.0;
     double y1 = y[i];
     double y2 = y[i + 1];
-    if (clip_segment(x1, y1, x2, y2)) {
+    if (clip_segment(x1, y1, x2, y2, bottom)) {
       dl.items.push_back(line_item(x1, y1, x2, y2, c, w));
     }
   }
@@ -276,20 +278,31 @@ DisplayList MainWindow::dynamo_arc_screen(const Dynamogram& d, std::size_t first
 // ported from hubausg
 DisplayList MainWindow::dynamo_graph(const Dynamogram& d, int lja, const Chart& radix) const {
   DisplayList dl;
+  // his CLIP fitted a screen of fixed height and cut the peaks. The scale
+  // stays his, the sheet of a run grows by what the curves of this life
+  // need, the same for every interval so they still meet. The title
+  // stays on top, the plot below it moves down
+  const double above = std::max(0.0, std::ceil(kAmplitude * d.life_high + kPlotTop - kZeroY));
+  const double below = std::max(0.0, std::ceil(kZeroY - kAmplitude * d.life_low - kClipBottom));
+  const double zero = kZeroY + above;
+  const double bottom = kClipBottom + above + below;
+  dl.width = kCanvasWidth;
+  dl.height = kCanvasHeight + above + below;
+  const auto row = [above](double y) { return y + above; };
   std::vector<double> exist;
   std::vector<double> mood;
   std::vector<double> sum;
   for (int i = kDynamogramWindowStart; i <= kDynamogramWindowEnd + 1; ++i) {
     const double e = kAmplitude * d.existential[static_cast<std::size_t>(i)];
     const double m = kAmplitude * d.mood[static_cast<std::size_t>(i)];
-    exist.push_back(kZeroY - e);
-    mood.push_back(kZeroY - m);
-    sum.push_back(kZeroY - (e + m));
+    exist.push_back(zero - e);
+    mood.push_back(zero - m);
+    sum.push_back(zero - (e + m));
   }
   // DEFLINE 3,1 red, DEFLINE 1,1 green, DEFLINE 0,2 blue
-  curve(dl, exist, kMarkRed, 1.0, Primitive::Style::kDashDot);
-  curve(dl, mood, kGreen, 1.0, Primitive::Style::kDashed);
-  curve(dl, sum, kBlue, 2.0, Primitive::Style::kSolid);
+  curve(dl, exist, kMarkRed, 1.0, Primitive::Style::kDashDot, bottom);
+  curve(dl, mood, kGreen, 1.0, Primitive::Style::kDashed, bottom);
+  curve(dl, sum, kBlue, 2.0, Primitive::Style::kSolid, bottom);
   // the date axis, year lines with the year and month ticks with letters
   const Calendar cal = current_settings().calendar;
   const CalendarDate birth = calendar_date(radix.jd_ut, cal);
@@ -300,7 +313,7 @@ DisplayList MainWindow::dynamo_graph(const Dynamogram& d, int lja, const Chart& 
   int jj = calendar_date(radix.jd_ut + std::lround(tja * lja), cal).year;
   if (j < 240) {
     //RR genug Platz ?
-    dl.items.push_back(text(44 + (-32 + 120 * (tja - j) / tja) / 2, 58, 16, QString::number(jj)));
+    dl.items.push_back(text(44 + (-32 + 120 * (tja - j) / tja) / 2, row(58), 16, QString::number(jj)));
   }
   static constexpr const char* kMonth[12] = {"J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"};
   const int shift = static_cast<int>(std::lround(j * kDynamogramPerYear / tja));
@@ -313,24 +326,24 @@ DisplayList MainWindow::dynamo_graph(const Dynamogram& d, int lja, const Chart& 
     }
     if ((i + shift) % kDynamogramPerYear == 0) {
       ++jj;
-      dl.items.push_back(line_item(40 + i, 60, 40 + i, 360));
+      dl.items.push_back(line_item(40 + i, row(60), 40 + i, row(360)));
       if (100 + i - 16 < 596) {
-        dl.items.push_back(text(100 + i - 16, 58, 16, QString::number(jj)));
+        dl.items.push_back(text(100 + i - 16, row(58), 16, QString::number(jj)));
       } else if (i + 42 < 596) {
-        dl.items.push_back(text(i + 42, 58, 16, QString::number(jj)));
+        dl.items.push_back(text(i + 42, row(58), 16, QString::number(jj)));
       }
       k = 0;
     }
     if ((i + shift) % 10 == 0) {
-      dl.items.push_back(line_item(40 + i, 215, 40 + i, 225));
+      dl.items.push_back(line_item(40 + i, row(215), 40 + i, row(225)));
       ++k;
       if (k >= 1 && k <= 12 && 42 + i + letter <= kClipRight) {
-        dl.items.push_back(text(42 + i, 218, 9, kMonth[k - 1]));
+        dl.items.push_back(text(42 + i, row(218), 9, kMonth[k - 1]));
       }
     }
   }
-  dl.items.push_back(text(4, 60, 13, QString("%1").arg(150, 4)));
-  dl.items.push_back(text(4, 370, 13, QString("%1").arg(-150, 4)));
+  dl.items.push_back(text(4, row(60), 13, QString("%1").arg(150, 4)));
+  dl.items.push_back(text(4, row(370), 13, QString("%1").arg(-150, 4)));
   // DYNAMOGRAMM nach K.E.KRAFFT / F.G.GOERNER
   dl.items.push_back(centred(20, 16, tr("DYNAMOGRAMM nach K.E.KRAFFT / F.G.GOERNER")));
   const QString name = QString("%1 %2").arg(QString::fromStdString(record_.surname).trimmed(),
@@ -339,21 +352,21 @@ DisplayList MainWindow::dynamo_graph(const Dynamogram& d, int lja, const Chart& 
                              tr("%1 | %2 |Geb.- Datum: %3").arg(name, QString::fromStdString(record_.place).trimmed(),
                                                                 datum3_text(calendar_date(radix.jd_ut, cal)))));
   dl.items.push_back(line_item(2, 38, 628, 38));
-  dl.items.push_back(line_item(628, 2, 628, 478));
-  dl.items.push_back(line_item(40, 380, 100, 380, kMarkRed));
-  dl.items.push_back(text(104, 386, 13, tr(" 1 Existentielle Situation ")));
-  dl.items.push_back(line_item(40, 396, 100, 396, kGreen));
-  dl.items.push_back(text(104, 402, 13, tr(" 2 Grundstimmung ")));
-  dl.items.push_back(line_item(40, 412, 100, 412, kBlue, 2.0));
-  dl.items.push_back(text(104, 418, 13, tr(" Resultierende Energie ")));
-  dl.items.push_back(line_item(40, kZeroY, 620, kZeroY));
-  dl.items.push_back(line_item(40, 60, 40, 360));
+  dl.items.push_back(line_item(628, 2, 628, 478 + above + below));
+  dl.items.push_back(line_item(40, row(380), 100, row(380), kMarkRed));
+  dl.items.push_back(text(104, row(386), 13, tr(" 1 Existentielle Situation ")));
+  dl.items.push_back(line_item(40, row(396), 100, row(396), kGreen));
+  dl.items.push_back(text(104, row(402), 13, tr(" 2 Grundstimmung ")));
+  dl.items.push_back(line_item(40, row(412), 100, row(412), kBlue, 2.0));
+  dl.items.push_back(text(104, row(418), 13, tr(" Resultierende Energie ")));
+  dl.items.push_back(line_item(40, zero, 620, zero));
+  dl.items.push_back(line_item(40, row(60), 40, row(360)));
   //RR @texts(36,190,16,"Positiv"), @texts(36,316,16,"Negativ")
-  dl.items.push_back(upward(36, 190, 16, tr("Positiv")));
-  dl.items.push_back(upward(36, 316, 16, tr("Negativ")));
+  dl.items.push_back(upward(36, row(190), 16, tr("Positiv")));
+  dl.items.push_back(upward(36, row(316), 16, tr("Negativ")));
   // @textzentrl(438,16,1," MITTEL über 50 Tage ( = Jahre ) = " + STR$(mittel% / 6000,7,0))
   add_screen_text_boxed(
-      dl, 438, 16, tr(" MITTEL über 50 Tage ( = Jahre ) = %1").arg(std::lround(dynamogram_mean(d, kAmplitude)), 7).toStdString());
+      dl, row(438), 16, tr(" MITTEL über 50 Tage ( = Jahre ) = %1").arg(std::lround(dynamogram_mean(d, kAmplitude)), 7).toStdString());
   return dl;
 }
 
@@ -370,8 +383,8 @@ void MainWindow::dynamogram_view() {
   }
   // inputbox$(160," LEBENSJAHR für BEGINN eingeben !"," Ca. 4 JAHRE DANACH werden dargestellt","")
   const std::optional<double> age =
-      ask_number(this, tr(" LEBENSJAHR für BEGINN eingeben !"), tr(" Ca. 4 JAHRE DANACH werden dargestellt"), -200.0, 200.0,
-                 std::numeric_limits<double>::quiet_NaN(), 0);
+      ask_number(this, tr(" LEBENSJAHR für BEGINN eingeben !"), tr(" Ca. 4 JAHRE DANACH werden dargestellt"), -kDynamogramMaxAge,
+                 kDynamogramMaxAge, std::numeric_limits<double>::quiet_NaN(), 0);
   if (!age) {
     return;
   }
@@ -445,14 +458,11 @@ void MainWindow::dynamogram_view() {
     const int re = ChoiceDialog::ask(this, tr("ENTSCHEIDUNG !"),
                                      {tr("NÄCHSTES INTERVALL ?"), tr("VORHERGEHENDES INTERVALL ?"), tr("Mit dem DATENSATZ :"), ds},
                                      {tr("NÄCHSTES"), tr("VORHERGEHENDES"), tr("Programm BEENDEN")}, 0);
-    if (re == 0) {
-      // ADD lja,4
-      lja += 4;
-    } else if (re == 1) {
-      lja -= 4;
-    } else {
+    if (re != 0 && re != 1) {
       return;
     }
+    // ADD lja,4 or SUB lja,4, inside the ages the one walk covers
+    lja = std::clamp(lja + (re == 0 ? 4 : -4), -kDynamogramMaxAge, kDynamogramMaxAge);
   }
 }
 

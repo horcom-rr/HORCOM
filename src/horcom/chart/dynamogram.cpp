@@ -4,6 +4,7 @@
 
 #include "horcom/chart/dynamogram.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 
@@ -20,6 +21,13 @@ namespace {
 constexpr int kDays = 50;
 // the samples 0 to 6000 of the summed curves, fifty years of 120
 constexpr int kCurve = kDays * kDynamogramPerYear + 1;
+// one walk serves every interval and starts on a fixed day, each interval
+// of his started its own and the arcs it found depended on that start.
+// It spans the ages the input admits with his twenty five days on either
+// side and as much again for the arcs that end there
+constexpr int kWalkFirstAge = -kDynamogramMaxAge - kDays;
+constexpr int kWalkDays = 2 * (kDynamogramMaxAge + kDays);
+constexpr int kWalkCurve = kWalkDays * kDynamogramPerYear + 1;
 
 // the amplitudes of the radix arcs, his ampl_rad in display units
 double ampl_rad(int pl) {
@@ -169,12 +177,17 @@ struct Run {
   const DynamogramOptions& opt;
   const SearchContext& ctx;
   Dynamogram out;
+  // the summed curves of the whole walk
+  std::vector<double> existential = std::vector<double>(kWalkCurve, 0.0);
+  std::vector<double> mood = std::vector<double>(kWalkCurve, 0.0);
+  // the walk day of the first sample the interval keeps, his n& = 0
+  int page_day = 0;
   // one progressed longitude per sample day and running point
-  std::array<std::array<double, 15>, kDays + 1> elint{};
+  std::vector<std::array<double, 15>> elint = std::vector<std::array<double, 15>>(kWalkDays + 1);
   // his regress!, the arcs of the second run carry the flag
   bool regressive_run = false;
   // the daily motion of each point, his anst
-  std::array<std::array<double, kDays + 1>, 15> anst{};
+  std::array<std::vector<double>, 15> anst;
 
   [[nodiscard]] double radix_pos(int rd) const {
     if (rd == 13) {
@@ -186,12 +199,15 @@ struct Run {
     return radix.b[static_cast<std::size_t>(rd)].el;
   }
 
-  // fills the fifty one sample days, one day of sky per year of life,
-  // his hubephp forward and hubephn backward
+  // fills the sample days, one day of sky per year of life, his hubephp
+  // forward and hubephn backward
   void sample(bool regressive) {
-    for (int n = 0; n <= kDays; ++n) {
-      const double jd = regressive ? radix.jd_ut - opt.from_age + 25.0 - n
-                                   : radix.jd_ut + opt.from_age - 25.0 + n;
+    for (auto& a : anst) {
+      a.assign(kWalkDays + 1, 0.0);
+    }
+    for (int n = 0; n <= kWalkDays; ++n) {
+      const double age = kWalkFirstAge + n;
+      const double jd = regressive ? radix.jd_ut - age : radix.jd_ut + age;
       ChartInput in = ctx.base;
       in.date_ut = calendar_date(jd, ctx.settings.calendar);
       const Chart c = compute_chart(in, ctx.settings, *ctx.vsop, *ctx.eph);
@@ -216,7 +232,7 @@ struct Run {
   }
 
   // one finished arc summed into the curves, his hub_auswert
-  [[nodiscard]] bool arc(int pl, int rd, int na, int ma, int n1, int n2, bool mutual) {
+  void arc(int pl, int rd, int na, int ma, int n1, int n2, bool mutual) {
     const double dds = orb(pl, rd, n2, mutual);
     const double pn = kTwoPi / na;
     double d1 = 0.0;
@@ -242,17 +258,25 @@ struct Run {
     const int i1 = static_cast<int>(std::lround((opt.gauss ? tb - 6.0 * b : tb - b) * kDynamogramPerYear));
     const int i2 = static_cast<int>(std::lround((opt.gauss ? tb + 6.0 * b : tb + b) * kDynamogramPerYear));
     const int im = static_cast<int>(std::lround(tb * kDynamogramPerYear));
-    if (!(bwp > 0 && i1 > 0 && i2 < kCurve - 1 && i2 > 0 && i1 < kCurve - 1)) {
-      return false;
+    // his IF i1& > 0 && i2& < 6000 kept an arc inside his fifty years of
+    // samples, a long arc passed it on one interval and failed it on the
+    // next. An arc that fits into those fifty years at all counts, on
+    // whichever interval it is seen
+    if (!(bwp > 0 && (opt.gauss ? 6.0 * b : b) < kDays / 2.0)) {
+      return;
     }
     const int sign = valuation(na, ma, pl, rd);
+    // the samples of the interval, his 3000 is the first it shows
+    const int page = page_day * kDynamogramPerYear;
+    const int p1 = i1 - page;
+    const int p2 = i2 - page;
     // IF (i1& > 3000 && i2& < 3600) OR (i1& < 3000 && i2& > 3000) OR ..., the single arc screen
-    const bool shown = (i1 > kDynamogramWindowStart && i2 < kDynamogramArcWindowEnd) ||
-                       (i1 < kDynamogramWindowStart && i2 > kDynamogramWindowStart) ||
-                       (i1 > kDynamogramWindowStart && i1 < kDynamogramArcWindowEnd && i2 > kDynamogramArcWindowEnd);
+    const bool shown = (p1 > kDynamogramWindowStart && p2 < kDynamogramArcWindowEnd) ||
+                       (p1 < kDynamogramWindowStart && p2 > kDynamogramWindowStart) ||
+                       (p1 > kDynamogramWindowStart && p1 < kDynamogramArcWindowEnd && p2 > kDynamogramArcWindowEnd);
     DynamogramArc single;
     if (shown) {
-      single = {pl, rd, na, ma, i1, i2, tb, !mutual, regressive_run, {}};
+      single = {pl, rd, na, ma, p1, p2, tb - page_day, !mutual, regressive_run, {}};
       single.bog.reserve(static_cast<std::size_t>(i2 - i1 + 1));
     }
     for (int i = i1; i <= i2; ++i) {
@@ -267,23 +291,21 @@ struct Run {
         ci = sign * std::abs(std::cos(kPi * (i - im) / bwp));
       }
       double anz = 0.0;
-      bool existential = false;
+      bool is_existential = false;
       if (mutual) {
         anz = std::max(ampl_mund(pl), ampl_mund(rd)) * ci;
       } else {
         anz = ampl_rad(pl) * ci;
         if (pl == 13 || pl == 14) {
           //RR nur AC,MC = existenzielle Situation
-          existential = true;
+          is_existential = true;
         } else if (anst[static_cast<std::size_t>(pl)][static_cast<std::size_t>(n1)] >
                    anst[14][static_cast<std::size_t>(n1)]) {
-          existential = bw <= 3.0;
+          is_existential = bw <= 3.0;
         }
       }
-      if (existential) {
-        out.existential[static_cast<std::size_t>(i)] += anz;
-      } else {
-        out.mood[static_cast<std::size_t>(i)] += anz;
+      if (i >= 0 && i < kWalkCurve) {
+        (is_existential ? existential : mood)[static_cast<std::size_t>(i)] += anz;
       }
       if (shown) {
         single.bog.push_back(anz);
@@ -292,7 +314,6 @@ struct Run {
     if (shown) {
       out.arcs.push_back(std::move(single));
     }
-    return true;
   }
 
   // the orb walk of asp_analy_1_rad and asp_analy_1_mund. The first block
@@ -305,13 +326,15 @@ struct Run {
     int n2 = 0;
     const auto close = [&](int n) {
       n2 = n;
-      // a valid arc frees the combination again, a failed one stays shut
-      if (n2 > n1 && arc(pl, rd, na, ma, n1, n2, mutual)) {
-        n1 = 0;
-        n2 = 0;
+      if (n2 > n1) {
+        arc(pl, rd, na, ma, n1, n2, mutual);
       }
+      // his failed arc shut the combination for the rest of a walk that
+      // ended soon, a walk through all of life goes on
+      n1 = 0;
+      n2 = 0;
     };
-    for (int n = 0; n <= kDays; ++n) {
+    for (int n = 0; n <= kWalkDays; ++n) {
       const double running = elint[static_cast<std::size_t>(n)][static_cast<std::size_t>(pl)];
       const double target = mutual ? norm_rad(elint[static_cast<std::size_t>(n)][static_cast<std::size_t>(rd)] + pn * ma)
                                    : norm_rad(radix_pos(rd) + pn * ma);
@@ -430,10 +453,10 @@ double dynamogram_mean(const Dynamogram& d, double scale) {
 // ported from HORCOM huber with wert, hubephp, hubephn, asp_analy_rad,
 // asp_analy_mund and the two hub_auswert builders
 Dynamogram dynamogram(const Chart& radix, const DynamogramOptions& opt, const SearchContext& ctx) {
-  Run r{radix, opt, ctx, {}, {}, false, {}};
+  Run r{radix, opt, ctx};
   r.out.from_age = opt.from_age;
-  r.out.existential.assign(kCurve, 0.0);
-  r.out.mood.assign(kCurve, 0.0);
+  const int age = std::clamp(static_cast<int>(std::floor(opt.from_age)), -kDynamogramMaxAge, kDynamogramMaxAge);
+  r.page_day = age - kDays / 2 - kWalkFirstAge;
   r.sample(false);
   r.against_radix();
   r.mutual_pairs();
@@ -443,7 +466,18 @@ Dynamogram dynamogram(const Chart& radix, const DynamogramOptions& opt, const Se
     r.against_radix();
     r.mutual_pairs();
   }
-  return r.out;
+  const auto first = static_cast<std::ptrdiff_t>(r.page_day) * kDynamogramPerYear;
+  r.out.existential.assign(r.existential.begin() + first, r.existential.begin() + first + kCurve);
+  r.out.mood.assign(r.mood.begin() + first, r.mood.begin() + first + kCurve);
+  const auto birth = static_cast<std::size_t>(-kWalkFirstAge) * kDynamogramPerYear;
+  const std::size_t last = birth + static_cast<std::size_t>(kDynamogramLifeYears) * kDynamogramPerYear;
+  for (std::size_t i = birth; i <= last; ++i) {
+    const double e = r.existential[i];
+    const double m = r.mood[i];
+    r.out.life_high = std::max({r.out.life_high, e, m, e + m});
+    r.out.life_low = std::min({r.out.life_low, e, m, e + m});
+  }
+  return std::move(r.out);
 }
 
 }  // namespace horcom
