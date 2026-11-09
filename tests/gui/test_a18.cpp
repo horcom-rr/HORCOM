@@ -7,6 +7,7 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QKeyEvent>
+#include <QMouseEvent>
 #include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
@@ -263,6 +264,76 @@ TEST_CASE("MUNDAN-ASPEKTE draws his linear graph without a record") {
   for (const QString& t : texts) {
     CHECK_FALSE(t.startsWith("Name :"));
   }
+}
+
+TEST_CASE("the reading lines of the linear graph land under the mouse") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, birth());
+  const auto mouse = [](WheelWidget* c, QEvent::Type type, const QPointF& sheet, Qt::MouseButton button,
+                        Qt::MouseButtons held) {
+    const QPointF at = c->from_canvas(sheet);
+    QMouseEvent e(type, at, c->mapToGlobal(at), button, held, Qt::NoModifier);
+    QApplication::sendEvent(c, &e);
+  };
+  bool checked = false;
+  DialogDriver drive;
+  drive.then(DialogDriver::click("LINEAR-GRAPHIK"))
+      .then(DialogDriver::click("90° => TEILER"))
+      .then(DialogDriver::click("ALLE"))
+      .then(DialogDriver::fill({"", "1", "3", "2023"}, "OK"))
+      .then(DialogDriver::click("1 MONAT"))
+      .then(DialogDriver::click("'TREFFER - LINIEN' MARKIEREN ?"))
+      .then(DialogDriver::click("MIT ZEICHEN"))
+      .then(DialogDriver::click(" NEIN "))
+      .then(DialogDriver::click("FEIN"))
+      .then([&](QDialog* d) {
+        auto* c = d->findChild<WheelWidget*>();
+        REQUIRE(c != nullptr);
+        // wide and flat, the paper card sits in the middle with its margin,
+        // the old mapping left the card out and missed by many pixels at
+        // the edges of the sheet
+        d->resize(1500, 700);
+        QApplication::processEvents();
+        const std::size_t bare = c->display_list().items.size();
+        const auto last = [c]() { return c->display_list().items.back(); };
+        // the line follows the mouse in black while the button is down
+        mouse(c, QEvent::MouseButtonPress, {30.0, 200.0}, Qt::LeftButton, Qt::LeftButton);
+        CHECK(last().x1 == doctest::Approx(30.0).epsilon(0.001));
+        CHECK(last().color == kInkColor);
+        CHECK(last().y1 == doctest::Approx(60.0));
+        mouse(c, QEvent::MouseMove, {610.0, 200.0}, Qt::NoButton, Qt::LeftButton);
+        CHECK(last().x1 == doctest::Approx(610.0).epsilon(0.001));
+        CHECK(c->display_list().items.size() == bare + 1);
+        // let go it stays blue from the height of the mouse to the band foot
+        mouse(c, QEvent::MouseButtonRelease, {610.0, 200.0}, Qt::LeftButton, Qt::NoButton);
+        CHECK(c->display_list().items.size() == bare + 1);
+        CHECK(last().color == 0x0000FF);
+        CHECK(last().x1 == doctest::Approx(610.0).epsilon(0.001));
+        CHECK(last().y1 == doctest::Approx(200.0).epsilon(0.001));
+        CHECK(last().y2 == doctest::Approx(421.0));
+        // the right button red, above the band it reaches down to the band
+        mouse(c, QEvent::MouseButtonPress, {40.0, 50.0}, Qt::RightButton, Qt::RightButton);
+        mouse(c, QEvent::MouseButtonRelease, {40.0, 50.0}, Qt::RightButton, Qt::NoButton);
+        CHECK(c->display_list().items.size() == bare + 2);
+        CHECK(last().color == kMarkRed);
+        CHECK(last().y1 == doctest::Approx(50.0).epsilon(0.001));
+        CHECK(last().y2 == doctest::Approx(60.0));
+        // IF MOUSEY > 40, the title rows take no line and lose the black one
+        mouse(c, QEvent::MouseButtonPress, {300.0, 20.0}, Qt::LeftButton, Qt::LeftButton);
+        mouse(c, QEvent::MouseButtonRelease, {300.0, 20.0}, Qt::LeftButton, Qt::NoButton);
+        CHECK(c->display_list().items.size() == bare + 2);
+        // SWITCH m& knows two buttons, the middle one leaves nothing behind
+        mouse(c, QEvent::MouseButtonPress, {300.0, 200.0}, Qt::MiddleButton, Qt::MiddleButton);
+        CHECK(c->display_list().items.size() == bare + 3);
+        mouse(c, QEvent::MouseButtonRelease, {300.0, 200.0}, Qt::MiddleButton, Qt::NoButton);
+        CHECK(c->display_list().items.size() == bare + 2);
+        checked = true;
+        d->reject();
+      });
+  MainWindowProbe::mundane_aspects(*w);
+  CHECK(drive.pending() == 0);
+  CHECK(drive.unexpected() == 0);
+  CHECK(checked);
 }
 
 TEST_CASE("MUNDAN-ASPEKTE lists the new moon of March 2023") {

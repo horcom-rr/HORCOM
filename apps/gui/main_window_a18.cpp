@@ -1463,8 +1463,13 @@ class LinearView final : public QDialog {
     v->addWidget(canvas);
     canvas->installEventFilter(new LambdaFilter(
         [this](QEvent* e) {
-          if (e->type() == QEvent::MouseButtonRelease) {
-            reading_line(*static_cast<QMouseEvent*>(e));
+          if (e->type() == QEvent::MouseButtonPress) {
+            pressed_at_ = static_cast<QMouseEvent*>(e)->position();
+          }
+          if (e->type() == QEvent::MouseButtonPress || e->type() == QEvent::MouseMove) {
+            follow(*static_cast<QMouseEvent*>(e));
+          } else if (e->type() == QEvent::MouseButtonRelease) {
+            drop(*static_cast<QMouseEvent*>(e));
           }
           return false;
         },
@@ -1483,24 +1488,63 @@ class LinearView final : public QDialog {
   }
 
  private:
-  // IF MOUSEY > 40 AND MOUSEY < _Y - 20, blue left, red right, the canvas
-  // scales the 640 wide sheet into the widget
-  void reading_line(const QMouseEvent& m) {
-    const double scale = std::min(canvas->width() / base.width, canvas->height() / base.height);
-    const double ox = (canvas->width() - base.width * scale) / 2.0;
-    const double x = (m.position().x() - ox) / scale;
-    if (x > kLinearFrameLeft && x < kLinearFrameRight) {
-      Primitive p;
-      p.kind = Primitive::Kind::kLine;
-      p.x1 = x;
-      p.x2 = x;
-      p.y1 = kLinearBandTop;
-      p.y2 = kLinearBandBottom;
-      p.color = m.button() == Qt::RightButton ? kMarkRed : 0x0000FF;
-      base.items.push_back(p);
-      canvas->set_plain_list(base);
-    }
+  // the mapping of the paint, margin, pan and zoom included, the canvas
+  // alone knows them
+  [[nodiscard]] QPointF sheet_point(const QMouseEvent& m) const { return canvas->to_canvas(m.position()); }
+
+  [[nodiscard]] static bool on_graph(double x) { return x > kLinearFrameLeft && x < kLinearFrameRight; }
+
+  [[nodiscard]] static Primitive line_at(double x, double y1, double y2, Rgb color) {
+    Primitive p;
+    p.kind = Primitive::Kind::kLine;
+    p.x1 = x;
+    p.x2 = x;
+    p.y1 = y1;
+    p.y2 = y2;
+    p.color = color;
+    return p;
   }
+
+  // the left button moves a sheet the mouse wheel has enlarged
+  [[nodiscard]] bool pans(const QMouseEvent& m) const {
+    return canvas->zoomed() && (m.button() == Qt::LeftButton || (m.buttons() & Qt::LeftButton) != 0);
+  }
+
+  // WHILE MOUSEK, LINE x&,y1&,x&,y2& follows the mouse in the ink of the
+  // sheet until a button is let go
+  void follow(const QMouseEvent& m) {
+    if (m.buttons() == Qt::NoButton || pans(m)) {
+      return;
+    }
+    const double x = sheet_point(m).x();
+    DisplayList shown = base;
+    if (on_graph(x)) {
+      shown.items.push_back(line_at(x, kLinearBandTop, kLinearBandBottom + 1.0, kInkColor));
+    }
+    canvas->set_plain_list(std::move(shown));
+  }
+
+  // dragline_yc and dragline_y1, blue left and red right, from the height
+  // of the mouse to the bottom of the band, above the band down to its top
+  void drop(const QMouseEvent& m) {
+    if (m.buttons() != Qt::NoButton) {
+      return;
+    }
+    // a plain click still marks an enlarged sheet, a drag has moved it
+    const bool moved = pans(m) && (m.position() - pressed_at_).manhattanLength() >= QApplication::startDragDistance();
+    const bool marks = (m.button() == Qt::LeftButton || m.button() == Qt::RightButton) && !moved;
+    const QPointF at = sheet_point(m);
+    // IF MOUSEY > 40 AND MOUSEY < _Y - 20
+    if (marks && on_graph(at.x()) && at.y() > 40.0 && at.y() < base.height - 20.0) {
+      const double y2 = at.y() < kLinearBandTop
+                            ? kLinearBandTop
+                            : (at.y() > kLinearBandBottom + 1.0 ? kLinearBandBottom : kLinearBandBottom + 1.0);
+      base.items.push_back(line_at(at.x(), at.y(), y2, m.button() == Qt::RightButton ? kMarkRed : 0x0000FF));
+    }
+    canvas->set_plain_list(base);
+  }
+
+  QPointF pressed_at_;
 };
 
 }  // namespace

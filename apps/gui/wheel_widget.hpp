@@ -58,6 +58,10 @@ class WheelWidget : public QWidget {
   /// @return the point in widget pixels
   [[nodiscard]] QPointF from_canvas(const QPointF& at) const;
 
+  /// @return true while the mouse wheel has enlarged the sheet, the left
+  ///         button then moves it
+  [[nodiscard]] bool zoomed() const { return zoom_ > 1.0; }
+
  signals:
   /// The right mouse button went down on the sheet, his MOUSEK = 2.
   void right_clicked();
