@@ -362,6 +362,17 @@ TEST_CASE("the coordinate dock lists the tester's rows with both lunar forms") {
   CHECK(c->item(0, 0)->text().startsWith(" 1  "));
   CHECK(c->item(0, 1)->text().startsWith(" 7  "));
   CHECK(c->item(5, 1)->text().startsWith("12  "));
+  // the first and the tenth house stand bold on a soft tint, no other
+  for (int row = 0; row < c->rowCount(); ++row) {
+    for (int col = 0; col < c->columnCount(); ++col) {
+      const bool angle = (row == 0 && col == 0) || (row == 3 && col == 1);
+      CAPTURE(row);
+      CAPTURE(col);
+      CHECK(c->item(row, col)->font().bold() == angle);
+      CHECK((c->item(row, col)->background().style() != Qt::NoBrush) == angle);
+    }
+  }
+  CHECK(c->item(3, 1)->text().startsWith("10  "));
   // the aspects and midpoints in a dock of their own
   QDockWidget* aspects = MainWindowProbe::aspects_dock(*w);
   REQUIRE(aspects != nullptr);

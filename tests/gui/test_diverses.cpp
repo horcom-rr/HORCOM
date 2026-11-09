@@ -84,6 +84,8 @@ TEST_CASE("the house table names the Vehlow axes as houses and adds AC and MC") 
   auto w = MainWindowProbe::make();
   QStringList vehlow;
   QStringList placidus;
+  // the rows that wear the tint of the first and the tenth house
+  QList<int> tinted;
   DialogDriver drive;
   drive.then([&vehlow](QDialog* d) {
     vehlow = first_column(d);
@@ -100,8 +102,16 @@ TEST_CASE("the house table names the Vehlow axes as houses and adds AC and MC") 
   CHECK(vehlow[12] == "VERTEX");
   CHECK(vehlow[13] == "AC");
   CHECK(vehlow[14] == "MC");
-  drive.then([&placidus](QDialog* d) {
+  drive.then([&placidus, &tinted](QDialog* d) {
     placidus = first_column(d);
+    const auto* t = d->findChild<QTableWidget*>();
+    REQUIRE(t != nullptr);
+    for (int r = 0; r < t->rowCount(); ++r) {
+      if (t->item(r, 0)->background().style() != Qt::NoBrush) {
+        tinted << r;
+        CHECK(t->item(r, 2)->font().bold());
+      }
+    }
     d->reject();
   });
   MainWindowProbe::houses(*w, 1);
@@ -110,6 +120,7 @@ TEST_CASE("the house table names the Vehlow axes as houses and adds AC and MC") 
   CHECK(placidus[0] == "AC");
   CHECK(placidus[3] == "IC");
   CHECK(placidus[9] == "MC");
+  CHECK(tinted == QList<int>{0, 9});
 }
 
 TEST_CASE("FINSTERNISSE lists the eclipses at their greatest moment and pages like finst") {

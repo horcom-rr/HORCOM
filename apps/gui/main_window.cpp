@@ -2742,6 +2742,9 @@ void MainWindow::fill_tables(const Chart& chart, const AspectResult& aspects, bo
       QTableWidgetItem* cell = listed ? zodiac_item(cusp) : new QTableWidgetItem(QString());
       if (listed) {
         cell->setText(QString::asprintf("%2d  ", house) + cell->text());
+        if (house == 1 || house == 10) {
+          angle_house_cell(cell);
+        }
       }
       cusps_->setItem(i - 1, house > kCuspRows ? 1 : 0, cell);
     }
@@ -3738,6 +3741,11 @@ void MainWindow::house_table() {
       const double ph = std::atan(std::sin(eq.ra - aoe) / std::tan(eq.dec + kEps));
       table->setItem(t - 1, 4, new QTableWidgetItem(QString::asprintf("%8.3f°", aoe * kRadToDeg)));
       table->setItem(t - 1, 5, new QTableWidgetItem(QString::asprintf("%8.3f°", ph * kRadToDeg)));
+    }
+    if (t == 1 || t == 10) {
+      for (int c = 0; c < table->columnCount(); ++c) {
+        angle_house_cell(table->item(t - 1, c));
+      }
     }
   }
   table->resizeColumnsToContents();

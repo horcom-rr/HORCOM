@@ -37,6 +37,19 @@ inline void bold_cell(QTableWidgetItem* item) {
   }
 }
 
+/// Sets a cell of the first or tenth house apart, bold on a soft tint of
+/// his yellow label boxes, so the two angular houses are found at a
+/// glance where his cusp lists stood plain. The tint is translucent so it
+/// reads on the white sheet and in the night theme alike.
+///
+/// @param item the cell, a null cell is left alone
+inline void angle_house_cell(QTableWidgetItem* item) {
+  if (item != nullptr) {
+    item->setFont(bold_weight());
+    item->setBackground(QColor(0xFF, 0xFF, 0x00, 80));
+  }
+}
+
 /// Sets the cells of some columns of a filled table bold.
 ///
 /// @param table   the table, its rows filled
