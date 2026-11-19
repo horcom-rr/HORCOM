@@ -2109,7 +2109,7 @@ double add_aspect_histogram(DisplayList& dl, const AspectResult& aspects, int di
     bar.fill = fill == RingFill::kWhite ? 0xFFFFFF : colors[static_cast<std::size_t>(i)];
     dl.items.push_back(bar);
     yt += kGap;
-    char buf[8];
+    char buf[12];
     std::snprintf(buf, sizeof(buf), "%2d", i);
     text(xt - 19.0, yt + kBar, buf, number_size);
     //RR RSET aa$ = STR$(zh&(i&)), two places

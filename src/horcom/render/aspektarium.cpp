@@ -292,7 +292,7 @@ DisplayList build_aspektarium(const AspektariumInput& in, const AspektariumText&
   const int nasp = std::clamp(in.orbs.divisors, 1, 16);
   for (int t = 1; t <= nasp; ++t) {
     const double dd = divisor_orb(in.orbs, t);
-    char n[8];
+    char n[12];
     char f[16];
     char k[16];
     std::snprintf(n, sizeof(n), "%2d", t);
