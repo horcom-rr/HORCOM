@@ -309,6 +309,7 @@ The cluster `par` (topocentric parallax, Montenbruck p.25 formulation in equator
 | 5 | `render` display list + PNG/SVG export — the wheel reproduces the legacy layout (radii table in ui-and-graphics.md) |
 | 6 | `app` GUI shell (framework decision due here), transits/directions/returns screens |
 | 7 | Extras: statistics module, Münchner Rhythmenlehre/Huber, primary directions, eclipse finder, clock chart |
+| Later | Tests for what the suite still reaches least, by line coverage in November 2026 the AAF entry mask (`aaf_mask_dialog.cpp`, 47 %), the commentary dialog (67 %), the time zone dialog (69 %), the help (73 %) and the backward search and period table of the transit search (`transit_search.cpp`, 89 %) |
 
 ## 7. Toolchain
 
