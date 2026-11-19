@@ -80,6 +80,7 @@ The rest of this page is about the source code. Every ported routine is checked 
 - [`docs/legacy/`](docs/legacy) maps the original program (50,397 lines, 1,095 procedures), its astronomical engine, menu tree and screen geometry, file formats and ephemeris production chain. [`docs/coverage.md`](docs/coverage.md) accounts for every procedure by name.
 - The technical pages of the [handbook](https://horcom-rr.github.io/HORCOM/) describe each module of the new program.
 - The tests compare against Meeus's worked examples, his binary data files, independent cross computations and output recorded from the original program.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) explains how to report a problem or send a change.
 
 ### Principles
 
