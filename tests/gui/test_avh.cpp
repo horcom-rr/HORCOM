@@ -16,6 +16,7 @@
 #include <QSettings>
 #include <QSpinBox>
 #include <QTimer>
+#include <vector>
 
 #include "choice_dialog.hpp"
 #include "dialog_driver.hpp"
@@ -1436,4 +1437,98 @@ TEST_CASE("the answer in force stands framed and the space bar takes it") {
   CHECK(framed == "ÄQUATORIAL = MUNDAN");
   CHECK(chosen == 1);
   CHECK(answer == 1);
+}
+
+namespace {
+
+// the texts of the sheet on the wheel
+QString wheel_texts(const MainWindow& w) {
+  QStringList texts;
+  for (const Primitive& p : MainWindowProbe::wheel(w).items) {
+    if (p.kind == Primitive::Kind::kText) {
+      texts << QString::fromStdString(p.text);
+    }
+  }
+  return texts.join("|");
+}
+
+// MULTI 3 for the third of February 2020, the steps of his BEZUGS-FAKTOR
+// after haus_ber, and the texts of the sheet
+QString multi_three(MainWindow& w, const std::vector<DialogDriver::Step>& reference) {
+  DialogDriver drive;
+  drive.then(DialogDriver::click("MULTI 3"))
+      .then(DialogDriver::fill({"", "3", "2", "2020"}, "OK"))
+      .then([&w](QDialog* d) {  // haus_ber, the chart waits after the BEZUGS-FAKTOR
+        key_at_wait(w);
+        DialogDriver::click("Wie PLANETEN")(d);
+      });
+  for (const DialogDriver::Step& s : reference) {
+    drive.then(s);
+  }
+  drive.then([&w](QDialog* d) {  // GEBURTSZEIT VARIIEREN ?
+    key_at_wait(w);
+    DialogDriver::click("NEIN")(d);
+  })
+      .then(DialogDriver::click("BEENDEN"));
+  MainWindowProbe::multi_session(w);
+  INFO(drive.titles().join(" | ").toStdString());
+  CHECK(drive.pending() == 0);
+  CHECK(drive.unexpected() == 0);
+  return wheel_texts(w);
+}
+
+}  // namespace
+
+TEST_CASE("MULTI 3 asks his BEZUGS-FAKTOR and names it on the sheet") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, evening_birth());
+  QString box;
+  const DialogDriver::Step mars = [&box](QDialog* d) {
+    box = labels(d);
+    DialogDriver::pick_text("MARS")(d);
+  };
+  const QString body = multi_three(*w, {mars});
+  CHECK(box.contains("BEZUGS-FAKTOR WÄHLEN !"));
+  CHECK(box.contains("LEHRIEDER ! | MULTI 3"));
+  CHECK(body.contains("Auf MA bezogen"));
+  // the three rows behind the bodies with the boxes they open
+  CHECK(multi_three(*w, {DialogDriver::pick_text("HAUS NR."), DialogDriver::click_exact("10")})
+            .contains("Auf Haus 10 bez."));
+  CHECK(multi_three(*w, {DialogDriver::pick_text("HERR v. HAUS NR."), DialogDriver::click_exact("1")})
+            .contains("Auf H.v.H. 1 bez."));
+  CHECK(multi_three(*w, {DialogDriver::pick_text("0 GRAD eines ZEICHENS"), DialogDriver::click("KREBS")})
+            .contains("Auf 0 Grad CN bez."));
+}
+
+TEST_CASE("MULTI NULL WEST asks haus_ber before the event date") {
+  auto w = MainWindowProbe::make();
+  MainWindowProbe::apply(*w, evening_birth());
+  QStringList titles;
+  QString date_box;
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("MULTI NULL WEST"))
+        .then([&w](QDialog* d) {  // haus_ber first, the chart waits after the date
+          key_at_wait(*w);
+          DialogDriver::click("Wie PLANETEN")(d);
+        })
+        .then([&date_box](QDialog* d) {
+          date_box = d->windowTitle() + "|" + labels(d);
+          DialogDriver::fill({"", "3", "2", "2020"}, "OK")(d);
+        })
+        .then([&w](QDialog* d) {  // GEBURTSZEIT VARIIEREN ?
+          key_at_wait(*w);
+          DialogDriver::click("NEIN")(d);
+        })
+        .then(DialogDriver::click("BEENDEN"));
+    MainWindowProbe::multi_session(*w);
+    INFO(drive.titles().join(" | ").toStdString());
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+    titles = drive.titles();
+  }
+  REQUIRE(titles.size() > 2);
+  CHECK(titles.at(1).contains("HINWEIS"));
+  CHECK(date_box.contains("Ereignis - DATUM"));
+  CHECK(wheel_texts(*w).contains("MULTI-0-WEST"));
 }
