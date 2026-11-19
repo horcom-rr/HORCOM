@@ -56,4 +56,6 @@ HORCOM is licensed under the GPL-3.0-or-later. By contributing you agree that yo
 // Copyright (c) 2026 Your Name
 ```
 
+Files that can't hold a header, like images or data, get an entry in `REUSE.toml` instead. CI checks with [REUSE](https://reuse.software) that every file states its copyright and license.
+
 Thank you for helping to keep Robert Rettig's work alive.

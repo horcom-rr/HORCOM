@@ -1,0 +1,81 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# horcom, the C++ rewrite of HORCOM by Robert Rettig (1989 to 2010)
+# Copyright (c) 2026 Dominik Schwimmbeck
+#
+# Copyright and license of the files that cannot carry a header of their
+# own, in the REUSE format (https://reuse.software). Sources carry theirs
+# in their first lines. Where several entries match a file, the last one
+# wins
+
+version = 1
+
+# documentation, test records, interface pictures and project files
+[[annotations]]
+path = [
+  "README.md", "CONTRIBUTING.md", "CODE_OF_CONDUCT.md",
+  ".gitignore", ".gitattributes", ".github/**",
+  "docs/**", "src/README.md", "tests/README.md",
+  "tests/golden/**", "tests/gui/layout_screen.json",
+  "assets/arrow-*.svg",
+]
+SPDX-FileCopyrightText = "2026 Dominik Schwimmbeck"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# Robert Rettig's own data, his ephemerides, time zone tables and place
+# catalogues, and his symbol drawings
+[[annotations]]
+path = [
+  "data/eph/**", "data/zeitbest/**", "data/places/**", "data/spez_ort/**",
+  "data/konsta.int", "data/laender.int", "data/landnima.int", "data/zonnamen.int",
+  "assets/symb/**",
+]
+SPDX-FileCopyrightText = "1989-2010 Robert Rettig"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# his commentary texts. They quote the copyright line of Jeffrey Sax,
+# which names the planet tables below, not the texts
+[[annotations]]
+path = ["data/kommen/*.md", "data/kommen/*.txt"]
+precedence = "override"
+SPDX-FileCopyrightText = "1989-2010 Robert Rettig"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# their English translations
+[[annotations]]
+path = ["data/kommen/*_en.md", "data/kommen/*_en.txt"]
+precedence = "override"
+SPDX-FileCopyrightText = ["1989-2010 Robert Rettig", "2026 Dominik Schwimmbeck"]
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = "data/kommen/README.md"
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Dominik Schwimmbeck"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# the logo after his original and its renders, the screenshot of his
+# screens, and the English interface around his German captions
+[[annotations]]
+path = [
+  "assets/logo.svg", "assets/logo-original.svg", "assets/logo.png", "assets/logo.ico",
+  "assets/screenshot.png", "docs/handbook/logo.svg", "docs/handbook/social-preview.png",
+  "apps/gui/i18n/horcom_en.ts",
+]
+SPDX-FileCopyrightText = ["1989-2010 Robert Rettig", "2026 Dominik Schwimmbeck"]
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# the abridged VSOP87 series of the Bureau des Longitudes after Jean
+# Meeus, from the diskette of Jeffrey Sax's software for Astronomical
+# Algorithms, which Robert Rettig converted to GFA-BASIC. His own note
+# is in data/kommen/komm3.md
+[[annotations]]
+path = ["data/planets.dat", "data/planets.ndx"]
+SPDX-FileCopyrightText = ["1991-1992 Jeffrey Sax, Willmann-Bell, Inc.", "1989-2010 Robert Rettig"]
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# third party, kept as delivered
+[[annotations]]
+path = "tests/vendor/doctest.h"
+precedence = "override"
+SPDX-FileCopyrightText = "2016-2023 Viktor Kirilov"
+SPDX-License-Identifier = "MIT"

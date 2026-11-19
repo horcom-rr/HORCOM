@@ -11,6 +11,7 @@
   <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux-555" alt="Windows and Linux">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue" alt="license"></a>
   <a href="https://codecov.io/gh/horcom-rr/HORCOM"><img src="https://img.shields.io/codecov/c/github/horcom-rr/HORCOM" alt="test coverage"></a>
+  <a href="https://api.reuse.software/info/github.com/horcom-rr/HORCOM"><img src="https://img.shields.io/reuse/compliance/github.com%2Fhorcom-rr%2FHORCOM" alt="REUSE compliance"></a>
 </p>
 
 **HORCOM** is a complete astrology program for the desktop. It casts and draws birth charts, follows transits and directions, computes solar, lunar and planetary returns, compares two people, and walks the seven year phases of the Munich rhythm theory. **Robert Rettig** wrote and refined it from about 1989 until 2010. This is his program on today's Windows and Linux, free and open source.
@@ -99,6 +100,7 @@ The rest of this page is about the source code. Every ported routine is checked 
 | `data/` | His ephemerides, term tables, place and zone catalogues, and his original commentary texts (`data/kommen/`) |
 | `packaging/` | Linux desktop entry, AppStream metadata and the AppImage build script |
 | `docs/` | Architecture notes, the map of the original program and the handbook (`docs/handbook/index.html`) |
+| `LICENSES/` | The license texts. `REUSE.toml` names copyright and license for the files that carry no header |
 | `reference/` | Verified UTF-8 copies of his original GFA BASIC listings, the factual base of the port (local only, not in git) |
 | `legacy/` | The complete original archive, programs, data and documents (local only, not in git, contains private data) |
 
@@ -144,7 +146,7 @@ Every release ships a `SHA256SUMS.txt` written by the build pipeline. On Windows
 
 ## License
 
-GPL-3.0-or-later, see `LICENSE`. HORCOM stays free and open, every derivative stays open, and Robert Rettig's name stays attached to his work. Rewritten in C++ and maintained by Dominik Schwimmbeck.
+GPL-3.0-or-later, see `LICENSE`. Every file states its copyright and license in the [REUSE](https://reuse.software) format, `REUSE.toml` covers the files that cannot hold a header. HORCOM stays free and open, every derivative stays open, and Robert Rettig's name stays attached to his work. Rewritten in C++ and maintained by Dominik Schwimmbeck.
 
 ---
 

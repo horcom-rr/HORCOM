@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# horcom, the C++ rewrite of HORCOM by Robert Rettig (1989 to 2010)
+# Copyright (c) 2026 Dominik Schwimmbeck
+name: reuse
+
+# every file states its copyright and license, either in its first lines
+# or in REUSE.toml
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: fsfe/reuse-action@v6
