@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# horcom, the C++ rewrite of HORCOM by Robert Rettig (1989 to 2010)
+# Copyright (c) 2026 Dominik Schwimmbeck
+
+# coverage is information, a drop never fails a pull request and the
+# bot stays out of the conversation
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        informational: true
+comment: false
+github_checks:
+  annotations: false

@@ -1,0 +1,63 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# horcom, the C++ rewrite of HORCOM by Robert Rettig (1989 to 2010)
+# Copyright (c) 2026 Dominik Schwimmbeck
+name: coverage
+
+# how much of the code the tests reach, shown on Codecov. A workflow of
+# its own, so it never holds back a release
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  coverage:
+    runs-on: ubuntu-24.04
+    # the upload signs in with a GitHub OIDC token instead of a secret
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt and tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ninja-build libgl-dev gcovr \
+            qt6-base-dev qt6-svg-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools
+
+      - name: Configure
+        run: >
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_CXX_COMPILER=g++-14
+          -DCMAKE_CXX_FLAGS=--coverage
+          -DCMAKE_EXE_LINKER_FLAGS=--coverage
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Test
+        # unoptimised and counting every line, each case runs several
+        # times slower, the watchdog of the GUI suite waits longer
+        env:
+          HORCOM_CASE_LIMIT_S: '180'
+        run: ctest --test-dir build --output-on-failure --parallel 4
+
+      - name: Report
+        run: >
+          gcovr --root . --gcov-executable gcov-14
+          --filter src/ --filter apps/
+          --xml coverage.xml --print-summary build
+
+      - name: Upload
+        uses: codecov/codecov-action@v7
+        with:
+          files: coverage.xml
+          disable_search: true
+          # forks get no OIDC token, Codecov takes their uploads without one
+          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
+          fail_ci_if_error: false
