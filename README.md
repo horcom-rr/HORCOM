@@ -68,6 +68,8 @@ chmod +x horcom-linux-x86_64.AppImage
 
 Where FUSE is missing, the AppImage unpacks itself at every start, which takes a few seconds longer. The package `fuse3`, named the same on every major distribution, lets it start directly. Your settings and files live in `~/.config/horcom` and `~/.local/share/horcom/data`, so replacing the AppImage with a newer one keeps them.
 
+On Arch Linux and its relatives the community package [`horcom-git`](https://aur.archlinux.org/packages/horcom-git) on the AUR builds the latest source with the Qt of your system. Its packager maintains it, the AppImage stays the official download.
+
 ## About Robert Rettig and HORCOM
 
 HORCOM was Robert Rettig's life project. He began it on the Atari ST and carried it to Windows, written in GFA BASIC, and distributed it on CD and through his website. It grew into a complete professional astrology suite. He did not stop at the standard planets. When no ephemerides existed for bodies he cared about, he computed his own, integrating the orbits of Chiron, Pholus, Nessus, Damokles, Quaoar, Eris and Halley's comet and shipping the results for centuries. He wrote the interpretation texts, the statistics module, the historical time zone tables for dozens of countries and the places database himself.
