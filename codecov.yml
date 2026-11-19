@@ -15,3 +15,9 @@ coverage:
 comment: false
 github_checks:
   annotations: false
+# a line with an untaken branch counts as covered, so the badge shows the
+# line coverage of the gcovr summary, the branch figure stays in the log
+# of the workflow
+parsers:
+  cobertura:
+    partials_as_hits: true
