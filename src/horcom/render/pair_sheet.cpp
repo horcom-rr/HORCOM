@@ -185,7 +185,7 @@ double add_pair_houses(DisplayList& dl, const Chart& c, const PairColumnOptions&
     } else if (k == 10) {
       label = " MC:";
     } else {
-      char h[8];
+      char h[16];
       std::snprintf(h, sizeof(h), "H%s%d :", k < 10 ? " " : "", k);
       label = h;
     }
