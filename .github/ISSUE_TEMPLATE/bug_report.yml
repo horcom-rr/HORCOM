@@ -1,0 +1,54 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# horcom, the C++ rewrite of HORCOM by Robert Rettig (1989 to 2010)
+# Copyright (c) 2026 Dominik Schwimmbeck
+name: Report a problem
+description: Something in HORCOM does not work or shows a wrong result.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to report this! Please use made-up birth data only, never the data of real people.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, and what did HORCOM show?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+      description: If you know the original HORCOM, how did it behave there?
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The menu entries you chose and the data you entered.
+      placeholder: |
+        1.
+        2.
+        3.
+  - type: input
+    id: version
+    attributes:
+      label: HORCOM version
+      description: The window title shows it, for example HORCOM 0.89.
+  - type: input
+    id: system
+    attributes:
+      label: System
+      placeholder: Windows 11, Ubuntu 24.04, ...
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Drag images here. A screenshot of the original program beside the new one helps most.
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Personal data
+      options:
+        - label: Any birth data in this report is made up and belongs to no real person.
+          required: true

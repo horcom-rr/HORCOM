@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# horcom, the C++ rewrite of HORCOM by Robert Rettig (1989 to 2010)
+# Copyright (c) 2026 Dominik Schwimmbeck
+name: Suggest a change
+description: An idea or a wish for HORCOM.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for the idea! HORCOM follows Robert Rettig's original program in its menus, dialogs and calculations, so changes that keep his structure are the easiest to adopt.
+  - type: textarea
+    id: wish
+    attributes:
+      label: What would you like?
+    validations:
+      required: true
+  - type: textarea
+    id: original
+    attributes:
+      label: How did the original HORCOM handle this?
+      description: Leave this empty if you don't know the original.
+  - type: textarea
+    id: why
+    attributes:
+      label: How would it help you?

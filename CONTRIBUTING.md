@@ -2,7 +2,7 @@
 
 Thank you for wanting to help! HORCOM is the rewrite of the astrology program Robert Rettig developed from 1989 to 2010. It aims to keep his program alive as he built it, so a few rules here are stricter than in other projects. This page explains them.
 
-HORCOM has a single maintainer, so an answer can take a few days. Issues and pull requests are welcome in English or German, and questions about using the program fit well in [Discussions](https://github.com/horcom-rr/HORCOM/discussions).
+HORCOM has a single maintainer, so an answer can take a few days. Issues and pull requests are welcome in English or German, and questions about using the program fit well in [Discussions](https://github.com/horcom-rr/HORCOM/discussions). Everyone taking part follows the [code of conduct](CODE_OF_CONDUCT.md).
 
 ## Ways to help
 
