@@ -30,6 +30,7 @@
 
 using namespace horcom;
 using horcom::test::DialogDriver;
+using horcom::test::key_at_wait;
 
 #ifdef HORCOM_TEST_QM
 
@@ -459,10 +460,7 @@ TEST_CASE("the TERRAR and its table speak English") {
     drive
         .then([main, &boxes](QDialog* d) {
           boxes << box_text(d);
-          QTimer::singleShot(400, main, [main]() {
-            QKeyEvent e(QEvent::KeyPress, Qt::Key_Space, Qt::NoModifier, " ");
-            QApplication::sendEvent(main, &e);
-          });
+          key_at_wait(*main);
           DialogDriver::fill({"2020"}, "OK")(d);
         })
         .then([&boxes](QDialog* d) {

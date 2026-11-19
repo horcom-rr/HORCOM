@@ -30,6 +30,7 @@
 
 using namespace horcom;
 using horcom::test::DialogDriver;
+using horcom::test::key_at_wait;
 
 namespace {
 
@@ -357,10 +358,7 @@ TEST_CASE("TERRAR takes the place of SOLAR under hrg! and lists his table") {
     DialogDriver drive;
     MainWindow* main = w.get();
     drive.then([main](QDialog* d) {  // GEWÜNSCHTES KALENDER-JAHR, then his wart
-          QTimer::singleShot(400, main, [main]() {
-            QKeyEvent e(QEvent::KeyPress, Qt::Key_Space, Qt::NoModifier, " ");
-            QApplication::sendEvent(main, &e);
-          });
+          key_at_wait(*main);
           DialogDriver::fill({"2020"}, "OK")(d);
         })
         .then([&menu_label](QDialog* d) {  // WEITERES SOLAR SUCHEN ?

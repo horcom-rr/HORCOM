@@ -28,6 +28,7 @@
 
 using namespace horcom;
 using horcom::test::DialogDriver;
+using horcom::test::key_at_wait;
 
 namespace {
 
@@ -601,14 +602,6 @@ TEST_CASE("the ASPEKTARIUM asks his MAXIMALER Teiler box first") {
 
 namespace {
 
-// a key on the main window some time after the boxes closed, his wart
-void key_later(MainWindow& w, int ms) {
-  QTimer::singleShot(ms, &w, [&w]() {
-    QKeyEvent e(QEvent::KeyPress, Qt::Key_Space, Qt::NoModifier, " ");
-    QApplication::sendEvent(&w, &e);
-  });
-}
-
 void cast_solar(MainWindow& w, int year) {
   DialogDriver drive;
   drive.then([year](QDialog* d) {
@@ -627,11 +620,11 @@ QString multi_one(MainWindow& w) {
   drive.then(DialogDriver::click("MULTI 1"))
       .then(DialogDriver::fill({"", "1", "10", "2026"}, "OK"))
       .then([&w](QDialog* d) {  // haus_ber
-        key_later(w, 200);
+        key_at_wait(w);
         DialogDriver::click("Wie PLANETEN")(d);
       })
       .then([&w](QDialog* d) {  // GEBURTSZEIT VARIIEREN ?
-        key_later(w, 200);
+        key_at_wait(w);
         DialogDriver::click("NEIN")(d);
       })
       .then(DialogDriver::click("BEENDEN"));
@@ -701,11 +694,11 @@ TEST_CASE("MULTIPLE DIREKTIONEN runs his session from MODUS to BEENDEN") {
           DialogDriver::fill({"", "3", "2", "2020"}, "OK")(d);
         })
         .then([&w](QDialog* d) {  // haus_ber
-          key_later(*w, 200);
+          key_at_wait(*w);
           DialogDriver::click("Wie PLANETEN")(d);
         })
         .then([&w](QDialog* d) {  // GEBURTSZEIT VARIIEREN ?
-          key_later(*w, 200);
+          key_at_wait(*w);
           DialogDriver::click("NEIN")(d);
         })
         .then([&weit](QDialog* d) {  // Weiteres DATUM untersuchen ?
@@ -741,7 +734,7 @@ TEST_CASE("zeitwim walks the birth time under the MULTI sheet and gives it back"
     drive.then(DialogDriver::click("MULTI 1"))
         .then(DialogDriver::fill({"", "3", "2", "2020"}, "OK"))
         .then([&w](QDialog* d) {
-          key_later(*w, 200);
+          key_at_wait(*w);
           DialogDriver::click("Wie PLANETEN")(d);
         })
         .then(DialogDriver::click("JA"))            // GEBURTSZEIT VARIIEREN ?
@@ -768,7 +761,7 @@ TEST_CASE("zeitwim walks the birth time under the MULTI sheet and gives it back"
         })
         .then(DialogDriver::click("NEIN = ENDE"))   // Weiter Mit NEUER ZEITEINHEIT ?
         .then([&w](QDialog* d) {                    // VARIIERTE ZEIT in RADIX ÜBERNEHMEN ?
-          key_later(*w, 200);
+          key_at_wait(*w);
           DialogDriver::click("NEIN")(d);
         })
         .then(DialogDriver::click("BEENDEN"));
@@ -822,7 +815,7 @@ TEST_CASE("zeitwim opened on a SOLAR varies the birth and JA writes it into the 
     drive.then(DialogDriver::click("MULTI 1"))
         .then(DialogDriver::fill({"", "1", "10", "2026"}, "OK"))
         .then([&w](QDialog* d) {
-          key_later(*w, 200);
+          key_at_wait(*w);
           DialogDriver::click("Wie PLANETEN")(d);
         })
         .then(DialogDriver::click("JA"))         // GEBURTSZEIT VARIIEREN ?
@@ -845,7 +838,7 @@ TEST_CASE("zeitwim opened on a SOLAR varies the birth and JA writes it into the 
         })
         .then(DialogDriver::click("NEIN = ENDE"))  // Weiter Mit NEUER ZEITEINHEIT ?
         .then([&w](QDialog* d) {                   // VARIIERTE ZEIT in RADIX ÜBERNEHMEN ?
-          key_later(*w, 200);
+          key_at_wait(*w);
           DialogDriver::click("JA")(d);
         })
         .then(DialogDriver::click("BEENDEN"));
@@ -1317,11 +1310,11 @@ TEST_CASE("MULTI and HARMONICS run geocentric and refuse the order zero") {
         .then(DialogDriver::fill({"0"}, "OK"))  // ORDNUNGS-ZAHL der HARMONIC, zero
         .then(DialogDriver::fill({"3"}, "OK"))  // asked again
         .then([&w](QDialog* d) {                // haus_ber
-          key_later(*w, 200);
+          key_at_wait(*w);
           DialogDriver::click("Wie PLANETEN")(d);
         })
         .then([&w](QDialog* d) {  // GEBURTSZEIT VARIIEREN ?
-          key_later(*w, 200);
+          key_at_wait(*w);
           DialogDriver::click("NEIN")(d);
         })
         .then(DialogDriver::click("BEENDEN"));  // Weiteres HARMONIC untersuchen ?

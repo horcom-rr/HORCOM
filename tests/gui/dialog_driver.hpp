@@ -7,9 +7,12 @@
 #include <QAbstractButton>
 #include <QApplication>
 #include <QDialog>
+#include <QKeyEvent>
+#include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QTimer>
+#include <QWidget>
 #include <deque>
 #include <functional>
 
@@ -137,5 +140,27 @@ class DialogDriver {
   int unexpected_ = 0;
   QStringList titles_;
 };
+
+/// Presses the space bar on the target once a wait of the program stands.
+/// @param target the window that takes the key, it owns the watch
+/// @note The bar of wait_key lives only while its loop runs, a key sent
+///       before it would be lost and a slow runner may draw longer than
+///       any fixed delay. The bar sits on the main window or on an output
+///       window of its own, so every window is searched
+inline void key_at_wait(QWidget& target) {
+  auto* poll = new QTimer(&target);
+  QObject::connect(poll, &QTimer::timeout, &target, [&target, poll]() {
+    for (const QWidget* window : QApplication::topLevelWidgets()) {
+      if (window->findChild<QLabel*>("waitBar") != nullptr) {
+        poll->stop();
+        poll->deleteLater();
+        QKeyEvent key(QEvent::KeyPress, Qt::Key_Space, Qt::NoModifier, " ");
+        QApplication::sendEvent(&target, &key);
+        return;
+      }
+    }
+  });
+  poll->start(15);
+}
 
 }  // namespace horcom::test

@@ -26,6 +26,7 @@
 
 using namespace horcom;
 using horcom::test::DialogDriver;
+using horcom::test::key_at_wait;
 
 namespace {
 
@@ -362,7 +363,7 @@ TEST_CASE("F9 keeps two pictures and prints them stacked on one page") {
         .then([](QDialog* d) { d->accept(); })
         .then([main](QDialog* d) {
           // his wart over the preview after the print
-          QTimer::singleShot(200, main, [main]() { send_key(main, Qt::Key_Space); });
+          key_at_wait(*main);
           DialogDriver::click("Weiter")(d);
         })
         .then(DialogDriver::click("LÖSCHEN"));
@@ -386,10 +387,6 @@ TEST_CASE("LETZTES BILD shows the last output and keeps it in the BILDER folder"
   std::filesystem::remove_all(dir, ec);
   std::filesystem::create_directories(dir);
   MainWindowProbe::set_data_dir(*w, dir);
-  MainWindow* main = w.get();
-  const auto key_later = [main]() {
-    QTimer::singleShot(250, main, [main]() { send_key(main, Qt::Key_Space); });
-  };
   QString none;
   {
     DialogDriver drive;
@@ -424,7 +421,7 @@ TEST_CASE("LETZTES BILD shows the last output and keeps it in the BILDER folder"
           DialogDriver::click(" SPEICHERN ")(d);
         })
         .then(name_step(QString::fromStdWString((dir / "bilder" / "TABELLE.png").wstring())));
-    key_later();
+    key_at_wait(*w);
     MainWindowProbe::last_picture(*w);
     INFO(drive.titles().join(" | ").toStdString());
     CHECK(drive.pending() == 0);
@@ -449,7 +446,7 @@ TEST_CASE("LETZTES BILD shows the last output and keeps it in the BILDER folder"
           d->accept();
         })
         .then(DialogDriver::click("ABBRUCH"));
-    key_later();
+    key_at_wait(*w);
     MainWindowProbe::last_picture(*w);
     INFO(drive.titles().join(" | ").toStdString());
     CHECK(drive.pending() == 0);
@@ -501,8 +498,7 @@ TEST_CASE("HOROSKOP-GRAPHIK leaves the last picture with the DRUCKER-OPTION off"
   PictureDir pics("horcom_bilder_chart");
   MainWindowProbe::set_data_dir(*w, pics.dir);
   MainWindowProbe::horoskop_graphik(*w);
-  MainWindow* main = w.get();
-  QTimer::singleShot(250, main, [main]() { send_key(main, Qt::Key_Space); });
+  key_at_wait(*w);
   QString box;
   DialogDriver drive;
   drive.then([&box](QDialog* d) {
