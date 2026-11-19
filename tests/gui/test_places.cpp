@@ -2,10 +2,12 @@
 // horcom, the C++ rewrite of HORCOM by Robert Rettig (1989 to 2010)
 // Copyright (c) 2026 Dominik Schwimmbeck
 
+#include <QAbstractButton>
 #include <QApplication>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFocusEvent>
+#include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QMessageBox>
@@ -15,6 +17,7 @@
 #include "dialog_driver.hpp"
 #include "doctest.h"
 #include "horcom/data/chart_file.hpp"
+#include "horcom/data/countries.hpp"
 #include "horcom/data/place_file.hpp"
 #include "place_dialog.hpp"
 #include "place_hub.hpp"
@@ -80,6 +83,37 @@ void tab_into(QWidget* w, QEvent::Type type) {
   QFocusEvent ev(type, Qt::TabFocusReason);
   QApplication::sendEvent(w, &ev);
   QApplication::processEvents();
+}
+
+// the text of a message box, then its OK
+DialogDriver::Step note_of(QString& note) {
+  return [&note](QDialog* d) {
+    if (auto* box = qobject_cast<QMessageBox*>(d)) {
+      note = box->text();
+    }
+    d->accept();
+  };
+}
+
+// one standard button of a question box, its caption follows the locale
+DialogDriver::Step answer(QMessageBox::StandardButton which) {
+  return [which](QDialog* d) {
+    auto* box = qobject_cast<QMessageBox*>(d);
+    if (box == nullptr || box->button(which) == nullptr) {
+      d->reject();
+      return;
+    }
+    box->button(which)->click();
+  };
+}
+
+// the lines of one of his boxes
+QString box_lines(QDialog* d) {
+  QString all;
+  for (const QLabel* l : d->findChildren<QLabel*>()) {
+    all += l->text() + "|";
+  }
+  return all;
 }
 
 }  // namespace
@@ -336,4 +370,135 @@ TEST_CASE("Datensätze LÖSCHEN runs another round on Weiter LÖSCHEN") {
   REQUIRE(left->size() == 1);
   CHECK(QString::fromStdString((*left)[0].name).trimmed() == "DRITTER FALL");
   std::filesystem::remove_all(dir);
+}
+
+TEST_CASE("EINTRAGEN appends the place and reports the size of the file") {
+  ScratchData s("horcom_places_enter");
+  const auto file = s.dir / "places" / "EIGENE.INT";
+  REQUIRE(write_place_file(file, three_places()));
+  {
+    // both coordinates zero is no place, nothing is asked or written
+    DialogDriver drive;
+    CHECK_FALSE(enter_place(nullptr, s.dir, {0.0, 0.0, "Nirgends"}));
+    CHECK(drive.unexpected() == 0);
+  }
+  QString size;
+  {
+    DialogDriver drive;
+    drive.then(open_file(file)).then(note_of(size));
+    CHECK(enter_place(nullptr, s.dir, {7.5, 47.25, "Neudorf / CH"}));
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  // "DATEI " + da$ + " : " + LOF + " BYTE = " + a$ + " SÄTZE"
+  CHECK(size == QString("DATEI EIGENE.INT : %1 BYTE = 4 SÄTZE").arg(4 * kPlaceRecordBytes));
+  const auto places = read_place_file(file);
+  REQUIRE(places.has_value());
+  REQUIRE(places->size() == 4);
+  CHECK(places->back().name == "Neudorf / CH");
+  CHECK(places->back().lat == doctest::Approx(47.25));
+}
+
+TEST_CASE("the VORZUGSORT is replaced and deleted only after his questions") {
+  ScratchData s("horcom_places_home");
+  const auto ext = s.dir / "ort.ext";
+  // the longitude on file, zero while none is stored
+  const auto stored_lon = [&ext]() { return read_preferred_place(ext).value_or(PlaceRecord{}).lon; };
+  QString note;
+  {
+    DialogDriver drive;
+    drive.then(note_of(note));
+    delete_preferred_place(nullptr, s.dir);
+    CHECK(drive.pending() == 0);
+  }
+  //RR VORZUGSORT FEHLT !
+  CHECK(note == "VORZUGSORT FEHLT !");
+  REQUIRE(write_preferred_place(ext, {10.0, 47.0, "Altort"}));
+  QString ask;
+  {
+    DialogDriver drive;
+    drive.then([&ask](QDialog* d) {
+      ask = box_lines(d);
+      DialogDriver::click_exact("NEIN")(d);
+    });
+    CHECK_FALSE(store_preferred_place(nullptr, s.dir, {8.0, 46.0, "Neuort"}));
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  //RR BISHERIGEN VORZUGSORT LÖSCHEN|Und AKTUELLEN ORT dafür eintragen ?
+  CHECK(ask.contains("BISHERIGEN VORZUGSORT LÖSCHEN"));
+  CHECK(stored_lon() == doctest::Approx(10.0));
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click_exact("JA")).then(note_of(note));
+    CHECK(store_preferred_place(nullptr, s.dir, {8.0, 46.0, "Neuort"}));
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  CHECK(note == "NEUER VORZUGSORT gespeichert !");
+  CHECK(stored_lon() == doctest::Approx(8.0));
+  {
+    DialogDriver drive;
+    drive.then(answer(QMessageBox::No));
+    delete_preferred_place(nullptr, s.dir);
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  CHECK(std::filesystem::exists(ext));
+  {
+    DialogDriver drive;
+    drive.then(answer(QMessageBox::Yes)).then(note_of(note));
+    delete_preferred_place(nullptr, s.dir);
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  //RR VORZUGSORT GELÖSCHT !
+  CHECK(note == "VORZUGSORT GELÖSCHT !");
+  CHECK_FALSE(std::filesystem::exists(ext));
+}
+
+TEST_CASE("ORTS-DATEIEN confirms a BIGFILE and refuses a file of another kind") {
+  ScratchData s("horcom_places_bigfile");
+  std::filesystem::copy_file(HORCOM_TEST_DATA_DIR "/landnima.int", s.dir / "landnima.int");
+  const auto nima = load_nima_countries(s.dir / "landnima.int");
+  REQUIRE(nima.has_value());
+  const QString land = QString::fromStdString(nima_country_name(*nima, "GM"));
+  REQUIRE_FALSE(land.isEmpty());
+  // a BIGFILE of one country and letter group, CC_A_K
+  const auto big = s.dir / "places" / "GM_A_K.INT";
+  REQUIRE(write_place_file(big, three_places()));
+  QString confirm;
+  QString note;
+  {
+    DialogDriver drive;
+    drive.then(open_file(big))
+        .then(DialogDriver::click("KORRIGIEREN ?"))  // the file choice again
+        .then(open_file(big))
+        .then([&confirm](QDialog* d) {
+          confirm = box_lines(d);
+          DialogDriver::click_exact("OK")(d);
+        })
+        .then(DialogDriver::click("TRIMMEN"))
+        .then(note_of(note));
+    CHECK_FALSE(place_file_hub(nullptr, s.dir).has_value());
+    INFO(drive.titles().join(" | ").toStdString());
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  //RR Sie haben folgende Orts-Datei gewählt :
+  CHECK(confirm.contains("Sie haben folgende Orts-Datei gewählt :"));
+  CHECK(confirm.contains(land + " , Buchstaben-Gruppe  A .... K"));
+  // a file without empty places stays as it was
+  CHECK(note == "Nichts zu bereinigen, 3 Datensätze.");
+  const auto other = s.dir / "places" / "LISTE.TXT";
+  REQUIRE(write_place_file(other, three_places()));
+  {
+    DialogDriver drive;
+    drive.then(open_file(other)).then(note_of(note));
+    CHECK_FALSE(place_file_hub(nullptr, s.dir).has_value());
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  //RR KEINE oder UNGÜLTIGE Datei !
+  CHECK(note == "KEINE oder UNGÜLTIGE Datei !");
 }
