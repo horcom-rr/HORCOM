@@ -15,14 +15,22 @@
 #include <QStyle>
 #include <QStyleOptionButton>
 #include <QTimer>
+#include <algorithm>
 #include <cmath>
 #include <filesystem>
 #include <optional>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "dialog_driver.hpp"
 #include "doctest.h"
+#include "horcom/chart/bodies.hpp"
+#include "horcom/core/angle.hpp"
+#include "horcom/core/constants.hpp"
 #include "horcom/data/chart_file.hpp"
 #include "horcom/data/statist.hpp"
+#include "horcom/data/statist_eval.hpp"
 #include "probe.hpp"
 #include "robert_input.hpp"
 #include "theme.hpp"
@@ -182,6 +190,62 @@ void build_dataset(MainWindow& w, const std::filesystem::path& dir) {
       .then(pick_file(dir / "spezial" / "DEMO.DAT"));
   MainWindowProbe::statistics_hub(w);
   CHECK(drive.pending() == 0);
+}
+
+const char* const kNames[3] = {"ANNA MUSTER", "BERND BEISPIEL", "CARLA DEMO"};
+
+// a longitude in radians as degrees within the circle
+double deg_of(double rad) {
+  return norm_rad(rad) * kRadToDeg;
+}
+
+// the record whose value stands more than six degrees from every other,
+// the window of two degrees around it holds that record alone. The size
+// of the list when no record stands apart
+std::size_t lone_record(const std::vector<double>& deg) {
+  for (std::size_t i = 0; i < deg.size(); ++i) {
+    bool apart = true;
+    for (std::size_t k = 0; k < deg.size(); ++k) {
+      const double gap = std::fabs(deg[i] - deg[k]);
+      apart = apart && (k == i || std::min(gap, kDegPerCircle - gap) > 6.0);
+    }
+    if (apart) {
+      return i;
+    }
+  }
+  return deg.size();
+}
+
+// one condition at LAGE Bei GRAD with an orb of two degrees, the steps
+// of the object first, and the texts of its list
+QStringList at_degree(MainWindow& w, const std::filesystem::path& dir, double degree,
+                      const std::vector<DialogDriver::Step>& object) {
+  QStringList page;
+  DialogDriver drive;
+  drive.then(DialogDriver::click("AUSWERTUNG STARTEN")).then(pick_file(dir / "statist7" / "DEMO.STA"));
+  for (const DialogDriver::Step& s : object) {
+    drive.then(s);
+  }
+  drive.then(DialogDriver::click("Bei GRAD..ORBIS.."))
+      .then(DialogDriver::fill({QString::number(degree, 'f', 1)}, "OK"))
+      .then(DialogDriver::click_exact("2"))  // ORBIS in GRAD ?
+      .then(DialogDriver::click("AUSGABE-LISTE"))
+      .then(read_list(page))
+      .then(DialogDriver::click("JA"));
+  MainWindowProbe::statistics_hub(w);
+  INFO(drive.titles().join(" | ").toStdString());
+  CHECK(drive.pending() == 0);
+  CHECK(drive.unexpected() == 0);
+  return page;
+}
+
+// the list holds the one record and neither of the others
+void check_only(const QStringList& page, std::size_t record) {
+  const QString all = page.join("|");
+  for (std::size_t i = 0; i < 3; ++i) {
+    INFO(std::string(kNames[i]));
+    CHECK(all.contains(kNames[i]) == (i == record));
+  }
 }
 
 }  // namespace
@@ -834,4 +898,325 @@ TEST_CASE("SO MO AC draws its sign bars and OHNE EINSCHRÄNKUNG keeps no info bo
     CHECK(drive.pending() == 0);
   }
   CHECK(boxed.join("|").contains("   3 DATENSÄTZE wurden durchgesucht"));
+}
+
+TEST_CASE("HALBSUMME searches the nearer midpoint of its two factors") {
+  auto w = MainWindowProbe::make();
+  const auto dir = statist_folder();
+  MainWindowProbe::set_data_dir(*w, dir);
+  build_dataset(*w, dir);
+  const auto set = load_statistics(dir / "statist7" / "DEMO.STA");
+  REQUIRE(set.has_value());
+  std::vector<double> deg;
+  for (const StatRecord& r : set->records) {
+    const double so = r.el[body::kSun];
+    const double mo = r.el[body::kMoon];
+    // the midpoint on the shorter arc between the two
+    const double mid = (so + mo) / 2.0;
+    deg.push_back(deg_of(std::fabs(so - mo) > kPi ? mid + kPi : mid));
+  }
+  const std::size_t i = lone_record(deg);
+  REQUIRE(i < deg.size());
+  const QStringList page = at_degree(*w, dir, deg[i],
+                                     {DialogDriver::click_exact("HALBSUMME"), DialogDriver::pick_text("SONNE"),
+                                      DialogDriver::pick_text("MOND")});
+  check_only(page, i);
+  // p$ = "HALBSUMME " + pl$(m&(1)) + "-" + pl$(m&(2))
+  CHECK(page.join("|").contains("HALBSUMME SO-MO"));
+}
+
+TEST_CASE("SPIEGELPUNKT mirrors its factor at the chosen axis") {
+  auto w = MainWindowProbe::make();
+  const auto dir = statist_folder();
+  MainWindowProbe::set_data_dir(*w, dir);
+  build_dataset(*w, dir);
+  const auto set = load_statistics(dir / "statist7" / "DEMO.STA");
+  REQUIRE(set.has_value());
+  // AR-LI turns w into 360° - w, CN-CP into 180° - w
+  const std::pair<QString, double> axes[2] = {{"AR-LI", kTwoPi}, {"CN-CP", kPi}};
+  for (const auto& [axis, turn] : axes) {
+    INFO(axis.toStdString());
+    std::vector<double> deg;
+    for (const StatRecord& r : set->records) {
+      deg.push_back(deg_of(turn - r.el[body::kSun]));
+    }
+    const std::size_t i = lone_record(deg);
+    REQUIRE(i < deg.size());
+    const QStringList page = at_degree(*w, dir, deg[i],
+                                       {DialogDriver::click("SPIEGELPUNKT"), DialogDriver::click_exact(axis),
+                                        DialogDriver::pick_text("SONNE")});
+    check_only(page, i);
+    CHECK(page.join("|").contains("SPIEGELP.SO /" + axis));
+  }
+}
+
+TEST_CASE("ARABISCHE TEILE take the fixed formula or turn it by day and night") {
+  auto w = MainWindowProbe::make();
+  const auto dir = statist_folder();
+  MainWindowProbe::set_data_dir(*w, dir);
+  build_dataset(*w, dir);
+  const auto set = load_statistics(dir / "statist7" / "DEMO.STA");
+  REQUIRE(set.has_value());
+  {
+    // IMMER : FAKTOR 1 + FAKTOR 2 - FAKTOR 3
+    std::vector<double> deg;
+    for (const StatRecord& r : set->records) {
+      deg.push_back(deg_of(r.ac + r.el[body::kMoon] - r.el[body::kSun]));
+    }
+    const std::size_t i = lone_record(deg);
+    REQUIRE(i < deg.size());
+    const QStringList page =
+        at_degree(*w, dir, deg[i],
+                  {DialogDriver::click("ARABISCHE TEILE"), DialogDriver::click("IMMER F1 + F2 - F3"),
+                   DialogDriver::pick_text("ASZENDENT"), DialogDriver::pick_text("MOND"),
+                   DialogDriver::pick_text("SONNE")});
+    check_only(page, i);
+    CHECK(page.join("|").contains("ARABT. AC+MO-SO"));
+  }
+  {
+    // TRADITIONELL with his GLÜCKSPUNKT example, F1 + F3 - F2 when the
+    // Sun stands above the horizon, from the descendant on to the
+    // ascendant, F1 + F2 - F3 below it
+    std::vector<double> deg;
+    for (const StatRecord& r : set->records) {
+      const double so = r.el[body::kSun];
+      const double mo = r.el[body::kMoon];
+      const bool day = norm_rad(so - r.ac) > kPi;
+      deg.push_back(deg_of(day ? r.ac + mo - so : r.ac + so - mo));
+    }
+    const std::size_t i = lone_record(deg);
+    REQUIRE(i < deg.size());
+    const QStringList page =
+        at_degree(*w, dir, deg[i],
+                  {DialogDriver::click("ARABISCHE TEILE"), DialogDriver::click("TRADITIONELL"),
+                   DialogDriver::pick_text("ASZENDENT"), DialogDriver::pick_text("SONNE"),
+                   DialogDriver::pick_text("MOND")});
+    check_only(page, i);
+    CHECK(page.join("|").contains("ARABT. TRADIT. AC/SO/MO"));
+  }
+}
+
+TEST_CASE("HERRSCHER von HAUS searches the ruler of the sign on the cusp") {
+  auto w = MainWindowProbe::make();
+  const auto dir = statist_folder();
+  MainWindowProbe::set_data_dir(*w, dir);
+  build_dataset(*w, dir);
+  const auto set = load_statistics(dir / "statist7" / "DEMO.STA");
+  REQUIRE(set.has_value());
+  StatQuery q;
+  q.object = StatObject::kHouseRuler;
+  q.a.house = 1;
+  q.rulers = MainWindowProbe::rulers(*w);
+  std::vector<double> mask;
+  const StatEvalResult ruled = evaluate_statistics(*set, q, MainWindowProbe::aspect_settings(*w), mask);
+  REQUIRE(ruled.matches.size() == 3);
+  // the evaluator itself is pinned in test_statist_eval.cpp, here it
+  // gives each record the place of its ruler
+  std::vector<double> deg(3);
+  for (const StatMatch& m : ruled.matches) {
+    deg[static_cast<std::size_t>(m.record)] = deg_of(m.value);
+  }
+  const std::size_t i = lone_record(deg);
+  REQUIRE(i < deg.size());
+  const QStringList page =
+      at_degree(*w, dir, deg[i], {DialogDriver::click("HERRSCHER von HAUS"), DialogDriver::click_exact("1")});
+  check_only(page, i);
+  CHECK(page.join("|").contains("Herr v. Haus 1"));
+}
+
+TEST_CASE("ASPEKT lists the records whose factors stand in aspect") {
+  auto w = MainWindowProbe::make();
+  const auto dir = statist_folder();
+  MainWindowProbe::set_data_dir(*w, dir);
+  build_dataset(*w, dir);
+  const auto set = load_statistics(dir / "statist7" / "DEMO.STA");
+  REQUIRE(set.has_value());
+  const AspectSettings& orbs = MainWindowProbe::aspect_settings(*w);
+  const auto records_of = [&](const StatQuery& q) {
+    std::vector<double> mask;
+    std::vector<bool> hit(set->records.size());
+    for (const StatMatch& m : evaluate_statistics(*set, q, orbs, mask).matches) {
+      hit[static_cast<std::size_t>(m.record)] = true;
+    }
+    return hit;
+  };
+  const auto run = [&](const std::vector<DialogDriver::Step>& steps) {
+    QStringList page;
+    DialogDriver drive;
+    drive.then(DialogDriver::click("AUSWERTUNG STARTEN")).then(pick_file(dir / "statist7" / "DEMO.STA"));
+    for (const DialogDriver::Step& s : steps) {
+      drive.then(s);
+    }
+    drive.then(DialogDriver::click("AUSGABE-LISTE")).then(read_list(page)).then(DialogDriver::click("JA"));
+    MainWindowProbe::statistics_hub(*w);
+    INFO(drive.titles().join(" | ").toStdString());
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+    return page.join("|");
+  };
+
+  // every aspect up to the divisor 8 between SO and MO, the orbs of the
+  // orb table
+  StatQuery all;
+  all.object = StatObject::kAspect;
+  all.a.body = body::kSun;
+  all.b.body = body::kMoon;
+  all.asp_low = 1;
+  all.asp_high = kStatMaxRangeDivisor;
+  const std::vector<bool> want = records_of(all);
+  REQUIRE(std::find(want.begin(), want.end(), true) != want.end());
+  const QString listed =
+      run({DialogDriver::click("ASPEKT (mit"), DialogDriver::pick_text("SONNE"),
+           DialogDriver::click("mit EINZELNEM FAKTOR"), DialogDriver::pick_text("MOND"),
+           DialogDriver::click("ALLE ASPEKTE bis TEILER"), DialogDriver::click_exact("8")});
+  for (std::size_t i = 0; i < 3; ++i) {
+    INFO(std::string(kNames[i]));
+    CHECK(listed.contains(kNames[i]) == want[i]);
+  }
+  CHECK(listed.contains("ASPEKT SO/MO bis TEILER 8"));
+
+  // MA in one aspect to the midpoint of SO and MO, at the first divisor
+  // that tells the records apart, with the orb of its row
+  StatQuery mid;
+  mid.object = StatObject::kMidpointAspect;
+  mid.a.body = body::kMars;
+  mid.b.body = body::kSun;
+  mid.c.body = body::kMoon;
+  int divisor = 0;
+  std::vector<bool> some;
+  for (int n = 1; n <= kStatMaxSingleDivisor && divisor == 0; ++n) {
+    mid.asp_low = n;
+    mid.asp_high = n;
+    mid.asp_orb = orbs.orbe[static_cast<std::size_t>(n)];
+    some = records_of(mid);
+    const auto count = std::count(some.begin(), some.end(), true);
+    if (count > 0 && count < 3) {
+      divisor = n;
+    }
+  }
+  REQUIRE(divisor > 0);
+  const QString single =
+      run({DialogDriver::click("ASPEKT (mit"), DialogDriver::pick_text("MARS"), DialogDriver::click("mit HALBSUMME"),
+           DialogDriver::pick_text("SONNE"), DialogDriver::pick_text("MOND"), DialogDriver::click("EINZEL-ASPEKT"),
+           DialogDriver::click_exact(QString::number(divisor))});
+  for (std::size_t i = 0; i < 3; ++i) {
+    INFO(std::string(kNames[i]));
+    CHECK(single.contains(kNames[i]) == some[i]);
+  }
+  CHECK(single.contains("ASPEKT MA/ HS. SO-MO"));
+}
+
+TEST_CASE("ODER joins two conditions and UND EXKLUSIV lists only the complete rows") {
+  auto w = MainWindowProbe::make();
+  const auto dir = statist_folder();
+  MainWindowProbe::set_data_dir(*w, dir);
+  build_dataset(*w, dir);
+  const auto two_names = [&](const QString& first, const QString& join, const QString& second, QString& box) {
+    QStringList page;
+    DialogDriver drive;
+    drive.then(DialogDriver::click("AUSWERTUNG STARTEN"))
+        .then(pick_file(dir / "statist7" / "DEMO.STA"))
+        .then(DialogDriver::click("NAME    ( BUCHSTABENFOLGE )"))
+        .then(DialogDriver::fill({first}, "OK"))
+        .then(DialogDriver::click_exact(join))
+        .then(DialogDriver::click("NAME    ( BUCHSTABENFOLGE )"))
+        .then(DialogDriver::fill({second}, "OK"))
+        .then([&box](QDialog* d) {  // * WEITERE BEDINGUNG ? *
+          box = box_text(d);
+          DialogDriver::click("AUSGABE-LISTE")(d);
+        })
+        .then(read_list(page))
+        .then(DialogDriver::click("JA"));
+    MainWindowProbe::statistics_hub(*w);
+    INFO(drive.titles().join(" | ").toStdString());
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+    return page.join("|");
+  };
+  QString box;
+  const QString either = two_names("ANNA", "ODER", "CARLA", box);
+  CHECK(either.contains("ANNA MUSTER"));
+  CHECK(either.contains("CARLA DEMO"));
+  CHECK_FALSE(either.contains("BERND BEISPIEL"));
+  // e$ = " " + STR$(anzb&,2) + " OBJEKTE SCHON GEWÄHLT ! "
+  CHECK(box.contains("  2 OBJEKTE SCHON GEWÄHLT ! "));
+  // three records meet the blank, ANNA both conditions, the exclusive
+  // list keeps her alone
+  const QString both = two_names(" ", "UND  EXKLUSIV", "anna", box);
+  CHECK(both.contains("ANNA MUSTER"));
+  CHECK_FALSE(both.contains("BERND BEISPIEL"));
+  CHECK_FALSE(both.contains("CARLA DEMO"));
+  CHECK(both.contains("UND-Bedingung"));
+}
+
+TEST_CASE("VORGABEN STATISTIK set the update and the list size, LÖSCHEN asks first") {
+  auto w = MainWindowProbe::make();
+  const auto dir = statist_folder();
+  MainWindowProbe::set_data_dir(*w, dir);
+  build_dataset(*w, dir);
+  MainWindowProbe::konsta(*w).stats = false;
+  MainWindowProbe::konsta(*w).slist = false;
+  QString update;
+  QString size;
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("VORGABEN STATISTIK ÄNDERN"))
+        .then([&update](QDialog* d) {
+          update = box_text(d);
+          DialogDriver::click_exact("JA")(d);
+        })
+        .then([&size](QDialog* d) {
+          size = box_text(d);
+          DialogDriver::click_exact("KLEIN")(d);
+        });
+    MainWindowProbe::statistics_hub(*w);
+    INFO(drive.titles().join(" | ").toStdString());
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  CHECK(update.contains("NEUE DATENSÄTZE UPDATEN ?"));
+  CHECK(size.contains("MEHR DETAILS in KLEIN-SCHRIFT ?"));
+  CHECK(MainWindowProbe::konsta(*w).stats);
+  CHECK(MainWindowProbe::konsta(*w).slist);
+  {
+    // his GOTO stend skipped kon_dsp, the first answer goes with it
+    DialogDriver drive;
+    drive.then(DialogDriver::click("VORGABEN STATISTIK ÄNDERN"))
+        .then(DialogDriver::click_exact("NEIN"))
+        .then(DialogDriver::click("Zurück zum HAUPT - MENÜ"));
+    MainWindowProbe::statistics_hub(*w);
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  CHECK(MainWindowProbe::konsta(*w).stats);
+  CHECK(MainWindowProbe::konsta(*w).slist);
+
+  // NEIN stands first and keeps the dataset, JA removes it
+  const std::filesystem::path sta = dir / "statist7" / "DEMO.STA";
+  QString ask;
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("AUSWERTEFÄHIGE DATEI LÖSCHEN ?"))
+        .then(pick_file(sta))
+        .then([&ask](QDialog* d) {
+          ask = box_text(d);
+          DialogDriver::click_exact("NEIN")(d);
+        });
+    MainWindowProbe::statistics_hub(*w);
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  CHECK(ask.contains("WIRKLICH LÖSCHEN ?"));
+  CHECK(std::filesystem::exists(sta));
+  {
+    DialogDriver drive;
+    drive.then(DialogDriver::click("AUSWERTEFÄHIGE DATEI LÖSCHEN ?"))
+        .then(pick_file(sta))
+        .then(DialogDriver::click_exact("JA"));
+    MainWindowProbe::statistics_hub(*w);
+    CHECK(drive.pending() == 0);
+    CHECK(drive.unexpected() == 0);
+  }
+  CHECK_FALSE(std::filesystem::exists(sta));
+  CHECK_FALSE(std::filesystem::exists(dir / "statist7" / "DEMO.PAR"));
 }

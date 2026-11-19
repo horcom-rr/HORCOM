@@ -55,6 +55,37 @@ class DialogDriver {
     };
   }
 
+  /// A step that clicks the button whose whole caption is the given one.
+  /// @note A part would also hit the longer captions around it, 1 inside
+  ///       10 or HALBSUMME inside his ASPEKT row
+  static Step click_exact(const QString& caption) {
+    return [caption](QDialog* d) {
+      for (QAbstractButton* b : d->findChildren<QAbstractButton*>()) {
+        if (b->text().remove('&').trimmed() == caption) {
+          b->click();
+          return;
+        }
+      }
+      d->reject();
+    };
+  }
+
+  /// A step that activates the list row whose trimmed text is the caption.
+  static Step pick_text(const QString& caption) {
+    return [caption](QDialog* d) {
+      if (QListWidget* list = d->findChild<QListWidget*>()) {
+        for (int i = 0; i < list->count(); ++i) {
+          if (list->item(i)->text().trimmed() == caption) {
+            list->setCurrentRow(i);
+            emit list->itemActivated(list->currentItem());
+            return;
+          }
+        }
+      }
+      d->reject();
+    };
+  }
+
   /// A step that fills the line edits in order and clicks the caption.
   static Step fill(const QStringList& values, const QString& caption) {
     return [values, caption](QDialog* d) {
