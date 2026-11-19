@@ -78,12 +78,13 @@ program and double click it. To verify the download, run
 <code>sha256sum -c SHA256SUMS.txt --ignore-missing</code> in the download folder.
 </p>
 <p>
-If the image does not start and mentions FUSE, the system lacks the old
-FUSE 2 library that AppImages mount themselves with. Install it
-(<code>sudo apt install libfuse2t64</code> on Ubuntu 24.04,
-<code>sudo apt install libfuse2</code> on Ubuntu 22.04 and Debian,
-<code>sudo dnf install fuse-libs</code> on Fedora), or start the image
-with <code>--appimage-extract-and-run</code>, which works everywhere.
+Where FUSE is missing, the image unpacks itself at every start, which
+takes a few seconds longer. The package <code>fuse3</code> lets it start
+directly, it has that name on every major distribution
+(<code>sudo apt install fuse3</code> on Ubuntu and Debian,
+<code>sudo dnf install fuse3</code> on Fedora). Should the image still
+refuse to start, <code>--appimage-extract-and-run</code> starts it
+without FUSE.
 </p>
 
 <h3>Menu entry and updates</h3>

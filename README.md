@@ -64,7 +64,7 @@ chmod +x horcom-linux-x86_64.AppImage
 ./horcom-linux-x86_64.AppImage
 ```
 
-If it does not start and mentions FUSE, install `libfuse2t64` (Ubuntu 24.04), `libfuse2` (Ubuntu 22.04, Debian) or `fuse-libs` (Fedora). Your settings and files live in `~/.config/horcom` and `~/.local/share/horcom/data`, so replacing the AppImage with a newer one keeps them.
+Where FUSE is missing, the AppImage unpacks itself at every start, which takes a few seconds longer. The package `fuse3`, named the same on every major distribution, lets it start directly. Your settings and files live in `~/.config/horcom` and `~/.local/share/horcom/data`, so replacing the AppImage with a newer one keeps them.
 
 ## About Robert Rettig and HORCOM
 
