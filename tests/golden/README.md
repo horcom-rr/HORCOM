@@ -63,6 +63,13 @@ Placidus fixed point and keeps the faithful 1e-6 criterion. The three
 recorded cusps should be re-checked against their source screens when
 those are available.
 
+The ctest `cli_golden` (`tests/cli_golden.cmake`) runs the command line
+tool on every chart of `manifest.json` with the settings above, house
+mode 8 beyond the polar circle, and compares its output with
+`chartNN_new_koordinaten.txt` byte for byte. A change that moves a
+printed number fails there. Regenerate the new side only on purpose and
+check it with `compare_golden.py` before it is committed.
+
 ## The true node after the lunar latitude fix
 
 The original added the nutation in obliquity to the Moon's ecliptic

@@ -42,6 +42,13 @@ target_compile_definitions(horcom_tests PRIVATE HORCOM_TEST_DATA_DIR="${CMAKE_SO
 
 add_test(NAME horcom_tests COMMAND horcom_tests)
 
+# the command line tool reproduces the recorded new side of every golden
+# chart, a change that moves a printed number fails here
+add_test(NAME cli_golden
+  COMMAND ${CMAKE_COMMAND} -DCLI=$<TARGET_FILE:horcom_cli> -DDATA=${CMAKE_SOURCE_DIR}/data
+          -DGOLDEN=${CMAKE_CURRENT_SOURCE_DIR}/golden -DOUT=${CMAKE_CURRENT_BINARY_DIR}
+          -P ${CMAKE_CURRENT_SOURCE_DIR}/cli_golden.cmake)
+
 # the shell under test, the MainWindow and its dialogs run headless on the
 # offscreen platform, a probe struct reaches the panel state
 if(TARGET horcom_gui_core)

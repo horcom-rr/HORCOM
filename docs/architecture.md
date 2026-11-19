@@ -288,7 +288,7 @@ The cluster `par` (topocentric parallax, Montenbruck p.25 formulation in equator
 
 ## 5. Verification strategy
 
-1. **Golden values from the original.** `HORCOM7P.EXE` (16-bit) runs under winevdm/otvdm or a 32-bit VM; the GFA IDE (unpacked from `legacy/GFAWIN`) can also run the source directly. For a grid of test epochs (spanning Julian/Gregorian, BC years, the .EPH coverage bounds, DST cases) we record the program's planet coordinate tables (menu 37/38), house tables (menu 80), and parallax on/off pairs, and store them as fixture files.
+1. **Golden values from the original.** `HORCOM7P.EXE` (16-bit) runs under winevdm/otvdm or a 32-bit VM; the GFA IDE (unpacked from `legacy/GFAWIN`) can also run the source directly. For a grid of test epochs (spanning Julian/Gregorian, BC years, the .EPH coverage bounds, DST cases) we record the program's planet coordinate tables (menu 37/38), house tables (menu 80), and parallax on/off pairs, and store them as fixture files. The ctest `cli_golden` runs the command line tool on the 50 recorded charts of `tests/golden` and compares its output with the stored new side byte for byte, so a change that moves a printed number fails the run.
 2. **Data-derived checks.** The `.EPH` binaries themselves are ground truth for the reader; `PLANETS.DAT` record 0 (Earth L0 = 1.75347045673) and friends pin the VSOP loader.
 3. **Property tests** for the kernel (normalisation, atan quadrants, calendar round-trips, interpolation continuity at record boundaries).
 4. Each module lands only with its tests; nothing merges on visual inspection alone.
