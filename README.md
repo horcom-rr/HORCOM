@@ -11,7 +11,7 @@
   <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux-555" alt="Windows and Linux">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue" alt="license"></a>
   <a href="https://codecov.io/gh/horcom-rr/HORCOM"><img src="https://img.shields.io/codecov/c/github/horcom-rr/HORCOM" alt="test coverage"></a>
-  <a href="https://api.reuse.software/info/github.com/horcom-rr/HORCOM"><img src="https://img.shields.io/reuse/compliance/github.com%2Fhorcom-rr%2FHORCOM" alt="REUSE compliance"></a>
+  <a href="https://api.reuse.software/info/github.com/horcom-rr/HORCOM"><img src="https://api.reuse.software/badge/github.com/horcom-rr/HORCOM" alt="REUSE compliance"></a>
 </p>
 
 **HORCOM** is a complete astrology program for the desktop. It casts and draws birth charts, follows transits and directions, computes solar, lunar and planetary returns, compares two people, and walks the seven year phases of the Munich rhythm theory. **Robert Rettig** wrote and refined it from about 1989 until 2010. This is his program on today's Windows and Linux, free and open source.
