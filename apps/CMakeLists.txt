@@ -1,3 +1,7 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# horcom, the C++ rewrite of HORCOM by Robert Rettig (1989 to 2010)
+# Copyright (c) 2026 Dominik Schwimmbeck
+
 # the Windows identity of the executables, icon plus version block,
 # CI passes the release number as HORCOM_VERSION
 set(HORCOM_VERSION "0.0" CACHE STRING "version stamped into the executables")

@@ -1,3 +1,7 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# horcom, the C++ rewrite of HORCOM by Robert Rettig (1989 to 2010)
+# Copyright (c) 2026 Dominik Schwimmbeck
+#
 # Compares the transcribed coordinate tables of the original HORCOM7P
 # (tests/golden/chartNN_original_koordinaten.json) against the output of
 # the new CLI for the same charts (chartNN_new_koordinaten.txt).

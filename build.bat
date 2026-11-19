@@ -1,4 +1,7 @@
 @echo off
+rem SPDX-License-Identifier: GPL-3.0-or-later
+rem horcom, the C++ rewrite of HORCOM by Robert Rettig (1989 to 2010)
+rem Copyright (c) 2026 Dominik Schwimmbeck
 call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat" >nul
 if errorlevel 1 exit /b 1
 "C:\Program Files\CMake\bin\cmake.exe" -S %~dp0 -B %~dp0build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=C:/Qt/6.8.3/msvc2022_64
