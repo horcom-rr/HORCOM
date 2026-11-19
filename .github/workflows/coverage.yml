@@ -17,6 +17,8 @@ permissions:
 jobs:
   coverage:
     runs-on: ubuntu-24.04
+    # a stalled package mirror would otherwise hold the runner for hours
+    timeout-minutes: 45
     # the upload signs in with a GitHub OIDC token instead of a secret
     permissions:
       contents: read
@@ -48,9 +50,12 @@ jobs:
         run: ctest --test-dir build --output-on-failure --parallel 4
 
       - name: Report
+        # the branches the compiler adds for exceptions and unreachable
+        # code are no decisions of the program and stay out of the count
         run: >
           gcovr --root . --gcov-executable gcov-14
           --filter src/ --filter apps/
+          --exclude-throw-branches --exclude-unreachable-branches
           --xml coverage.xml --print-summary build
 
       - name: Upload
